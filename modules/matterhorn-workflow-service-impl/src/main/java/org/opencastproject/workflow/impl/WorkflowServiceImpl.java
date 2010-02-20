@@ -228,7 +228,7 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
       }
       String catchWorkflow = op.getExceptionHandlingWorkflow();
       if (catchWorkflow != null) {
-        WorkflowDefinition catchWorkflowDefinition = getWorkflowDefinitionByName(catchWorkflow);
+        WorkflowDefinition catchWorkflowDefinition = getWorkflowDefinitionById(catchWorkflow);
         if (catchWorkflowDefinition == null) {
           log_.info("{} is not runnable due to missing catch workflow {} on operation {}",
                   new Object[] {workflowDefinition, catchWorkflow, op});
@@ -373,7 +373,7 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
    *          the workflow definition name
    * @return the workflow
    */
-  public WorkflowDefinition getWorkflowDefinitionByName(String name) {
+  public WorkflowDefinition getWorkflowDefinitionById(String name) {
     return workflowDefinitions.get(name);
   }
 
