@@ -104,8 +104,10 @@ public class WorkflowBuilder {
    */
   public WorkflowInstance parseWorkflowInstance(InputStream in) throws Exception {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-    return unmarshaller.unmarshal(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in),
+    WorkflowInstanceImpl workflow = unmarshaller.unmarshal(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in),
             WorkflowInstanceImpl.class).getValue();
+    workflow.init();
+    return workflow;
   }
 
   /**

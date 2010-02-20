@@ -41,8 +41,8 @@ public class WorkflowDefinitionImpl implements WorkflowDefinition {
   public WorkflowDefinitionImpl() {}
 
   @XmlID
-  @XmlElement(name="title")
-  private String title;
+  @XmlElement(name="id")
+  private String id;
 
   @XmlElement(name="description")
   private String description;
@@ -51,12 +51,12 @@ public class WorkflowDefinitionImpl implements WorkflowDefinition {
   @XmlElementWrapper(name="operations")
   private List<WorkflowOperationDefinition> operations;
   
-  public String getTitle() {
-    return title;
+  public String getId() {
+    return id;
   }
   
-  public void setTitle(String title) {
-    this.title = title;
+  public void setId(String id) {
+    this.id = id;
   }
   
   public String getDescription() {

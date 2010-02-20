@@ -1,5 +1,5 @@
 <workflow-definition>
-  <title>Default Error Handler</title>
+  <id>error</id>
   <description>Notifies the logs that an error occurred</description>
   <operations>
     <operation

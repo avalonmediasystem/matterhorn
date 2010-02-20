@@ -1,5 +1,5 @@
 <workflow-definition>
-  <title>Transcode, Distribute and Publish</title>
+  <id>workflow-service-sample</id>
   <description>
     A simple workflow that transcodes the media into distribution formats, then sends the resulting distribution files,
     along with their associated metadata, to the distribution channels.
@@ -8,7 +8,7 @@
   
     <!-- inspect the media -->
     <operation
-      name="inspect"
+      id="inspect"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Inspect the media package">
@@ -16,7 +16,7 @@
  
   <!-- encode to flash download -->
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presenter (camera) video to Flash download">
@@ -28,7 +28,7 @@
       </configurations>
     </operation>
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presentation (screen) to Flash download">
@@ -43,7 +43,7 @@
   <!-- encode to flash streaming -->
   <!-- 
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presenter (camera) to Flash streaming">
@@ -55,7 +55,7 @@
       </configurations>
     </operation>
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presentation (screen) to Flash streaming">
@@ -70,7 +70,7 @@
 
   <!-- encode to quicktime download -->
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presenter (camera) to quicktime/mp4 download">
@@ -82,7 +82,7 @@
       </configurations>
     </operation>
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presentation (screen) to quicktime/mpeg4 download">
@@ -96,7 +96,7 @@
     
     <!-- encode to avi download -->
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presenter (camera) to avi/mpeg4 download">
@@ -108,7 +108,7 @@
       </configurations>
     </operation>
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presentation (screen) to avi/mpeg4 download">
@@ -122,7 +122,7 @@
  
      <!-- encode to m4a download -->
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presenter (camera) to m4a/aac download">
@@ -134,7 +134,7 @@
       </configurations>
     </operation>
     <operation
-      name="compose"
+      id="compose"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presentation (screen) to m4a/aac download">
@@ -148,7 +148,7 @@
  
     <!-- encode to cover image -->
     <operation
-      name="image"
+      id="image"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presenter (camera) to cover image">
@@ -162,7 +162,7 @@
       </configurations>
     </operation>
     <operation
-      name="image"
+      id="image"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presentation (screen) to cover image">
@@ -177,7 +177,7 @@
     </operation>
 
     <operation
-      name="image"
+      id="image"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presenter (camera) to cover image">
@@ -191,7 +191,7 @@
       </configurations>
     </operation>
     <operation
-      name="image"
+      id="image"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Encode presentation (screen) to cover image">
@@ -206,7 +206,7 @@
     </operation>
 
     <operation
-      name="distribute_local"
+      id="distribute_local"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Distribute media to the local distribution channel">
@@ -217,7 +217,7 @@
     </operation>
 
     <operation
-      name="publish"
+      id="publish"
       fail-on-error="true"
       exception-handler-workflow="Default Error Handler"
       description="Add metadata to the search index">
