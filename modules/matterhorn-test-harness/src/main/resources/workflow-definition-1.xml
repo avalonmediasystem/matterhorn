@@ -1,4 +1,4 @@
-<workflow-definition>
+<definition>
   <id>test</id>
   <description>
     A simple workflow that transcodes the media into distribution formats, then sends the resulting distribution files,
@@ -201,4 +201,4 @@
     </operation>
 
   </operations>
-</workflow-definition>
+</definition>

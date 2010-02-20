@@ -1,4 +1,4 @@
-<workflow-definition>
+<definition>
   <id>workflow-service-sample</id>
   <description>
     A simple workflow that transcodes the media into distribution formats, then sends the resulting distribution files,
@@ -226,4 +226,4 @@
       </configurations>
     </operation>
   </operations>
-</workflow-definition>
+</definition>

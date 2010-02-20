@@ -40,8 +40,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-@XmlType(name="workflow-instance", namespace="http://workflow.opencastproject.org/")
-@XmlRootElement(name="workflow-instance", namespace="http://workflow.opencastproject.org/")
+@XmlType(name="workflow", namespace="http://workflow.opencastproject.org/")
+@XmlRootElement(name="workflow", namespace="http://workflow.opencastproject.org/")
 @XmlAccessorType(XmlAccessType.NONE)
 public class WorkflowInstanceImpl implements WorkflowInstance {
   private static final Logger logger = LoggerFactory.getLogger(WorkflowInstanceImpl.class);
@@ -72,7 +72,7 @@ public class WorkflowInstanceImpl implements WorkflowInstance {
   @XmlAttribute()
   private WorkflowState state;
 
-  @XmlElement(name="title")
+  @XmlElement(name="template")
   private String title;
 
   @XmlElement(name="description")

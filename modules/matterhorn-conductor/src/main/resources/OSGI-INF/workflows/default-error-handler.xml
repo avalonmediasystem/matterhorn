@@ -1,4 +1,4 @@
-<workflow-definition>
+<definition>
   <id>error</id>
   <description>Notifies the logs that an error occurred</description>
   <operations>
@@ -7,5 +7,5 @@
       description="Log this error"/>
     <!-- Add operations to notify users -->
   </operations>
-</workflow-definition>
+</definition>
 

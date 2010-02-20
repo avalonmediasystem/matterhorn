@@ -1,5 +1,5 @@
-<workflow-definition>
-  <id>workflow-definition-3</id>
+<definition>
+  <id>definition-3</id>
   <description>Unit testing workflow</description>
   <operations>
     <operation
@@ -10,7 +10,7 @@
     <operation
       id="op3"
       fail-on-error="true"
-      exception-handler-workflow="workflow-definition-1"
+      exception-handler-workflow="definition-1"
       description="operation 3"/>
 
     <operation
@@ -18,4 +18,4 @@
       fail-on-error="true"
       description="operation 2"/>
   </operations>
-</workflow-definition>
+</definition>
