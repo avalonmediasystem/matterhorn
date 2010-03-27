@@ -30,48 +30,45 @@ import org.opencastproject.workflow.api.WorkflowSet;
 import org.opencastproject.workflow.api.WorkflowInstance.WorkflowState;
 import org.opencastproject.workflow.api.WorkflowOperationInstance.OperationState;
 import org.opencastproject.workflow.api.WorkflowOperationResult.Action;
-
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.opencastproject.workingfilerepository.impl.WorkingFileRepositoryImpl;
 
 import junit.framework.Assert;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.persistence.jpa.PersistenceProvider;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class WorkflowServiceImplTest {
 
   /** The solr root directory */
-  private static final String storageRoot = "target" + File.separator + "workflow-test-db";
+  protected static final String storageRoot = "." + File.separator + "target" + File.separator + "workflow-test-db";
 
-  private static WorkflowServiceImpl service = null;
-  private static WorkflowDefinition workingDefinition = null;
-  private static WorkflowDefinition failingDefinitionWithoutErrorHandler = null;
-  private static WorkflowDefinition failingDefinitionWithErrorHandler = null;
-  private static MediaPackage mediapackage1 = null;
-  private static MediaPackage mediapackage2 = null;
-  private static WorkflowOperationHandler succeedingOperationHandler = null;
-  private static WorkflowOperationHandler failingOperationHandler = null;
-  private static ComboPooledDataSource pooledDataSource = null;
-  private static WorkflowServiceImplDao dao = null;
+  private WorkflowServiceImpl service = null;
+  private WorkflowDefinition workingDefinition = null;
+  private WorkflowDefinition failingDefinitionWithoutErrorHandler = null;
+  private WorkflowDefinition failingDefinitionWithErrorHandler = null;
+  private MediaPackage mediapackage1 = null;
+  private MediaPackage mediapackage2 = null;
+  private WorkflowOperationHandler succeedingOperationHandler = null;
+  private WorkflowOperationHandler failingOperationHandler = null;
+  private WorkflowServiceImplDaoFileImpl dao = null;
+  private WorkingFileRepositoryImpl repo = null;
 
-  @BeforeClass
-  public static void setup() throws Exception {
+  @Before
+  public void setup() throws Exception {
     // always start with a fresh solr root directory
     try {
       FileUtils.deleteDirectory(new File(storageRoot));
+      FileUtils.forceMkdir(new File(storageRoot));
     } catch (IOException e) {
       Assert.fail(e.getMessage());
     }
@@ -90,23 +87,10 @@ public class WorkflowServiceImplTest {
         return set;
       }
     };
-    // Create a database and a connection pool
-    pooledDataSource = new ComboPooledDataSource();
-    pooledDataSource.setDriverClass("org.h2.Driver");
-    pooledDataSource.setJdbcUrl("jdbc:h2:./target/db" + System.currentTimeMillis() + ";LOCK_MODE=1;MVCC=TRUE");
-    pooledDataSource.setUser("sa");
-    pooledDataSource.setPassword("sa");
-
-    // Collect the persistence properties
-    Map<String, Object> props = new HashMap<String, Object>();
-    props.put("javax.persistence.nonJtaDataSource", pooledDataSource);
-    props.put("eclipselink.ddl-generation", "create-tables");
-    props.put("eclipselink.ddl-generation.output-mode", "database");
-
-    dao = new WorkflowServiceImplDaoDatasourceImpl(pooledDataSource);
-//    dao = new WorkflowServiceImplDaoJpaImpl();
-//    dao.setPersistenceProvider(new PersistenceProvider());
-//    dao.setPersistenceProperties(props);
+    repo = new WorkingFileRepositoryImpl(storageRoot, "file:" + storageRoot);
+    dao = new WorkflowServiceImplDaoFileImpl();
+    dao.setRepository(repo);
+    dao.setStorageRoot(storageRoot + File.separator + "lucene");
     dao.activate();
     service.setDao(dao);
     service.activate(null);
@@ -127,17 +111,18 @@ public class WorkflowServiceImplTest {
               .getResourceAsStream("/mediapackage-1.xml"));
       mediapackage2 = mediaPackageBuilder.loadFromXml(WorkflowServiceImplTest.class
               .getResourceAsStream("/mediapackage-2.xml"));
+      Assert.assertNotNull(mediapackage1.getIdentifier());
+      Assert.assertNotNull(mediapackage2.getIdentifier());
     } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
 
-  @AfterClass
-  public static void teardown() throws Exception {
+  @After
+  public void teardown() throws Exception {
     System.out.println("All tests finished... tearing down...");
     service.deactivate();
     dao.deactivate();
-    pooledDataSource.close();
   }
 
   @Test
@@ -177,10 +162,14 @@ public class WorkflowServiceImplTest {
             service.newWorkflowQuery().withMediaPackage(mediapackage1.getIdentifier().toString())).size());
 
     WorkflowInstance instance = service.start(workingDefinition, mediapackage1, null);
+    WorkflowInstance instance2 = service.start(workingDefinition, mediapackage2, null);
+    WorkflowInstance instance3 = service.start(workingDefinition, mediapackage2, null);
 
-    // Even the sample workflows take time to complete. Let the workflow finish before verifying state in the DB
-    while (!service.getWorkflowById(instance.getId()).getState().equals(WorkflowState.SUCCEEDED)) {
-      System.out.println("Waiting for workflow to complete...");
+    // Even the sample workflows take time to complete. Let the workflows finish before verifying state in the DB
+    while (!service.getWorkflowById(instance.getId()).getState().equals(WorkflowState.SUCCEEDED) &&
+            !service.getWorkflowById(instance2.getId()).getState().equals(WorkflowState.SUCCEEDED) &&
+            !service.getWorkflowById(instance3.getId()).getState().equals(WorkflowState.SUCCEEDED)) {
+      System.out.println("Waiting for workflows to complete...");
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
@@ -300,7 +289,7 @@ public class WorkflowServiceImplTest {
     instances.add(service.start(workingDefinition, mediapackage2, null));
     instances.add(service.start(workingDefinition, mediapackage2, null));
     instances.add(service.start(workingDefinition, mediapackage1, null));
-
+    
     // Even the sample workflows take time to complete. Let the workflow finish before verifying state in the DB
     for (WorkflowInstance instance : instances) {
       while (!service.getWorkflowById(instance.getId()).getState().equals(WorkflowState.SUCCEEDED)) {
@@ -311,6 +300,9 @@ public class WorkflowServiceImplTest {
         }
       }
     }
+
+    Assert.assertEquals(5, service.countWorkflowInstances());
+    Assert.assertEquals(5, service.getWorkflowInstances(service.newWorkflowQuery()).getItems().length);
 
     // We should get the first two workflows
     WorkflowSet firstTwoWorkflows = service.getWorkflowInstances(service.newWorkflowQuery().withText("Climate").withCount(2).withStartPage(0));
@@ -435,13 +427,13 @@ public class WorkflowServiceImplTest {
     Assert.assertEquals(100, service.countWorkflowInstances());
   }
 
-  static class SucceedingWorkflowOperationHandler extends AbstractWorkflowOperationHandler {
+  class SucceedingWorkflowOperationHandler extends AbstractWorkflowOperationHandler {
     public WorkflowOperationResult start(WorkflowInstance workflowInstance) throws WorkflowOperationException {
       return WorkflowBuilder.getInstance().buildWorkflowOperationResult(mediapackage1, Action.CONTINUE);
     }
   }
 
-  static class FailingWorkflowOperationHandler extends AbstractWorkflowOperationHandler {
+  class FailingWorkflowOperationHandler extends AbstractWorkflowOperationHandler {
     public WorkflowOperationResult start(WorkflowInstance workflowInstance) throws WorkflowOperationException {
       throw new WorkflowOperationException("this operation handler always fails.  that's the point.");
     }
