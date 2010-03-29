@@ -34,6 +34,7 @@ public class LuceneTest {
   static String ID1 = "123-456";
   static String ID2 = "123-456-abc";
   static String ID3 = "123-456-abc-def";
+  static String ID4 = "123-456-abc-def-ghi";
   
   @Test
   public void testLucene() throws Exception {
@@ -49,18 +50,19 @@ public class LuceneTest {
     indexWriter.close();
 
     indexWriter = new IndexWriter(directory, analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
-    indexWriter.addDocument(getDocument(ID3, "Foo"));
+    indexWriter.addDocument(getDocument(ID3, "Bar Baz"));
     indexWriter.close();
 
     indexWriter = new IndexWriter(directory, analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
-    indexWriter.updateDocument(new Term("id", ID3), getDocument(ID3, "Foo"));
+    indexWriter.updateDocument(new Term("id", ID4), getDocument(ID4, "Bar Baz Qux"));
     indexWriter.close();
 
+    // Search for an ID
     IndexSearcher iSearcher = new IndexSearcher(directory);
     BooleanQuery q = new BooleanQuery();
-    q.add(new TermQuery(new Term("id", ID3)), Occur.MUST);
+    q.add(new TermQuery(new Term("id", ID1)), Occur.MUST);
     TopDocs topDocs = iSearcher.search(q, 100000);
-    System.out.println("ID Hits: " + topDocs.scoreDocs.length);
+    System.out.println("ID1: " + topDocs.scoreDocs.length);
     for (int i = 0; i < topDocs.scoreDocs.length; i++) {
       Document hitDoc = iSearcher.doc(topDocs.scoreDocs[i].doc);
       System.out.println("\tid=" + hitDoc.get("id"));
@@ -69,11 +71,12 @@ public class LuceneTest {
     }
     iSearcher.close();
 
+    // Search for "foo"
     iSearcher = new IndexSearcher(directory);
     q = new BooleanQuery();
     q.add(new TermQuery(new Term("text", "foo")), Occur.MUST);
     topDocs = iSearcher.search(q, 100000);
-    System.out.println("Text Hits: " + topDocs.scoreDocs.length);
+    System.out.println("Foo: " + topDocs.scoreDocs.length);
     for (int i = 0; i < topDocs.scoreDocs.length; i++) {
       Document hitDoc = iSearcher.doc(topDocs.scoreDocs[i].doc);
       System.out.println("\tid=" + hitDoc.get("id"));
@@ -82,11 +85,12 @@ public class LuceneTest {
     }
     iSearcher.close();
 
+    // Search for "bar"
     iSearcher = new IndexSearcher(directory);
     q = new BooleanQuery();
-    q.add(new TermQuery(new Term("xml", "foo")), Occur.MUST);
+    q.add(new TermQuery(new Term("text", "bar")), Occur.MUST);
     topDocs = iSearcher.search(q, 100000);
-    System.out.println("XML Hits: " + topDocs.scoreDocs.length);
+    System.out.println("Bar: " + topDocs.scoreDocs.length);
     for (int i = 0; i < topDocs.scoreDocs.length; i++) {
       Document hitDoc = iSearcher.doc(topDocs.scoreDocs[i].doc);
       System.out.println("\tid=" + hitDoc.get("id"));
@@ -94,8 +98,20 @@ public class LuceneTest {
       System.out.println("\txml=" + hitDoc.get("xml"));
     }
     iSearcher.close();
-    
-    indexWriter.close();
+
+    // Search for "foo" in the unanalyzed xml field
+    iSearcher = new IndexSearcher(directory);
+    q = new BooleanQuery();
+    q.add(new TermQuery(new Term("xml", "foo")), Occur.MUST);
+    topDocs = iSearcher.search(q, 100000);
+    System.out.println("XML Foo: " + topDocs.scoreDocs.length);
+    for (int i = 0; i < topDocs.scoreDocs.length; i++) {
+      Document hitDoc = iSearcher.doc(topDocs.scoreDocs[i].doc);
+      System.out.println("\tid=" + hitDoc.get("id"));
+      System.out.println("\ttext=" + hitDoc.get("text"));
+      System.out.println("\txml=" + hitDoc.get("xml"));
+    }
+    iSearcher.close();
   }
 
   protected Document getDocument(String id, String value) {

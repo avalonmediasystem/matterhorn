@@ -33,6 +33,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
@@ -51,6 +52,7 @@ import java.net.URI;
  */
 public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
   private static final Logger logger = LoggerFactory.getLogger(WorkflowServiceImplDaoFileImpl.class);
+  
   protected static final String COLLECTION_ID = "workflows";
   protected static final String COUNT_TOKEN = "COUNT_TOKEN";
 
@@ -227,14 +229,24 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
    */
   @Override
   public WorkflowInstance getWorkflowById(String workflowId) {
-    InputStream in = repo.getFromCollection(COLLECTION_ID, getFilename(workflowId));
-    if (in == null)
-      return null;
+    IndexSearcher isearcher = null;
     try {
-      String xml = IOUtils.toString(in);
+      isearcher = new IndexSearcher(directory);
+      Query q = new TermQuery(new Term("id", workflowId));
+      TopDocs topDocs = isearcher.search(q, 1);
+      if(topDocs.scoreDocs.length == 0) return null;
+      String xml = isearcher.doc(topDocs.scoreDocs[0].doc).get("xml");
       return WorkflowBuilder.getInstance().parseWorkflowInstance(xml);
     } catch (Exception e) {
-      throw new RuntimeException(e); // TODO fix the parse methods to throw something more meaningful
+      throw new RuntimeException(e);
+    } finally {
+      if(isearcher != null) {
+        try {
+          isearcher.close();
+        } catch(IOException e) {
+          logger.warn("unable to close index searcher", e);
+        }
+      }
     }
   }
 
@@ -245,7 +257,7 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
    */
   @Override
   public WorkflowSet getWorkflowInstances(WorkflowQuery query) {
-    int count = query.getCount() > 1 ? (int)query.getCount() : 20; // default to 20 items if not specified
+    int count = query.getCount() > 0 ? (int)query.getCount() : 20; // default to 20 items if not specified
     int startPage = query.getStartPage() > 0 ? (int)query.getStartPage() : 0; // default to page zero
     BooleanQuery q = new BooleanQuery();
     if(query.getMediaPackage() != null) {
@@ -282,6 +294,7 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
       int lastItem = (startPage * count) + count;
 
       set = new WorkflowSetImpl();
+      set.setPageSize(count);
       set.setTotalCount(totalHits);
       set.setStartPage(query.getStartPage());
       set.setSearchTime(time);
@@ -290,7 +303,6 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
         Document hitDoc = isearcher.doc(hits[i].doc);
         set.addItem(builder.parseWorkflowInstance(hitDoc.get("xml")));
       }
-      set.setCount(set.size());
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
