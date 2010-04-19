@@ -17,9 +17,7 @@ package org.opencastproject.capture.impl;
 
 import org.opencastproject.capture.api.CaptureParameters;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -43,36 +41,15 @@ public class SchedulerImplTest {
   ConfigurationManager config = null;
   Properties schedulerProps = null;
 
-  @AfterClass
-  public static void afterclass() {
-    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "capture-sched-test"));
-  }
-
   @Before
   public void setUp() throws ConfigurationException {
     config = new ConfigurationManager();
-    InputStream s = getClass().getClassLoader().getResourceAsStream("config/capture.properties");
-    if (s == null) {
-      throw new RuntimeException("Unable to load configuration file for capture!");
-    }
-
-    Properties p = new Properties();
-    try {
-      p.load(s);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to read configuration data for capture!");
-    }
-    config.merge(p, true);
-    //We need this line so we can load the schedules correctly
-    //If we don't have it then the locations get turned into /tmp/valid-whatever/demo_capture_agent
     config.setItem(CaptureParameters.AGENT_NAME, "");
-    config.setItem("org.opencastproject.storage.dir", new File(System.getProperty("java.io.tmpdir"), "capture-sched-test").getAbsolutePath());
-    config.setItem("org.opencastproject.server.url", "http://localhost:8080");
-
+    config.setItem(CaptureParameters.CAPTURE_FILESYSTEM_CAPTURE_CACHE_URL, System.getProperty("java.io.tmpdir"));
     sched = new SchedulerImpl();
     sched.setConfigService(config);
     schedulerProps = new Properties();
-    s = getClass().getClassLoader().getResourceAsStream("config/scheduler.properties");
+    InputStream s = getClass().getClassLoader().getResourceAsStream("config/scheduler.properties");
     if (s == null) {
       throw new RuntimeException("Unable to load configuration file for scheduler!");
     }
@@ -88,7 +65,7 @@ public class SchedulerImplTest {
   public void tearDown() {
     sched.unsetCaptureAgent();
     sched.unsetConfigService();
-    sched.deactivate();
+    sched.shutdown();
     sched = null;
     config = null;
     schedulerProps = null;
@@ -426,18 +403,9 @@ public class SchedulerImplTest {
     }
   }
 
-  @Test
-  public void testBadPolling() throws Exception {
+  public void testBadPolling() throws ConfigurationException {
     sched.updated(schedulerProps);
-    Thread.sleep(10);
     Assert.assertTrue(sched.isPollingEnabled());
-    config.setItem(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, "0");
-    sched.updated(schedulerProps);
-    Assert.assertFalse(sched.isPollingEnabled());
-    config.setItem(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_ENDPOINT_URL, "?asewrtk5fw5");
-    config.setItem(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, "60");
-    sched.updated(schedulerProps);
-    Assert.assertFalse(sched.isPollingEnabled());
     config.setItem(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, "0");
     sched.updated(schedulerProps);
     Assert.assertFalse(sched.isPollingEnabled());

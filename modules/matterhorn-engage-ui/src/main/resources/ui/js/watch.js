@@ -18,6 +18,7 @@ Opencast.Watch = (function ()
 	  
         var mediaPackageId = Opencast.engage.getMediaPackageId();
     
+        //var restEndpoint = "xml/episode.xml";
         var restEndpoint = "../../search/rest/episode?id=" + mediaPackageId;
 
         $('#data').xslt(restEndpoint, "xsl/player-hybrid-download.xsl", function () 
@@ -46,20 +47,9 @@ Opencast.Watch = (function ()
             // set the abstract
             $('#abstract').html($('#oc-abstract').html());
       
-         // TODO MERGE
+            // Get the video url
             var mediaUrlOne = $('#oc-video-url').html();
             var mediaUrlTwo = $('#oc-video-url').html();
-            
-            
-            // Get the video url
-          //  var mediaUrlOne = 'rtmp://freecom.serv.uni-osnabrueck.de/oflaDemo/algorithmen09_2009_10_27_14_9__131_173_10_32.flv';
-            //var mediaUrlOne = 'http://mediapm.edgesuite.net/osmf/content/test/train_1500.mp3';
-            //var mediaUrlOne = 'engage-hybrid-player/mp3/need.mp3';
-          //  var mediaUrlTwo = 'rtmp://freecom.serv.uni-osnabrueck.de/oflaDemo/algorithmen09_2009_10_27_14_9__131_173_10_32.flv';
-            //var mediaUrlTwo = '';
-            
-           
-            
 
             Opencast.Player.setMediaURL(mediaUrlOne, mediaUrlTwo);
 
@@ -87,6 +77,12 @@ Opencast.Watch = (function ()
             // Set the caption
             Opencast.Player.setCaptionsURL('engage-hybrid-player/dfxp/matterhorn.dfxp.xml');
       
+            // set embed field
+            var watchUrl = window.location.href;
+            var embedUrl = watchUrl.replace(/watch.html/g, "embed.html");
+            //var embed = $('#oc-embed').val().replace(/src_url/g, embedUrl);
+            //$('#oc-embed').val(embed);
+      
             // init the volume scrubber
             Opencast.Scrubber.init();
       
@@ -94,26 +90,23 @@ Opencast.Watch = (function ()
       
             //$('#info').append("<a href=" + watchUrl.replace(/watch.html/g, "multi.html") + ">Multi</a>");
 
-            // Add the scrubber keypress handler to Opencast.Scrubber.init
-           /*
-            $('#scrubber').bind('keydown', 'left', function(evt) 
-            {
-               
-            });
-                 � � �
-       � � �$('#scrubber').bind('keyup', 'left', function(evt) 
-    	    {
-           � � 
-       � � �});
-                 � � �
-            $('#scrubber').bind('keydown', 'right', function(evt) {
-               
-            });
-                 � � �
-            $('#scrubber').bind('keyup', 'right', function(evt) {
-                
-            });
-                 */
+      // Add the scrubber keypress handler to Opencast.Scrubber.init
+      $('#scrubber').bind('keydown', 'left', function(evt) {
+      //  Opencast.Player.doRewind();
+      });
+      
+      $('#scrubber').bind('keyup', 'left', function(evt) {
+      //  Opencast.Player.stopRewind();
+      });
+      
+      $('#scrubber').bind('keydown', 'right', function(evt) {
+       // Opencast.Player.doFastForward();
+      });
+      
+      $('#scrubber').bind('keyup', 'right', function(evt) {
+       // Opencast.Player.stopFastForward();
+      });
+      
         });
     }
   

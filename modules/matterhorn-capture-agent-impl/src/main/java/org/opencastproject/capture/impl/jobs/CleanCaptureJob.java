@@ -62,11 +62,8 @@ public class CleanCaptureJob implements Job {
     CaptureAgentImpl service = (CaptureAgentImpl)ctx.getMergedJobDataMap().get(JobParameters.CAPTURE_AGENT);
     Properties p = cm.getAllProperties();
 
-    if (service != null) {
-      doCleaning(p, service.getKnownRecordings().values());
-    } else {
-      logger.error("Unable to run clean capture job, service pointer is null!");
-    }
+    doCleaning(p, service.getKnownRecordings().values());
+    
   }
   
   /**

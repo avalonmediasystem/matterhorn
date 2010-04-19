@@ -22,11 +22,10 @@ import org.opencastproject.capture.api.AgentRecording;
 import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.api.StateService;
-import org.opencastproject.capture.api.ConfidenceMonitor;
+import org.opencastproject.capture.api.VideoMonitor;
 import org.opencastproject.capture.impl.jobs.AgentCapabilitiesJob;
 import org.opencastproject.capture.impl.jobs.AgentStateJob;
 import org.opencastproject.capture.impl.jobs.JobParameters;
-import org.opencastproject.capture.pipeline.AudioMonitoring;
 import org.opencastproject.capture.pipeline.PipelineFactory;
 import org.opencastproject.media.mediapackage.MediaPackage;
 import org.opencastproject.media.mediapackage.MediaPackageBuilderFactory;
@@ -77,7 +76,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
@@ -86,7 +84,7 @@ import java.util.Vector;
  * Implementation of the Capture Agent: using gstreamer, generates several Pipelines
  * to store several tracks from a certain recording.
  */
-public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceMonitor, ManagedService {
+public class CaptureAgentImpl implements CaptureAgent, StateService, VideoMonitor, ManagedService {
 
   private static final Logger logger = LoggerFactory.getLogger(CaptureAgentImpl.class);
 
@@ -439,14 +437,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     }
 
     logger.info("Recording \"{}\" succesfully stopped", theRec.getID());
-
-    if (scheduler.scheduleIngest(theRec.getID())) {
-      logger.info("Ingest scheduled for recording {}.", theRec.getID());
-    } else {
-      logger.warn("Ingest scheduling failed for recording {}!", theRec.getID());
-      setRecordingState(theRec.getID(), RecordingState.UPLOAD_ERROR);
-    }
-
+    
     return true;
   }
 
@@ -479,9 +470,6 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       logger.debug("Generating manifest for recording {}", recID);
 
     String[] friendlyNames = recording.getProperty(CaptureParameters.CAPTURE_DEVICE_NAMES).split(",");
-    if (friendlyNames.length == 1 && friendlyNames[0].equals("")) {
-      logger.error("Unable to build mediapackage for recording {} because the device names list is blank!", recID);
-    }
 
     MediaPackageElementBuilder elemBuilder = MediaPackageElementBuilderFactory.newInstance().newElementBuilder();
     MediaPackageElementFlavor flavor = null; 
@@ -493,6 +481,11 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       // Adds the files present in the Properties
       for (String name : friendlyNames) {
         name = name.trim();
+        // FIXME: when and why does this happen?  is it an actual configuration error?  if so, throw something. (jt)
+        if ("".equals(name)){
+          logger.error("Blank string in names!  Please tell someone on IRC");
+          continue;
+        }
 
         String flavorPointer = CaptureParameters.CAPTURE_DEVICE_PREFIX + name + CaptureParameters.CAPTURE_DEVICE_FLAVOR; 
         String flavorString = recording.getProperty(flavorPointer);
@@ -507,13 +500,12 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
                   baseURI.relativize(outputFile.toURI()),
                   MediaPackageElement.Type.Track,
                   flavor));
-        else { 
+        else 
+          // TODO: Warning or error?
           // FIXME: Is the admin reading the agent logs? (jt)
           // FIXME: Who will find out why one of the tracks is missing from the media package? (jt)
           // FIXME: Think about a notification scheme, this looks like an emergency to me (jt)
-          logger.error("Required file {} not found, aborting manifest creation!", outputFile.getName());
-          return false;
-        }
+          logger.warn ("Required file {} not found", outputFile.getName());
       } 
 
     } catch (UnsupportedElementException e) {
@@ -789,6 +781,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       logger.warn("Bundle context is null, so this is probably a test.  If you see this message from Felix please post a bug!");
     }
 
+    // FIXME: Also, register a deactivate() and do some cleanup
     setAgentState(AgentState.IDLE);
   }
 
@@ -876,7 +869,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
   /**
    * 
    * {@inheritDoc}
-   * @see org.opencastproject.capture.api.ConfidenceMonitor#grabFrame(java.lang.String)
+   * @see org.opencastproject.capture.api.VideoMonitor#grabFrame(java.lang.String)
    */
   public byte[] grabFrame(String friendlyName) {
     if (currentRecID != null) {
@@ -905,7 +898,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
   /**
    * 
    * {@inheritDoc}
-   * @see org.opencastproject.capture.api.ConfidenceMonitor#getFriendlyNames()
+   * @see org.opencastproject.capture.api.VideoMonitor#getFriendlyNames()
    */
   public LinkedList<String> getFriendlyNames() {
     String devices = configService.getItem(CaptureParameters.CAPTURE_DEVICE_NAMES);
@@ -915,15 +908,6 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       deviceList.add(name);
     }
     return deviceList;
-  }
-  
-  /**
-   * s
-   * {@inheritDoc}
-   * @see org.opencastproject.capture.api.ConfidenceMonitor#getRMSValues(java.lang.String)
-   */
-  public List<Double> getRMSValues(String friendlyName) {
-    return AudioMonitoring.getRMSValues();
   }
   
 }

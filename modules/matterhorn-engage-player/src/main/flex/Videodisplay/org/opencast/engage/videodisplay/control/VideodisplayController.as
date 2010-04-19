@@ -20,14 +20,16 @@ package org.opencast.engage.videodisplay.control
     
     import org.opencast.engage.videodisplay.control.command.ClosedCaptionsCommand;
     import org.opencast.engage.videodisplay.control.command.DisplayCaptionCommand;
-    import org.opencast.engage.videodisplay.control.command.InitMediaPlayerCommand;
+    import org.opencast.engage.videodisplay.control.command.InitMultiPlayerCommand;
+    import org.opencast.engage.videodisplay.control.command.InitPlayerCommand;
     import org.opencast.engage.videodisplay.control.command.ResizeVideodisplayCommand;
     import org.opencast.engage.videodisplay.control.command.SetCurrentCaptionsCommand;
     import org.opencast.engage.videodisplay.control.command.SetVolumeCommand;
     import org.opencast.engage.videodisplay.control.command.VideoControlCommand;
     import org.opencast.engage.videodisplay.control.event.ClosedCaptionsEvent;
     import org.opencast.engage.videodisplay.control.event.DisplayCaptionEvent;
-    import org.opencast.engage.videodisplay.control.event.InitMediaPlayerEvent;
+    import org.opencast.engage.videodisplay.control.event.InitMultiPlayerEvent;
+    import org.opencast.engage.videodisplay.control.event.InitPlayerEvent;
     import org.opencast.engage.videodisplay.control.event.LoadDFXPXMLEvent;
     import org.opencast.engage.videodisplay.control.event.ResizeVideodisplayEvent;
     import org.opencast.engage.videodisplay.control.event.SetCurrentCaptionsEvent;
@@ -49,21 +51,32 @@ package org.opencast.engage.videodisplay.control
             Swiz.addEventListener( ResizeVideodisplayEvent.EVENT_NAME, resizeVideodisplay );
             Swiz.addEventListener( SetCurrentCaptionsEvent.EVENT_NAME, setCurrentCaptions );
             Swiz.addEventListener( ClosedCaptionsEvent.EVENT_NAME, closedCaptions );
-            Swiz.addEventListener( InitMediaPlayerEvent.EVENT_NAME, initMediaPlayer );
+            Swiz.addEventListener( InitPlayerEvent.EVENT_NAME, initPlayer );
+            Swiz.addEventListener( InitMultiPlayerEvent.EVENT_NAME, initMultiPlayer );
         }
 
-            
-        /** initMediaPlayer
+        /** initPlayer
          *
-         * @eventType event:InitMediaPlayerEvent
+         * @eventType event:InitPlayerEvent
          * */
-        public function initMediaPlayer( event:InitMediaPlayerEvent ):void
+        public function initPlayer( event:InitPlayerEvent ):void
         {
-            var initMediaPlayerCommand:InitMediaPlayerCommand = new InitMediaPlayerCommand();
-            initMediaPlayerCommand.execute( event );
+            var initPlayerCommand:InitPlayerCommand = new InitPlayerCommand();
+            initPlayerCommand.execute( event );
+        }
+        
+        
+        /** initMultiPlayer
+         *
+         * @eventType event:InitMultiPlayerEvent
+         * */
+        public function initMultiPlayer( event:InitMultiPlayerEvent):void
+        {
+        	var initMultiPlayerCommand:InitMultiPlayerCommand = new InitMultiPlayerCommand();
+        	initMultiPlayerCommand.execute( event );
         }
 
-       /** closedCaptions
+        /** closedCaptions
          *
          * @eventType event:ClosedCaptionsEvent
          * */

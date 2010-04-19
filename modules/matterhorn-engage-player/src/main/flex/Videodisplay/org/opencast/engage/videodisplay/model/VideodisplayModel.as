@@ -71,9 +71,6 @@ package org.opencast.engage.videodisplay.model
 
         // Current Duration
         public var currentDuration:Number = 0;
-        
-        // Current Duration String
-        public var currentDurationString:String = '';
 
         // Current Player State
         public var currentPlayerState:String;
@@ -103,7 +100,7 @@ package org.opencast.engage.videodisplay.model
         public var languages:ArrayCollection = new ArrayCollection( [   new LanguageVO( 'de', "German" ), new LanguageVO( 'en', "English" ), new LanguageVO( 'es', "Spain" )   ] );
 
         // mediaState
-        public var mediaState:String = MediaState.MEDIA;
+        public var mediaState:String = MediaState.VIDEO;
         
         // videoSizeState
         public var videoSizeState:String = VideoSizeState.CENTER;
@@ -111,44 +108,29 @@ package org.opencast.engage.videodisplay.model
         // The old Subtitle
         public var oldSubtitle:String = '';
         
-        // mediaPlayer
-        public var mediaPlayer:MediaPlayer;
+        // mediaPlayerSingle
+        public var mediaPlayerSingle:MediaPlayer;
         
-        // MediaContainer
-        public var mediaContainer:MediaContainer;
+        // container Single
+        public var containerSingle:MediaContainer;
         
-        // layoutMetadata
-        public var layoutMetadata:LayoutMetadata;
+		// Media Player One
+        public var mediaPlayerOne:MediaPlayer;
         
-        // layoutMetadataParallelElement
-        public var layoutMetadataParallelElement:LayoutMetadata;
+        // Media Player Two
+        public var mediaPlayerTwo:MediaPlayer;
+        
+        // container one
+        public var containerOne:MediaContainer;
+        
+        // container two
+        public var containerTwo:MediaContainer;
         
         // layoutMetadataOne
         public var layoutMetadataOne:LayoutMetadata;
         
         // layoutMetadataTwo
         public var layoutMetadataTwo:LayoutMetadata;
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    
-        
-        
-        
-        
-        
-        
-        
         
         // player volume
         public var playerVolume:Number = 1.0;
@@ -164,6 +146,12 @@ package org.opencast.engage.videodisplay.model
 
         // video Volume
         public var videoVolume:Number = 1;
+
+        // mediaURL
+        public var mediaURLOne:String = '';
+        
+        // mediaURLTwo
+        public var mediaURLTwo:String = '';
 
         // captionsURL
         public var captionsURL:String = '';

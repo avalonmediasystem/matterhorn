@@ -103,6 +103,8 @@ public class PlayerListener implements ControllerListener {
    */
   public PlayerListener(Player p) {
     player = p;
+    player.addControllerListener(this);
+    player.realize();
   }
 
   /**

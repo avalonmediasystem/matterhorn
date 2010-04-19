@@ -19,7 +19,6 @@ import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.impl.jobs.CleanCaptureJob;
 import org.opencastproject.capture.impl.jobs.JobParameters;
 import org.opencastproject.capture.impl.jobs.PollCalendarJob;
-import org.opencastproject.capture.impl.jobs.SerializeJob;
 import org.opencastproject.capture.impl.jobs.StartCaptureJob;
 import org.opencastproject.capture.impl.jobs.StopCaptureJob;
 import org.opencastproject.media.mediapackage.MediaPackage;
@@ -184,19 +183,18 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
       if (remoteBase != null && remoteBase.charAt(remoteBase.length()-1) != '/') {
         remoteBase = remoteBase + "/";
       } else if (remoteBase == null) {
-        log.error("Key {} is missing from the config file or invalid, unable to start polling.", CaptureParameters.CAPTURE_SCHEDULE_REMOTE_ENDPOINT_URL);
+        log.warn("Key {} is missing from the config file or invalid, unable to start polling.", CaptureParameters.CAPTURE_SCHEDULE_REMOTE_ENDPOINT_URL);
         return;
       }
       remoteCalendarURL = new URL(new URL(remoteBase), configService.getItem(CaptureParameters.AGENT_NAME));
 
-      //Times are in seconds in the config file, so don't forget to multiply by 1000 later!
-      pollTime = Long.parseLong(configService.getItem(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL));
+      //Times are in seconds in the config file, so multiply by 1000
+      pollTime = Long.parseLong(configService.getItem(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL)) * 1000L;
       if (pollTime > 1) {
         //Setup the polling
         JobDetail job = new JobDetail("calendarUpdate", JobParameters.RECURRING_TYPE, PollCalendarJob.class);
         //Create a new trigger                    Name       Group name               Start       End   # of times to repeat               Repeat interval
-        SimpleTrigger trigger = new SimpleTrigger("polling", JobParameters.RECURRING_TYPE, new Date(), null, SimpleTrigger.REPEAT_INDEFINITELY, pollTime * 1000L);
-        trigger.setMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_FIRE_NOW);
+        SimpleTrigger trigger = new SimpleTrigger("polling", JobParameters.RECURRING_TYPE, new Date(), null, SimpleTrigger.REPEAT_INDEFINITELY, pollTime);
 
         trigger.getJobDataMap().put(JobParameters.SCHEDULER, this);
 
@@ -285,13 +283,8 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
       //This case handles not having a network connection by just reading from the cached copy of the calendar 
       if (calendar == null) {
         try {
-          if (localCalendarCacheURL != null) {
-            calendarString = readCalendar(localCalendarCacheURL);
-            url = localCalendarCacheURL;
-          } else {
-            log.warn("Unable to read calendar from local calendar cache because location was null!");
-            return null;
-          }
+          calendarString = readCalendar(localCalendarCacheURL);
+          url = localCalendarCacheURL;
         } catch (IOException e1) {
           log.warn("Unable to read from cached schedule: {}.", e1.getMessage());
           return null;
@@ -373,7 +366,7 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
 
   /**
    * Returns the name for every scheduled job.
-   * Job titles are their UUIDs assigned from the scheduler, or Unscheduled-$timestamp.
+   * Job titles are their DTSTART fields, so they look like 20091105T142500.
    * @return An array of Strings containing the name of every scheduled job, or null if there is an error.
    */
   public String[] getCaptureSchedule() {
@@ -422,7 +415,6 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
    */
   private synchronized void setCaptureSchedule(Calendar newCal) {
     log.debug("setCaptureSchedule(newCal)");
-
     try {
       //Clear the existing jobs and reschedule everything
       for (String name : scheduler.getJobNames(JobParameters.CAPTURE_TYPE)) {
@@ -480,7 +472,6 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
         CronTrigger trig = new CronTrigger();
         trig.setCronExpression(startCronExpression);
         trig.setName(startCronExpression.toString());
-        trig.setMisfireInstruction(CronTrigger.MISFIRE_INSTRUCTION_FIRE_ONCE_NOW);
 
         JobDetail job = new JobDetail(uid, JobParameters.CAPTURE_TYPE, StartCaptureJob.class);
 
@@ -521,7 +512,7 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
           //Handle any attachments
           //TODO:  Should this string be hardcoded?
           try { 
-            if (filename.equals("org.opencastproject.capture.agent.properties")) {
+            if (filename.equals("agent.properties")) {
               Properties jobProps = new Properties();
               jobProps.load(new StringReader(contents));
               jobProps.putAll(props);
@@ -544,7 +535,7 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
         job.getJobDataMap().put(JobParameters.JOB_SCHEDULER, scheduler);
 
         if (!hasProperties) {
-          log.warn("No capture properties file attached to scheduled capture {}, using default capture settings.", uid);
+          log.warn("No capture properties file attached to scheduled capture {}, using default capture settings.", start.toString());
         }
 
         scheduler.scheduleJob(job, trig);
@@ -636,15 +627,8 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
     return null;*/
   }
 
-  /**
-   * Schedules a {@Code StopCaptureJob} to stop a capture at a given time.
-   * @param recordingID The recordingID of the recording you wish to stop.
-   * @param stop The time (in seconds since 1970) at which to stop the capture.
-   * @return True if the job was scheduled, false otherwise.
-   */
   public boolean scheduleUnscheduledStopCapture(String recordingID, Date stop) {
     SimpleTrigger trig = new SimpleTrigger("StopCaptureTrigger-" + recordingID, JobParameters.OTHER_TYPE, stop);
-    trig.setMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_FIRE_NOW);
     JobDetail job = new JobDetail("StopCapture-" + recordingID, JobParameters.OTHER_TYPE, StopCaptureJob.class);
 
     job.getJobDataMap().put(JobParameters.CAPTURE_AGENT, captureAgent);
@@ -660,51 +644,8 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
     return true; 
   }
 
-  /**
-   * Schedules a {@Code StopCaptureJob} to stop a capture at a given time.
-   * @param recordingID The recordingID of the recording you wish to stop.
-   * @param atTime The time (in seconds since 1970) at which to stop the capture.
-   * @return True if the job was scheduled, false otherwise.
-   */
   public boolean scheduleUnscheduledStopCapture(String recordingID, long atTime) {
     return scheduleUnscheduledStopCapture(recordingID, new Date(atTime));
-  }
-
-  /**
-   * Schedules an immediate {@code SerializeJob} for the recording.
-   * @param recordingID The ID of the recording to it ingest.
-   * @return True if the job was scheduled correctly, false otherwise.
-   */
-  public boolean scheduleIngest(String recordingID) {
-    try {
-      String[] jobs = scheduler.getJobNames(JobParameters.OTHER_TYPE);
-      for (String jobname : jobs) {
-        if (jobname.equals("StopCapture-" + recordingID)) {
-          scheduler.deleteJob(jobname, JobParameters.OTHER_TYPE);
-        }
-      }
-    } catch (SchedulerException e) {
-      log.warn("Unable to remove scheduled stopCapture for recording {}.", recordingID);
-    }
-
-    // Create job and trigger
-    JobDetail job = new JobDetail("SerializeJob-" + recordingID, JobParameters.OTHER_TYPE, SerializeJob.class);
-
-    //Setup the trigger.  The serialization job will automatically refire if it fails, so we don't need to worry about it
-    SimpleTrigger trigger = new SimpleTrigger("SerializeJobTrigger-" + recordingID, JobParameters.OTHER_TYPE, new Date());
-    trigger.setMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_FIRE_NOW);
-
-    trigger.getJobDataMap().put(CaptureParameters.RECORDING_ID, recordingID);
-    trigger.getJobDataMap().put(JobParameters.CAPTURE_AGENT, this.captureAgent);
-    trigger.getJobDataMap().put(JobParameters.JOB_POSTFIX, recordingID);
-
-    try {
-      scheduler.scheduleJob(job, trigger);
-    } catch (SchedulerException e) {
-      log.error("Unable to schedule ingest of recording {}!", recordingID);
-      return false;
-    }
-    return true;
   }
 
   /**
@@ -727,7 +668,7 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
       //Schedule the update
       scheduler.scheduleJob(cleanJob, cleanTrigger);
     } catch (NumberFormatException e) {
-      log.warn("Invalid time specified in the {} value. Job for cleaning captures not scheduled!", CaptureParameters.CAPTURE_CLEANER_INTERVAL);
+      log.error("Invalid time specified in the {} value. Job for cleaning captures not scheduled!", CaptureParameters.CAPTURE_CLEANER_INTERVAL);
     } catch (SchedulerException e) {
       log.error("SchedulerException while trying to schedule a cleaning job: {}.", e.getMessage());
     }
@@ -840,13 +781,11 @@ public class SchedulerImpl implements org.opencastproject.capture.api.Scheduler,
   public boolean isPollingEnabled() {
     if (scheduler != null) {
       try {
-        return scheduler.getTrigger("polling", JobParameters.RECURRING_TYPE) != null;
+        return scheduler.getPausedTriggerGroups().contains(JobParameters.RECURRING_TYPE);
       } catch (SchedulerException e) {
         log.warn("Scheduler exception: {}.", e.getMessage());
         return false;
       }
-    } else {
-      log.warn("Scheduler is null, so polling cannot be enabled!");
     }
     return false;
   }

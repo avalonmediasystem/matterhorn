@@ -323,8 +323,6 @@ public class PipelineFactory {
     filesink.set("location", captureDevice.getOutputPath());
     if (bitrate != null)
       enc.set("bitrate", bitrate);
-    else
-      enc.set("bitrate", "2000000");
 
     pipeline.addMany(v4lsrc, queue, videoscale, videorate, filter, ffmpegcolorspace, enc, mpegtsmux, filesink);
 
@@ -364,7 +362,6 @@ public class PipelineFactory {
    * @return True, if successful
    */
   private static boolean getAlsasrcPipeline(CaptureDevice captureDevice, Pipeline pipeline) {
-    int interval = Integer.parseInt(properties.getProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + captureDevice.getFriendlyName() + CaptureParameters.CAPTURE_DEVICE_CONFIDENCE_INTERVAL, "30"));
     String error = null;
     String codec = captureDevice.properties.getProperty("codec");
     String bitrate = captureDevice.properties.getProperty("bitrate");
@@ -395,7 +392,7 @@ public class PipelineFactory {
 
     if (!alsasrc.link(queue))
       error = formatPipelineError(captureDevice, alsasrc, queue);
-    else if (!AudioMonitoring.addAudioMonitor(pipeline, queue, enc, interval))
+    else if (!queue.link(enc))
       error = formatPipelineError(captureDevice, queue, enc);
     else if (!enc.link(mux))
       error = formatPipelineError(captureDevice, enc, mux);
@@ -443,8 +440,6 @@ public class PipelineFactory {
     filesink.set("location", captureDevice.getOutputPath());
     if (bitrate != null)
       enc.set("bitrate", bitrate);
-    else
-      enc.set("bitrate", "2000000");
 
     pipeline.addMany(v4l2src, queue, enc, mpegtsmux, filesink);
 

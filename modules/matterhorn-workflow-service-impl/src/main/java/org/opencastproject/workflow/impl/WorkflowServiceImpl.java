@@ -548,22 +548,16 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
       return;
     }
 
-    WorkflowOperationInstance nextOperation = workflow.next(); // Be careful... this increments the current operation
-    if(nextOperation == null) {
-      if(Action.CONTINUE.equals(result.getAction())) {
-        workflow.setState(WorkflowState.SUCCEEDED);
-      } else {
-        workflow.setState(WorkflowState.PAUSED);
-      }
+    if(workflow.next() == null) {
+      workflow.setState(WorkflowState.SUCCEEDED);
       dao.update(workflow);
     } else {
-      if(Action.CONTINUE.equals(result.getAction())) {
-        workflow.setState(WorkflowState.RUNNING);
-      } else {
+      if(WorkflowOperationResult.Action.PAUSE.equals(result.getAction())) {
         workflow.setState(WorkflowState.PAUSED);
       }
+      workflow = updateConfiguration(workflow, result.getProperties());
       dao.update(workflow);
-      if(Action.CONTINUE.equals(result.getAction())) {
+      if(WorkflowOperationResult.Action.CONTINUE.equals(result.getAction())) {
         this.run(workflow);
       }
     }

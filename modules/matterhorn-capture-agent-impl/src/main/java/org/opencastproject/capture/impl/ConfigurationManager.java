@@ -69,7 +69,6 @@ public class ConfigurationManager implements ManagedService {
     if (timer != null) {
       timer.cancel();
     }
-    properties.setBundleContext(null);
   }
   
   @Override
@@ -110,19 +109,19 @@ public class ConfigurationManager implements ManagedService {
     if (url != null && reload != null) {
       long delay = 0;
       try {
-        // Times in the config file are in seconds, so don't forget to multiply by 1000 later
-        delay = Long.parseLong(reload);
+        // Times in the config file are in seconds, so multiply by 1000
+        delay = Long.parseLong(reload) * 1000L;
         if (delay < 1) {
           logger.info("Polling time has been set to less than 1 second, polling disabled.");
           return;
         }
-        delay =  delay * 1000L;
-
-        timer = new Timer();
-        timer.schedule(new UpdateConfig(), delay, delay);
       } catch (NumberFormatException e) {
         logger.warn("Invalid polling time for parameter {}.", CaptureParameters.CAPTURE_CONFIG_REMOTE_POLLING_INTERVAL);
+        // If the polling time value is invalid, don't poll
+        return;
       }
+      timer = new Timer();
+      timer.schedule(new UpdateConfig(), delay, delay);
     }
   }
   
@@ -174,29 +173,6 @@ public class ConfigurationManager implements ManagedService {
     else {
       return properties.getProperty(key);
     }
-  }
-
-  /**
-   * Returns the value of an expanded variable
-   * @param variable The name of the variable (ie, java.io.tmpdir, or M2_REPO)
-   * @return The value of that variable, or null if the variable is not found
-   */
-  public String getVariable(String variable) {
-    return properties.expandVariable(variable);
-  }
-
-  /**
-   * Retrieve property for configuration.  The return value for this function do *not* have its variable(s) expanded. 
-   * @param key the key to retrieve from the property list.
-   * @return the value corresponding to the key.
-   */
-  public String getUninterpretedItem(String key) {
-    if (key == null) {
-      return null;
-    }
-    else {
-      return properties.getUninterpretedProperty(key);
-    }    
   }
   
   /**

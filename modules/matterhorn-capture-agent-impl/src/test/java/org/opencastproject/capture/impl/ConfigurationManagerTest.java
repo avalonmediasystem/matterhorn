@@ -18,17 +18,13 @@ package org.opencastproject.capture.impl;
 
 import org.opencastproject.capture.api.CaptureParameters;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.service.cm.ConfigurationException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -40,11 +36,6 @@ public class ConfigurationManagerTest {
   
   /** the singleton object to test with */
   private ConfigurationManager configManager;
-
-  @AfterClass
-  public static void after() {
-    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "configman-test"));
-  }
 
   @Before
   public void setUp() throws ConfigurationException {
@@ -59,10 +50,6 @@ public class ConfigurationManagerTest {
     configManager.setItem(null, "this should work, but not put anything in the props");
     Assert.assertEquals(1, configManager.getAllProperties().size());
 
-    Properties p = new Properties();
-    p.put("org.opencastproject.storage.dir", new File(System.getProperty("java.io.tmpdir"), "configman-test").getAbsolutePath());
-
-    configManager.updated(p);
     configManager.updated(null);
   }
 
@@ -129,8 +116,6 @@ public class ConfigurationManagerTest {
     sourceProps.load(is);
     IOUtils.closeQuietly(is);
 
-    configManager.setItem("org.opencastproject.storage.dir", new File(System.getProperty("java.io.tmpdir"), "configman-test").getAbsolutePath());
-    configManager.setItem("org.opencastproject.server.url", "http://localhost:8080");
     configManager.updated(sourceProps);
 
     Properties configProps = configManager.getAllProperties();
@@ -141,7 +126,7 @@ public class ConfigurationManagerTest {
     }
   }
 
-  @Test @Ignore
+  @Test
   public void testCapabilities() throws IOException, ConfigurationException {
     Properties sourceProps = new Properties();
     InputStream is = getClass().getClassLoader().getResourceAsStream("config/capture.properties");
@@ -151,23 +136,22 @@ public class ConfigurationManagerTest {
     sourceProps.load(is);
     IOUtils.closeQuietly(is);
 
-    configManager.setItem("org.opencastproject.storage.dir", new File(System.getProperty("java.io.tmpdir"), "configman-test").getAbsolutePath());
-    configManager.setItem("org.opencastproject.server.url", "http://localhost:8080");
     configManager.updated(sourceProps);
-    
+
     Properties caps = configManager.getCapabilities();
-    assertCaps(caps, "MOCK_SCREEN", configManager.getVariable("M2_REPO") + "/org/opencastproject/samples/screen/1.0/screen-1.0.mpg", "screen_out.mpg", "presentation/source");
-    assertCaps(caps, "MOCK_PRESENTER", configManager.getVariable("M2_REPO") + "/org/opencastproject/samples/camera/1.0/camera-1.0.mpg", "camera_out.mpg", "presentation/source");
-    assertCaps(caps, "MOCK_MICROPHONE", configManager.getVariable("M2_REPO") + "/org/opencastproject/samples/audio/1.0/audio-1.0.mp3", "audio_out.mp3", "presentation/source");
+    assertCaps(caps, "SCREEN", "screen.mpg", "screen_out.mpg", "presentation/source");
+    assertCaps(caps, "PRESENTER", "camera.mpg", "camera_out.mpg", "presentation/source");
+    assertCaps(caps, "MICROPHONE", "audio.mp3", "audio_out.mp3", "presentation/source");
   }
 
+  //TODO:  Make these checks better
   private void assertCaps(Properties caps, String name, String source, String dest, String flavour) {
     Assert.assertEquals(source, caps.get(CaptureParameters.CAPTURE_DEVICE_PREFIX + name + CaptureParameters.CAPTURE_DEVICE_SOURCE));
     Assert.assertEquals(dest, caps.get(CaptureParameters.CAPTURE_DEVICE_PREFIX + name + CaptureParameters.CAPTURE_DEVICE_DEST));
     Assert.assertEquals(flavour, caps.get(CaptureParameters.CAPTURE_DEVICE_PREFIX + name + CaptureParameters.CAPTURE_DEVICE_FLAVOR));
   }
 
-  @Test @Ignore
+  @Test
   public void testBrokenCapabilities() throws IOException, ConfigurationException {
     Properties sourceProps = new Properties();
     InputStream is = getClass().getClassLoader().getResourceAsStream("config/capture.properties");
@@ -177,10 +161,8 @@ public class ConfigurationManagerTest {
     sourceProps.load(is);
     IOUtils.closeQuietly(is);
 
-    sourceProps.remove("capture.device.MOCK_PRESENTER.src");
-    sourceProps.remove("capture.device.MOCK_PRESENTER.outputfile");
-    configManager.setItem("org.opencastproject.storage.dir", new File(System.getProperty("java.io.tmpdir"), "configman-test").getAbsolutePath());
-    configManager.setItem("org.opencastproject.server.url", "http://localhost:8080");
+    sourceProps.remove("capture.device.PRESENTER.src");
+    sourceProps.remove("capture.device.PRESENTER.outputfile");
     configManager.updated(sourceProps);
 
     Assert.assertNull(configManager.getCapabilities());
