@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <title>Opencast Matterhorn - Recordings</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- styles -->
+    <link rel="stylesheet" type="text/css" href="infusion-1.1.2/fss/css/fss-reset.css">
+    <link rel="stylesheet" type="text/css" href="infusion-1.1.2/fss/css/fss-layout.css">
+    <link rel="stylesheet" type="text/css" href="infusion-1.1.2/fss/css/fss-text.css">
+    <link rel="stylesheet" type="text/css" href="infusion-1.1.2/fss/css/fss-theme-coal.css">
+    <link rel="stylesheet" type="text/css" href="css/admin.css">
+    <link rel="stylesheet" type="text/css" href="css/tablesorter.css">
+
+    <!-- scripts -->
+    <script type="text/javascript" src="jquery/jquery-1.4.min.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.xslt.js"></script>
+    <script type="text/javascript" src="js/version.js"></script>
+    <script type="text/javascript" src="js/recordings.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function(){Recordings.init();})
+    </script>
+  </head>
+  <body>
+    <div id="pageHeader">
+      <div id="currentVersion"></div>
+      <div id="newestVersion" style="text-align: right; float: right;"></div>
+    </div>
+
+    <!-- notification that javaScript is disabled -->
+    <noscript>
+      <center>
+        <div style="border:1px solid red;width:530px;margin:20px;">
+          <div style="text-align: left;background:red; color:white;padding-top:2px;padding-bottom:2px;">
+            <div class="icon icon-error" style="margin-left:5px;margin-right:5px;">&nbsp;</div>
+            JavaScript is disabled
+          </div>
+          <div style="padding:10px;">
+            JavaScript is turned off in your web browser, so this site won't work properly! <br />
+            <strong>
+              Please turn JavaScript on to use this site, then refresh the page.
+            </strong>
+          </div>
+        </div>
+      </center>
+    </noscript>
+
+    <!-- fl-centered doesn't work in winXP-IE8 -->
+    <div class="fl-container-flex fl-centered fl-theme-coal">
+      <div style="margin-top: .5em">
+        <a href="../../welcome.html">
+          <h1><img src="img/MatterhornLogo_80x57.png" alt="Opencast Matterhorn">&nbsp;&nbsp;Opencast Matterhorn</h1>
+        </a>
+      </div>
+      <ul class="fl-tabs fl-tabs-left" style="background-color: white;">
+        <li class="fl-activeTab"><a href="recordings.html">Recordings</a></li>
+        <li><a href="agents_status.html">Capture Agents</a></li>
+      </ul>
+      <div id="stage" class="fl-tab-content wu-tab-content fl-fix">
+
+        <!-- Add/Schedule Buttons -->
+        <div id="add-buttons-container">
+          <button type="button" id="button_schedule" style="height:2em;cursor:pointer;margin-right:1em;font-size:1.1em;vertical-align: middle;">
+            <span class="icon icon-add">&nbsp;</span>
+            <span style="font-weight: bold; font-size:1em;">&nbsp; Schedule Recording</span>
+          </button>
+          <button type="button" id="button_upload" style="height:2em;cursor:pointer;font-size:1.1em;vertical-align: middle;">
+            <span class="icon icon-add">&nbsp;</span>
+            <span style="font-weight: bold; font-size:1em;">&nbsp; Upload Recording</span>
+          </button>
+        </div>
+
+        <!-- recording state selector -->
+        <div id="category-selector-container" class="fl-fix">
+          <ul class="category-selector">
+            <li class="category-selector-item">
+              <span class="state-selector selector-all clickable" state="all">All <span id="count-total"></span></span>
+            </li>
+            <li class="category-selector-spacer">
+              &#124;
+            </li>
+            <li class="category-selector-item">
+              <span class="state-selector selector-upcoming clickable" state="upcoming">Upcoming <span id="count-upcoming"></span></span>
+            </li>
+            <li class="category-selector-spacer">
+              &#124;
+            </li>
+            <li class="category-selector-item">
+              <span class="state-selector selector-capturing clickable" state="capturing">Capturing <span id="count-capturing"></span></span>
+            </li>
+            <li class="category-selector-spacer">
+              &#124;
+            </li>
+            <li class="category-selector-item">
+              <span class="state-selector selector-processing clickable" state="processing">Processing <span id="count-processing"></span></span>
+            </li>
+            <li class="category-selector-spacer">
+              &#124;
+            </li>
+            <li class="category-selector-item">
+              <span class="state-selector selector-finished clickable" state="finished">Finished <span id="count-finished"></span></span>
+            </li>
+            <li class="category-selector-spacer" style="width:30px;">
+              &nbsp;
+            </li>
+            <li class="category-selector-item">
+              <span class="state-selector selector-hold clickable" state="hold">On Hold<span id="count-hold">()</span></span>
+            </li>
+            <li class="category-selector-spacer">
+              &#124;
+            </li>
+            <li class="category-selector-item">
+              <span class="state-selector selector-failed clickable" state="failed">Failed <span id="count-errors">()</span></span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- recordings table -->
+        <div id="recordings-table-container" style="clear:both;">
+          <!-- This is where the rendered table goes -->
+        </div>
+      </div>
+    </div>
+    <!-- p>
+    <button type="button" onclick="Recordings.displayHoldActionPanel('http://outstack.virtuos.uos.de:8080/org.opencastproject.workflow.handler.downloaddvdworkflowoperationhandler/index.html?9cc8c5bf-ce45-493d-974a-e9ec9eb6ead3','9cc8c5bf-ce45-493d-974a-e9ec9eb6ead3');">Display Example of Hold UI</button>
+    </p -->
+    <div id="holdActionPanel-container">
+      <iframe id="holdActionPanel-iframe" src="">
+      </iframe>
+      <button type="button" id="continueBtn" onclick="$('#holdActionPanel-container').fadeOut('fast');">Continue</button>
+    </div>
+  </body>
+</html>

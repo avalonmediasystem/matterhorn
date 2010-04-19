@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="org.opencastproject.search.api.SearchService" immediate="true" activate="activate" deactivate="deactivate">
+  <implementation class="org.opencastproject.search.impl.SearchServiceImpl" />
+  <property name="service.description" value="Search Service" />
+  <service>
+    <provide interface="org.opencastproject.search.api.SearchService" />
+  </service>
+  <reference name="dc" interface="org.opencastproject.metadata.dublincore.DublinCoreCatalogService"
+    cardinality="1..1" policy="static" bind="setDublincoreService" />
+  <reference name="mpeg7" interface="org.opencastproject.metadata.mpeg7.Mpeg7CatalogService"
+    cardinality="1..1" policy="static" bind="setMpeg7Service" />
+</component>

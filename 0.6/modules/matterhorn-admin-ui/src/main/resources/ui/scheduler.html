@@ -1,0 +1,361 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <title id="window-title">Opencast Matterhorn - Schedule Recording</title>
+    
+    <!-- style -->
+    <link href="infusion-1.1.2/fss/css/fss-reset.css" rel="stylesheet" type="text/css">
+    <link href="infusion-1.1.2/fss/css/fss-layout.css" rel="stylesheet" type="text/css">
+    <link href="infusion-1.1.2/fss/css/fss-text.css" rel="stylesheet" type="text/css">
+    <link href="infusion-1.1.2/fss/css/fss-theme-coal.css" rel="stylesheet" type="text/css">
+    
+    <link rel="stylesheet" type="text/css" href="css/admin.css">
+    <link rel="stylesheet" type="text/css" href="css/scheduler.css">
+    <link rel="stylesheet" type="text/css" href="css/popuphelp.css">
+    <link rel="stylesheet" type="text/css" href="css/smoothness/jquery-ui-1.7.2.custom.css">
+    
+    <!-- scripts -->
+    <script type="text/javascript" src="jquery/jquery-1.4.min.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.i18n.properties-1.0.4.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.7.2.custom.min.js"></script>
+    <script type="text/javascript" src="js/popuphelp.js"></script>
+    <script type="text/javascript" src="js/scheduler.helptexts.json"></script>
+    <script type="text/javascript" src="js/scheduler.js"></script>
+    <script type="text/javascript" src="js/version.js"></script>
+    <script type="text/javascript">
+      $(document).ready(init);
+    </script>
+  </head>
+  <body>
+    <div id="pageHeader">
+      <div id="currentVersion"></div>
+      <div id="newestVersion" style="text-align: right; float: right;"></div>
+    </div>
+
+    <!-- notification that javaScript is disabled -->
+    <noscript>
+      <center>
+        <div style="border:1px solid red;width:530px;margin:20px;">
+          <div style="text-align: left;background:red; color:white;padding-top:2px;padding-bottom:2px;">
+            <div class="icon icon-error" style="margin-left:5px;margin-right:5px;">&nbsp;</div>
+            JavaScript is disabled
+          </div>
+          <div style="padding:10px;">
+            JavaScript is turned off in your web browser, so this site won't work properly! <br />
+            <strong>
+              Please turn JavaScript on to use this site, then refresh the page.
+            </strong>
+          </div>
+        </div>
+      </center>
+    </noscript>
+
+    <div class="fl-container-850 fl-theme-coal">
+      <div style="margin-top: .5em">
+        <a href="../../welcome.html">
+          <h1><img src="img/MatterhornLogo_80x57.png" alt="Opencast Matterhorn">&nbsp;&nbsp;Opencast Matterhorn</h1>
+        </a>
+      </div>
+      <ul class="fl-tabs fl-tabs-left" style="background-color: white;">
+        <li class="fl-activeTab"><a href="/admin/" id="i18n_tab_recording"></a></li>
+        <li><a href="/admin/agents_status.html" id="i18n_tab_agent"></a></li>
+      </ul>
+      <div id="stage" class="fl-tab-content wu-tab-content fl-fix" style="background:white;">
+        <div class="fl-container-800" style="text-align: center;">
+          <h2><div id="i18n_page_title"></div></h2>
+        </div>
+        <!-- missing fields notification -->
+        <div class="fl-container-800" id="missingFields-container" style="display:none;">
+          <div class="fl-widget">
+            <div class="fl-widget-titlebar warnbox-title">
+              <b>Missing or invalid input</b>
+            </div>
+            <div class="fl-widget-content warnbox-content">
+              <ul>
+                <li id="missing-title" class="missing-fields-item">
+                  <span class="fl-icon inline-icon icon-bullet"></span>Please enter a <a href="javascript:$('#title')[0].focus();">title</a> for the recording.
+                </li>
+                <li id="missing-distribution" class="missing-fields-item">
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>Please choose at least one <a href="javascript:document.getElementById('distITunesU').focus();">distribution channel</a>.
+                </li>
+                <li id="missing-startdate" class="missing-fields-item">
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>Please choose a starting <a href="javascript:document.getElementById('startDate').focus()">date</a> and <a href="javascript:document.getElementById('startTimeHour').focus()">time</a> in the future for your recording.
+                </li>
+                <li id="missing-duration" class="missing-fields-item">
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>You must have a <a href="javascript:document.getElementById('durationHour').focus();">duration</a> greater than 0 hours and 0 minutes.
+                </li>
+                <li id="missing-attendees" class="missing-fields-item">
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>Please choose a <a href="javascript:document.getElementById('attendees').focus();">capture agent</a> to record the event.
+                </li>
+                <li id="notice-offline" class="missing-fields-item" style="display:none;">
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>The <a href="javascript:document.getElementById('attendees').focus();">capture agent</a> you previously selected is currently offline. You may want to select a different capture agent.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div class="fl-container-800" id="notice-container" style="display:none;">
+          <div class="fl-widget">
+            <div class="fl-widget-titlebar warnbox-title">
+              <b>Notice</b>
+            </div>
+            <div class="fl-widget-content warnbox-content">
+              <ul>
+                <li id="notice-offline" class="missing-fields-item">
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>The <a href="javascript:document.getElementById('attendees').focus();">capture agent</a> you previously selected is currently offline. You may want to select a different capture agent.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Common Scheduling Information -->
+        <div class="fl-container-800">
+          <div class="fl-widget">
+            <div class="fl-widget-content form-box-container">
+              <form action="">
+                <ul class="fl-controls-right form-list">
+                  <li class="required">
+                    <label class="fl-label" for="title" id="label-title">Title:</label>
+                    <input type="text" class="form-field" name="title" id="title">
+                    <span class="fl-icon icon-help" id="help_title" title="Click for help"></span>
+                  </li>
+                  <li>
+                    <label class="fl-label" for="creator" id="label-creator">Presenter:</label>
+                    <input type="text" class="form-field" name="creator" id="creator">
+                    <span class="fl-icon icon-help"  id="help_presenter" title="Click for help"></span>
+                  </li>
+                  <li>
+                    <label class="fl-label" for="contributor" id="label-contributor">Sponsoring Department:</label>
+                    <input type="text" class="form-field" name="contributor" id="contributor">
+                    <span class="fl-icon icon-help"  id="help_contributor" title="Click for help"></span>
+                  </li>
+                </ul>
+              </form>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Optional Information -->
+        <div class="fl-container-800">
+          <div class="fl-widget">
+            <div class="fl-widget-titlebar folder-head">
+              <span class="fl-icon icon-arrow-right folder-icon"></span>
+              <b style="verticle-align: middle;">Additional Description</b>
+            </div>
+            <div class="fl-widget-content folder-content">
+              <form action="">
+                <ul class="fl-controls-right form-list">
+                  <li class="additionalMeta">
+                    <label class="fl-label" for="series"  id="label-series">Series:</label>
+                    <input type="text" class="form-field" name="series" id="series">
+                    <span class="fl-icon icon-help"  id="help_series" title="Click for help"></span>
+                  </li>
+                  <li class="additionalMeta">
+                    <label class="fl-label" for="subject" id="label-subject">Subject:</label>
+                    <input type="text" class="form-field" name="subject" id="subject">
+                    <span class="fl-icon icon-help"  id="help_subject" title="Click for help"></span>
+                  </li>
+                  <li class="additionalMeta">
+                    <label class="fl-label" for="language" id="label-language">Language:</label>
+                    <input type="text" class="form-field" name="language" id="language">
+                    <span class="fl-icon icon-help"  id="help_language" title="Click for help"></span>
+                  </li>
+                  <li class="additionalMeta">
+                    <label class="fl-label" for="description" id="label-description">Description:</label>
+                    <textarea name="description" id="description" class="form-field" rows="5" cols="10"></textarea>
+                    <span class="fl-icon icon-help"  id="help_description" title="Click for help"></span>
+                  </li>
+                </ul>
+              </form>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Distribution and Licensing -->
+        <div class="fl-container-800">
+          <div class="fl-widget">
+            <div class="fl-widget-titlebar form-box-title"><b>Distribution</b></div>
+            <div class="fl-widget-content form-box-container">
+              <form action="">
+                <ul class="fl-controls-right form-list">
+                  <li class="required">
+                    <label class="fl-label form-box-label" id="label-distribution">Distribution Channel(s):</label>
+                    <div style="float: left;">
+                      <ul class="form-box-group">
+                        <li class="column1">
+                          <input type="checkbox" id="distMatterhornMM" value="Matterhorn Media Module" checked="checked" disabled="disabled">
+                          <label for="distMatterhornMM">Matterhorn Media Module</label>
+                        </li>
+                      </ul>
+                    </div>
+                    <span class="fl-icon icon-help" id="help_distribution" title="Click for help"></span>
+                  </li>
+                  <li style="clear:both">
+                    <label class="fl-label" for="license"  id="label-license">License:</label>
+                    <input type="text" name="license" id="license" class="form-field">
+                    <span class="fl-icon icon-help" id="help_license" title="Click for help"></span>
+                  </li>
+                </ul>
+              </form>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Scheduling Specifics -->
+        <div class="fl-container-800">
+          <div class="fl-widget">
+            <div class="fl-widget-titlebar form-box-title"><b>Capture</b></div>
+            <div class="fl-widget-content form-box-container">
+              <form action="">
+                <ul class="fl-controls-right form-list">
+                  <li class="required">
+                    <label class="fl-label form-box-label" id="label-startdate">Start Date:</label>
+                    <input type="text" size="10" name="startDate" id="startDate" style="margin-right:5px;">
+                    <span class="fl-icon icon-help" id="help_startdate" title="Click for help"></span>
+                  </li>
+                  <li class="required">
+                    <label class="fl-label form-box-label" id="label-starttime">Start Time:</label>
+                    <select id="startTimeHour">
+                      <option value="0">00</option>
+                      <option value="1">01</option>
+                      <option value="2">02</option>
+                      <option value="3">03</option>
+                      <option value="4">04</option>
+                      <option value="5">05</option>
+                      <option value="6">06</option>
+                      <option value="7">07</option>
+                      <option value="8">08</option>
+                      <option value="9">09</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                      <option value="13">13</option>
+                      <option value="14">14</option>
+                      <option value="15">15</option>
+                      <option value="16">16</option>
+                      <option value="17">17</option>
+                      <option value="18">18</option>
+                      <option value="19">19</option>
+                      <option value="20">20</option>
+                      <option value="21">21</option>
+                      <option value="22">22</option>
+                      <option value="23">23</option>
+                    </select>
+                    <select id="startTimeMin">
+                      <option value="0">00</option>
+                      <option value="5">05</option>
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="25">25</option>
+                      <option value="30">30</option>
+                      <option value="35">35</option>
+                      <option value="40">40</option>
+                      <option value="45">45</option>
+                      <option value="50">50</option>
+                      <option value="55">55</option>
+                    </select>
+                    <span class="fl-icon icon-help" id="help_starttime" title="Click for help"></span>
+                  </li>
+                  <li class="required">
+                    <label class="fl-label form-box-label" id="label-duration">Duration:</label>
+                    <select id="durationHour">
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                    hour(s)
+                    <select id="durationMin">
+                      <option value="0">0</option>
+                      <option value="5">5</option>
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="25">25</option>
+                      <option value="30">30</option>
+                      <option value="35">35</option>
+                      <option value="40">40</option>
+                      <option value="45">45</option>
+                      <option value="50">50</option>
+                      <option value="55">55</option>
+                    </select>
+                    minutes
+                    <span class="fl-icon icon-help" id="help_duration" title="Click for help"></span>
+                  </li>
+                  <li class="required" style="clear: both;">
+                    <label class="fl-label"  id="label-attendees">Capture Agent:</label>
+                    <div>
+                      <select id="attendees" name="attendees">
+                        <option value="">Choose one:</option>
+                      </select>
+                      <span class="fl-icon icon-help"  id="help_agent" title="Click for help"></span>
+                    </div>
+                  </li>
+                  <li class="required">
+                    <label class="fl-label" id="label-input">Input(s):</label>
+                    <div class="form-radio-group" style="float: left; width: 300px;">
+                      <div id="input-list"></div>
+                      <span class="fl-icon icon-help" id="help_input" title="Click for help" style="vertical-align: middle; margin-left: .8em;"></span>
+                    </div>
+                  </li>
+                </ul>
+              </form>
+            </div>
+          </div>
+        </div>
+        
+        <div class="fl-container-800">
+          <div class="fl-widget">
+            <div class="fl-widget-content fl-fix">
+              <form action="">
+                <ul class="fl-controls-right wu-reset field-list">
+                  <li>
+                    <label class="fl-label">&nbsp;</label>
+                    <input type="button" value="Submit" id="submitButton" class="mouseover-pointer control-button">
+                    <input type="button" value="Cancel" id="cancelButton" class="mouseover-pointer control-button">
+                    <div id="delete-recording" style="float: right; margin-right: 160px; display: none;">
+                      <input type="button" value="Delete Recording" id="deleteButton" class="mouseover-pointer control-button">
+                    </div>
+                    <input type="hidden" id="eventID">
+                  </li>
+                  <li style="margin-top: 0.6em;">
+                    <label class="fl-label">&nbsp;</label>
+                    <span style="color: red;">*</span> Required
+                  </li>
+                </ul>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="deleteBox" class="fl-tab-content wu-tab-content fl-fix" style="display:none;">
+        <!-- Delete Confirm Box -->
+        <div id="heading-metadata" style="background-color:#66FF66;font-weight:bold; margin-bottom:1em; margin-left:auto; margin-right:auto; padding:10px; text-align:center;">
+          <div id="i18n_del_msg"></div>
+        </div>
+        <div style="text-align: center;"><a href="/admin/recordings.html?show=upcoming">&lt;&lt; Back to Recordings</a></div>
+      </div>
+      
+      <!-- template for the popup help box -->
+      <div id="helpBox" class="helpbox" style="display:none;">
+        <img src="img/lightbulb.png" alt="help">
+        <div id="helpTitle" style="display:inline;font-weight:bold; margin-left:10px;"></div>
+        <div id="helpText" style="padding-left:7px; padding-right:7px; white-space:normal;"></div>
+      </div>
+    </div>
+  </body>
+</html>
