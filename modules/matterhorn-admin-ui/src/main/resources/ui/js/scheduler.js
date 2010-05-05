@@ -302,13 +302,12 @@ SchedulerUI.displayCapabilities = function(capa){
 
 SchedulerUI.handleAgentTZ = function(tz){
   var localTZ = -(new Date()).getTimezoneOffset(); //offsets in minutes
-  if(tz != localTZ){
+  Agent.tzDiff = 0;
+  if(tz != localTZ && tz.length > 0){
     //Display note of agent TZ difference, all times local to capture agent.
     //update time picker to agent time
     //console.log('Agent TZ is different from user\'s local tz', tz, localTZ);
     Agent.tzDiff = tz - localTZ;
-  }else{
-    Agent.tzDiff = 0;
   }
 }
 
@@ -775,6 +774,7 @@ function getStartDate(){
     date = this.fields.startDate.datepicker('getDate').getTime() / 1000; // Get date in milliseconds, convert to seconds.
     date += this.fields.startTimeHour.val() * 3600; // convert hour to seconds, add to date.
     date += this.fields.startTimeMin.val() * 60; //convert minutes to seconds, add to date.
+    date -= Agent.tzDiff * 60; //Agent TZ offset
     date = date * 1000; //back to milliseconds
     this.value = (new Date(date)).getTime();
   }
@@ -799,7 +799,7 @@ function setStartDate(value){
   }
   var date = parseInt(value.startdate);
   if(date != 'NaN') {
-    date = new Date(date);
+    date = new Date(date + (Agent.tzDiff * 60 * 1000));
   } else {
     throw 'Could not parse date.';
   }
