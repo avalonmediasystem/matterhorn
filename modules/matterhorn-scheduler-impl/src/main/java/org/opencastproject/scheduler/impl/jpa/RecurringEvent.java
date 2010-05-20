@@ -204,7 +204,7 @@ public class RecurringEvent extends AbstractEvent{
                      new net.fortuna.ical4j.model.Date(end), Value.DATE_TIME);
       logger.debug("DateList: {}", dates);
       for (Object date : dates) {
-        //Dates in the DateList do not have times. Add the start time to the date so we know what time to start as well as what day.
+        //Dates in the DateList do not have times. Add the start time to the date so we know what time to start as well as what day. 
         Date d = (Date) date;
         d.setHours(start.getHours());
         d.setMinutes(start.getMinutes());
