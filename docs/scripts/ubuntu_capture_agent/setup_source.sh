@@ -24,7 +24,7 @@ fi
 if [[ -n "$(echo "${keep:-Y}" | grep -i '^n')" ]]; then
     # Get the necessary matterhorn source code (the whole trunk, as specified in MH-3211)
     while [[ true ]]; do
-	read -p "Do you wish to download the source code from the official trunk? [Y/n]: " answer
+	read -p "Do you wish to download the source code from the branch 0.8.x? [Y/n]: " answer
 	while [[ -z "$(echo "${answer:-Y}" | grep -i '^[yn]')" ]]; do
 	    read -p "Please answer [Y]es or [n]o: " answer
 	done

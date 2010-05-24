@@ -15,8 +15,8 @@ export USERNAME=matterhorn                                  # Default name for t
 
 export START_PATH=$PWD                                      # Path from where this script is run initially
 export WORKING_DIR=/tmp/cainstallscript                     # Directory where this script will be run
-export TRUNK_URL=http://opencast.jira.com/svn/MH/trunk
-export TRUNK_SUBDIR=matterhorn-trunk                        # Subdir under the selected user $HOME directory
+export TRUNK_URL=http://opencast.jira.com/svn/branches/0.8.x
+export TRUNK_SUBDIR=branch_0.8.x                            # Subdir under the selected user $HOME directory
 export OC_DIR=/opt/matterhorn                               # Storage directory for the CA
 export DEV_RULES=/etc/udev/rules.d/matterhorn.rules         # File containing the rules to be applied by udev to the configured devices -- not a pun!
 export CONFIG_SCRIPT=device_config.sh                       # File name for the bash script under HOME containing the device configuration routine
