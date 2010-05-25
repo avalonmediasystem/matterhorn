@@ -15,6 +15,7 @@
  */
 package org.opencastproject.fsresources;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpContext;
@@ -25,20 +26,26 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.StringTokenizer;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Serves static content from a configured path on the filesystem.  In production systems, this should be replaced with
+ * Serves static content from a configured path on the filesystem. In production systems, this should be replaced with
  * apache httpd or another web server optimized for serving static content.
  */
 public class StaticResourceServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private static final Logger logger = LoggerFactory.getLogger(StaticResourceServlet.class);
+  private static final MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
 
   protected HttpContext httpContext;
   protected HttpService httpService;
@@ -74,7 +81,7 @@ public class StaticResourceServlet extends HttpServlet {
       throw new RuntimeException(e);
     }
   }
-  
+
   public void deactivate() {
     httpService.unregister("/static");
   }
@@ -95,15 +102,83 @@ public class StaticResourceServlet extends HttpServlet {
     }
 
     File f = new File(distributionDirectory, normalized);
+    String eTag = null;
     if (f.isFile() && f.canRead()) {
       logger.debug("Serving static resource '{}'", f.getAbsolutePath());
       FileInputStream in = new FileInputStream(f);
       try {
-        IOUtils.copyLarge(in, resp.getOutputStream());
-      } catch (MalformedURLException e) {
-        throw new RuntimeException(e);
+        eTag = DigestUtils.md5Hex(in);
+        if (eTag.equals(req.getHeader("If-None-Match"))) {
+          resp.setStatus(304);
+          return;
+        }
+        resp.setHeader("ETag", eTag);
+      } catch (IOException e) {
+        logger.warn("This system can not generate md5 hashes.");
       } finally {
         IOUtils.closeQuietly(in);
+      }
+      String contentType = mimeMap.getContentType(f);
+      if (!"application/octet-stream".equals(contentType)) {
+        resp.setContentType(contentType);
+      }
+      resp.setHeader("Content-Length", Long.toString(f.length()));
+      resp.setDateHeader("Last-Modified", f.lastModified());
+
+      resp.setHeader("Accept-Ranges", "bytes");
+      ArrayList<Range> ranges = parseRange(req, resp, eTag, f.lastModified(), f.length());
+
+      if ((((ranges == null) || (ranges.isEmpty())) && (req.getHeader("Range") == null)) || (ranges == FULL)) {
+        IOException e = copyRange(new FileInputStream(f), resp.getOutputStream(), 0, f.length());
+        if (e != null) {
+          try {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
+          } catch (IOException e1) {
+            logger.warn("unable to send http 500 error: {}", e1);
+            return;
+          }
+        }
+      } else {
+        if ((ranges == null) || (ranges.isEmpty())) {
+          return;
+        }
+        if (ranges.size() == 1) {
+          Range range = (Range) ranges.get(0);
+          resp.addHeader("Content-Range", "bytes " + range.start + "-" + range.end + "/" + range.length);
+          long length = range.end - range.start + 1;
+          if (length < Integer.MAX_VALUE) {
+            resp.setContentLength((int) length);
+          } else {
+            // Set the content-length as String to be able to use a long
+            resp.setHeader("content-length", "" + length);
+          }
+          try {
+            resp.setBufferSize(2048);
+          } catch (IllegalStateException e) {
+            logger.debug(e.getMessage(), e);
+          }
+          resp.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+          IOException e = copyRange(new FileInputStream(f), resp.getOutputStream(), range.start, range.end);
+          if (e != null) {
+            try {
+              resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+              return;
+            } catch (IOException e1) {
+              logger.warn("unable to send http 500 error: {}", e1);
+              return;
+            }
+          }
+        } else {
+          resp.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+          resp.setContentType("multipart/byteranges; boundary=" + mimeSeparation);
+          try {
+            resp.setBufferSize(2048);
+          } catch (IllegalStateException e) {
+            logger.debug(e.getMessage(), e);
+          }
+          copy(f, resp.getOutputStream(), ranges.iterator(), contentType);
+        }
       }
     } else {
       logger.debug("unable to find file '{}', returning HTTP 404");
