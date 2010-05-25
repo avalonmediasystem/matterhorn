@@ -111,4 +111,212 @@ public class StaticResourceServlet extends HttpServlet {
     }
   }
 
+  protected void copy(File f, ServletOutputStream out, Iterator<Range> ranges, String contentType)
+          throws IOException {
+    IOException exception = null;
+    while ((exception == null) && (ranges.hasNext())) {
+      Range currentRange = (Range) ranges.next();
+      // Writing MIME header.
+      out.println();
+      out.println("--" + mimeSeparation);
+      if (contentType != null) {
+        out.println("Content-Type: " + contentType);
+      }
+      out.println("Content-Range: bytes " + currentRange.start + "-" + currentRange.end + "/" + currentRange.length);
+      out.println();
+
+      // Printing content
+      InputStream in = new FileInputStream(f);
+      exception = copyRange(in, out, currentRange.start, currentRange.end);
+      in.close();
+    }
+    out.println();
+    out.print("--" + mimeSeparation + "--");
+    // Rethrow any exception that has occurred
+    if (exception != null) {
+      throw exception;
+    }
+  }
+
+  /**
+   * Full range marker.
+   */
+  protected static ArrayList<Range> FULL = new ArrayList<Range>();
+
+  /**
+   * MIME multipart separation string
+   */
+  protected static final String mimeSeparation = "MATTERHORN_MIME_BOUNDARY";
+
+  /**
+   * Parse the range header.
+   * 
+   * @param req
+   *          The servlet request we are processing
+   * @param response
+   *          The servlet response we are creating
+   * @return Vector of ranges
+   */
+  protected ArrayList<Range> parseRange(HttpServletRequest req, HttpServletResponse response, String eTag,
+          long lastModified, long fileLength) throws IOException {
+
+    // Checking If-Range
+    String headerValue = req.getHeader("If-Range");
+    if (headerValue != null) {
+      long headerValueTime = (-1L);
+      try {
+        headerValueTime = req.getDateHeader("If-Range");
+      } catch (IllegalArgumentException e) {
+        logger.debug(e.getMessage(), e);
+      }
+
+      if (headerValueTime == (-1L)) {
+        // If the ETag the client gave does not match the entity
+        // etag, then the entire entity is returned.
+        if (!eTag.equals(headerValue.trim()))
+          return FULL;
+      } else {
+        // If the timestamp of the entity the client got is older than
+        // the last modification date of the entity, the entire entity
+        // is returned.
+        if (lastModified > (headerValueTime + 1000))
+          return FULL;
+      }
+    }
+
+    if (fileLength == 0) {
+      return null;
+    }
+
+    // Retrieving the range header (if any is specified
+    String rangeHeader = req.getHeader("Range");
+
+    if (rangeHeader == null) {
+      return null;
+    }
+    // bytes is the only range unit supported (and I don't see the point
+    // of adding new ones).
+    if (!rangeHeader.startsWith("bytes")) {
+      response.addHeader("Content-Range", "bytes */" + fileLength);
+      response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+      return null;
+    }
+
+    rangeHeader = rangeHeader.substring(6);
+
+    // Vector which will contain all the ranges which are successfully
+    // parsed.
+    ArrayList<Range> result = new ArrayList<Range>();
+    StringTokenizer commaTokenizer = new StringTokenizer(rangeHeader, ",");
+
+    // Parsing the range list
+    while (commaTokenizer.hasMoreTokens()) {
+      String rangeDefinition = commaTokenizer.nextToken().trim();
+      Range currentRange = new Range();
+      currentRange.length = fileLength;
+      int dashPos = rangeDefinition.indexOf('-');
+      if (dashPos == -1) {
+        response.addHeader("Content-Range", "bytes */" + fileLength);
+        response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+        return null;
+      }
+      if (dashPos == 0) {
+        try {
+          long offset = Long.parseLong(rangeDefinition);
+          currentRange.start = fileLength + offset;
+          currentRange.end = fileLength - 1;
+        } catch (NumberFormatException e) {
+          response.addHeader("Content-Range", "bytes */" + fileLength);
+          response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+          return null;
+        }
+      } else {
+        try {
+          currentRange.start = Long.parseLong(rangeDefinition.substring(0, dashPos));
+          if (dashPos < rangeDefinition.length() - 1)
+            currentRange.end = Long.parseLong(rangeDefinition.substring(dashPos + 1, rangeDefinition.length()));
+          else
+            currentRange.end = fileLength - 1;
+        } catch (NumberFormatException e) {
+          response.addHeader("Content-Range", "bytes */" + fileLength);
+          response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+          return null;
+        }
+      }
+      if (!currentRange.validate()) {
+        response.addHeader("Content-Range", "bytes */" + fileLength);
+        response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+        return null;
+      }
+      result.add(currentRange);
+    }
+    return result;
+  }
+
+  /**
+   * Copy the contents of the specified input stream to the specified output stream, and ensure that both streams are
+   * closed before returning (even in the face of an exception).
+   * 
+   * @param istream
+   *          The input stream to read from
+   * @param ostream
+   *          The output stream to write to
+   * @param start
+   *          Start of the range which will be copied
+   * @param end
+   *          End of the range which will be copied
+   * @return Exception which occurred during processing
+   */
+  protected IOException copyRange(InputStream istream, ServletOutputStream ostream, long start, long end) {
+    logger.debug("Serving bytes:{}-{}", start, end);
+    try {
+      istream.skip(start);
+    } catch (IOException e) {
+      return e;
+    }
+    IOException exception = null;
+    long bytesToRead = end - start + 1;
+    byte buffer[] = new byte[2048];
+    int len = buffer.length;
+    while ((bytesToRead > 0) && (len >= buffer.length)) {
+      try {
+        len = istream.read(buffer);
+        if (bytesToRead >= len) {
+          ostream.write(buffer, 0, len);
+          bytesToRead -= len;
+        } else {
+          ostream.write(buffer, 0, (int) bytesToRead);
+          bytesToRead = 0;
+        }
+      } catch (IOException e) {
+        exception = e;
+        len = -1;
+      }
+      if (len < buffer.length)
+        break;
+    }
+    return exception;
+  }
+
+  protected class Range {
+    public long start;
+    public long end;
+    public long length;
+
+    /**
+     * Validate range.
+     */
+    public boolean validate() {
+      if (end >= length)
+        end = length - 1;
+      return ((start >= 0) && (end >= 0) && (start <= end) && (length > 0));
+    }
+
+    public void recycle() {
+      start = 0;
+      end = 0;
+      length = 0;
+    }
+  }
+
 }
