@@ -123,20 +123,20 @@ for (( i = 0; i < ${#SCRIPTS[@]}; i++ )); do
     chmod +x $f
 done
 
-# Choose/create the matterhorn user (WARNING: The initial perdiod (.) MUST be there so that the script can export several variables
+# Choose/create the matterhorn user (WARNING: The initial perdiod (.) MUST be there so that the script can export several variables)
 . ${SETUP_USER}
+
+# Install the 3rd party dependencies (WARNING: The initial perdiod (.) MUST be there so that the script can export several variables)
+. ${INSTALL_DEPENDENCIES}
+if [[ "$?" -ne 0 ]]; then
+    echo "Error installing the 3rd party dependencies."
+    exit 1
+fi
 
 # Install the vga2usb driver
 ${INSTALL_VGA2USB}
 if [[ "$?" -ne 0 ]]; then
     echo "Error installing the vga2usb driver."
-    exit 1
-fi
-
-# Install the 3rd party dependencies (WARNING: The initial perdiod (.) MUST be there so that the script can export several variables
-. ${INSTALL_DEPENDENCIES}
-if [[ "$?" -ne 0 ]]; then
-    echo "Error installing the 3rd party dependencies."
     exit 1
 fi
 
