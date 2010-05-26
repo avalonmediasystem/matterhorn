@@ -349,6 +349,21 @@ Opencast.Player = (function () {
 
     /**
         @memberOf Opencast.Player
+        @description Hide the transcript
+     */
+    function hideTranscript()
+    {
+        $("#oc_transcript").attr("className", "oc_DisplayNone");
+        $("#oc_btn-transcript").attr({ 
+            alt: TRANSCRIPT,
+            title: TRANSCRIPT,
+            value: TRANSCRIPT
+        });
+        $("#oc_btn-transcript").attr('aria-pressed', 'false');
+    }
+    
+    /**
+        @memberOf Opencast.Player
         @description Show the shortcuts
      */
     function showShortcuts()
@@ -467,8 +482,6 @@ Opencast.Player = (function () {
         });
         $("#oc_btn-description").attr('aria-pressed', 'false');
     }
-    
-    
     
     /**
         @memberOf Opencast.Player
@@ -601,9 +614,9 @@ Opencast.Player = (function () {
      */
     function doToggleBookmark()
     {
-        if ($("#oc_btn-bookmark").attr("title") === BOOKMARK)
+        if ($("#oc_btn-bookmarks").attr("title") === BOOKMARKS)
         {
-            showBookmark();
+            showBookmarks();
             hideEmbed();
             hideNotes(); 
             hideSlides();
@@ -620,7 +633,10 @@ Opencast.Player = (function () {
         Opencast.Initialize.doTest();
     }
     
-    
+    /**
+        @memberOf Opencast.Player
+        @description Toggle the description
+     */
     function doToggleDescription()
     {
         if ($("#oc_btn-description").attr("title") === DESCRIPTION)
@@ -677,7 +693,6 @@ Opencast.Player = (function () {
         @memberOf Opencast.Player
         @description Set the embed Player.
         @param String width, String height
-
      */
     function embedIFrame(width, height)
     {
@@ -688,6 +703,75 @@ Opencast.Player = (function () {
         iFrameText = '<iframe src="' + embedUrl + '" style="border:0px #FFFFFF none;" name="Opencast Matterhorn - Media Player" scrolling="no" frameborder="1" marginheight="0px" marginwidth="0px" width="' + width + '" height="' + height + '"></iframe>';
         $('#oc_embed-textarea').val(iFrameText);
     }
+    
+    /**
+        @memberOf Opencast.Player
+        @description Add a bookmark
+        @param String value, String name, String text
+     */
+    function addBookmark(value, name, text)
+    {
+    	var option = '<option value="'+value+'" class="oc_option-myBookmark" title="'+value+' '+name+': '+text+'">'+value+' '+name+': '+text+'</option>'
+    	
+    	$('#oc_bookmarkSelect').prepend( option );
+    	if ($("#oc_myBookmarks-checkbox").attr('aria-checked') === 'false')
+        {
+            $("#oc_myBookmarks-checkbox").attr('aria-checked', 'true');
+  	        $('#oc_myBookmarks-checkbox').attr('checked', 'true'); 
+  	        $('option.oc_option-myBookmark').css('display', 'block' );
+  	        $('.oc_option-myBookmark').css('visibility', 'visible' ); 
+        }
+    	
+    	//
+    	var posLeft = 0;
+    	var windowWidth = getBrowserWidth();
+    	var playhead = getPlayhead(value);
+    	var duration = getDuration();
+    	
+    	var posLeft = ( playhead * 100 ) / duration;
+    	
+  
+    	var btn = '<input class="oc_boomarkPoint" onClick="Opencast.Player.playBookmark(this.name)" style="left:'+posLeft+'%; width: 5px; height: 10px; margin-left: 5px; position: absolute; background-color: #90ee90 !important;" name="'+value+'" alt="'+value+' '+name+': '+text+'" title="'+value+' '+name+': '+text+'"></input>';
+    	$('#oc_bookmarksPoints').append( btn );
+    }
+    
+    /**
+        @memberOf Opencast.Player
+        @description remove a bookmark
+     */
+    function removeBookmark()
+    {
+    	$('#oc_bookmarkSelect option:selected').remove();
+    	$('#oc_btn-removeBookmark').css('display', 'none' ); 
+    }
+    
+    /**
+        @memberOf Opencast.Player
+        @description play a bookmark
+        @param String playheadString
+     */
+    function playBookmark(playheadString)
+    {
+    	var newPlayhead = getPlayhead(playheadString);
+    	Videodisplay.seek(newPlayhead);
+    }
+    
+    /**
+        @memberOf Opencast.Player
+        @description get the playhead
+        @param String playheadString
+     */
+    function getPlayhead(playheadString)
+    {
+        var playheadArray = playheadString.split(':');
+    	
+    	var playheadHour = parseInt(playheadArray[0], 10);
+        var playheadMinutes = parseInt(playheadArray[1], 10);
+        var playheadSeconds = parseInt(playheadArray[2], 10);
+        
+        return (playheadHour * 60 * 60) + (playheadMinutes * 60) + (playheadSeconds);
+    }
+    
     
     /**
      * 
@@ -902,7 +986,6 @@ Opencast.Player = (function () {
         $("#oc_btn-volume").attr('aria-pressed', 'true');
     }
     
-    
     /**
         @memberOf Opencast.Player
         @description Set the cc icon
@@ -955,7 +1038,7 @@ Opencast.Player = (function () {
     
     /**
         @memberOf Opencast.Player
-        @description 
+        @description Show the single video display
      */
     function videoSizeControlSingleDisplay()
     {
@@ -964,7 +1047,7 @@ Opencast.Player = (function () {
     
     /**
         @memberOf Opencast.Player
-        @description 
+        @description Show the audio display
      */
     function videoSizeControlAudioDisplay()
     {
@@ -977,7 +1060,7 @@ Opencast.Player = (function () {
     
     /**
         @memberOf Opencast.Player
-        @description 
+        @description Show only the presenter video display
      */
     function videoSizeControlMultiOnlyLeftDisplay()
     {
@@ -987,7 +1070,7 @@ Opencast.Player = (function () {
     
     /**
         @memberOf Opencast.Player
-        @description 
+        @description Show only the presentation video display
      */
     function videoSizeControlMultiOnlyRightDisplay()
     {
@@ -997,7 +1080,7 @@ Opencast.Player = (function () {
 
     /**
         @memberOf Opencast.Player
-        @description 
+        @description Resize the presentation video
      */
     function videoSizeControlMultiBigRightDisplay()
     {
@@ -1007,7 +1090,7 @@ Opencast.Player = (function () {
     
     /**
         @memberOf Opencast.Player
-        @description 
+        @description Resize the presenter video
      */
     function videoSizeControlMultiBigLeftDisplay()
     {
@@ -1017,7 +1100,7 @@ Opencast.Player = (function () {
 
     /**
         @memberOf Opencast.Player
-        @description 
+        @description Show presenter and presentation video
      */
     function videoSizeControlMultiDisplay()
     {
@@ -1079,7 +1162,7 @@ Opencast.Player = (function () {
     /**
         @memberOf Opencast.Player
         @description Set the current time of the video.
-        @param String text, String playerId 
+        @param String text 
      */
     function setCurrentTime(text) 
     {
@@ -1091,7 +1174,7 @@ Opencast.Player = (function () {
     /**
         @memberOf Opencast.Player
         @description Set the total time of the video.
-        @param String text, String playerId 
+        @param String text
      */
     function setTotalTime(text) 
     {
@@ -1178,7 +1261,7 @@ Opencast.Player = (function () {
     /**
         @memberOf Opencast.Player
         @description Set the slider max time and set the duration.
-        @param Number time, String playerId 
+        @param Number time 
      */
     function setDuration(time) 
     {
@@ -1188,7 +1271,7 @@ Opencast.Player = (function () {
     /**
         @memberOf Opencast.Player
         @description Set the new position of the seek slider.
-        @param Number newPosition, String playerId 
+        @param Number newPosition
      */
     function setPlayhead(newPosition) 
     {
@@ -1279,7 +1362,7 @@ Opencast.Player = (function () {
     /**
         @memberOf Opencast.Player
         @description addAlert in html code.
-        @param Html text 
+        @param String alertMessage 
      */
     function currentTime(alertMessage) 
     {
