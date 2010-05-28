@@ -183,6 +183,9 @@ if [ -z $MY_IP ]; then
 else
   # connected, start main task
   show_stat
+
+  install_jv4linfo 
+
   echo "******** OPTIONS HAVE CHANGED, PLEASE READ CAREFULLY *********"
 
   # Need to get a server name, not just y/n
