@@ -6,6 +6,11 @@ CONF_DIR=/opt/matterhorn/felix/conf
 MOTD_FILE=/etc/motd.tail
 MY_OS=`uname -sr`
 
+JV4LINFO_URL=http://luniks.net/luniksnet/download/java/jv4linfo
+JV4LINFO_JAR=jv4linfo-0.2.1-src.jar
+JV4LINFO_LIB=libjv4linfo.so
+JV4LINFO_PATH=/usr/lib
+
 show_stat()
 {
 cat >&1 <<END
@@ -90,6 +95,34 @@ install_ffmpeg ()
   make
   sudo checkinstall --pkgname=ffmpeg --pkgversion "4:0.5+svn`date +%Y%m%d`" --backup=no --default
   hash ffmpeg
+}
+
+install_jv4linfo ()
+{
+       if [[ ! -e "$JV4LINFO_PATH/$JV4LINFO_LIB" ]]; then
+                       echo -n "Installing jv4linfo... "
+                       if [[ ! -e "$JV4LINFO_JAR" ]]; then
+               wget -q $JV4LINFO_URL/$JV4LINFO_JAR
+                       fi
+                       jar xf $JV4LINFO_JAR
+                       cd jv4linfo/src
+                       # The ant build script has a hardcoded path to the openjdk, this sed line will
+                       # switch it to be whatever is defined in JAVA_HOME
+                       sed -i '74i\\t<arg value="-fPIC"/>' build.xml
+                       sed -i "s#\"/usr/lib/jvm/java-6-openjdk/include\"#\"$JAVA_HOME/include\"#g" build.xml
+                       
+                       ant -lib ${JAVA_HOME}/lib &> /dev/null
+                       if [[ "$?" -ne 0 ]]; then
+               echo "Error building libjv4linfo.so"
+               exit 1
+                       fi
+                       cp ../lib/$JV4LINFO_LIB $JV4LINFO_PATH
+                       
+                       cd ../..
+                       echo "Done"
+       else
+                       echo "libjv4linfo.so already installed"
+       fi
 }
 
 start_mh ()
