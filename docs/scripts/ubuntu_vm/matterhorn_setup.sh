@@ -192,12 +192,12 @@ else
   echo "**** Do you want to install ffmpeg? [Y/n]"
   read ffresp
 
-  echo "**** Do you want to install OpenCaps? [y/N]"
-  read opencaps
-  if [ $opencaps = "y" ] || [ $opencaps = "Y" ]; then
-    echo "**** Install OpenCaps as Matterhorn plugin only? [Y/n]"
-    read opencapsminimal
-  fi
+#  echo "**** Do you want to install OpenCaps? [y/N]"
+#  read opencaps
+#  if [ $opencaps = "y" ] || [ $opencaps = "Y" ]; then
+#    echo "**** Install OpenCaps as Matterhorn plugin only? [Y/n]"
+#    read opencapsminimal
+#  fi
 
 
   # update felix config (url)
