@@ -469,6 +469,8 @@ public class PipelineFactory {
 
     Element alsasrc = ElementFactory.make("alsasrc", null);
     Element queue = ElementFactory.make("queue", "alsa");
+    Element audioconvert = ElementFactory.make("audioconvert", null);
+
     if (codec != null) {
       logger.debug("{} encoder set to: {}", captureDevice.getName(), codec);
       enc = ElementFactory.make(codec, null);
