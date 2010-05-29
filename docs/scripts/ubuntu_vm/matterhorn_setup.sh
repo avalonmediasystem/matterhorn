@@ -6,10 +6,27 @@ CONF_DIR=/opt/matterhorn/felix/conf
 MOTD_FILE=/etc/motd.tail
 MY_OS=`uname -sr`
 
-JV4LINFO_URL=http://luniks.net/luniksnet/download/java/jv4linfo
-JV4LINFO_JAR=jv4linfo-0.2.1-src.jar
-JV4LINFO_LIB=libjv4linfo.so
-JV4LINFO_PATH=/usr/lib
+# if "a" is entered by user, we will install ALL tools
+inst_all=N
+
+ask_user()
+{
+  if [ "$inst_all" != "a" ]; then
+    echo "Install $1? [Y/n/a] "
+    read resp
+    inst_all=$resp
+
+    # default is "Y".  i.e. anything other than nN means Yes
+    if [ "$resp" != "n" ] && [ "$resp" != "N" ]; then
+      eval "$2=Y"
+    else
+      eval "$2=\"$resp\""
+    fi
+  else
+    eval "$2=Y"
+  fi
+}
+
 
 show_stat()
 {
@@ -41,30 +58,69 @@ END
 install_3p ()
 {
   echo "Installing 3rd party tools.  This process will take several minutes..."
+  ask_user "curl" inst_curl
+  ask_user "ntp" inst_ntp
+  ask_user "openssh" inst_openssh
+  ask_user "build-essentials" inst_build
+  ask_user "patch" inst_patch
+  ask_user "byacc" inst_byacc
+  ask_user "libcv" inst_libcv
+  ask_user "opencv" inst_opencv
+  ask_user "libzen" inst_libzen
+  ask_user "ocr support" inst_ocr
 
   cd $INST_DIR
-  sudo apt-get -y --force-yes install curl ntp
-  sudo apt-get -y --force-yes install openssh-server openssh-client
-  sudo apt-get -y --force-yes install build-essential zlib1g-dev patch byacc
 
-  #opencv
-  sudo apt-get -y --force-yes install libcv1 libcv-dev opencv-doc
+  if [ "$inst_curl" = "y" ] || [ "$inst_curl" = "Y" ]; then
+    sudo apt-get -y --force-yes install curl
+  fi
 
-  #install media info
-  wget http://downloads.sourceforge.net/zenlib/libzen0_0.4.8-1_i386.Ubuntu_9.04.deb
-  sudo dpkg -i libzen0_0.4.8-1_i386.Ubuntu_9.04.deb
-  rm -f libzen0_0.4.8-1_i386.Ubuntu_9.04.deb
+  if [ "$inst_ntp" = "y" ] || [ "$inst_ntp" = "Y" ]; then
+    sudo apt-get -y --force-yes install ntp
+  fi
 
-  #ocr support
-  echo "ocr support"
-  sudo apt-get -y --force-yes install libpng12-dev libjpeg62-dev libtiff4-dev
-  sudo apt-get -y --force-yes install tesserat-ocr
-  cd /usr/share/tesseract-ocr
-  #install english language file
-  sudo curl http://tesseract-ocr.googlecode.com/files/tesseract-2.00.eng.tar.gz | sudo tar xz
-  cd tessdata
-  sudo chmod 755 *
-  
+  if [ "$inst_openssh" = "y" ] || [ "$inst_openssh" = "Y" ]; then
+    sudo apt-get -y --force-yes install openssh-server openssh-client
+  fi
+
+  if [ "$inst_build" = "y" ] || [ "$inst_build" = "Y" ]; then
+    sudo apt-get -y --force-yes install build-essential zlib1g-dev
+  fi
+
+  if [ "$inst_patch" = "y" ] || [ "$inst_patch" = "Y" ]; then
+    sudo apt-get -y --force-yes install patch
+  fi
+
+  if [ "$inst_byacc" = "y" ] || [ "$inst_byacc" = "Y" ]; then
+    sudo apt-get -y --force-yes install byacc
+  fi
+
+  if [ "$inst_libcv" = "y" ] || [ "$inst_libcv" = "Y" ]; then
+    sudo apt-get -y --force-yes install libcv1 libcv-dev
+  fi
+
+  if [ "$inst_opencv" = "y" ] || [ "$inst_opencv" = "Y" ]; then
+    sudo apt-get -y --force-yes install opencv-doc
+  fi
+
+  if [ "$inst_libzen" = "y" ] || [ "$inst_libzen" = "Y" ]; then
+    #install media info
+    wget http://downloads.sourceforge.net/zenlib/libzen0_0.4.8-1_i386.Ubuntu_9.04.deb
+    sudo dpkg -i libzen0_0.4.8-1_i386.Ubuntu_9.04.deb
+    rm -f libzen0_0.4.8-1_i386.Ubuntu_9.04.deb
+  fi
+
+  if [ "$inst_ocr" = "y" ] || [ "$inst_ocr" = "Y" ]; then
+    #ocr support
+    echo "ocr support"
+    sudo apt-get -y --force-yes install libpng12-dev libjpeg62-dev libtiff4-dev
+    sudo apt-get -y --force-yes install tesserat-ocr
+    cd /usr/share/tesseract-ocr
+    #install english language file
+    sudo curl http://tesseract-ocr.googlecode.com/files/tesseract-2.00.eng.tar.gz | sudo tar xz
+    cd tessdata
+    sudo chmod 755 *
+  fi
 }
 
 install_ffmpeg ()
@@ -95,34 +151,6 @@ install_ffmpeg ()
   make
   sudo checkinstall --pkgname=ffmpeg --pkgversion "4:0.5+svn`date +%Y%m%d`" --backup=no --default
   hash ffmpeg
-}
-
-install_jv4linfo ()
-{
-       if [[ ! -e "$JV4LINFO_PATH/$JV4LINFO_LIB" ]]; then
-                       echo -n "Installing jv4linfo... "
-                       if [[ ! -e "$JV4LINFO_JAR" ]]; then
-               wget -q $JV4LINFO_URL/$JV4LINFO_JAR
-                       fi
-                       jar xf $JV4LINFO_JAR
-                       cd jv4linfo/src
-                       # The ant build script has a hardcoded path to the openjdk, this sed line will
-                       # switch it to be whatever is defined in JAVA_HOME
-                       sed -i '74i\\t<arg value="-fPIC"/>' build.xml
-                       sed -i "s#\"/usr/lib/jvm/java-6-openjdk/include\"#\"$JAVA_HOME/include\"#g" build.xml
-                       
-                       ant -lib ${JAVA_HOME}/lib &> /dev/null
-                       if [[ "$?" -ne 0 ]]; then
-               echo "Error building libjv4linfo.so"
-               exit 1
-                       fi
-                       cp ../lib/$JV4LINFO_LIB $JV4LINFO_PATH
-                       
-                       cd ../..
-                       echo "Done"
-       else
-                       echo "libjv4linfo.so already installed"
-       fi
 }
 
 start_mh ()
@@ -183,9 +211,6 @@ if [ -z $MY_IP ]; then
 else
   # connected, start main task
   show_stat
-
-  install_jv4linfo 
-
   echo "******** OPTIONS HAVE CHANGED, PLEASE READ CAREFULLY *********"
 
   # Need to get a server name, not just y/n
@@ -230,7 +255,7 @@ else
 
 #  echo "**** Do you want to install OpenCaps? [y/N]"
 #  read opencaps
-#  if [ $opencaps = "y" ] || [ $opencaps = "Y" ]; then
+#  if [ "$opencaps" = "y" ] || [ "$opencaps" = "Y" ]; then
 #    echo "**** Install OpenCaps as Matterhorn plugin only? [Y/n]"
 #    read opencapsminimal
 #  fi
@@ -238,12 +263,14 @@ else
 
   # update felix config (url)
   sed -i "s/http:\/\/localhost:8080/http:\/\/$MY_IP:8080/" $CONF_DIR/config.properties
+  sed -i "s/rtmp:\/\/localhost\/matterhorn-engage/rtmp:\/\/$MY_IP\/matterhorn-engage/" $CONF_DIR/config.properties
+  sed -i 's/\${org.opencastproject.storage.dir}\/streams/\/opt\/matterhorn\/red5\/webapps\/matterhorn\/streams/' $CONF_DIR/config.properties
 
   # update capture properties
   # sed -i "s/http:\/\/localhost:8080/http:\/\/$MY_IP:8080/" /opencast/config/capture.properties
 
   # Reconfigure Keyboard?
-  if [ $kbresp = "y" ] || [ $kbresp = "Y" ]; then
+  if [ "$kbresp" = "y" ] || [ "$kbresp" = "Y" ]; then
     sudo dpkg-reconfigure console-setup
   else
     echo "Keeping default keybord configuration."
@@ -253,29 +280,29 @@ else
   sudo apt-get -y --force-yes install wget subversion git-core
 
   # Change Timezone?
-  if [ $changetz = "y" ] || [ $changetz = "Y" ]; then
+  if [ "$changetz" = "y" ] || [ "$changetz" = "Y" ]; then
     tzselect
   else
     echo "Timezone will NOT be changed."
   fi
 
   # Install 3P tools?
-  if [ $p3resp != "n" ] && [ $p3resp != "N" ]; then
+  if [ "$p3resp" != "n" ] && [ "$p3resp" != "N" ]; then
     install_3p
   else
     echo "3rd party tools will NOT be installed."
   fi
 
   # Install ffmpeg?
-  if [ $ffresp != "n" ] && [ $ffresp != "N" ]; then
+  if [ "$ffresp" != "n" ] && [ "$ffresp" != "N" ]; then
     install_ffmpeg
   else
     echo "ffmpeg will NOT be installed."
   fi
   
   # Install opencaps?
-  if [ $opencaps = "y" ] || [ $opencaps = "Y" ]; then
-    if [ $opencapsminimal = "n" ] || [ $opencaps = "N" ]; then
+  if [ "$opencaps" = "y" ] || [ "$opencaps" = "Y" ]; then
+    if [ "$opencapsminimal" = "n" ] || [ "$opencapsminimal" = "N" ]; then
       /home/opencast/opencaps.sh
     else
       /home/opencast/opencaps_matterhorn_only.sh
