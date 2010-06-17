@@ -5,17 +5,17 @@
   <artifactId>matterhorn-mpeg7</artifactId>
   <packaging>bundle</packaging>
   <name>matterhorn-mpeg7</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
   <dependencies>
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-metadata-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
