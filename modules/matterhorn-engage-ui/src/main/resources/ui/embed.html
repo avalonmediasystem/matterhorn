@@ -9,7 +9,7 @@
     <link rel="shortcut icon" href="shared_img/favicon.ico"> 
 
     <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/embed-hybrid-player.css" />
-    <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/player-multi-hybrid-icons.css" />
+    <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/embed-hybrid-player-icons.css" />
     <link rel="stylesheet" type="text/css" href="shared_css/jquery-ui-1.8.1.custom.css" />
     <link rel="stylesheet" type="text/css" href="shared_css/shared.css" />
     <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/opencast-reset.css" />
@@ -30,7 +30,8 @@
     <script type="text/javascript" src="jquery/plugins/jquery.client.js"></script>
     <script type="text/javascript" src="js/engage-ui.js"></script>
     <script type="text/javascript" src="engage-hybrid-player/embed-hybrid-initialize.js"></script>
-    <script type="text/javascript" src="shared_js/version.js"></script>  
+    <script type="text/javascript" src="shared_js/version.js"></script>
+    <script type="text/javascript" src="js/jquery.timers-1.2.js"></script>
 
     <script type="text/javascript" src="js/segments.js"></script>
     <script type="text/javascript" src="js/embed.js"></script>
@@ -42,7 +43,7 @@
       <strong>Please turn JavaScript on to use this site, then refresh the page.</strong>
     </p>
   </noscript>
-  
+
   
   <div id="oc_body">
     <div id="oc_embed-title-bar">
@@ -50,6 +51,7 @@
         <a id="oc-link-advanced-player" href="#" target="_blank" title="View Advanced Player" style="display: none;">Matterhorn - View Advanced Player</a>
       </div>
     </div>  
+
     
     <div id="oc_flash-player">
       <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js"></script> 
@@ -79,23 +81,19 @@
       </div> 
      
       <div id="oc_sound">
-        <ul id="oc_volume-dropdown">
-          <li>
+        <span id="oc_volume-dropdown">
             <input id="oc_btn-volume" class="oc_btn-volume-high" type="submit" name="Unmute: Control + Alt + M" alt="Unmute: Control + Alt + M" title="Unmute: Control + Alt + M" value=""></input>
-            <ul id="oc_volume-menue">
-              <li>
-                <div id="oc_volume-dropdown-div">
-                  <div id="oc_volume-slider">
+        </span>
+        <span id="oc_volume-menue" style="visibility:hidden;">
+            <div id="oc_volume-dropdown-div">
+                <div id="oc_volume-slider">
                     <div id="slider_volume_Rail" class="oc_slider-volume-Rail" title="Volume" alt="Volume">
-                      <label id="volumeLabel" for="slider_volume_Rail" class="oc_offScreen-hidden">Volume</label>
-                      <input id="slider_volume_Thumb" class="oc_slider-volume-Thumb" type="submit" value=""></input>
+                        <label id="volumeLabel" for="slider_volume_Rail" class="oc_offScreen-hidden">Volume</label>
+                        <input id="slider_volume_Thumb" class="oc_slider-volume-Thumb" type="submit" value=""></input>
                     </div>
-                  </div>
                 </div>
-              </li>
-            </ul>
-          </li>
-        </ul>
+            </div>
+        </span>
       </div>
           
       <div id="oc_video-cc">
@@ -103,13 +101,13 @@
       </div>
 
       <div id="oc_video-size-controls" >
-        <ul id="oc_video-size-dropdown">
-          <li>
+        <span id="oc_video-size-dropdown">
             <input id="oc_btn-dropdown" class="oc_btn-centerDisplay" type="submit" name="Video Size Controls" alt="Video Size Controls" title="Video Size Controls" value=""></input>
-            <ul id="oc_video-size-menue"></ul>
-          </li>
-        </ul>
+        </span>
+        <span id="oc_video-size-menue" style="float:right;visibility:hidden;">
       </div>
+    </div>
+    <div id="oc_player_video-dropdown" style="position:absolute; background-color:black;z-index:10000;visibility:hidden;">
     </div>
 
 

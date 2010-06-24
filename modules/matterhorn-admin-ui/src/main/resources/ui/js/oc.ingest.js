@@ -4,6 +4,8 @@ var ocIngest = ocIngest || {};
 ocIngest.debug = true;
 ocIngest.mediaPackage = null;
 ocIngest.metadata = null;
+ocIngest.previousMediaPackage = null;
+ocIngest.previousFiles = new Array();
 
 ocIngest.createMediaPackage = function() {
   Upload.log("creating MediaPackage")
@@ -18,8 +20,10 @@ ocIngest.createMediaPackage = function() {
     success    : function(data, status) {
       Upload.log("MediaPackage created");
       ocIngest.mediaPackage = data;
-      if ( (Upload.retryId != '') && ($('.use-file:checked').val() == 'previous-file') ) {
-        ocIngest.copyPreviousMediaFile();
+      if (Upload.retryId != '') {
+        // add tracks from old mediaPackage to the new one
+        Upload.log("adding files from previous mediaPackge");
+        ocIngest.copyPreviousFiles(ocIngest.mediaPackage);
       } else {
         var uploadFrame = document.getElementById("filechooser-ajax");
         uploadFrame.contentWindow.document.uploadForm.flavor.value = $('#flavor').val();
@@ -31,6 +35,7 @@ ocIngest.createMediaPackage = function() {
   });
 }
 
+/* not needed for now
 ocIngest.copyPreviousMediaFile = function() {
   var flavor = $('#previous-file-flavor').val();
   var url = $('#previous-file-url').val();
@@ -51,6 +56,31 @@ ocIngest.copyPreviousMediaFile = function() {
       ocIngest.addCatalog(ocUtils.xmlToString(ocIngest.mediaPackage), ocIngest.createDublinCoreCatalog(ocIngest.metadata));
     }
   });
+}*/
+
+ocIngest.copyPreviousFiles = function(data) {
+  if (ocIngest.previousFiles.length != 0) {
+    var fileItem = ocIngest.previousFiles.pop();
+    $.ajax({
+      url        : '../ingest/rest/addTrack',
+      type       : 'POST',
+      dataType   : 'xml',
+      data       : {
+        mediaPackage: ocUtils.xmlToString(ocIngest.mediaPackage),
+        flavor: fileItem.flavor,
+        url: fileItem.url
+      },
+      error      : function(XHR,status,e){
+        Upload.showFailedScreen('Could not add DublinCore catalog to MediaPackage.');
+      },
+      success    : function(data, status) {
+        ocIngest.mediaPackage = data;
+        ocIngest.copyPreviousFiles(data);
+      }
+    });
+  } else {
+    ocIngest.addCatalog(ocUtils.xmlToString(ocIngest.mediaPackage), ocIngest.createDublinCoreCatalog(ocIngest.metadata));
+  }
 }
 
 ocIngest.createDublinCoreCatalog = function(data) {
@@ -142,8 +172,13 @@ ocIngest.startIngest = function(mediaPackage) {
 
 ocIngest.removeWorkflowInstance = function(wfId) {
   $.ajax({
-    url : '../workflow/rest/remove/' + wfId,
-    type: 'GET',
+    url : '../workflow/rest/stop/',
+    data: {id: wfId},
+    type: 'POST',
+    error: function() {
+      Upload.hideProgressStage();   // better than showing error since new workflow has already been successfully started at this point
+      Upload.showSuccessScreen();
+    },
     success: function() {
       Upload.hideProgressStage();
       Upload.showSuccessScreen();

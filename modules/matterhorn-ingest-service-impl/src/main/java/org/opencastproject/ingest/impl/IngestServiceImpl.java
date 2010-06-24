@@ -26,11 +26,11 @@ import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.mediapackage.UnsupportedElementException;
 import org.opencastproject.mediapackage.identifier.HandleException;
 import org.opencastproject.security.api.TrustedHttpClient;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.ZipUtil;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowService;
-import org.opencastproject.workspace.api.NotFoundException;
 import org.opencastproject.workspace.api.Workspace;
 
 import org.apache.commons.io.FileUtils;
@@ -38,6 +38,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,13 +69,16 @@ public class IngestServiceImpl implements IngestService {
   private String fs;
 
   public IngestServiceImpl() {
-    logger.info("Ingest Service started.");
     builder = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder();
     fs = File.separator;
-    tempFolder = System.getProperty("java.io.tmpdir");
-    if (!tempFolder.endsWith(fs))
-      tempFolder += fs;
-    tempFolder += "opencast" + fs + "ingest-temp" + fs;
+  }
+  
+  protected void activate(ComponentContext cc) {
+    logger.info("Ingest Service started.");
+    tempFolder = cc.getBundleContext().getProperty("org.opencastproject.storage.dir");
+    if (tempFolder == null)
+      throw new IllegalStateException("Storage directory must be set (org.opencastproject.storage.dir)");
+    tempFolder += fs + "ingest-temp" + fs;
   }
 
   /**
@@ -107,6 +111,8 @@ public class IngestServiceImpl implements IngestService {
     File tempDir = createDirectory(tempPath);
     File f = new File(tempPath + fs + UUID.randomUUID().toString() + ".zip");
     OutputStream out = new FileOutputStream(f);
+    logger.info("Ingesting zipped media package to {}", f);
+    
     IOUtils.copyLarge(zipStream, out);
     out.close();
     zipStream.close();
@@ -310,7 +316,7 @@ public class IngestServiceImpl implements IngestService {
    * 
    * @see org.opencastproject.ingest.api.IngestService#discardMediaPackage(java.lang.String)
    */
-  public void discardMediaPackage(MediaPackage mp) {
+  public void discardMediaPackage(MediaPackage mp) throws IOException {
     String mediaPackageId = mp.getIdentifier().compact();
     for (MediaPackageElement element : mp.getElements()) {
       try {
@@ -352,12 +358,13 @@ public class IngestServiceImpl implements IngestService {
   }
 
   private URI addContentToRepo(MediaPackage mp, String elementId, String filename, InputStream file)
-          throws UnsupportedElementException {
+          throws IOException {
     return workspace.put(mp.getIdentifier().compact(), elementId, filename, file);
   }
 
   private MediaPackage addContentToMediaPackage(MediaPackage mp, String elementId, URI uri,
           MediaPackageElement.Type type, MediaPackageElementFlavor flavor) throws UnsupportedElementException {
+    logger.info("Adding element of type {} to mediapackage {}", type, mp);
     MediaPackageElement mpe = mp.add(uri, type, flavor);
     mpe.setIdentifier(elementId);
     return mp;

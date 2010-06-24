@@ -247,11 +247,13 @@ public class TextAnalysisWorkflowOperationHandler extends AbstractWorkflowOperat
           reference = new MediaPackageReferenceImpl(catalogRef.getType(), catalogRef.getIdentifier());
         reference.setProperty("time", segmentTimePoint.toString());
 
-        // Have the ocr image created
+        // Have the ocr image created. To circumvent problems with slowly building slides, we take the image that is
+        // almost at the end of the segment, it should contain the most content and is stable as well.
         Attachment image = null;
         try {
-          MediaTimePoint tp = videoSegment.getMediaTime().getMediaTimePoint();
-          image = extractImage(sourceTrack, tp.getTimeInMilliseconds()/1000); //quick fix rrolf
+          long startTimeSeconds = segmentTimePoint.getTimeInMilliseconds()/1000;
+          long durationSeconds = segmentDuration.getDurationInMilliseconds()/1000;
+          image = extractImage(sourceTrack, startTimeSeconds + durationSeconds - 1);
         } catch (EncoderException e) {
           logger.error("Error creating still image from {}", sourceTrack);
           throw e;

@@ -456,13 +456,14 @@ public class SchedulerServiceImplJPA extends SchedulerServiceImpl {
     try {
       em.getTransaction().begin();
       Event storedEvent =  getEventJPA(e.getEventId());
+      logger.debug("Found stored event. {} -", storedEvent);
       if (storedEvent == null) return false; //nothing found to update
       storedEvent.setEntityManagerFactory(emf);
       storedEvent.update(e);
       em.merge(storedEvent);
       em.getTransaction().commit();
     } catch (Exception e1) {
-      logger.warn("Could not update event {}. Reason: {}",e.getEventId(),e1.getMessage());
+      logger.warn("Could not update event {}. Reason: {}",e,e1.getMessage());
       return false;
     } finally {
       em.close();
@@ -527,7 +528,7 @@ public class SchedulerServiceImplJPA extends SchedulerServiceImpl {
     try {
       cal.getCalendar().validate();
     } catch (ValidationException e1) {
-      logger.error("Could not validate Calendar: {}", e1.getMessage());
+      logger.warn("Could not validate Calendar: {}", e1.getMessage());
     }
     
     String result = cal.getCalendar().toString(); // CalendarOutputter performance sucks (jmh)

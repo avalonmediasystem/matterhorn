@@ -128,6 +128,12 @@
                   <input type="text" class="formField requiredField" id="title" name="title">
                   <span class="helpIcon" title="Click for help">&nbsp;</span>
                 </li>
+                <!-- field: Series -->
+                <li class="ui-helper-clearfix">
+                  <label class="fl-label"><span id="i18n_series_label">Series</span>:</label>
+                  <input type="text" class="formField" id="isPartOf" name="isPartOf">
+                  <span class="helpIcon" title="Click for help">&nbsp;</span>
+                </li>
                 <!-- field: Presenter -->
                 <li class="ui-helper-clearfix">
                   <label class="fl-label"><span id="i18n_presenter_label">Presenter</span>:</label>
@@ -137,12 +143,6 @@
                     <div class="additionalFieldsContainer" style="display:table-cell;"></div>
                     <a href="#" class="addFormFieldBtn"><span>Add additional presenter</span></a>
                   </div>
-                </li>
-                <!-- field: Series -->
-                <li class="ui-helper-clearfix">
-                  <label class="fl-label"><span id="i18n_series_label">Series</span>:</label>
-                  <input type="text" class="formField" id="isPartOf" name="isPartOf">
-                  <span class="helpIcon" title="Click for help">&nbsp;</span>
                 </li>
               </ul>
             </div>
@@ -188,12 +188,16 @@
               <input type="hidden" name="track" id="track" class="requiredField" value="">
               <ul class="no-bullets formField-list fl-controls-right">
                 <li id="retry-file" class="ui-helper-clearfix" style="display:none;">
-                  <label class="fl-label"><span id="i18n_upload.content">File</span>:</label>
-                  <div style="display:table-cell;">
+                  <label class="fl-label"><span id="i18n_upload.content">File(s)</span>:</label>
+                  <input type="hidden" id="previous-mediaPackage" value="">
+                  <div id="previous-file-list" style="display:table-cell;">
+                    
+                    <!--
                     <input type="hidden" id="previous-file-url" value="">
                     <input type="hidden" id="previous-file-flavor" value="">
                     <input type="radio" name="use-file" class="use-file" value="previous-file" id="use-file-previous" checked="true">Use previously uploaded/captured file:&nbsp;<a id="previous-file-link"></a><br>
                     <input type="radio" name="use-file" class="use-file" value="replace-file" id="use-file-replace">Upload replacement file
+                    -->
                   </div>
                 </li>
                 <li class="ui-helper-clearfix" id="regular-file-selection">
@@ -217,7 +221,7 @@
                     <option value="">Choose one:</option>
                     <option value="presenter/source">Presenter</option>
                     <option value="presentation/source">Presentation</option>
-                    <option value="indefinite/source">Other/Mixed/Unknown</option>
+                    <option value="presentation/source"">Other/Mixed/Unknown</option>
                   </select>
                   <span class="helpIcon" title="Click for help">&nbsp;</span>
               </ul>

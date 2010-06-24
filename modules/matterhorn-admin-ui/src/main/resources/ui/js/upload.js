@@ -104,37 +104,12 @@ Upload.init = function() {
     $('#helpBox').fadeOut('fast');
   });
 
-  // Event: workflow selected
-  //  $('#workflow-selector').change( function() {
-  //    Upload.workflowSelected($(this).val());
-  //  })
-
-  // get workflow definitions
-  //  $.ajax({
-  //    method: 'GET',
-  //    url: '../workflow/rest/definitions.json',
-  //    dataType: 'json',
-  //    success: function(data) {
-  //      for (i in data.workflow_definitions) {
-  //        if (data.workflow_definitions[i].id != 'error') {
-  //          var option = document.createElement("option");
-  //          option.setAttribute("value", data.workflow_definitions[i].id);
-  //          option.innerHTML = data.workflow_definitions[i].title;
-  //          if (data.workflow_definitions[i].id == "full") {
-  //            option.setAttribute("selected", "true");
-  //          }
-  //          $('#workflow-selector').append(option);
-  //        }
-  //      }
-  //      Upload.workflowSelected($('#workflow-selector').val());
-  //    }
-  //  });
   ocWorkflow.init($('#workflow-selector'), $('#workflow-config-container'));
 
   // test if we upload a new recording or want to retry a workflow
   Upload.retryId = Upload.getURLParam("retry");
   if (Upload.retryId != '') {
-    $('#i18n_page_title').text("Edit Recording");
+    $('#i18n_page_title').text("Edit Recording for Retry");
     Upload.initRetry(Upload.retryId);
   } else {                                             // FIXME well this has to be cleaned up, agile...
     Upload.retryId = Upload.getURLParam("edit");
@@ -150,28 +125,32 @@ Upload.initRetry = function(wfId) {
   $('#retry-file').css('display', 'block');
   $('#regular-file-selection').css('display', 'none');
   $('#regular-file-chooser').css('display', 'none');
+  $('#regular-file-chooser-flavor').css('display', 'none');
+  $('#track').val('reingest');
   // get failed Workflow
   $.ajax({
     method: 'GET',
     url: '../workflow/rest/instance/'+ wfId +'.xml',
     dataType: 'xml',
     success: function(data) {
+      ocIngest.previousMediaPackage = data;
       var catalogUrl = $(data.documentElement).find("mediapackage > metadata > catalog[type='dublincore/episode'] > url").text();
-      Upload.loadDublinCore(catalogUrl + '/dublincore.xml');  // FIXME workaround for MH-3993
+      Upload.loadDublinCore(catalogUrl);
       // previous file
+      var files = new Array();
       $(data.documentElement).find("mediapackage > media > track").each(function(index, elm) {
-        if ($(elm).attr('type').split(/\//)[1] == 'source') {
+        var type = $(elm).attr('type');
+        if (type.split(/\//)[1] == 'source') {
           var filename = $(elm).find('url').text();
-          $('#previous-file-flavor').val($(elm).attr('type'));
-          $('#flavor').val($(elm).attr('type'));
-          $('#previous-file-link').attr('href', filename);
-          $('#track').val(filename);
-          $('#previous-file-url').val(filename);
+          var fileItem = {url: filename, flavor: type};
+          ocIngest.previousFiles.push(fileItem);
+          //$('#previous-file-url').val(filename);
           filename = filename.split(/\//);
           filename = filename[filename.length-1];
-          $('#previous-file-link').text(filename);
+          files.push(filename);
         }
       });
+      $('#previous-file-list').text(files.join(', '));
       // previous workflow definition
       var defId = $(data.documentElement).find('template').text();
       $('#workflow-selector').val(defId);
@@ -215,13 +194,6 @@ Upload.loadDublinCore = function(url) {
   });
 }
 
-
-Upload.populateWorkflowConfig = function(data) {
-  $(data).each( function(elm) {
-    alert($(elm).text());
-  });
-}
-
 /** collect data from workflow configuration panel
  *
  */
@@ -241,10 +213,12 @@ Upload.checkRequiredFields = function(submit) {
   var wrongtype = false;
   $('.requiredField:visible, .requiredField[type|=hidden]').each( function() {
     if (!$(this).val()) {
-      //alert($(this).attr(id) + " = " + $(this).value());
       $('#notification-' + $(this).attr('id')).show();
       if ((submit) || ($('#container-missingFields').is(':visible'))) {
         $(this).prev('.fl-label').css('color','red');
+      }
+      if ((submit) && $('#track').val() == '') {
+        $('#i18n_upload_file').css('color','red');
       }
       missing = true;
     } else {
@@ -252,6 +226,7 @@ Upload.checkRequiredFields = function(submit) {
       $(this).prev('.fl-label').css('color','black');
     }
   });
+
   // check for right file extension
   /*
   if ($('#track').val() != '') {
@@ -330,6 +305,8 @@ Upload.showSuccessScreen = function() {
         }
       }
     }
+    $('#field-filename').children('.fieldValue').text(UploadListener.shortFilename);
+    
   });
 }
 
@@ -342,6 +319,8 @@ Upload.showFailedScreen = function(message) {
     if (message) {
       $('#error-message').text(message).show();
     }
+    $('#field-filename').children('.fieldValue').text(UploadListener.shortFilename);
+    
   });
 }
 

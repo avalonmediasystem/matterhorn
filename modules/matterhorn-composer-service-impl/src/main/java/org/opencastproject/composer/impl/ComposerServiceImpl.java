@@ -28,13 +28,11 @@ import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.mediapackage.Track;
 import org.opencastproject.mediapackage.identifier.IdBuilder;
 import org.opencastproject.mediapackage.identifier.IdBuilderFactory;
-import org.opencastproject.remote.api.Maintainable;
-import org.opencastproject.remote.api.MaintenanceException;
 import org.opencastproject.remote.api.Receipt;
 import org.opencastproject.remote.api.RemoteServiceManager;
 import org.opencastproject.remote.api.Receipt.Status;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.UrlSupport;
-import org.opencastproject.workspace.api.NotFoundException;
 import org.opencastproject.workspace.api.Workspace;
 
 import org.apache.commons.io.IOUtils;
@@ -44,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
@@ -57,7 +56,7 @@ import java.util.concurrent.Future;
 /**
  * Default implementation of the composer service api.
  */
-public class ComposerServiceImpl implements ComposerService, Maintainable {
+public class ComposerServiceImpl implements ComposerService {
 
   /** The logging instance */
   private static final Logger logger = LoggerFactory.getLogger(ComposerServiceImpl.class);
@@ -76,22 +75,22 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
 
   /** Reference to the encoder engine factory */
   private EncoderEngineFactory encoderEngineFactory;
-  
+
   /** Id builder used to create ids for encoded tracks */
   private final IdBuilder idBuilder = IdBuilderFactory.newInstance().newIdBuilder();
 
   /** Thread pool */
-  ExecutorService executor = null;
+  private ExecutorService executor = null;
 
-  /** In maintenance mode, this service will not accept new encoding jobs */
-  boolean maintenanceMode = false;
-  
   /** The server's base URL */
-  protected String serverUrl = UrlSupport.DEFAULT_BASE_URL;
-  
+  private String serverUrl = UrlSupport.DEFAULT_BASE_URL;
+
+  /** The configuration property containing the number of concurrent encoding threads to run */
   public static final String CONFIG_THREADS = "composer.threads";
+
+  /** The default number of concurrent encoding threads to run */
   public static final int DEFAULT_THREADS = 2;
-  
+
   /**
    * Sets the media inspection service
    * 
@@ -104,12 +103,14 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
 
   /**
    * Sets the encoder engine factory
-   * @param encoderEngineFactory The encoder engine factory
+   * 
+   * @param encoderEngineFactory
+   *          The encoder engine factory
    */
   public void setEncoderEngineFactory(EncoderEngineFactory encoderEngineFactory) {
     this.encoderEngineFactory = encoderEngineFactory;
   }
-  
+
   /**
    * Sets the workspace
    * 
@@ -122,12 +123,13 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
 
   /**
    * Sets the receipt service
+   * 
    * @param remoteServiceManager
    */
   public void setRemoteServiceManager(RemoteServiceManager remoteServiceManager) {
     this.remoteServiceManager = remoteServiceManager;
   }
-  
+
   public void setProfileScanner(EncodingProfileScanner scanner) {
     this.profileScanner = scanner;
   }
@@ -139,18 +141,18 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
     // set up threading
     int threads = -1;
     String configredThreads = (String) cc.getBundleContext().getProperty(CONFIG_THREADS);
-    // try to parse the value as a number.  If it fails to parse, there is a config problem so we throw an exception.
+    // try to parse the value as a number. If it fails to parse, there is a config problem so we throw an exception.
     if (configredThreads == null) {
       threads = DEFAULT_THREADS;
     } else {
       threads = Integer.parseInt(configredThreads);
     }
-    if(threads < 1) {
+    if (threads < 1) {
       throw new IllegalStateException("The composer needs one or more threads to function.");
     }
     setExecutorThreads(threads);
-    
-    serverUrl = (String)cc.getBundleContext().getProperty("org.opencastproject.server.url");
+
+    serverUrl = (String) cc.getBundleContext().getProperty("org.opencastproject.server.url");
     // Register as a handler
     remoteServiceManager.registerService(JOB_TYPE, serverUrl);
   }
@@ -212,7 +214,6 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
   @Override
   public Receipt encode(final MediaPackage mp, final String sourceVideoTrackId, final String sourceAudioTrackId,
           final String profileId, final boolean block) throws EncoderException, MediaPackageException {
-    if(maintenanceMode) throw new MaintenanceException();
     final String targetTrackId = idBuilder.createNew().toString();
     final Receipt composerReceipt = remoteServiceManager.createReceipt(JOB_TYPE);
 
@@ -227,7 +228,11 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
       } catch (NotFoundException e) {
         composerReceipt.setStatus(Status.FAILED);
         remoteServiceManager.updateReceipt(composerReceipt);
-        throw new MediaPackageException("unable to access audio track " + audioTrack);
+        throw new MediaPackageException("Requested audio track " + audioTrack + " is not found");
+      } catch (IOException e) {
+        composerReceipt.setStatus(Status.FAILED);
+        remoteServiceManager.updateReceipt(composerReceipt);
+        throw new MediaPackageException("Unable to access audio track " + audioTrack);
       }
     }
 
@@ -241,7 +246,11 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
       } catch (NotFoundException e) {
         composerReceipt.setStatus(Status.FAILED);
         remoteServiceManager.updateReceipt(composerReceipt);
-        throw new MediaPackageException("unable to access video track " + videoTrack);
+        throw new MediaPackageException("Requested video track " + videoTrack + " is not found");
+      } catch (IOException e) {
+        composerReceipt.setStatus(Status.FAILED);
+        remoteServiceManager.updateReceipt(composerReceipt);
+        throw new MediaPackageException("Unable to access audio track " + audioTrack);
       }
     }
 
@@ -258,7 +267,7 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
       remoteServiceManager.updateReceipt(composerReceipt);
       throw new EncoderException(null, "No encoder engine available for profile '" + profileId + "'");
     }
-    
+
     Runnable runnable = new Runnable() {
       public void run() {
         logger.info("encoding track {} for media package {} using source audio track {} and source video track {}",
@@ -288,7 +297,7 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
         } catch (Exception e) {
           composerReceipt.setStatus(Status.FAILED);
           remoteServiceManager.updateReceipt(composerReceipt);
-          logger.error("unable to put the encoded file into the workspace");
+          logger.error("Unable to put the encoded file into the workspace");
           throw new RuntimeException(e);
         } finally {
           IOUtils.closeQuietly(in);
@@ -298,17 +307,9 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
 
         // Have the encoded track inspected and return the result
         Receipt inspectionReceipt = inspectionService.inspect(returnURL, true);
-        while (inspectionReceipt.getStatus() != Receipt.Status.FINISHED) {
-          logger.debug("Waiting for mediainspection to finish");
-          if(inspectionReceipt.getStatus() == Receipt.Status.FAILED) throw new RuntimeException("Media inspection failed");
-          try {
-            Thread.sleep(5000);
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-          inspectionReceipt = inspectionService.getReceipt(inspectionReceipt.getId());
-        }
-        Track inspectedTrack = (Track)inspectionReceipt.getElement();
+        if (inspectionReceipt.getStatus() == Receipt.Status.FAILED)
+          throw new RuntimeException("Media inspection failed");
+        Track inspectedTrack = (Track) inspectionReceipt.getElement();
         inspectedTrack.setIdentifier(targetTrackId);
 
         composerReceipt.setElement(inspectedTrack);
@@ -370,7 +371,6 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
    */
   public Receipt image(final MediaPackage mediaPackage, final String sourceVideoTrackId, final String profileId,
           final long time, boolean block) throws EncoderException, MediaPackageException {
-    if(maintenanceMode) throw new MaintenanceException();
 
     final Receipt receipt = remoteServiceManager.createReceipt(JOB_TYPE);
     final String targetAttachmentId = "attachment-" + (mediaPackage.getAttachments().length + 1);
@@ -404,7 +404,13 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
     try {
       videoFile = workspace.get(videoTrack.getURI());
     } catch (NotFoundException e) {
-      throw new MediaPackageException("unable to access video track " + videoTrack, e);
+      receipt.setStatus(Status.FAILED);
+      remoteServiceManager.updateReceipt(receipt);
+      throw new MediaPackageException("Requested video track " + videoTrack + " was not found", e);
+    } catch (IOException e) {
+      receipt.setStatus(Status.FAILED);
+      remoteServiceManager.updateReceipt(receipt);
+      throw new MediaPackageException("Error accessing video track " + videoTrack, e);
     }
 
     Runnable runnable = new Runnable() {
@@ -497,21 +503,4 @@ public class ComposerServiceImpl implements ComposerService, Maintainable {
     return remoteServiceManager.count(JOB_TYPE, status, host);
   }
 
-  /**
-   * {@inheritDoc}
-   * @see org.opencastproject.remote.api.Maintainable#isInMaintenanceMode()
-   */
-  @Override
-  public boolean isInMaintenanceMode() {
-    return maintenanceMode;
-  }
-  
-  /**
-   * {@inheritDoc}
-   * @see org.opencastproject.remote.api.Maintainable#setMaintenanceMode(boolean)
-   */
-  @Override
-  public void setMaintenanceMode(boolean maintenanceMode) {
-    this.maintenanceMode = maintenanceMode;
-  }
 }

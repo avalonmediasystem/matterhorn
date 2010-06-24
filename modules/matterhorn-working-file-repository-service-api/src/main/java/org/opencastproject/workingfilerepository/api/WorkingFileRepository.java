@@ -15,37 +15,73 @@
  */
 package org.opencastproject.workingfilerepository.api;
 
+import org.opencastproject.util.NotFoundException;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
- * The Working File Repository is a file storage service that supports the lecture capture system.
- * It may be used by other clients, but is neither intended nor required to be used by other systems.
+ * The Working File Repository is a file storage service that supports the lecture capture system. It may be used by
+ * other clients, but is neither intended nor required to be used by other systems.
  */
 public interface WorkingFileRepository {
 
+  /** The character encoding used for URLs */
+  String CHAR_ENCODING = "UTF-8";
+
+  /** Path prefix for collection items */
+  String COLLECTION_PATH_PREFIX = "/collection/";
+
+  /** Path prefix for mediapackage elements */
+  String MEDIAPACKAGE_PATH_PREFIX = "/mediapackage/";
+
   /**
-   * Store the data stream under the given media package and element IDs with filename as
-   * name of the file.
+   * Store the data stream under the given media package and element IDs with filename as name of the file.
+   * 
    * @param mediaPackageID
    * @param mediaPackageElementID
    * @param filename
    * @param in
    * @return The URL to access this file
    */
-  URI put(String mediaPackageID, String mediaPackageElementID, String filename, InputStream in);
-  
+  URI put(String mediaPackageID, String mediaPackageElementID, String filename, InputStream in) throws IOException;
+
   /**
    * Stream the file stored under the given media package and element IDs.
+   * 
    * @param mediaPackageID
    * @param mediaPackageElementID
    * @return
+   * @throws IOException
+   *           if there is a problem reading the data
    */
-  InputStream get(String mediaPackageID, String mediaPackageElementID);
-  
+  InputStream get(String mediaPackageID, String mediaPackageElementID) throws IOException;
+
   /**
-   * Get the URL for a file stored under the given media package and element IDs.  This may be called for mediapackages,
+   * Gets the md5 hash of a file stored under the given media package and element IDs.
+   * 
+   * @param mediaPackageID
+   * @param mediaPackageElementID
+   * @return
+   * @throws IOException
+   *           if there is a problem reading or hashing the data
+   */
+  String hashMediaPackageElement(String mediaPackageID, String mediaPackageElementID) throws IOException;
+
+  /**
+   * Get the URL for a file stored under the given collection.
+   * 
+   * @param collectionID
+   *          the collection id
+   * @param fileName
+   *          the file name
+   * @return the file's uri
+   */
+  URI getCollectionURI(String collectionID, String fileName);
+
+  /**
+   * Get the URL for a file stored under the given media package and element IDs. This may be called for mediapackages,
    * elements, or files that have not yet been stored in the repository.
    * 
    * @param mediaPackageID
@@ -55,7 +91,7 @@ public interface WorkingFileRepository {
   URI getURI(String mediaPackageID, String mediaPackageElementID);
 
   /**
-   * Get the URL for a file stored under the given media package and element IDs.  This may be called for mediapackages,
+   * Get the URL for a file stored under the given media package and element IDs. This may be called for mediapackages,
    * elements, or files that have not yet been stored in the repository.
    * 
    * @param mediaPackageID
@@ -67,87 +103,126 @@ public interface WorkingFileRepository {
 
   /**
    * Delete the file stored at the given media package and element IDs.
+   * 
    * @param mediaPackageID
    * @param mediaPackageElementID
    */
-  void delete(String mediaPackageID, String mediaPackageElementID);
+  void delete(String mediaPackageID, String mediaPackageElementID) throws NotFoundException, IOException;
 
   /**
    * Gets the number of files in a collection.
-   * @param  the collection identifier
+   * 
+   * @param the
+   *          collection identifier
    * @return the number of files in a collection
-   * @throws IllegalArgumentException if the collection does not exist
+   * @throws IllegalArgumentException
+   *           if the collection does not exist
    */
   long getCollectionSize(String id);
-  
+
   /**
    * Puts a file into a collection, overwriting the existing file if present.
-   * @param collection The collection identifier
-   * @param fileName The filename to use in storing the input stream
-   * @param in the data to store
+   * 
+   * @param collection
+   *          The collection identifier
+   * @param fileName
+   *          The filename to use in storing the input stream
+   * @param in
+   *          the data to store
    * @return The URI identifying the file
-   * @throws URISyntaxException if either the filename or collection ID are can not be included in a valid URI
    */
-  URI putInCollection(String collectionId, String fileName, InputStream in) throws URISyntaxException;
+  URI putInCollection(String collectionId, String fileName, InputStream in) throws IOException;
 
   /**
    * Gets the URIs of the members of this collection
-   * @param collectionId the collection identifier
+   * 
+   * @param collectionId
+   *          the collection identifier
    * @return the URIs for each member of the collection
    */
-  URI[] getCollectionContents(String collectionId);
-  
+  URI[] getCollectionContents(String collectionId) throws IOException;
+
   /**
    * Gets data from a collection
-   * @param collectionId the collection identifier
-   * @param fileName The filename to retrieve
+   * 
+   * @param collectionId
+   *          the collection identifier
+   * @param fileName
+   *          The filename to retrieve
    * @return the data as a stream, or null if not found
    */
-  InputStream getFromCollection(String collectionId, String fileName);
-  
+  InputStream getFromCollection(String collectionId, String fileName) throws NotFoundException, IOException;
+
+  /**
+   * Gets the md5 hash of a file stored under the given media package and element IDs.
+   * 
+   * @param collectionId
+   * @param fileName
+   * @return
+   * @throws IOException
+   *           if there is a problem reading or hashing the data
+   */
+  String hashCollectionElement(String collectionId, String fileName) throws NotFoundException, IOException;
+
   /**
    * Removes a file from a collection
-   * @param collectionId the collection identifier
-   * @param fileName the filename to remove
+   * 
+   * @param collectionId
+   *          the collection identifier
+   * @param fileName
+   *          the filename to remove
    */
-  void removeFromCollection(String collectionId, String fileName);
+  void removeFromCollection(String collectionId, String fileName) throws NotFoundException, IOException;
 
   /**
    * Moves a file from a collection into a mediapackage
-   * @param fromCollection The collection holding the file
-   * @param fromFileName The filename
-   * @param toMediaPackage The media package ID to move the file into
-   * @param toMediaPackageElement the media package element ID of the file
+   * 
+   * @param fromCollection
+   *          The collection holding the file
+   * @param fromFileName
+   *          The filename
+   * @param toMediaPackage
+   *          The media package ID to move the file into
+   * @param toMediaPackageElement
+   *          the media package element ID of the file
    * @return the URI pointing to the file's new location
    */
-  URI moveTo(String fromCollection, String fromFileName, String toMediaPackage, String toMediaPackageElement);
+  URI moveTo(String fromCollection, String fromFileName, String toMediaPackage, String toMediaPackageElement) throws NotFoundException, IOException;
 
   /**
    * Copies a file from a collection into a mediapackage
-   * @param fromCollection The collection holding the file
-   * @param fromFileName The filename
-   * @param toMediaPackage The media package ID to copy the file into
-   * @param toMediaPackageElement the media package element ID of the file
+   * 
+   * @param fromCollection
+   *          The collection holding the file
+   * @param fromFileName
+   *          The filename
+   * @param toMediaPackage
+   *          The media package ID to copy the file into
+   * @param toMediaPackageElement
+   *          the media package element ID of the file
    * @return the URI pointing to the file's new location
    */
-  URI copyTo(String fromCollection, String fromFileName, String toMediaPackage, String toMediaPackageElement);
-  
+  URI copyTo(String fromCollection, String fromFileName, String toMediaPackage, String toMediaPackageElement) throws NotFoundException, IOException;
+
   /**
    * Gets the total space of storage in Bytes
+   * 
    * @return Number of all bytes in storage
    */
   public long getTotalSpace();
-  
+
   /**
-   * Gets the available space of storage in Bytes
-   * This is free storage that is not reserved
+   * Gets the available space of storage in Bytes This is free storage that is not reserved
+   * 
    * @return Number of available bytes in storage
    */
   public long getUsableSpace();
-  
+
   /**
-   * A textual representation of available and total storage 
+   * A textual representation of available and total storage
+   * 
    * @return Percentage and numeric values of used storage space
    */
   public String getDiskSpace();
+
 }

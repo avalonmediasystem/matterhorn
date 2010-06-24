@@ -13,11 +13,25 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.remote.api;
+package org.opencastproject.workingfilerepository.api;
 
 /**
- * Thrown when a method is called, but the service is in maintenance mode.
+ * Extension to the working file repository that allows to map a file url to a file system path.
  */
-public class MaintenanceException extends RuntimeException {
-  private static final long serialVersionUID = -2531012119663028562L;
+public interface PathMappable {
+
+  /**
+   * Returns the prefix to the working file repository file system root directory.
+   * 
+   * @return the root path on the file system
+   */
+  String getPathPrefix();
+
+  /**
+   * Returns the repository's base url.
+   * 
+   * @return the base url
+   */
+  String getUrlPrefix();
+
 }

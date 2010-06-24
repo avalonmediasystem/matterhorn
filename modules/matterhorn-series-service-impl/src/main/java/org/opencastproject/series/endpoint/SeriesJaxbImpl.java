@@ -30,6 +30,8 @@ import javax.xml.bind.annotation.XmlType;
 import org.opencastproject.series.api.Series;
 import org.opencastproject.series.api.SeriesMetadata;
 import org.opencastproject.series.impl.SeriesImpl;
+import org.opencastproject.series.impl.SeriesMetadataImpl;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +39,15 @@ import org.slf4j.LoggerFactory;
  * JaxB implementation of the SchedulerEvent
  *
  */
-@XmlType(name="Series", namespace="http://series.opencastproject.org")
-@XmlRootElement(name="Series", namespace="http://series.opencastproject.org")
+@XmlType(name="series", namespace="http://series.opencastproject.org")
+@XmlRootElement(name="series")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class SeriesJaxbImpl {
   private static final Logger logger = LoggerFactory.getLogger(SeriesJaxbImpl.class);
   
   @XmlID
   String seriesId;
-  @XmlElementWrapper(name="metadata_list")
+  @XmlElementWrapper(name="metadataList")
   @XmlElement(name="metadata")
   LinkedList <SeriesMetadataJaxbImpl> metadata;  
   
@@ -85,7 +87,9 @@ public class SeriesJaxbImpl {
     
     List<SeriesMetadata> list = new LinkedList<SeriesMetadata>(); 
     for (SeriesMetadataJaxbImpl m : metadata) {
-      list.add(m.getSeriesMetadata());
+      SeriesMetadataImpl metadata = m.getSeriesMetadata();
+      metadata.setSeries(s);
+      list.add(metadata);
     }
     s.setMetadata(list);
     return s;

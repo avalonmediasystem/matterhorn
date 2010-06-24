@@ -4,7 +4,7 @@
 #    UBUNTU_MIRROR=http://aifile.usask.ca/apt-mirror/mirror/archive.ubuntu.com/ubuntu/ ./buildvm.sh
 
 HOME=`pwd`
-MATTERHORN_SVN="http://opencast.jira.com/svn/MH/branches/1.0.x/"
+MATTERHORN_SVN="http://opencast.jira.com/svn/MH/trunk/"
 #check for existance of mirror URL
 if [ "$UBUNTU_MIRROR" = "" ];
   then
@@ -256,7 +256,7 @@ echo "export OC=/opt/matterhorn" >> mnt/home/opencast/.bashrc
 echo "export FELIX_HOME=/opt/matterhorn/felix" >> mnt/home/opencast/.bashrc
 echo "export RED5_HOME=/opt/matterhorn/red5" >> mnt/home/opencast/.bashrc
 echo "export M2_REPO=/home/opencast/.m2/repository" >> mnt/home/opencast/.bashrc
-echo "export OC_URL=http://opencast.jira.com/svn/MH/branches/1.0.x/" >> mnt/home/opencast/.bashrc
+echo "export OC_URL=http://opencast.jira.com/svn/MH/trunk/" >> mnt/home/opencast/.bashrc
 echo "export FELIX_URL=http://apache.mirror.iweb.ca/felix/felix-framework-2.0.1.tar.gz" >> mnt/home/opencast/.bashrc
 echo "export JAVA_HOME=/usr/lib/jvm/java-6-sun" >> mnt/home/opencast/.bashrc
 echo "export MAVEN_OPTS=\"-Xms256m -Xmx512m -XX:PermSize=64m -XX:MaxPermSize=128m\"" >> mnt/home/opencast/.bashrc

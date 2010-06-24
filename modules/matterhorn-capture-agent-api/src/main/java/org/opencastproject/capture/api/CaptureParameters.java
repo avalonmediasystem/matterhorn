@@ -91,8 +91,11 @@ public interface CaptureParameters {
   /** A directory which contains a capture */
   String RECORDING_ROOT_URL = "capture.recording.root.url";
 
-  /** Duration to specify for the capture client */
+  /** Time at which to stop the capture */
   String RECORDING_END = "capture.recording.end";
+
+  /** The duration of the recording in seconds */
+  String RECORDING_DURATION = "capture.recording.duration";
 
   /**
    * Settings which control the ingest jobs
@@ -155,6 +158,9 @@ public interface CaptureParameters {
   
   /** Property appended to CAPTURE_DEVICE_CODEC to specify that codec's quantizer value (codec=x264enc only) */
   String CAPTURE_DEVICE_QUANTIZER = ".bitrate";
+  
+  /** The framerate in frames per second to force on the video */
+  String CAPTURE_DEVICE_FRAMERATE = ".framerate";
 
   /** Property prefixing properties involving the capture buffers */
   String CAPTURE_DEVICE_BUFFER = ".buffer";

@@ -5,13 +5,13 @@
 if [ ! -z $FELIX_HOME ]; then
   FELIX=$FELIX_HOME
 else
-  FELIX="/Applications/Matterhorn"
+  FELIX="/home/wulff/Servers/felix"
 fi
 
 if [ ! -z $M2_REPO ]; then
   M2_REPO=$M2_REPO
 else
-  M2_REPO="/Users/johndoe/.m2/repository"
+  M2_REPO="/home/wulff/.m2/repository"
 fi
 
 if [ ! -z $OPENCAST_LOGDIR ]; then
@@ -40,6 +40,14 @@ UTIL_LOGGING_OPTS="-Djava.util.logging.config.file=$FELIX/conf/services/java.uti
 GRAPHICS_OPTS="-Djava.awt.headless=true -Dawt.toolkit=sun.awt.HeadlessToolkit"
 
 FELIX_CACHE="$FELIX/felix-cache"
+
+# Make sure matterhorn bundles are reloaded
+if [ -d "$FELIX_CACHE" ]; then
+  echo "Removing cached matterhorn bundles from $FELIX_CACHE"
+  for bundle in `find "$FELIX_CACHE" -type f -name bundle.location | xargs grep --files-with-match -e "file:" | sed -e s/bundle.location// `; do
+    rm -r $bundle
+  done
+fi
 
 # Finally start felix
 cd $FELIX

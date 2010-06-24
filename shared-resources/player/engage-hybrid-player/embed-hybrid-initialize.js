@@ -27,6 +27,7 @@ Opencast.Initialize = (function ()
     VIDEOSIZEAUDIO         = "videoSizeAudio",
     clickMatterhornSearchField = false,
     clickLecturerSearchField = false,
+    locked = false,
     formatOne = 0,
     formatTwo = 0,
     formatSingle = 0,
@@ -127,25 +128,34 @@ Opencast.Initialize = (function ()
         dropdown_canceltimer();
         dropdown_close();
        
-        if (getDivId() === VOLUME)
-        {
-            ddmenuitem = $('#oc_volume-menue').css('visibility', 'visible');
 
-        }
-        else if (getDivId() === VIDEOSIZE)
+        if (getDivId() === VIDEOSIZE)
         {
-            ddmenuitem = $('#oc_video-size-menue').css('visibility', 'visible');
+            $('#oc_sound').css('width', '0%');
+            $('#oc_video-size-controls').css('width', '25%');
+            $('#oc_video-size-dropdown-div').css('width', '20%')
+            $('#oc_player_video-dropdown').css('left',$('#oc_video-size-dropdown').offset().left-$('#oc_body').offset().left);
+            $('#oc_player_video-dropdown').css('visibility', 'visible');
+            $('#oc_volume-menue').css('visibility', 'hidden');
+            ddmenuitem = $('#oc_player_video-dropdown');
+
         }
         else
         {
-            ddmenuitem = $(this).find('ul').eq(0).css('visibility', 'visible');
+            $('#oc_sound').css('width', '20%');
+            $('#oc_video-size-controls').css('width', '5%');
+            $('#oc_volume-menue').css('visibility', 'visible');
+            $('#oc_player_video-dropdown').css('visibility', 'hidden');
+            ddmenuitem = $('#oc_volume-menue');
+
+
         }
         setDivId('');
     }
     
     /**
         @memberOf Opencast.Initialize
-        @description open the drop down meneue video.
+        @description open the drop down menu video.
      */
     function dropdownVideo_open()
     {
@@ -201,9 +211,13 @@ Opencast.Initialize = (function ()
         });
         
         
-        $('#oc_video-size-dropdown > li').bind('mouseover', dropdown_open);
-        //$('#oc_video-size-dropdown > li').bind('click', dropdown_open);
-        $('#oc_video-size-dropdown > li').bind('mouseout',  dropdown_timer);
+        $('#oc_video-size-controls').bind('mouseover', dropdownVideo_open);
+        $('#oc_player_video-dropdown').bind('mouseover', dropdownVideo_open);
+        $('#oc_video-size-controls').bind('mouseout',  dropdown_timer);
+        $('#oc_player_video-dropdown').bind('mouseout',  dropdown_timer);
+       
+        
+        
         
         // Handler focus
         $('#oc_btn-dropdown').focus(function () 
@@ -218,9 +232,8 @@ Opencast.Initialize = (function ()
             dropdown_timer();
         });
         
-        $('#oc_volume-dropdown > li').bind('mouseover', dropdown_open);
-        //$('#oc_video-size-dropdown > li').bind('click', dropdown_open);
-        $('#oc_volume-dropdown > li').bind('mouseout',  dropdown_timer);
+        $('#oc_sound').bind('mouseover', dropdown_open);
+        $('#oc_sound').bind('mouseout',  dropdown_timer);
 
         // Handler focus
         $('#oc_btn-volume').focus(function () 
@@ -245,7 +258,7 @@ Opencast.Initialize = (function ()
         {
             dropdown_timer();
         });
-     
+        
         // init the aria slider for the volume
         Opencast.ariaSlider.init();
        
@@ -291,15 +304,17 @@ Opencast.Initialize = (function ()
         // Handler for .click()
         $('#oc_btn-skip-backward').click(function () 
         {
-            Opencast.Player.doSkipBackward();
+            var sec = Opencast.segments.getSecondsBeforeSlide();
+            Opencast.Watch.seekSegment(sec);
+        });
+        $('#oc_btn-skip-forward').click(function () 
+        {
+          var sec = Opencast.segments.getSecondsNextSlide();
+          Opencast.Watch.seekSegment(sec);
         });
         $('#oc_btn-play-pause').click(function () 
         {
             Opencast.Player.doTogglePlayPause();
-        });
-        $('#oc_btn-skip-forward').click(function () 
-        {
-            Opencast.Player.doSkipForward();
         });
         $('#oc_btn-volume').click(function () 
         {
@@ -382,18 +397,34 @@ Opencast.Initialize = (function ()
         });
         $('#oc_btn-rewind').mousedown(function ()
         {
-            this.className = 'oc_btn-rewind-clicked';
-            Opencast.Player.doRewind();
+        	this.className = 'oc_btn-rewind-clicked';
+            if (!locked)
+            {
+                locked = true;
+                setTimeout(function()
+                { 
+                    locked = false;
+                }, 400);
+                Opencast.Player.doRewind();
+            }
         });
         
         $('#oc_btn-play-pause').mousedown(function () 
         {
-            Opencast.Player.PlayPauseMouseOut();
+            Opencast.Player.PlayPauseMouseDown();
         });
         $('#oc_btn-fast-forward').mousedown(function () 
         {
-            this.className = 'oc_btn-fast-forward-clicked';
-            Opencast.Player.doFastForward();
+        	this.className = 'oc_btn-fast-forward-clicked';
+            if (!locked)
+            {
+                locked = true;
+                setTimeout(function()
+                { 
+                    locked = false;
+                }, 400);
+                Opencast.Player.doFastForward();
+            }
             
         });
         $('#oc_btn-skip-forward').mousedown(function () 
@@ -609,29 +640,38 @@ Opencast.Initialize = (function ()
      */
     function setMediaResolution(mediaResolutionOne, mediaResolutionTwo)
     {
-    	var mediaResolutionOneString = mediaResolutionOne;
-        var mediaResolutionTwoString = mediaResolutionTwo;
-        var mediaResolutionOneArray = mediaResolutionOneString.split('x');
+    	if(mediaResolutionOne !== '')
+    	{
+    		var mediaResolutionOneString = mediaResolutionOne;
+            var mediaResolutionTwoString = mediaResolutionTwo;
+            var mediaResolutionOneArray = mediaResolutionOneString.split('x');
         
-    	if (mediaResolutionTwoString !== '')
-        {
-        	var mediaResolutionTwoArray = mediaResolutionTwoString.split('x');
-            mediaOneWidth = parseInt(mediaResolutionOneArray[0], 10);
-            mediaOneHeight = parseInt(mediaResolutionOneArray[1], 10);
-            mediaTwoWidth = parseInt(mediaResolutionTwoArray[0], 10);
-            mediaTwoHeight = parseInt(mediaResolutionTwoArray[1], 10);
+    	    if (mediaResolutionTwoString !== '')
+            {
+        	    var mediaResolutionTwoArray = mediaResolutionTwoString.split('x');
+                mediaOneWidth = parseInt(mediaResolutionOneArray[0], 10);
+                mediaOneHeight = parseInt(mediaResolutionOneArray[1], 10);
+                mediaTwoWidth = parseInt(mediaResolutionTwoArray[0], 10);
+                mediaTwoHeight = parseInt(mediaResolutionTwoArray[1], 10);
             
-            formatOne = mediaOneWidth / mediaOneHeight;
-            formatTwo = mediaTwoWidth / mediaTwoHeight;
-        }
+                formatOne = mediaOneWidth / mediaOneHeight;
+                formatTwo = mediaTwoWidth / mediaTwoHeight;
+            }
+    	    else
+            {
+        	  
+        	    mediaSingleWidth = parseInt(mediaResolutionOneArray[0], 10);
+                mediaSingleHeight = parseInt(mediaResolutionOneArray[1], 10);
+                formatSingle = mediaSingleWidth / mediaSingleHeight;
+            }
+    	    
+    	}
     	else
-        {
-        	
-        	mediaSingleWidth = parseInt(mediaResolutionOneArray[0], 10);
-            mediaSingleHeight = parseInt(mediaResolutionOneArray[1], 10);
-            formatSingle = mediaSingleWidth / mediaSingleHeight;
-        }
+    	{
     	
+    		Videodisplay.setMediaResolution(0, 0, 0, 0, 0);	
+    		
+    	}
     }
    
     return {

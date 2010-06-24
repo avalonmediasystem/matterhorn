@@ -15,9 +15,10 @@
  */
 package org.opencastproject.remote.impl;
 
+import org.opencastproject.remote.api.ServiceRegistration;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -26,27 +27,31 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="SERVICE_REGISTRATION")
-public class ReceiptHandler {
+public class ServiceRegistrationImpl implements ServiceRegistration {
 
   @Id
-  @GeneratedValue
-  protected Long id;
-  
-  @Column
+  @Column(name="HOST", nullable=false)
   protected String host;
-  @Column
+
+  @Id
+  @Column(name="JOB_TYPE", nullable=false)
   protected String receiptType;
   
-  public ReceiptHandler() {}
+  @Column(name="MAINTENANCE", nullable=false)
+  protected boolean inMaintenanceMode;
+  
+  public ServiceRegistrationImpl() {}
 
-  public ReceiptHandler(String host, String receiptType) {
+  public ServiceRegistrationImpl(String host, String receiptType, boolean inMaintenanceMode) {
     this.host = host;
     this.receiptType = receiptType;
+    this.inMaintenanceMode = inMaintenanceMode;
   }
 
   /**
    * @return the host
    */
+  @Override
   public String getHost() {
     return host;
   }
@@ -59,6 +64,7 @@ public class ReceiptHandler {
   /**
    * @return the receiptType
    */
+  @Override
   public String getReceiptType() {
     return receiptType;
   }
@@ -70,18 +76,17 @@ public class ReceiptHandler {
   }
 
   /**
-   * @return the id
+   * @return the inMaintenanceMode
    */
-  public Long getId() {
-    return id;
+  @Override
+  public boolean isInMaintenanceMode() {
+    return inMaintenanceMode;
   }
 
   /**
-   * @param id the id to set
+   * @param inMaintenanceMode the inMaintenanceMode to set
    */
-  public void setId(Long id) {
-    this.id = id;
+  public void setInMaintenanceMode(boolean inMaintenanceMode) {
+    this.inMaintenanceMode = inMaintenanceMode;
   }
-
-  
 }

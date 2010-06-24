@@ -36,11 +36,21 @@ public interface RemoteServiceManager {
   /**
    * Unregisters a host from handling a specific type of job
    * 
-   * @param jobType
-   * @param baseUrl
+   * @param jobType The job type
+   * @param baseUrl The base URL where the service that can handle this job type can be found
    */
   void unRegisterService(String jobType, String baseUrl);
-  
+
+  /**
+   * Sets a registered host's maintenance status
+   * 
+   * @param jobType The job type
+   * @param baseUrl The base URL where the service that can handle this job type can be found
+   * @param maintenanceMode whether this service is in maintenance mode
+   * @throws IllegalStateException if this is called for a jobType and baseUrl that is not registered
+   */
+  void setMaintenanceMode(String jobType, String baseUrl, boolean maintenanceMode) throws IllegalStateException;
+
   /**
    * Parses an xml string representing a Receipt
    * 
@@ -94,11 +104,16 @@ public interface RemoteServiceManager {
   long count(String type, Status status, String host);
 
   /**
-   * Finds the remote services, ordered by their load (lightest to heaviest).
+   * Finds the servers registered to handle this kind of job, ordered by their load (lightest to heaviest).
    * 
    * @param jobType The type of job that must be handled by the hosts
    * @return A list of hosts that handle this job type, in order of their running and queued job load
    */
-  public List<String> getRemoteHosts(String jobType);
+  List<String> getRemoteHosts(String jobType);
+
+  /**
+   * Finds all current service registrations, including those in maintenance mode.
+   */
+   List<ServiceRegistration> getServiceRegistrations();
   
 }

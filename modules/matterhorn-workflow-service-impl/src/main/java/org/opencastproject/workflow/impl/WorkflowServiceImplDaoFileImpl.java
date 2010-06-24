@@ -16,16 +16,16 @@
 package org.opencastproject.workflow.impl;
 
 import org.opencastproject.mediapackage.MediaPackage;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowBuilder;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowOperationInstance;
 import org.opencastproject.workflow.api.WorkflowQuery;
 import org.opencastproject.workflow.api.WorkflowSet;
 import org.opencastproject.workflow.api.WorkflowSetImpl;
-import org.opencastproject.workingfilerepository.api.WorkingFileRepository;
+import org.opencastproject.workspace.api.Workspace;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -61,12 +62,12 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
   protected static final String COUNT_TOKEN = "COUNT_TOKEN";
 
   protected String storageRoot;
-  protected WorkingFileRepository repo;
+  protected Workspace workspace;
   protected Directory directory;
   protected Analyzer analyzer;
   
-  public void setRepository(WorkingFileRepository repo) {
-    this.repo = repo;
+  public void setWorkspace(Workspace workspace) {
+    this.workspace = workspace;
   }
   
   public void setStorageRoot(String storageRoot) {
@@ -115,15 +116,22 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
     if(countWorkflowInstances() == 0) {
       // this may be a new index, so get all of the existing workflows and index them
       WorkflowBuilder builder = WorkflowBuilder.getInstance();
-      URI[] uris = repo.getCollectionContents(COLLECTION_ID);
+      URI[] uris = null;
+      try {
+        uris = workspace.getCollectionContents(COLLECTION_ID);
+      } catch (IOException e) {
+        throw new IllegalStateException("Error accessing workspace collection '" + COLLECTION_ID + "'", e);
+      }
       for (URI uri : uris) {
         InputStream in = null;
         try {
-          in = repo.getFromCollection(COLLECTION_ID, FilenameUtils.getName(uri.toString()));
+          File file = workspace.get(uri);
+          in = new FileInputStream(file);
           WorkflowInstance instance = builder.parseWorkflowInstance(in);
           index(instance);
         } catch (Exception e) {
           logger.warn("unable to parse workflow instance", e);
+          throw new IllegalStateException(e);
         } finally {
           IOUtils.closeQuietly(in);
         }
@@ -349,6 +357,12 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
       indexWriter.deleteDocuments(new Term("id", id));
       indexWriter.expungeDeletes();
       indexWriter.commit();
+      String fileName = getFilename(id);
+      try {
+        workspace.deleteFromCollection(COLLECTION_ID, fileName);
+      } catch (NotFoundException e) {
+        logger.warn("Tried to delete a non existing serialized workflow: " + fileName);
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
@@ -360,8 +374,6 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
         }
       }
     }
-    String fileName = getFilename(id);
-    repo.removeFromCollection(COLLECTION_ID, fileName);
   }
 
   /**
@@ -378,7 +390,7 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
       throw new RuntimeException(e);
     }
     try {
-      repo.putInCollection(COLLECTION_ID, getFilename(instance.getId()), IOUtils.toInputStream(xml));
+      workspace.putInCollection(COLLECTION_ID, getFilename(instance.getId()), IOUtils.toInputStream(xml));
       index(instance);
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -39,11 +39,11 @@ export SRC_DEFAULT=$TRUNK_URL
 
 # File containing the rules to be applied by udev to the configured devices -- not a pun!
 export DEV_RULES=/etc/udev/rules.d/matterhorn.rules
-# File name for the bash script under HOME containing the device configuration routine
+# File name for the bash script containing the device configuration routine
 export CONFIG_SCRIPT=device_config.sh
 # Default value for the core url
-export DEFAULT_INGEST_URL=http://localhost:8080
-# Subdirectory under HOME where the epiphan driver will be downloaded to
+export DEFAULT_CORE_URL=http://localhost:8080
+# Subdirectory where the epiphan driver will be downloaded to
 export VGA2USB_DIR=epiphan_driver
 # Location of the file 'sources.list'
 export SRC_LIST=/etc/apt/sources.list
@@ -57,6 +57,9 @@ export DEFAULT_MIRROR=http://archive.ubuntu.com/ubuntu
 export DEFAULT_SECURITY=http://security.ubuntu.com/ubuntu
 # URL of the default Ubuntu 'partner' mirror
 export DEFAULT_PARTNER=http://archive.canonical.com/ubuntu
+
+# Logging file                                                                                                                                               
+export LOG_FILE=$START_PATH/install_info.txt
 
 # The subsidiary scripts will check for this variable to check they are being run from here
 export INSTALL_RUN=true
@@ -73,7 +76,8 @@ sun-java6-jdk
 subversion
 wget
 openssh-server
-gcc gstreamer0.10-alsa
+gcc
+gstreamer0.10-alsa
 gstreamer0.10-plugins-base
 gstreamer0.10-plugins-good
 gstreamer0.10-plugins-ugly
@@ -82,7 +86,8 @@ gstreamer0.10-ffmpeg
 ntp
 acpid"
 
-# Packages that require the user approval to be installed (one per line --please note the quotation mark at the end!!!)
+# Packages that require the user approval to be installed (Please note the quotation mark at the end!!!)
+# There should be one package per line, but several packages may be included if they need to be treated 'as a block'
 export BAD_PKG_LIST="gstreamer0.10-plugins-bad gstreamer0.10-plugins-bad-multiverse"
 # Reasons why each of the "bad" packages should be installed (one per line, in the same order as the bad packages)
 export BAD_PKG_REASON="These packages provide support for h264 and mpeg2"
@@ -140,11 +145,12 @@ INSTALL_VGA2USB=./install_vga2usb_drivers.sh
 SETUP_DEVICES=./setup_devices.sh
 INSTALL_DEPENDENCIES=./install_dependencies.sh
 SETUP_SOURCE=./setup_source.sh
-SETUP_ENVIROMENT=./setup_enviroment.sh
+SETUP_ENVIRONMENT=./setup_environment.sh
 SETUP_BOOT=./setup_boot.sh
-export CLEANUP=./cleanup.sh                # This variable is exported because the script is modified by another
+# This one is exported because it has to be modified by another script
+export CLEANUP=./cleanup.sh
 
-SCRIPTS=( "$SETUP_USER" "$INSTALL_VGA2USB" "$SETUP_DEVICES" "$INSTALL_DEPENDENCIES" "$SETUP_ENVIROMENT" "$SETUP_SOURCE" "$SETUP_BOOT" "$CLEANUP" )
+SCRIPTS=( "$SETUP_USER" "$INSTALL_VGA2USB" "$SETUP_DEVICES" "$INSTALL_DEPENDENCIES" "$SETUP_ENVIRONMENT" "$SETUP_SOURCE" "$SETUP_BOOT" "$CLEANUP" )
 SCRIPTS_EXT=docs/scripts/ubuntu_capture_agent
 
 # End of variables section########################################################################################
@@ -162,6 +168,22 @@ fi
 rm -rf $WORKING_DIR
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
+
+# Log the technical outputs                                                                                                                                  
+echo "# Output of uname -a" > $LOG_FILE
+uname -a >> $LOG_FILE
+echo >> $LOG_FILE
+echo "# Total memory" >> $LOG_FILE
+echo $(cat /proc/meminfo | grep -m 1 . | cut -d ':' -f 2) >> $LOG_FILE
+echo >> $LOG_FILE
+echo "# Processor(s) model name(s)" >> $LOG_FILE
+IFS='
+'
+models=$(cat /proc/cpuinfo | sed -e '/model name/!d' -e 's/^.*: *//g')
+for name in $models; do
+    echo $name >> $LOG_FILE
+done
+unset IFS
 
 # If wget isn't installed, get it from the ubuntu software repo
 wget foo &> /dev/null
@@ -227,10 +249,10 @@ if [[ "$?" -ne 0 ]]; then
     exit 1
 fi
 
-# Set up user enviroment
-${SETUP_ENVIROMENT}
+# Set up user environment
+${SETUP_ENVIRONMENT}
 if [[ "$?" -ne 0 ]]; then
-    echo "Error setting up the enviroment for $USERNAME. Contact matterhorn@opencastproject.org for assistance."
+    echo "Error setting up the environment for $USERNAME. Contact matterhorn@opencastproject.org for assistance."
     exit 1
 fi
 
@@ -248,6 +270,11 @@ cd $WORKING_DIR
 
 # Set up the file to run matterhorn automatically on startup
 ${SETUP_BOOT}
+
+# Log the contents of /etc/issue
+echo >> $LOG_FILE
+echo "# Contents in /etc/issue" >> $LOG_FILE
+cat /etc/issue >> $LOG_FILE
 
 echo -e "\n\n\nCapture Agent succesfully installed\n\n\n"
 
