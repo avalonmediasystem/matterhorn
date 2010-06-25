@@ -1155,13 +1155,13 @@
   -->
   <distributionManagement>
     <snapshotRepository>
-      <id>matterhorn-maven2-snapshot</id>
+      <id>nexus</id>
       <name>OC Snapshot repo</name>
-      <url>http://repository.opencastproject.org/nexus/content/repositories/snapshots</url>
+      <url>http://repository.opencastproject.org/nexus/content/repositories/testocrelease</url>
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
     <repository>
-      <id>matterhorn-maven2-release</id>
+      <id>nexus</id>
       <name>OC Release repo</name>
       <url>http://repository.opencastproject.org/nexus/content/repositories/releases</url>
     </repository>
