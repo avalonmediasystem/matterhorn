@@ -1157,7 +1157,7 @@
     <snapshotRepository>
       <id>nexus</id>
       <name>OC Snapshot repo</name>
-      <url>http://repository.opencastproject.org/nexus/content/repositories/testocrelease</url>
+      <url>http://repository.opencastproject.org/nexus/content/repositories/snapshots</url>
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
     <repository>
