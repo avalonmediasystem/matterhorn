@@ -153,10 +153,44 @@ public class ComposerServiceRemoteImpl implements ComposerService {
    * @see org.opencastproject.composer.api.ComposerService#encode(java.lang.String, java.lang.String, java.lang.String,
    *      boolean)
    */
-  @Override
-  public Receipt encode(MediaPackage mediaPackage, String sourceTrackId, String profileId, boolean block)
-          throws EncoderException, MediaPackageException {
-    return mux(mediaPackage, sourceTrackId, sourceTrackId, profileId, block);
+  public Receipt encode(Track sourceTrack, String profileId, boolean block) throws EncoderException {
+    Receipt r = null;
+    List<String> remoteHosts = remoteServiceManager.getRemoteHosts(JOB_TYPE);
+    Map<String, String> hostErrors = new HashMap<String, String>();
+    for (String remoteHost : remoteHosts) {
+      String url = remoteHost + "/composer/rest/encode";
+      HttpPost post = new HttpPost(url);
+      try {
+        List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
+        params.add(new BasicNameValuePair("sourceTrack", getXML(sourceTrack)));
+        params.add(new BasicNameValuePair("profileId", profileId));
+        UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params);
+        post.setEntity(entity);
+        HttpResponse response = trustedHttpClient.execute(post);
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+          hostErrors.put(remoteHost, response.getStatusLine().toString());
+          continue;
+        }
+        String content = EntityUtils.toString(response.getEntity());
+        r = remoteServiceManager.parseReceipt(content);
+        break;
+      } catch (Exception e) {
+        hostErrors.put(remoteHost, e.getMessage());
+        continue;
+      }
+    }
+
+    if (r == null) {
+      logger.warn("The following errors were encountered while attempting a {} remote service call: {}", JOB_TYPE,
+              hostErrors);
+      throw new RuntimeException("Unable to execute method, none of the " + remoteHosts.size()
+              + " remote hosts are available");
+    }
+
+    if (block) {
+      r = poll(r.getId());
+    }
+    return r;
   }
 
   /**
