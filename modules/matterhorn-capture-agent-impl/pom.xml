@@ -5,34 +5,34 @@
   <artifactId>matterhorn-capture-agent-impl</artifactId>
   <packaging>bundle</packaging>
   <name>matterhorn-capture-agent-impl</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-capture-agent-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-capture-admin-service-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-static</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
       <type>bundle</type>
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-kernel</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>org.opencastproject.samples</groupId>
