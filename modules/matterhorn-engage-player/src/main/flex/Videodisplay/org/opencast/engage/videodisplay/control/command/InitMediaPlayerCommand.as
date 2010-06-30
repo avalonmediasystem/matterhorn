@@ -20,11 +20,13 @@ package org.opencast.engage.videodisplay.control.command
     
     import flash.external.ExternalInterface;
     
+    import mx.controls.Alert;
     import mx.core.Application;
     
     import org.opencast.engage.videodisplay.control.event.InitMediaPlayerEvent;
     import org.opencast.engage.videodisplay.control.util.OpencastMediaPlayer;
     import org.opencast.engage.videodisplay.model.VideodisplayModel;
+    import org.opencast.engage.videodisplay.state.CoverState;
     import org.opencast.engage.videodisplay.state.MediaState;
     import org.opencast.engage.videodisplay.state.PlayerState;
     import org.opencast.engage.videodisplay.state.VideoState;
@@ -56,37 +58,55 @@ package org.opencast.engage.videodisplay.control.command
 			model.currentPlayerState = PlayerState.PAUSED;
             ExternalInterface.call( ExternalFunction.SETPLAYPAUSESTATE, PlayerState.PLAYING );
             
-            // set the cover URL
-            model.coverURL = event.coverURL;
+            // set the cover URL One
+            model.coverURLOne = event.coverURLOne;
+            
+             // set the cover URL Two
+            model.coverURLTwo = event.coverURLTwo;
+            
+            // set the cover state
+            if( event.coverURLOne != '' && event.coverURLTwo == '')
+            {
+                model.coverState = CoverState.ONECOVER;
+                model.coverURLSingle = event.coverURLOne;
+            }
+            else
+            {
+                 model.coverState = CoverState.TWOCOVERS;
+                 model.coverURLSingle = event.coverURLOne;
+            }
+            
            
             // Single Video/Audio
             if( event.mediaURLOne != '' && event.mediaURLTwo == '' )
             {
-                
-                
                 //
                 model.mediaPlayer = new OpencastMediaPlayer( VideoState.SINGLE );
-                
-                var pos:int = event.mediaURLOne.lastIndexOf( "." );
-                var fileType:String = event.mediaURLOne.substring( pos + 1 );
-                
+                var pos:int = event.mimetypeOne.lastIndexOf( "/" );
+             
+                var fileType:String = event.mimetypeOne.substring(0,pos);
+               
                 switch ( fileType )
                 {
-                    case "flv":
-                    case "mp4":
-                        var mediaElementVideo:MediaElement =  new VideoElement ( new URLResource( event.mediaURLOne ) );
+                    case "video":
+                    
+                        var newVideoElement:VideoElement = new VideoElement ( new URLResource( event.mediaURLOne ) );
+                        newVideoElement.smoothing = true;
+                        var mediaElementVideo:MediaElement =newVideoElement;
+                        
                         model.mediaPlayer.setSingleMediaElement( mediaElementVideo );
                         if( event.mediaURLOne.charAt(0) == 'h' || event.mediaURLOne.charAt(0) == 'H' )
 		                {
 		                   model.mediaTypeSingle = model.HTML;
+		                   model.mediaType = model.HTML;
 		                }
 		                else if( event.mediaURLOne.charAt(0) == 'r' || event.mediaURLOne.charAt(0) == 'R' )
 		                {
 		                    model.mediaTypeSingle = model.RTMP;
 		                }
-                        break;
+		                break;
 
-                    case "mp3":
+                    case "audio":
                         var mediaElementAudio:MediaElement = new AudioElement( new URLResource( event.mediaURLOne ) );
                         model.mediaPlayer.setSingleMediaElement( mediaElementAudio );
                         var position:int = event.mediaURLOne.lastIndexOf( '/' );
@@ -105,6 +125,7 @@ package org.opencast.engage.videodisplay.control.command
             	if( event.mediaURLOne.charAt(0) == 'h' || event.mediaURLOne.charAt(0) == 'H' )
             	{
             	   model.mediaTypeOne = model.HTML;
+            	   model.mediaType = model.HTML;
             	}
             	else if( event.mediaURLOne.charAt(0) == 'r' || event.mediaURLOne.charAt(0) == 'R' )
             	{
@@ -114,6 +135,7 @@ package org.opencast.engage.videodisplay.control.command
             	if( event.mediaURLTwo.charAt(0) == 'h' || event.mediaURLTwo.charAt(0) == 'H'  )
                 {
                    model.mediaTypeTwo = model.HTML;
+                   model.mediaType = model.HTML;
                 }
                 else if( event.mediaURLTwo.charAt(0) == 'r' || event.mediaURLTwo.charAt(0) == 'R')
                 {
@@ -123,55 +145,21 @@ package org.opencast.engage.videodisplay.control.command
             	
             	model.mediaPlayer = new OpencastMediaPlayer( VideoState.MULTI );
             	
-            	
-            	
-            	
-            	
-            	
-            	
-            	
-            	
-            	
-            	
-            /*	
-            	
-            	       var REMOTE_MBR_STREAM_HOST:String      = "rtmp://cp67126.edgefcs.net/ondemand";
-            	var MBR_STREAM_ITEMS:Array =
-            [ new DynamicStreamingItem("mp4:mediapm/ovp/content/demo/video/elephants_dream/elephants_dream_768x428_24.0fps_408kbps.mp4", 408, 768, 428)
-            , new DynamicStreamingItem("mp4:mediapm/ovp/content/demo/video/elephants_dream/elephants_dream_768x428_24.0fps_608kbps.mp4", 608, 768, 428)
-            , new DynamicStreamingItem("mp4:mediapm/ovp/content/demo/video/elephants_dream/elephants_dream_1024x522_24.0fps_908kbps.mp4", 908, 1024, 522)
-            , new DynamicStreamingItem("mp4:mediapm/ovp/content/demo/video/elephants_dream/elephants_dream_1024x522_24.0fps_1308kbps.mp4", 1308, 1024, 522)
-            , new DynamicStreamingItem("mp4:mediapm/ovp/content/demo/video/elephants_dream/elephants_dream_1280x720_24.0fps_1708kbps.mp4", 1708, 1280, 720)
-            ];
-    
-           	
-            	
-            	
-            	
-            	var dsResource:DynamicStreamingResource = new DynamicStreamingResource(REMOTE_MBR_STREAM_HOST);
-                            for (var i:int = 0; i < 5; i++)
-                            {
-                                dsResource.streamItems.push(MBR_STREAM_ITEMS[i]);
-                            }
-                            
-                            var mediaElementVideoOne:MediaElement =  new VideoElement ( dsResource );
-                model.mediaPlayer.setMediaElementOne( mediaElementVideoOne );
-                
-                //
-                var mediaElementVideoTwo:MediaElement =  new VideoElement ( dsResource );
-                model.mediaPlayer.setMediaElementTwo( mediaElementVideoTwo );
-            	
-            	*/
-            	
-            	
             	//
-            	var mediaElementVideoOne:MediaElement =  new VideoElement ( new URLResource( event.mediaURLOne ) );
+            	var newVideoElementOne:VideoElement = new VideoElement ( new URLResource( event.mediaURLOne ) );
+                newVideoElementOne.smoothing = true;
+            	var mediaElementVideoOne:MediaElement =  newVideoElementOne;
                 model.mediaPlayer.setMediaElementOne( mediaElementVideoOne );
             	
             	//
-            	var mediaElementVideoTwo:MediaElement =  new VideoElement ( new URLResource( event.mediaURLTwo) );
+            	var newVideoElementTwo:VideoElement = new VideoElement ( new URLResource( event.mediaURLTwo ) );
+                newVideoElementTwo.smoothing = true;
+                var mediaElementVideoTwo:MediaElement =  newVideoElementTwo;
                 model.mediaPlayer.setMediaElementTwo( mediaElementVideoTwo );
-               
+            	
+            	
+            	
+            	
             }
             else
             {
