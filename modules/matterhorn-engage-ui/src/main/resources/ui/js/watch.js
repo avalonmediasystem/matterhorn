@@ -28,7 +28,7 @@ Opencast.Watch = (function ()
         var mediaPackageId = Opencast.engage.getMediaPackageId();
 
         var restEndpoint = Opencast.engage.getSearchServiceEpisodeIdURL() + mediaPackageId;
-
+       
         Opencast.Player.setSessionId(Opencast.engage.getCookie("JSESSIONID"));
         Opencast.Player.setMediaPackageId(mediaPackageId);
 
@@ -98,13 +98,9 @@ Opencast.Watch = (function ()
             mediaResolutionOne = mediaResolutionTwo;
             mediaResolutionTwo = null;
           }
-
-        
-           
-
-          
          
           
+        
           mediaUrlOne = mediaUrlOne === null ? '' : mediaUrlOne;
           mediaUrlTwo = mediaUrlTwo === null ? '' : mediaUrlTwo;
           
@@ -112,21 +108,30 @@ Opencast.Watch = (function ()
           mediaResolutionTwo = mediaResolutionTwo === null ? '' : mediaResolutionTwo;
          
           
-          
-          
-
-          var coverUrl = $('#oc-cover-engage').html();
-          if(coverUrl === null)
+          // set cover url one
+          var coverUrlOne = $('#oc-cover-engage').html();
+          if(coverUrlOne === null)
           {	  
-            coverUrl = $('#oc-cover-feed').html();
+        	  coverUrlOne = $('#oc-cover-feed').html();
           }
-          coverUrl = coverUrl === null ? '' : coverUrl;
+          coverUrlOne = coverUrlOne === null ? '' : coverUrlOne;
           
+          // set cover url two
+          var coverUrlTwo = $('#oc-cover-engage').html();
+          if(coverUrlTwo === null)
+          {	  
+        	  coverUrlTwo = $('#oc-cover-feed').html();
+          }
+          coverUrlTwo = coverUrlTwo === null ? '' : coverUrlTwo;
+          
+          if (coverUrlOne === '' && coverUrlTwo !== '')
+          {
+        	  coverUrlOne = coverUrlTwo;
+          }
           
          
-
-
-          Opencast.Player.setMediaURL(coverUrl, mediaUrlOne, mediaUrlTwo);
+          
+          Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo);
 
           if (mediaUrlOne !== '' && mediaUrlTwo !== '')
           {
@@ -135,12 +140,11 @@ Opencast.Watch = (function ()
           }
           else if (mediaUrlOne !== '' && mediaUrlTwo === '')
           {
-            var pos = mediaUrlOne.lastIndexOf(".");
-            var fileType = mediaUrlOne.substring(pos + 1);
+            var pos = mimetypeOne.lastIndexOf("/");
+            var fileType = mimetypeOne.substring(0,pos);
             
-           
             //
-            if (fileType === 'mp3')
+            if (fileType === 'audio')
             {
               Opencast.Player.setVideoSizeList(AUDIOPLAYER);
             }
