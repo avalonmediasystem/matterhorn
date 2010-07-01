@@ -421,3 +421,35 @@ fieldset {
 }
 
 .color-red {color:red;}
+
+.recording-upcoming {
+    background-image: url(../shared_img/icons/clock.png);
+}
+
+.recording-capturing {
+    background-image: url(../shared_img/icons/webcam.png);
+}
+
+.recording-processing {
+    background-image: url(../shared_img/icons/server_compressed.png);
+}
+
+.recording-finished {
+    background-image: url(../shared_img/icons/television.png);
+}
+
+.recording-hold {
+    background-image: url(../shared_img/icons/server_edit.png);
+}
+
+.recording-failed {
+    background-image: url(../shared_img/icons/cross.png);
+}
+.iconCell {
+    display: table-cell;
+    padding-right: 5px;
+}
+
+.statusCell {
+    display: table-cell;
+}
