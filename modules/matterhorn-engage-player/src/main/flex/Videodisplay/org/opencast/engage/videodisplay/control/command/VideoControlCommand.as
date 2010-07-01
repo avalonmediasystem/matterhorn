@@ -57,8 +57,6 @@ package org.opencast.engage.videodisplay.control.command
                 
                     try
                     {
-	                    model.mediaPlayer.play();
-	                    
 	                    if( model.startPlaySingle == true )
 		                {
 		                   if( model.startPlay == false   )
@@ -86,7 +84,14 @@ package org.opencast.engage.videodisplay.control.command
 		                    model.videoState = model.mediaPlayer.getVideoState();
 		                }
 	                
-	                    model.currentPlayerState = PlayerState.PLAYING;
+	                    //if( !model.mediaPlayer.playing() )
+	                	//{
+	                		model.mediaPlayer.play();
+	                	//}
+	                	
+	                	
+	                	
+	                	model.currentPlayerState = PlayerState.PLAYING;
 	                    currentPlayPauseState = PlayerState.PAUSED;
 	                    ExternalInterface.call( ExternalFunction.SETPLAYPAUSESTATE, currentPlayPauseState );
                     }

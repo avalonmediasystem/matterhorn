@@ -227,9 +227,7 @@ Opencast.FlashVersion = (function ()
       		str += '> </embed></object>';
         }
 
-        //document.write(str);
-        $("#oc_flash-player").html(str);
-        
+        document.write(str);
     }
 
     function AC_FL_RunContent(){
@@ -331,8 +329,7 @@ Opencast.FlashVersion = (function ()
     
     
     
-    function initFlash()
-    {
+    
     
     
     
@@ -393,13 +390,12 @@ Opencast.FlashVersion = (function ()
         var alternateContent = 'Alternate HTML content should be placed here.'
         + 'This content requires the Adobe Flash Player. '
         + '<a href=http://www.adobe.com/go/getflash/>Get Flash</a>';
-        //document.write(alternateContent);  // insert non-flash content
-        $("#oc_flash-player").html(alternateContent);
+        document.write(alternateContent);  // insert non-flash content
       }
-    }
+    
     
     return {
-    	initFlash : initFlash
+       
     };
     
    

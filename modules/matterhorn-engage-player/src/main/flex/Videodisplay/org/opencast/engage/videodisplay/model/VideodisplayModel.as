@@ -239,9 +239,6 @@ package org.opencast.engage.videodisplay.model
          // coverURLTwo
         public var coverURLTwo:String = '';
         
-         // coverURLSingle
-        public var coverURLSingle:String = '';
-        
         // mediaOneWidth
         public var mediaOneWidth:int = 0;
         
@@ -329,10 +326,13 @@ package org.opencast.engage.videodisplay.model
         // currentSeekPosition
         public var currentSeekPosition:Number = 0;
         
-        // fullscreenProgressWidth
+        
+        
+        
+        
         public var fullscreenProgressWidth:Number = 565;
         
        
-       
+        public var testNumber:Number = 0;  
     }
 }
