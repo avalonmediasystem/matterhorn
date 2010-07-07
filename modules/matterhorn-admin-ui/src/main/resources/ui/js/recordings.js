@@ -22,6 +22,7 @@ Recordings.currentState = null;
 Recordings.lastCount = null;
 Recordings.tableInterval = null;
 Recordings.tableUpdateRequested = false;
+Recordings.changedMediaPackage = null;
 
 /** Initialize the Recordings page.
  *  Register event handlers.
@@ -312,10 +313,15 @@ Recordings.adjustHoldActionPanelHeight = function() {
  */
 Recordings.continueWorkflow = function() {
   var workflowId = $('#holdWorkflowId').val();
+  var postData = {id : workflowId};
+  if (Recordings.changedMediaPackage != null) {
+    postData['mediapackage'] = Recordings.changedMediaPackage;
+    Recordings.changedMediaPackage = null;
+  }
   $.ajax({
     type       : 'POST',
     url        : '../workflow/rest/resume/',
-    data       : {id : workflowId},
+    data       : postData,
     error      : function(XHR,status,e){
       alert('Could not resume Workflow: ' + status);
     },
