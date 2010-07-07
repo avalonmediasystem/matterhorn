@@ -13,20 +13,20 @@ Opencast.Watch = (function ()
     function onPlayerReady() 
     {
 
-      var MULTIPLAYER             = "Multiplayer",
-          SINGLEPLAYER            = "Singleplayer",
-          SINGLEPLAYERWITHSLIDES  = "SingleplayerWithSlides",
-          AUDIOPLAYER             = "Audioplayer",
-          ADVANCEDPLAYER          = "advancedPlayer",
-          EMBEDPLAYER             = "embedPlayer",
-          mediaUrlOne             = "",
-          mediaUrlTwo             = "",
-          mimetypeOne             = "",
-          mimetypeTwo             = "",
-          mediaResolutionOne      = "",
-          mediaResolutionTwo      = "",
-          coverUrlOne             = "",
-          coverUrlTwo             = "";
+        var MULTIPLAYER             = "Multiplayer",
+            SINGLEPLAYER            = "Singleplayer",
+            SINGLEPLAYERWITHSLIDES  = "SingleplayerWithSlides",
+            AUDIOPLAYER             = "Audioplayer",
+            ADVANCEDPLAYER          = "advancedPlayer",
+            EMBEDPLAYER             = "embedPlayer",
+            mediaUrlOne             = "",
+            mediaUrlTwo             = "",
+            mimetypeOne             = "",
+            mimetypeTwo             = "",
+            mediaResolutionOne      = "",
+            mediaResolutionTwo      = "",
+            coverUrlOne             = "",
+            coverUrlTwo             = "";
 
 
         var mediaPackageId = Opencast.engage.getMediaPackageId();
@@ -38,197 +38,209 @@ Opencast.Watch = (function ()
 
         $('#data').xslt(restEndpoint, "xsl/player-hybrid-download.xsl", function () 
         {
-          // some code to run after the mapping
-          // set the title of the page
-          document.title = "Opencast Matterhorn - Media Player - " + $('#oc-title').html();
+            // some code to run after the mapping
+            // set the title of the page
+            document.title = "Opencast Matterhorn - Media Player - " + $('#oc-title').html();
 
-          // set the title on the top of the player
-          $('#oc_title').html($('#oc-title').html());
+            // set the title on the top of the player
+            $('#oc_title').html($('#oc-title').html());
 
-          // set date
-          var timeDate = $('#oc-date').html();
-          var sd = new Date();
-          sd.setFullYear(parseInt(timeDate.substring(0,4)));
-          sd.setMonth(parseInt(timeDate.substring(5,7))-1);
-          sd.setDate(parseInt(timeDate.substring(8,10)));
-          sd.setHours(parseInt(timeDate.substring(11,13)));
-          sd.setMinutes(parseInt(timeDate.substring(14,16)));
-          sd.setSeconds(parseInt(timeDate.substring(17,19)));
+            // set date
+            var timeDate = $('#oc-date').html();
+            var sd = new Date();
+            sd.setFullYear(parseInt(timeDate.substring(0, 4), 10));
+            sd.setMonth(parseInt(timeDate.substring(5, 7), 10) - 1);
+            sd.setDate(parseInt(timeDate.substring(8, 10), 10));
+            sd.setHours(parseInt(timeDate.substring(11, 13), 10));
+            sd.setMinutes(parseInt(timeDate.substring(14, 16), 10));
+            sd.setSeconds(parseInt(timeDate.substring(17, 19), 10));
 
-          $('#oc_segment-table').html($('#oc-segments').html());
+            $('#oc_segment-table').html($('#oc-segments').html());
 
-          $('#oc-segments').html("");
+            $('#oc-segments').html("");
 
-          // set the media URLs
-          mediaUrlOne = $('#oc-video-presenter-delivery-x-flv-rtmp').html();
-          mediaUrlTwo = $('#oc-video-presentation-delivery-x-flv-rtmp').html();
+            // set the media URLs
+            mediaUrlOne = $('#oc-video-presenter-delivery-x-flv-rtmp').html();
+            mediaUrlTwo = $('#oc-video-presentation-delivery-x-flv-rtmp').html();
 
-          mediaResolutionOne = $('#oc-resolution-presenter-delivery-x-flv-rtmp').html();
-          mediaResolutionTwo = $('#oc-resolution-presentation-delivery-x-flv-rtmp').html();
+            mediaResolutionOne = $('#oc-resolution-presenter-delivery-x-flv-rtmp').html();
+            mediaResolutionTwo = $('#oc-resolution-presentation-delivery-x-flv-rtmp').html();
 
-          mimetypeOne             = "video/x-flv";
-          mimetypeTwo             = "video/x-flv";
+            mimetypeOne             = "video/x-flv";
+            mimetypeTwo             = "video/x-flv";
 
-          coverUrlOne = $('#oc-cover-presenter').html();
-          coverUrlTwo = $('#oc-cover-presentation').html();
+            coverUrlOne = $('#oc-cover-presenter').html();
+            coverUrlTwo = $('#oc-cover-presentation').html();
 
-          if (coverUrlOne === null){
-            coverUrlOne = coverUrlTwo;
-            coverUrlTwo = '';
-          }
+            if (coverUrlOne === null)
+            {
+                coverUrlOne = coverUrlTwo;
+                coverUrlTwo = '';
+            }
 
-          if (mediaUrlOne === null){
-            mediaUrlOne = $('#oc-video-presenter-delivery-x-flv-http').html();
-            mediaResolutionOne = $('#oc-resolution-presenter-delivery-x-flv-http').html();
-            mimetypeOne = $('#oc-mimetype-presenter-delivery-x-flv-http').html();            
-          }
+            if (mediaUrlOne === null)
+            {
+                mediaUrlOne = $('#oc-video-presenter-delivery-x-flv-http').html();
+                mediaResolutionOne = $('#oc-resolution-presenter-delivery-x-flv-http').html();
+                mimetypeOne = $('#oc-mimetype-presenter-delivery-x-flv-http').html();            
+            }
 
-          if (mediaUrlOne === null){
-            mediaUrlOne = $('#oc-video-presenter-source-x-flv-rtmp').html();
-            mediaResolutionOne = $('#oc-resolution-presenter-source-x-flv-rtmp').html();
-            mimetypeOne = $('#oc-mimetype-presenter-source-x-flv-rtmp').html();
-          }
+            if (mediaUrlOne === null)
+            {
+                mediaUrlOne = $('#oc-video-presenter-source-x-flv-rtmp').html();
+                mediaResolutionOne = $('#oc-resolution-presenter-source-x-flv-rtmp').html();
+                mimetypeOne = $('#oc-mimetype-presenter-source-x-flv-rtmp').html();
+            }
 
-          if (mediaUrlOne === null){
-            mediaUrlOne = $('#oc-video-presenter-source-x-flv-http').html();
-            mediaResolutionOne = $('#oc-resolution-presenter-source-x-flv-http').html();
-            mimetypeOne = $('#oc-mimetype-presenter-source-x-flv-http').html();
-          }
+            if (mediaUrlOne === null)
+            {
+                mediaUrlOne = $('#oc-video-presenter-source-x-flv-http').html();
+                mediaResolutionOne = $('#oc-resolution-presenter-source-x-flv-http').html();
+                mimetypeOne = $('#oc-mimetype-presenter-source-x-flv-http').html();
+            }
 
-          if (mediaUrlTwo === null){
-            mediaUrlTwo = $('#oc-video-presentation-delivery-x-flv-http').html();
-            mediaResolutionTwo = $('#oc-resolution-presentation-delivery-x-flv-http').html();
-            mimetypeTwo = $('#oc-mimetype-presentation-delivery-x-flv-http').html();
-          }
+            if (mediaUrlTwo === null)
+            {
+                mediaUrlTwo = $('#oc-video-presentation-delivery-x-flv-http').html();
+                mediaResolutionTwo = $('#oc-resolution-presentation-delivery-x-flv-http').html();
+                mimetypeTwo = $('#oc-mimetype-presentation-delivery-x-flv-http').html();
+            }
 
-          if (mediaUrlTwo === null){
-            mediaUrlTwo = $('#oc-video-presentation-source-x-flv-rtmp').html();
-            mediaResolutionTwo = $('#oc-resolution-presentation-source-x-flv-rtmp').html();
-            mimetypeTwo = $('#oc-mimetype-presentation-source-x-flv-rtmp').html();
-          }
+            if (mediaUrlTwo === null)
+            {
+                mediaUrlTwo = $('#oc-video-presentation-source-x-flv-rtmp').html();
+                mediaResolutionTwo = $('#oc-resolution-presentation-source-x-flv-rtmp').html();
+                mimetypeTwo = $('#oc-mimetype-presentation-source-x-flv-rtmp').html();
+            }
 
-          if (mediaUrlTwo === null){
-            mediaUrlTwo = $('#oc-video-presentation-source-x-flv-http').html();
-            mediaResolutionTwo = $('#oc-resolution-presentation-source-x-flv-http').html();
-            mimetypeTwo = $('#oc-mimetype-presentation-source-x-flv-http').html();
-          }
+            if (mediaUrlTwo === null)
+            {
+                mediaUrlTwo = $('#oc-video-presentation-source-x-flv-http').html();
+                mediaResolutionTwo = $('#oc-resolution-presentation-source-x-flv-http').html();
+                mimetypeTwo = $('#oc-mimetype-presentation-source-x-flv-http').html();
+            }
 
-          if (mediaUrlOne === null) {
-            mediaUrlOne = mediaUrlTwo;
-            mediaUrlTwo = null;
-            mediaResolutionOne = mediaResolutionTwo;
-            mediaResolutionTwo = null;
-            mimetypeOne = mimetypeTwo;
-            mimetypeTwo = null;
-          }
+            if (mediaUrlOne === null)
+            {
+                mediaUrlOne = mediaUrlTwo;
+                mediaUrlTwo = null;
+                mediaResolutionOne = mediaResolutionTwo;
+                mediaResolutionTwo = null;
+                mimetypeOne = mimetypeTwo;
+                mimetypeTwo = null;
+            }
 
-          mediaUrlOne = mediaUrlOne === null ? '' : mediaUrlOne;
-          mediaUrlTwo = mediaUrlTwo === null ? '' : mediaUrlTwo;
-          
-          mediaResolutionOne = mediaResolutionOne === null ? '' : mediaResolutionOne;
-          mediaResolutionTwo = mediaResolutionTwo === null ? '' : mediaResolutionTwo;
-
-          Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo);
-
-          if (mediaUrlOne !== '' && mediaUrlTwo !== '')
-          {
-            Opencast.Player.setVideoSizeList(MULTIPLAYER);
-            Opencast.Initialize.setMediaResolution(mediaResolutionOne, mediaResolutionTwo);
-          }
-          else if (mediaUrlOne !== '' && mediaUrlTwo === '')
-          {
-            var pos = mimetypeOne.lastIndexOf("/");
-            var fileType = mimetypeOne.substring(0,pos);
+            mediaUrlOne = mediaUrlOne === null ? '' : mediaUrlOne;
+            mediaUrlTwo = mediaUrlTwo === null ? '' : mediaUrlTwo;
             
-            //
-            if (fileType === 'audio')
+            mediaResolutionOne = mediaResolutionOne === null ? '' : mediaResolutionOne;
+            mediaResolutionTwo = mediaResolutionTwo === null ? '' : mediaResolutionTwo;
+
+
+
+            Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo);
+
+            if (mediaUrlOne !== '' && mediaUrlTwo !== '')
             {
-              Opencast.Player.setVideoSizeList(AUDIOPLAYER);
+                Opencast.Player.setVideoSizeList(MULTIPLAYER);
+                Opencast.Initialize.setMediaResolution(mediaResolutionOne, mediaResolutionTwo);
             }
-              else
+            else if (mediaUrlOne !== '' && mediaUrlTwo === '')
             {
-              Opencast.Player.setVideoSizeList(SINGLEPLAYER);
-              Opencast.Initialize.setMediaResolution(mediaResolutionOne, mediaResolutionTwo);
+                var pos = mimetypeOne.lastIndexOf("/");
+                var fileType = mimetypeOne.substring(0, pos);
+            
+                //
+                if (fileType === 'audio')
+                {
+                    Opencast.Player.setVideoSizeList(AUDIOPLAYER);
+                }
+                else
+                {
+                    Opencast.Player.setVideoSizeList(SINGLEPLAYER);
+                    Opencast.Initialize.setMediaResolution(mediaResolutionOne, mediaResolutionTwo);
+                }
             }
-          }
 
-          // Set the caption
-          // oc-captions using caption file generated by Opencaps
-          var captionsUrl = $('#oc-captions').html();
-          captionsUrl = captionsUrl === null ? '' : captionsUrl;
-          Opencast.Player.setCaptionsURL(captionsUrl);
+            // Set the caption
+            // oc-captions using caption file generated by Opencaps
+            var captionsUrl = $('#oc-captions').html();
+            captionsUrl = captionsUrl === null ? '' : captionsUrl;
+            Opencast.Player.setCaptionsURL(captionsUrl);
 
-          // init the volume scrubber
-          Opencast.Scrubber.init();
+            // init the volume scrubber
+            Opencast.Scrubber.init();
 
-          // bind handler 
-          $('#scrubber').bind('keydown', 'left', function(evt) 
-          {
-            Opencast.Player.doRewind();
-          });
-          
-          $('#scrubber').bind('keyup', 'left', function(evt) 
-          {
-            Opencast.Player.stopRewind();
-          });
-          
-          $('#scrubber').bind('keydown', 'right', function(evt)
-          {
-            Opencast.Player.doFastForward();
-          });
-          
-          $('#scrubber').bind('keyup', 'right', function(evt)
-          {
-            Opencast.Player.stopFastForward();
-          });
-          
-          Opencast.segments.initialize();
-
-          Opencast.Bookmarks.initialize();
-          
-          getClientShortcuts();
-          
-          $.ajax(
-          {
-            type: 'GET',
-            contentType: 'text/xml',
-            url:"../../feedback/rest/stats",
-            data: "id=" + mediaPackageId,
-            dataType: 'xml',
-
-            success: function(xml) 
+            // bind handler 
+            $('#scrubber').bind('keydown', 'left', function (evt) 
             {
-            // set the dcDescription
-            $('#oc_description').append("Presenter: "+  $('#oc-creator').html());
-            $('#oc_description').append("<br/>Date: "+  sd.toLocaleString());
-            $('#oc_description').append("<br/>Subject: "+  $('#dc-subject').html());
-            $('#oc_description').append("<br/>Sponsoring Department: "+  $('#dc-contributor').html());
-            $('#oc_description').append("<br/>Language: "+  $('#dc-language').html());
-              $('#oc_description').append("<br/>Views: "+$(xml).find("views").text());
-              $('#oc_description').append("<br/>" + $('#dc-description').html());
-            },
-            error: function(a, b, c) 
+                Opencast.Player.doRewind();
+            });
+            
+            $('#scrubber').bind('keyup', 'left', function (evt) 
             {
-              // Some error while trying to get the views
-            }
-          }); 
+                Opencast.Player.stopRewind();
+            });
           
-          // init
-          Opencast.Initialize.init();
+            $('#scrubber').bind('keydown', 'right', function (evt)
+            {
+                Opencast.Player.doFastForward();
+            });
           
-          // **************************************
-          // Segments Text View
-          $('.segments-time').each( function() {
-            var seconds= $(this).html();
-            $(this).html(Opencast.engage.formatSeconds(seconds));
-          });
+            $('#scrubber').bind('keyup', 'right', function (evt)
+            {
+                Opencast.Player.stopFastForward();
+            });
           
-          $('#oc_slidetext-left').html($('#oc-segments-text').html());
+            Opencast.segments.initialize();
 
-          $('#oc-segments-text').html("");
+            Opencast.Bookmarks.initialize();
           
+            getClientShortcuts();
           
-       });
+            $.ajax(
+            {
+                type: 'GET',
+                contentType: 'text/xml',
+                url: "../../feedback/rest/stats",
+                data: "id=" + mediaPackageId,
+                dataType: 'xml',
+
+                success: function (xml) 
+                {
+                    // set the dcDescription
+                    $('#oc_description').append("Presenter: " + $('#oc-creator').html());
+                    $('#oc_description').append("<br/>Date: " + sd.toLocaleString());
+                    $('#oc_description').append("<br/>Subject: " + $('#dc-subject').html());
+                    $('#oc_description').append("<br/>Sponsoring Department: " + $('#dc-contributor').html());
+                    $('#oc_description').append("<br/>Language: " + $('#dc-language').html());
+                    $('#oc_description').append("<br/>Views: " + $(xml).find("views").text());
+                    $('#oc_description').append("<br/>" + $('#dc-description').html());
+                },
+                error: function (a, b, c) 
+                {
+                    // Some error while trying to get the views
+                }
+            }); 
+          
+            // init
+            Opencast.Initialize.init();
+          
+            // **************************************
+            // Segments Text View
+            $('.segments-time').each(function ()
+            {
+                var seconds = $(this).html();
+                $(this).html(Opencast.engage.formatSeconds(seconds));
+            });
+          
+            $('#oc_slidetext-left').html($('#oc-segments-text').html());
+
+            $('#oc-segments-text').html("");
+          
+            // set the controls visible
+            $('#oc_video-player-controls').css('visibility', 'visible');
+        });
     }
   
     /**
@@ -238,8 +250,8 @@ Opencast.Watch = (function ()
      */
     function hoverSegment(segmentId)
     {
-      $("#" + segmentId).toggleClass("segment-holder");
-      $("#" + segmentId).toggleClass("segment-holder-over");
+        $("#" + segmentId).toggleClass("segment-holder");
+        $("#" + segmentId).toggleClass("segment-holder-over");
     }
   
     /**
@@ -249,45 +261,45 @@ Opencast.Watch = (function ()
      */
     function seekSegment(seconds)
     {
-      // Opencast.Player.setPlayhead(seconds);
-      var eventSeek = Videodisplay.seek(seconds);
+        // Opencast.Player.setPlayhead(seconds);
+        var eventSeek = Videodisplay.seek(seconds);
     }
     /**
      * @memberOf Opencast.Watch
      * @description Gets the OS-specific shortcuts of the client
      */
     function getClientShortcuts()
-    {	
-      $('#oc_client_shortcuts').append("Control + Alt + I = Toggle the keyboard shortcuts information between show or hide.<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + P = Toggle the video between pause or play.<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + S = Stop the video.<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + M = Toggle between mute or unmute the video.<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + U = Volume up<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + D = Volume down<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt 0 - 9 = Seek the time slider<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + C = Toggle between captions on or off.<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + F = Forward the video.<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + R = Rewind the video.<br/>");
-      $('#oc_client_shortcuts').append("Control + Alt + T = the current time for the screen reader<br/>");
+    {
+        $('#oc_client_shortcuts').append("Control + Alt + I = Toggle the keyboard shortcuts information between show or hide.<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + P = Toggle the video between pause or play.<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + S = Stop the video.<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + M = Toggle between mute or unmute the video.<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + U = Volume up<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + D = Volume down<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt 0 - 9 = Seek the time slider<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + C = Toggle between captions on or off.<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + F = Forward the video.<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + R = Rewind the video.<br/>");
+        $('#oc_client_shortcuts').append("Control + Alt + T = the current time for the screen reader<br/>");
 
-      switch($.client.os){
+        switch ($.client.os)
+        {
         case "Windows":
-          $('#oc_client_shortcuts').append("Windows Control + = to zoom in the player<br/>"); 
-          $('#oc_client_shortcuts').append("Windows Control - = to minimize in the player<br/>");
-         break; 
+            $('#oc_client_shortcuts').append("Windows Control + = to zoom in the player<br/>"); 
+            $('#oc_client_shortcuts').append("Windows Control - = to minimize in the player<br/>");
+            break; 
         case "Mac":
-          $('#oc_client_shortcuts').append("cmd + = to zoom in the player<br/>"); 
-      	$('#oc_client_shortcuts').append("cmd - = to minimize the player<br/>");
-      	break; 
-         case "Linux":
-      	break;
-      } 	
+            $('#oc_client_shortcuts').append("cmd + = to zoom in the player<br/>"); 
+            $('#oc_client_shortcuts').append("cmd - = to minimize the player<br/>");
+            break; 
+        case "Linux":
+            break;
+        } 
     }
-
     return {
-      onPlayerReady : onPlayerReady,
-      hoverSegment : hoverSegment,
-      seekSegment : seekSegment,
-      getClientShortcuts : getClientShortcuts
+        onPlayerReady : onPlayerReady,
+        hoverSegment : hoverSegment,
+        seekSegment : seekSegment,
+        getClientShortcuts : getClientShortcuts
     };
 }());

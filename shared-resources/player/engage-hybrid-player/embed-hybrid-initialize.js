@@ -2,6 +2,22 @@
 /*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, onevar: false */
 
 /**
+ *  Copyright 2009 The Regents of the University of California
+ *  Licensed under the Educational Community License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance
+ *  with the License. You may obtain a copy of the License at
+ *
+ *  http://www.osedu.org/licenses/ECL-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an "AS IS"
+ *  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *  or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ *
+ */
+
+/**
     @namespace the global Opencast namespace
 */
 var Opencast = Opencast || {};
@@ -12,21 +28,12 @@ var Opencast = Opencast || {};
 Opencast.Initialize = (function () 
 {
     
-    var myWidth           = 0,
-    myHeight = 0,
-    VOLUME = 'volume',
+    var VOLUME = 'volume',
     VIDEOSIZE = 'videosize',
     divId = '',
-    OPTIONMYCLASSNAME      = "oc_option-myBookmark",
-    VIDEOSIZESINGLE        = "vidoSizeSingle",
-    VIDEOSIZEBIGRIGHT      = "videoSizeBigRight",
-    VIDEOSIZEBIGLEFT       = "videoSizeBigLeft",
-    VIDEOSIZEMULTI         = "videoSizeMulti",
     VIDEOSIZEONLYRIGHT     = "videoSizeOnlyRight",
     VIDEOSIZEONLYLEFT      = "videoSizeOnlyLeft",
-    VIDEOSIZEAUDIO         = "videoSizeAudio",
-    clickMatterhornSearchField = false,
-    clickLecturerSearchField = false,
+    SINGLEPLAYER           = "Singleplayer",
     locked = false,
     start = false,
     formatOne = 0,
@@ -38,6 +45,11 @@ Opencast.Initialize = (function ()
     mediaTwoHeight = 0,
     mediaSingleWidth = 0,
     mediaSingleHeight = 0,
+    iFrameHeight = 0,
+    otherDivHeight = 0,
+    flashHeight = 0,
+    embedUrl = "",
+    advancedUrl = "",
     size = "";
     
     /**
@@ -83,7 +95,7 @@ Opencast.Initialize = (function ()
     
     // http://javascript-array.com/scripts/jquery_simple_drop_down_menu/
     var timeout         = 200;
-    var closetimer		= 0;
+    var closetimer      = 0;
     var ddmenuitem      = 0;
     
     /**
@@ -129,34 +141,26 @@ Opencast.Initialize = (function ()
         dropdown_canceltimer();
         dropdown_close();
        
-
         if (getDivId() === VIDEOSIZE)
         {
-            $('#oc_sound').css('width', '20%');
-            $('#oc_video-size-controls').css('width', '5%');
-            $('#oc_video-size-dropdown-div').css('width', '20%')
-            $('#oc_player_video-dropdown').css('left',$('#oc_video-size-dropdown').offset().left-$('#oc_body').offset().left);
+            $('#oc_video-size-dropdown-div').css('width', '20%');
+            $('#oc_player_video-dropdown').css('left', $('#oc_video-size-dropdown').offset().left - $('#oc_body').offset().left);
             $('#oc_player_video-dropdown').css('visibility', 'visible');
             $('#oc_volume-menue').css('visibility', 'hidden');
             ddmenuitem = $('#oc_player_video-dropdown');
-
         }
         else
         {
-            $('#oc_sound').css('width', '20%');
-            $('#oc_video-size-controls').css('width', '5%');
             $('#oc_volume-menue').css('visibility', 'visible');
             $('#oc_player_video-dropdown').css('visibility', 'hidden');
             ddmenuitem = $('#oc_volume-menue');
-
-
         }
         setDivId('');
     }
     
     /**
         @memberOf Opencast.Initialize
-        @description open the drop down menu video.
+        @description open the drop down menue video.
      */
     function dropdownVideo_open()
     {
@@ -168,7 +172,13 @@ Opencast.Initialize = (function ()
     $(document).ready(function () 
     {
         keyboardListener();
-       
+        
+        // set the video size list
+        Opencast.Player.setVideoSizeList(SINGLEPLAYER);
+        
+        
+     
+        //
         $('#wysiwyg').wysiwyg({
             controls: 
             {
@@ -216,9 +226,6 @@ Opencast.Initialize = (function ()
         $('#oc_player_video-dropdown').bind('mouseover', dropdownVideo_open);
         $('#oc_video-size-controls').bind('mouseout',  dropdown_timer);
         $('#oc_player_video-dropdown').bind('mouseout',  dropdown_timer);
-       
-        
-        
         
         // Handler focus
         $('#oc_btn-dropdown').focus(function () 
@@ -235,7 +242,7 @@ Opencast.Initialize = (function ()
         
         $('#oc_sound').bind('mouseover', dropdown_open);
         $('#oc_sound').bind('mouseout',  dropdown_timer);
-
+        
         // Handler focus
         $('#oc_btn-volume').focus(function () 
         {
@@ -259,7 +266,7 @@ Opencast.Initialize = (function ()
         {
             dropdown_timer();
         });
-        
+     
         // init the aria slider for the volume
         Opencast.ariaSlider.init();
        
@@ -310,24 +317,12 @@ Opencast.Initialize = (function ()
         });
         $('#oc_btn-skip-forward').click(function () 
         {
-          var sec = Opencast.segments.getSecondsNextSlide();
-          Opencast.Watch.seekSegment(sec);
+            var sec = Opencast.segments.getSecondsNextSlide();
+            Opencast.Watch.seekSegment(sec);
         });
         $('#oc_btn-play-pause').click(function () 
         {
-            if (start == false)
-            {
-            	start = true;
-            	 // init Flash
-                Opencast.FlashVersion.initFlash();
-                $('#oc_image').hide();
-                $("#oc_video-player-controls").show();
-            }
-            else
-            {
-            	Opencast.Player.doTogglePlayPause();
-            }
-        	
+            Opencast.Player.doTogglePlayPause();
         });
         $('#oc_btn-volume').click(function () 
         {
@@ -343,10 +338,9 @@ Opencast.Initialize = (function ()
         });
         $('#oc_image').click(function () 
         {
-        	 // init Flash
+            // init Flash
             Opencast.FlashVersion.initFlash();
             $('#oc_image').hide();
-            $("#oc_video-player-controls").show();
             start = true;
         });
         
@@ -378,7 +372,7 @@ Opencast.Initialize = (function ()
                 this.className = 'oc_btn-cc-over';
             }
         });
-        
+       
         // Handler for .mouseout()
         $('#oc_btn-skip-backward').mouseout(function () 
         {
@@ -415,11 +409,11 @@ Opencast.Initialize = (function ()
         });
         $('#oc_btn-rewind').mousedown(function ()
         {
-        	this.className = 'oc_btn-rewind-clicked';
+            this.className = 'oc_btn-rewind-clicked';
             if (!locked)
             {
                 locked = true;
-                setTimeout(function()
+                setTimeout(function ()
                 { 
                     locked = false;
                 }, 400);
@@ -433,11 +427,11 @@ Opencast.Initialize = (function ()
         });
         $('#oc_btn-fast-forward').mousedown(function () 
         {
-        	this.className = 'oc_btn-fast-forward-clicked';
+            this.className = 'oc_btn-fast-forward-clicked';
             if (!locked)
             {
                 locked = true;
-                setTimeout(function()
+                setTimeout(function ()
                 { 
                     locked = false;
                 }, 400);
@@ -571,48 +565,24 @@ Opencast.Initialize = (function ()
         });
         
         // to calculate the embed flash height
-        var iFrameHeight = document.documentElement.clientHeight;
-        var otherDivHeight = 100;
-        var flashHeight = iFrameHeight - otherDivHeight;
-        $("#oc_flash-player").css('height',flashHeight + 'px'); 
+        iFrameHeight = document.documentElement.clientHeight;
+        otherDivHeight = 100;
+        flashHeight = iFrameHeight - otherDivHeight;
+        
+       
+        $("#oc_flash-player").css('height', flashHeight + 'px'); 
         
         // create watch.html link
-        var embedUrl = window.location.href;
-        var advancedUrl = embedUrl.replace(/embed.html/g, "watch.html");
-        $("a[href='#']").attr('href', ''+advancedUrl+'');
+        embedUrl = window.location.href;
+        advancedUrl = embedUrl.replace(/embed.html/g, "watch.html");
+        $("a[href='#']").attr('href', '' + advancedUrl + '');
         
         $("#oc_image").attr('src', 'engage-hybrid-player/img/embed.png');
         
-        // hide the controls
-        $("#oc_video-player-controls").hide();
        
+        
     });
     
-   
-
-
-    /**
-        @memberOf Opencast.Player
-        @description Do resize the Embed Player
-     */
-    function doResize()
-    {
-    	
-        size = Opencast.Player.getCurrentVideoSize();
-      
-        switch (size) {
-        case VIDEOSIZEONLYRIGHT:
-        	setNewResolution(formatTwo);
-            break;
-        case VIDEOSIZEONLYLEFT:
-        	setNewResolution(formatOne);
-            break;
-        default:
-        	setNewResolution(formatOne);
-            break;
-        }
-    	
-    }
 
     /**
         @memberOf Opencast.Player
@@ -621,21 +591,42 @@ Opencast.Initialize = (function ()
      */
     function setNewResolution(format)
     {
-    	var multiMediaContainerLeft = 0;
-    	var flashContainerWidth = document.documentElement.clientWidth - 10;
-    	var flashContainerHeight = $('#oc_flash-player').height() - 10;
-    	var newHeight = flashContainerWidth / format;
+        var multiMediaContainerLeft = 0;
+        var flashContainerWidth = document.documentElement.clientWidth - 10;
+        var newHeight = flashContainerWidth / format;
         var newWidth = newHeight * format;
         
-        if( newHeight >  $('#oc_flash-player').height() - 10)
+        if (newHeight > $('#oc_flash-player').height() - 10)
         {
-        	newHeight = $('#oc_flash-player').height() - 10;
-        	newWidth = ($('#oc_flash-player').height() - 10) * format;
+            newHeight = $('#oc_flash-player').height() - 10;
+            newWidth = ($('#oc_flash-player').height() - 10) * format;
         }
-    	multiMediaContainerLeft = (flashContainerWidth - newWidth) / 2;
-    	Videodisplay.setMediaResolution(mediaOneWidth, mediaOneHeight, mediaTwoWidth, mediaTwoHeight, multiMediaContainerLeft);
+        multiMediaContainerLeft = (flashContainerWidth - newWidth) / 2;
+        Videodisplay.setMediaResolution(mediaOneWidth, mediaOneHeight, mediaTwoWidth, mediaTwoHeight, multiMediaContainerLeft);
     }
     
+    /**
+        @memberOf Opencast.Player
+        @description Do resize the Embed Player
+     */
+    function doResize()
+    {
+        size = Opencast.Player.getCurrentVideoSize();
+      
+        switch (size) {
+        case VIDEOSIZEONLYRIGHT:
+            setNewResolution(formatTwo);
+            break;
+        case VIDEOSIZEONLYLEFT:
+            setNewResolution(formatOne);
+            break;
+        default:
+            setNewResolution(formatOne);
+            break;
+        }
+       
+    }
+
     /**
         @memberOf Opencast.Player
         @description Set media resuliton of the videos
@@ -643,15 +634,15 @@ Opencast.Initialize = (function ()
      */
     function setMediaResolution(mediaResolutionOne, mediaResolutionTwo)
     {
-    	if(mediaResolutionOne !== '')
-    	{
-    		var mediaResolutionOneString = mediaResolutionOne;
+        if (mediaResolutionOne !== '')
+        {
+            var mediaResolutionOneString = mediaResolutionOne;
             var mediaResolutionTwoString = mediaResolutionTwo;
             var mediaResolutionOneArray = mediaResolutionOneString.split('x');
         
-    	    if (mediaResolutionTwoString !== '')
+            if (mediaResolutionTwoString !== '')
             {
-        	    var mediaResolutionTwoArray = mediaResolutionTwoString.split('x');
+                var mediaResolutionTwoArray = mediaResolutionTwoString.split('x');
                 mediaOneWidth = parseInt(mediaResolutionOneArray[0], 10);
                 mediaOneHeight = parseInt(mediaResolutionOneArray[1], 10);
                 mediaTwoWidth = parseInt(mediaResolutionTwoArray[0], 10);
@@ -660,26 +651,23 @@ Opencast.Initialize = (function ()
                 formatOne = mediaOneWidth / mediaOneHeight;
                 formatTwo = mediaTwoWidth / mediaTwoHeight;
             }
-    	    else
+            else
             {
-        	  
-        	    mediaSingleWidth = parseInt(mediaResolutionOneArray[0], 10);
+                mediaSingleWidth = parseInt(mediaResolutionOneArray[0], 10);
                 mediaSingleHeight = parseInt(mediaResolutionOneArray[1], 10);
                 formatSingle = mediaSingleWidth / mediaSingleHeight;
             }
-    	    
-    	}
-    	else
-    	{
-    	
-    		Videodisplay.setMediaResolution(0, 0, 0, 0, 0);	
-    		
-    	}
+        }
+        else
+        {
+            Videodisplay.setMediaResolution(0, 0, 0, 0, 0);	
+        }
     }
    
     return {
         dropdownVideo_open : dropdownVideo_open,
         dropdown_timer : dropdown_timer,
+        dropdown_close : dropdown_close,
         doResize : doResize,
         setNewResolution : setNewResolution,
         setMediaResolution : setMediaResolution
