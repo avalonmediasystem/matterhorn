@@ -1529,6 +1529,9 @@ Opencast.Player = (function () {
     function refreshScrubberPosition() 
     {
         var newPos = Math.round((curPosition / getDuration()) *  $("#scubber-channel").width());
+        if (!isFinite(newPos)) {
+            newPos = 0;
+        }
         $("#draggable").css("left", newPos);
         $("#scrubber").css("left", newPos);
         $("#play-progress").css("width", newPos);
