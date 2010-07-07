@@ -24,8 +24,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * FIXME Overkill: A simple Map<String,String> would have been sufficient and
  * more flexible.
  */
-@XmlJavaTypeAdapter(RecordingDataViewImpl.Adapter.class)
-public interface RecordingDataView {
+@XmlJavaTypeAdapter(AdminRecordingImpl.Adapter.class)
+public interface AdminRecording {
   /**
    * returns the id of the recording
    * @return String id of recording

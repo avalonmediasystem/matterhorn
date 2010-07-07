@@ -20,10 +20,14 @@ import java.util.List;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
- * A List of {@link RecordingDataView}s
+ * A List of {@link AdminRecording}s. Doing it like this automatic marshaling works.
  * 
  */
-@XmlJavaTypeAdapter(RecordingDataViewListImpl.Adapter.class)
-public interface RecordingDataViewList extends List<RecordingDataView> {
-  List<RecordingDataView> getRecordings();
+@XmlJavaTypeAdapter(AdminRecordingListImpl.Adapter.class)
+public interface AdminRecordingList extends List<AdminRecording> {
+
+  public static enum Field {Title, Presenter, Series, StartDate, RecordingStatus, ProcessingStatus, CaptureAgent, HoldTitle};
+  public static enum Order {Ascending, Descending};
+  
+  List<AdminRecording> getRecordings();
 }

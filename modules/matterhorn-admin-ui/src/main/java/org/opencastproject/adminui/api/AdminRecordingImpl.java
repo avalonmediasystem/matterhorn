@@ -23,12 +23,12 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
- * A JAXB-anotated implementation of {@link RecordingDataView}
+ * A JAXB-anotated implementation of {@link AdminRecording}
  */
 @XmlType(name="recording", namespace="http://adminui.opencastproject.org/")
 @XmlRootElement(name="recording", namespace="http://adminui.opencastproject.org/")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class RecordingDataViewImpl implements RecordingDataView {
+public class AdminRecordingImpl implements AdminRecording {
 
   @XmlElement(name="id")
   private String id;
@@ -75,7 +75,7 @@ public class RecordingDataViewImpl implements RecordingDataView {
   @XmlElement(name="holdActionPanelURL")
   private String holdActionPanelURL;
 
-  public RecordingDataViewImpl() {}
+  public AdminRecordingImpl() {}
 
   @Override
   public void setHoldOperationTitle(String title) {
@@ -107,9 +107,9 @@ public class RecordingDataViewImpl implements RecordingDataView {
     return this.holdActionPanelURL;
   }
 
-  static class Adapter extends XmlAdapter<RecordingDataViewImpl, RecordingDataView> {
-    public RecordingDataViewImpl marshal(RecordingDataView op) throws Exception {return (RecordingDataViewImpl)op;}
-    public RecordingDataView unmarshal(RecordingDataViewImpl op) throws Exception {return op;}
+  static class Adapter extends XmlAdapter<AdminRecordingImpl, AdminRecording> {
+    public AdminRecordingImpl marshal(AdminRecording op) throws Exception {return (AdminRecordingImpl)op;}
+    public AdminRecording unmarshal(AdminRecordingImpl op) throws Exception {return op;}
   }
   
   public String getId() {
