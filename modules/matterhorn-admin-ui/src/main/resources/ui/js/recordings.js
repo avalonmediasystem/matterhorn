@@ -355,10 +355,24 @@ Recordings.retryRecording = function(workflowId) {
 
 Recordings.removeRecording = function(workflowId) {
   $.ajax({
-    url        : '../workflow/rest/stop/'+workflowId,
+    url        : '../workflow/rest/stop',
+    data       : {id: workflowId},
     type       : 'POST',
     error      : function(XHR,status,e){
       alert('Could not remove Workflow ' + workflowId);
+    },
+    success    : function(data) {
+      location.reload();
+    }
+  });
+}
+
+Recordings.removeSchedulerEvent = function(eventId) {
+$.ajax({
+    url        : '../scheduler/rest/event/'+eventId,
+    type       : 'DELETE',
+    error      : function(XHR,status,e){
+      alert('Could not remove Scheduler Event ' + workflowId);
     },
     success    : function(data) {
       location.reload();
