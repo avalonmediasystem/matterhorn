@@ -103,20 +103,30 @@ Upload.init = function() {
   $('body').click( function() {
     $('#helpBox').fadeOut('fast');
   });
+  
+  $('#series').autocomplete({
+    source: '/series/rest/search',
+    select: function(event, ui){
+      $('#isPartOf').val(ui.item.id);
+    },
+    search: function(){
+      $('#isPartOf').val('');
+    }
+  });
 
   ocWorkflow.init($('#workflow-selector'), $('#workflow-config-container'));
 
   // test if we upload a new recording or want to retry a workflow
   Upload.retryId = Upload.getURLParam("retry");
   if (Upload.retryId != '') {
-    $('#i18n_page_title').text("Edit Recording for Retry");
+    $('#i18n_page_title').text("Edit Recording Before Continuing");
+    $('#BtnSubmit').text("Continue Processing");
     Upload.initRetry(Upload.retryId);
   } else {                                             // FIXME well this has to be cleaned up, agile...
     Upload.retryId = Upload.getURLParam("edit");
     if (Upload.retryId != '') {
-      $('#i18n_submit_instr').text("");
-      $('#BtnSubmit').text("Continue Processing");  
       $('#i18n_page_title').text("Edit Recording Before Continuing");
+      $('#BtnSubmit').text("Continue Processing");
       Upload.initRetry(Upload.retryId);
     }
   }
@@ -158,8 +168,14 @@ Upload.initRetry = function(wfId) {
       $('#workflow-selector').val(defId);
       ocWorkflow.definitionSelected(defId, $('#workflow-config-container'), function() {
         $(data.documentElement).find("> configurations > configuration").each(function(index, elm) {
-          if ($(elm).attr('key')) {
-            $('#'+ $(elm).attr('key')).val($(elm).text());
+          var fieldname = '#' + $(elm).attr('key').replace(/\./g, '\\\\.');
+          var field = $(fieldname);
+          if (field) {
+            if ($(field).is('input[type=checkbox]')) {
+              $(field).attr('checked',$(elm).text());
+            } else {
+              $(field).val($(elm).text());
+            }
           }
         });
       });
@@ -305,6 +321,9 @@ Upload.showSuccessScreen = function() {
         } else {
           $('#field-'+key).children('.fieldValue').text(Upload.metadata[key]);
         }
+      }
+      if (Upload.retryId != "") {
+        $('#heading-metadata').text('Your recording with the following information has been resubmitted');
       }
     }
     $('#field-filename').children('.fieldValue').text(UploadListener.shortFilename);
