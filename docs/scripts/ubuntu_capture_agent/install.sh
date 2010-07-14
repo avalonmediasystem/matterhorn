@@ -335,20 +335,20 @@ cat /etc/issue >> $LOG_FILE
 echo -e "\n\n\nCapture Agent succesfully installed\n\n\n"
 
 # Prompt the user to send 
-yesno -d yes -? "This feedback includes information about the hardware you have installed Matterhorn on, and the configuration options you have used."\
-      -h "? - more info" "Would you like to provide anonymous feedback about your installation experience to the Matterhorn development team?" send
+#yesno -d yes -? "This feedback includes information about the hardware you have installed Matterhorn on, and the configuration options you have used."\
+#      -h "? - more info" "Would you like to provide anonymous feedback about your installation experience to the Matterhorn development team?" send
 
-while [[ "$send" ]]; do
-    curl -F "file=@$LOG_FILE" "$TRACKING_URL" > /dev/null
-    if [[ $? -ne 0 ]]; then
-	echo "Error. The feedback information couldn't be sent."
-	yesno -d yes "Do you wish to retry?" send
-    else
-	echo "Thanks for your input!"
-	break
-    fi
-done
-echo
+#while [[ "$send" ]]; do
+#    curl -F "file=@$LOG_FILE" "$TRACKING_URL" > /dev/null
+#    if [[ $? -ne 0 ]]; then
+#	echo "Error. The feedback information couldn't be sent."
+#	yesno -d yes "Do you wish to retry?" send
+#    else
+#	echo "Thanks for your input!"
+#	break
+#    fi
+#done
+#echo
 
 yesno -d yes "It is recommended to reboot the system after installation. Do you wish to do it now?" reboot
 
