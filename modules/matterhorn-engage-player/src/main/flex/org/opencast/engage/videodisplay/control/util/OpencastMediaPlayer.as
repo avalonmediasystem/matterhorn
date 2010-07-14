@@ -7,6 +7,7 @@ package org.opencast.engage.videodisplay.control.util
     import flash.utils.Timer;
     
     import org.opencast.engage.videodisplay.control.event.DisplayCaptionEvent;
+    import org.opencast.engage.videodisplay.control.event.VideoControlEvent;
     import org.opencast.engage.videodisplay.model.VideodisplayModel;
     import org.opencast.engage.videodisplay.state.DefaultPlayerState;
     import org.opencast.engage.videodisplay.state.MediaState;
@@ -14,6 +15,7 @@ package org.opencast.engage.videodisplay.control.util
     import org.opencast.engage.videodisplay.state.PlayerState;
     import org.opencast.engage.videodisplay.state.SoundState;
     import org.opencast.engage.videodisplay.state.VideoState;
+    import org.osmf.containers.MediaContainer;
     import org.osmf.events.AudioEvent;
     import org.osmf.events.BufferEvent;
     import org.osmf.events.LoadEvent;
@@ -345,15 +347,8 @@ package org.opencast.engage.videodisplay.control.util
 	                }
                     else
                     {
-                        try
-                        {
                         mediaPlayerOne.seek(model.currentPlayhead);
                         mediaPlayerTwo.seek(model.currentPlayhead);
-                        }
-                        catch(error:Error)
-                        {
-                            // do nothing
-                        }
                     }
                 }
             } 
@@ -479,7 +474,6 @@ package org.opencast.engage.videodisplay.control.util
             }
             
             model.loader = false;
-            model.currentSeekPosition = model.currentPlayhead;
         }
         
         /**
@@ -500,48 +494,40 @@ package org.opencast.engage.videodisplay.control.util
                    model.playerSeekBool = true;
                 }
                 
-                if( value >= model.currentDuration )
+                if( value != 0)
                 {
-                	value = model.currentDuration - 1;
-                	model.currentSeekPosition = model.currentDuration - 1;
+                    if( mediaPlayerSingle.canSeekTo(value) == true )
+                    {
+                        mediaPlayerSingle.seek(value);
+                    }
                 }
-                
-                if( mediaPlayerSingle.canSeekTo(value) == true )
+                else
                 {
                     mediaPlayerSingle.seek(value);
                 }
             }
             else if( videoState == VideoState.MULTI )
             {
-                var valueOne:Number = value;
-                var valueTwo:Number= value; 
-                
                 if( model.mediaTypeOne == model.RTMP ||  model.mediaTypeTwo == model.RTMP )
                 {
                     if( model.playerSeekBool == false && mediaPlayerOne.paused || mediaPlayerTwo.paused )
 	                {
 	                    model.playerSeekBool = true;
-	                    
 	                }
                 }
                 
-                if( valueOne >= model.durationPlayerOne )
+                if( value != 0)
                 {
-                    valueOne = model.durationPlayerOne - 1;
-                    model.currentSeekPosition = model.durationPlayerOne - 1;
+	                if( mediaPlayerOne.canSeekTo(value) == true && mediaPlayerTwo.canSeekTo(value) == true)
+	                {
+	                    mediaPlayerOne.seek(value);
+	                    mediaPlayerTwo.seek(value);
+	                }
                 }
-                
-                if( valueTwo >= model.durationPlayerTwo)
+                else
                 {
-
-                    valueTwo = model.durationPlayerTwo - 1;
-                    model.currentSeekPosition = model.durationPlayerTwo - 1;
-                }
-                
-                if( mediaPlayerOne.canSeekTo(valueOne) == true && mediaPlayerTwo.canSeekTo(valueTwo) == true)
-                {
-                    mediaPlayerOne.seek(valueOne);
-                    mediaPlayerTwo.seek(valueTwo);
+                    mediaPlayerOne.seek(value);
+                    mediaPlayerTwo.seek(value);
                 }
             }
         }
@@ -761,7 +747,9 @@ package org.opencast.engage.videodisplay.control.util
 	        	{
 	        	   model.loader = false;
 	        	}
-	        }
+	        	
+	        	
+        	}
         	else
             {
         	    if( event.state == PlayerState.READY )
@@ -770,8 +758,8 @@ package org.opencast.engage.videodisplay.control.util
                     
                     if( model.playerMode == PlayerModeState.ADVANCED)
                     {
-                        mediaPlayerSingle.play();
-                        mediaPlayerSingle.pause();
+                        mediaPlayerTwo.play();
+                        mediaPlayerTwo.pause();
                     }
                     else
                     {
@@ -780,6 +768,8 @@ package org.opencast.engage.videodisplay.control.util
                 }
         	}
         }
+        
+        
         
         /**
          * onDurationChange
@@ -1060,7 +1050,19 @@ package org.opencast.engage.videodisplay.control.util
 	            {
 	               model.loader = false;
 	            }
-	        }
+	            
+	            if( defaultPlayer == DefaultPlayerState.PLAYERONE && event.state == PlayerState.READY )
+	            {
+	               try
+	               {
+	               mediaPlayerTwo.seek(0);
+	               }
+	               catch(error:Error)
+	               {
+	                   //do nothing
+	               }
+	            }
+            }
             else
             {
                 if( event.state == PlayerState.READY )
@@ -1214,56 +1216,31 @@ package org.opencast.engage.videodisplay.control.util
             
             if( model.startPlay == true  )
             {
-	            if( model.currentPlayheadPlayerOne <= model.durationPlayerOne && model.currentPlayheadPlayerOne >= 0)
+	            var newPositionString:String = _time.getTC( model.currentPlayheadPlayerOne );
+	            
+	            if( maxDurationPlayer == DefaultPlayerState.PLAYERONE )
 	            {
-	               
-	                var newPositionString:String = _time.getTC( model.currentPlayheadPlayerOne );
-		            
-		            if( maxDurationPlayer == DefaultPlayerState.PLAYERONE )
-		            {
-		                if ( newPositionString != lastNewPositionString )
-		                {
-		                    ExternalInterface.call( ExternalFunction.SETCURRENTTIME, newPositionString );
-		                    lastNewPositionString = newPositionString;
-		                }
-		    
-		                if ( !mediaPlayerOne.seeking )
-		                {
-		                   ExternalInterface.call( ExternalFunction.SETPLAYHEAD, model.currentPlayheadPlayerOne );
-		                }
-		                
-		                if ( model.captionsURL != null )
-		                {
-		                    Swiz.dispatchEvent( new DisplayCaptionEvent( model.currentPlayheadPlayerOne ) );
-		                }
-		                if( model.fullscreenThumbDrag == false)
-		                {
-		                   model.currentPlayhead = model.currentPlayheadPlayerOne;
-		                }
-	                    
-	                    if( mediaPlayerOne.playing && mediaPlayerTwo.playing )
-	                    {
-	                        var timeDifference:Number = model.currentPlayheadPlayerOne - model.currentPlayheadPlayerTwo;
-	                       
-	                        if( timeDifference < -1 || timeDifference > 1 )
-	                        {
-	                            if( mediaPlayerTwo.canSeekTo( model.currentPlayheadPlayerOne ) == true)
-				                {
-				                    mediaPlayerTwo.seek(model.currentPlayheadPlayerOne);
-				                }
-	                        }
-	                    }
+	                if ( newPositionString != lastNewPositionString )
+	                {
+	                    ExternalInterface.call( ExternalFunction.SETCURRENTTIME, newPositionString );
+	                    lastNewPositionString = newPositionString;
+	                }
+	    
+	                if ( !mediaPlayerOne.seeking )
+	                {
+	                   ExternalInterface.call( ExternalFunction.SETPLAYHEAD, model.currentPlayheadPlayerOne );
 	                }
 	                
-	           
-                
+	                if ( model.captionsURL != null )
+	                {
+	                    Swiz.dispatchEvent( new DisplayCaptionEvent( model.currentPlayheadPlayerOne ) );
+	                }
+	                if( model.fullscreenThumbDrag == false)
+	                {
+	                   model.currentPlayhead = model.currentPlayheadPlayerOne;
+	                }
                 }
-                else
-                {
-                   model.currentPlayheadPlayerOne = model.durationPlayerOne;
-                }
                 
-                /*
 	            // change default player and volume
 	            if( event.time > model.durationPlayerTwo )
 	            {
@@ -1284,7 +1261,6 @@ package org.opencast.engage.videodisplay.control.util
 	                mediaPlayerTwo.volume = mediaPlayerOne.volume;
 	                mediaPlayerOne.volume = 0;
 	            }
-	            */
 	        }
        }
         
@@ -1563,39 +1539,32 @@ package org.opencast.engage.videodisplay.control.util
             
             if( model.startPlay == true )
             {
-	            if( model.currentPlayheadPlayerTwo <= model.durationPlayerTwo && model.currentPlayheadPlayerTwo >= 0)
-                {
-		            var newPositionString:String = _time.getTC( model.currentPlayheadPlayerTwo );
-		             
-		            if( maxDurationPlayer == DefaultPlayerState.PLAYERTWO )
-		            {
-		                if ( newPositionString != lastNewPositionString )
-		                {
-		                    ExternalInterface.call( ExternalFunction.SETCURRENTTIME, newPositionString );
-		                    lastNewPositionString = newPositionString;
-		                }
-		    
-		                if ( !mediaPlayerTwo.seeking )
-		                {
-		                   ExternalInterface.call( ExternalFunction.SETPLAYHEAD, model.currentPlayheadPlayerTwo);
-		                }
-		                
-		                if ( model.captionsURL != null )
-		                {
-		                    Swiz.dispatchEvent( new DisplayCaptionEvent( model.currentPlayheadPlayerTwo ) );
-		                }
-		                
-		                if( model.fullscreenThumbDrag == false)
-		                {
-		                    model.currentPlayhead = model.currentPlayheadPlayerTwo;
-		                }
-		            }
-                }
-                else
-                {
-                    model.currentPlayheadPlayerTwo = model.durationPlayerTwo;
-                }
-	            /*
+	            var newPositionString:String = _time.getTC( model.currentPlayheadPlayerTwo );
+	             
+	            if( maxDurationPlayer == DefaultPlayerState.PLAYERTWO )
+	            {
+	                if ( newPositionString != lastNewPositionString )
+	                {
+	                    ExternalInterface.call( ExternalFunction.SETCURRENTTIME, newPositionString );
+	                    lastNewPositionString = newPositionString;
+	                }
+	    
+	                if ( !mediaPlayerTwo.seeking )
+	                {
+	                   ExternalInterface.call( ExternalFunction.SETPLAYHEAD, model.currentPlayheadPlayerTwo);
+	                }
+	                
+	                if ( model.captionsURL != null )
+	                {
+	                    Swiz.dispatchEvent( new DisplayCaptionEvent( model.currentPlayheadPlayerTwo ) );
+	                }
+	                
+	                if( model.fullscreenThumbDrag == false)
+	                {
+	                    model.currentPlayhead = model.currentPlayheadPlayerTwo;
+	                }
+	            }
+	            
 	            // change default player and volume
 	            if( event.time > model.durationPlayerOne )
 	            {
@@ -1616,7 +1585,6 @@ package org.opencast.engage.videodisplay.control.util
 	                mediaPlayerOne.volume = mediaPlayerTwo.volume;
 	                mediaPlayerTwo.volume = 0;
 	            }
-	            */
 	        }
          }
         

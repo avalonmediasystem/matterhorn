@@ -100,9 +100,11 @@ package org.opencast.engage.videodisplay.control.command
                     
 	                if( model.startPlay == true )
                     {
-	                    if( model.currentSeekPosition - model.rewindTime > 0 )
+	                    
+	                    
+	                    if( model.currentPlayhead - model.rewindTime > 0 )
 	                    {
-	                        model.mediaPlayer.seek( model.currentSeekPosition - model.rewindTime );
+	                        model.mediaPlayer.seek( model.currentPlayhead - model.rewindTime );
 	                    }
 	                    else
 	                    {
@@ -115,17 +117,18 @@ package org.opencast.engage.videodisplay.control.command
                 
                     if( model.startPlay == true )
                 	{
-	                	var newPlayhead:Number = model.currentSeekPosition + model.fastForwardTime;
-
+	                	var newPlayhead:Number = model.currentPlayhead + model.fastForwardTime;
 	                    
-	                    if( newPlayhead > model.currentDuration )
+	                    
+	                    if( newPlayhead > model.currentDuration && model.currentPlayhead <= model.currentDuration )
 	                    {
-	                        model.mediaPlayer.seek( model.currentDuration );
+	                        model.mediaPlayer.seek( model.currentDuration-2 );
 	                    }
 	                    else
 	                    {
 	                        model.mediaPlayer.seek( newPlayhead);
 	                    }
+	                    
 	                }
                     break;
 
