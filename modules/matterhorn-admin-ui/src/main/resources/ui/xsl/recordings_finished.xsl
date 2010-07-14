@@ -14,7 +14,7 @@
   <xsl:template match="ns1:recordingLists">
     <div id="table-info-box" style="border: 1px solid #cccccc;font-size:0.9em;text-align:center;width:600px;margin-left:auto;margin-right:auto;margin-bottom:0.5em;padding:0.5em;">
       <img title="Information" alt="Information" src="shared_img/icons/information.png" style="vertical-align: bottom;"></img>
-      All recordings with Status of "Distributed" should appear in the <a href="/engage/ui/">Matterhorn Media Module</a>.
+     Go to the <a href="/engage/ui/" style="text-decoration:underline">Matterhorn Media Module</a> to see any Recordings which have gone through "Encode, Analyze, and Distribute" processing.
     </div>
     <table id="recordingsTable" class="fl-theme-coal wu-table-list" width="100%" style="float:left;">
       <thead>
@@ -25,7 +25,6 @@
           <th width="20%" id="th-StartDate" class="sortable date-column recording-Table-head">Recording Date &amp; Time</th>
           <!-- <th width="10%" class="sortable">Capture Agent</th> -->
           <th width="15%" id="th-ProcessingStatus" class="sortable recording-Table-head">Status</th>
-          <th width="15%" id="th-Action" class="recording-Table-head">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -37,7 +36,10 @@
   <xsl:template match="ns1:recording">
     <tr class="highlightable">
       <td>
-        <xsl:value-of select="title" />
+        <a title="View Recording Info">
+          <xsl:attribute name="href">/admin/viewevent.html?workflow=<xsl:value-of select="id" /></xsl:attribute>
+          <xsl:value-of select="title" />
+        </a>
       </td>
       <td>
         <xsl:value-of select="presenter" />
@@ -58,12 +60,6 @@
       </td> -->
       <td class="processingStatus">
         <xsl:value-of select="processingStatus" />
-      </td>
-      <td>
-        <a title="View Recording Info">
-          <xsl:attribute name="href">/admin/viewevent.html?workflow=<xsl:value-of select="id" /></xsl:attribute>
-          View Info
-        </a>
       </td>
     </tr>
   </xsl:template>
