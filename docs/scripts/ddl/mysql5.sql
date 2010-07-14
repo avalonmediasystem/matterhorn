@@ -11,12 +11,12 @@ CREATE TABLE `ANNOTATION` (
   PRIMARY KEY  (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-CREATE TABLE `CAPTURE_AGENT` (
+CREATE TABLE `CAPTURE_AGENT_STATE` (
   `NAME` varchar(255) collate utf8_unicode_ci NOT NULL,
-  `state` varchar(255) collate utf8_unicode_ci NOT NULL,
-  `capabilities` blob,
-  `lastHeardFrom` bigint(20) NOT NULL,
-  `url` varchar(255) collate utf8_unicode_ci default NULL,
+  `STATE` varchar(255) collate utf8_unicode_ci NOT NULL,
+  `CAPABILITIES` blob,
+  `LAST_HEARD_FROM` bigint(20) NOT NULL,
+  `URL` varchar(255) collate utf8_unicode_ci default NULL,
   PRIMARY KEY  (`NAME`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
