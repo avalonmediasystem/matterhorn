@@ -306,11 +306,11 @@ Recordings.displayHoldActionPanel = function(URL, wfId, callerElm) {
   $('#holdStateHeadRow-series').html($($(parentRow).children().get(2)).html());
   $('#holdStateHeadRow-date').html($($(parentRow).children().get(3)).html());
   $('#holdStateHeadRow-status').html($($(parentRow).children().get(4)).html());
-  var offset = $(parentRow).offset();
-  $('#holdActionPanel-container').css('top', offset.top);
-  $('#holdActionPanel-container').css('left', offset.left);
-  $('#holdActionPanel-container').width($(parentRow).outerWidth()-2);
-  $('#holdActionPanel-container').fadeIn('fast');
+  $('#holdActionPanel-container').toggle();
+  $('#recordings-table-container').hide();
+  $('#oc_recordingmenu').hide();
+  $('.paging-nav-container').hide();
+  $('#refresh-controls-container').hide();
 }
 
 /** Adjusts the height of the panel holding the Hold Operation UI
@@ -340,7 +340,11 @@ Recordings.continueWorkflow = function() {
       alert('Could not resume Workflow: ' + status);
     },
     success    : function(data) {
-      $('#holdActionPanel-container').fadeOut('fast');
+      $('#holdActionPanel-container').toggle();
+      $('#recordings-table-container').toggle();
+      $('#oc_recordingmenu').toggle();
+      $('.paging-nav-container').toggle();
+      $('#refresh-controls-container').toggle();
       location.reload();
     }
   });
