@@ -15,7 +15,10 @@
  */
 #oc_image
 {
-  width:                    100%;
+  max-width:                100%;
+  max-height:               100%;
+  background-color:         #ffffff;
+  
 } 
 
 #oc_embed-title-bar
@@ -30,7 +33,6 @@
 {
   font-size:                1em;
   text-align:               center;
-  height:                   100%;
   color:                    #FA6E23;
   margin-top:               2px;
 }
@@ -68,14 +70,14 @@ table
 
 #oc_body
 {
-  height:                   510px;
   position:                 relative; 
 }
 
 #oc_flash-player
 {
   text-align:               center;
-  height:                   100%;
+  height:                   200px;
+  background-color:         #000000;  
 }
 
 #oc_video-player-controls
@@ -85,6 +87,30 @@ table
   background-image:         url("../img/oc_icons.png");
   background-position:      0 0px;
   visibility:               hidden;
+}
+
+#oc_video-player-controls-embed
+{
+  height:                   28px;
+  width:                    100%;
+  background-image:         url("../img/oc_icons.png");
+  background-position:      0 0px;
+  text-align:               center;
+  padding-top:              5px;
+}
+
+#oc_controlbar-embed
+{
+  visibility:               visible;
+}
+
+#oc_segments-embed
+{
+  width:                    100%;
+  height:                   25px;
+  background-color:         #B8B8B8;
+  border:                   1px solid #000000;
+  margin-top:               -8px;
 }
 
 #oc_video-time
@@ -144,7 +170,7 @@ table
   float:                    left;
   width:                    26%;
   text-align:               right;
-  margin-top:               7px;
+  margin-top:               4px;
 }
 
 #oc_sound
@@ -173,6 +199,7 @@ table
   z-index:                  10000;
   visibility:               hidden;
   padding-bottom:           5px;
+  width:                    48px;
 }
 
 #oc_volume-dropdown
@@ -329,6 +356,7 @@ table
   top:                      0px; 
   z-index:                  2;
   margin-left:              -4px;
+  left:                     0;
 }
 
 #draggable 
@@ -342,6 +370,7 @@ table
   top:                      0px;
   z-index:                  3;
   margin-left:              -4px;
+  left:                     0;
 }
 
 .progress-segment 
@@ -458,3 +487,4 @@ table
   border-width:             1px;
   width:                    100%;
 }
+

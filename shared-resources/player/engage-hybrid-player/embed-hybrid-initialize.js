@@ -143,7 +143,6 @@ Opencast.Initialize = (function ()
        
         if (getDivId() === VIDEOSIZE)
         {
-            $('#oc_video-size-dropdown-div').css('width', '20%');
             $('#oc_player_video-dropdown').css('left', $('#oc_video-size-dropdown').offset().left - $('#oc_body').offset().left);
             $('#oc_player_video-dropdown').css('visibility', 'visible');
             $('#oc_volume-menue').css('visibility', 'hidden');
@@ -324,6 +323,15 @@ Opencast.Initialize = (function ()
         {
             Opencast.Player.doTogglePlayPause();
         });
+        $('#oc_btn-play-pause-embed').click(function () 
+        {
+        	// init Flash
+            Opencast.FlashVersion.initFlash();
+            $('#oc_image').hide();
+            start = true;
+            $('#oc_controlbar-embed').hide();
+        });
+        
         $('#oc_btn-volume').click(function () 
         {
             Opencast.Player.doToggleMute();
@@ -342,6 +350,11 @@ Opencast.Initialize = (function ()
             Opencast.FlashVersion.initFlash();
             $('#oc_image').hide();
             start = true;
+            $('#oc_controlbar-embed').hide();
+        });
+        $('#oc-link-advanced-player').click(function () 
+        {
+        	Opencast.Player.doTogglePlayPause();
         });
         
         // Handler for .mouseover()
@@ -356,6 +369,10 @@ Opencast.Initialize = (function ()
         $('#oc_btn-play-pause').mouseover(function () 
         {
             Opencast.Player.PlayPauseMouseOver();
+        });
+        $('#oc_btn-play-pause-embed').mouseover(function () 
+        {
+        	$("#oc_btn-play-pause-embed").attr("className", "oc_btn-play-over");
         });
         $('#oc_btn-fast-forward').mouseover(function () 
         {
@@ -385,6 +402,10 @@ Opencast.Initialize = (function ()
         $('#oc_btn-play-pause').mouseout(function () 
         {
             Opencast.Player.PlayPauseMouseOut();
+        });
+        $('#oc_btn-play-pause-embed').mouseout(function () 
+        {
+        	$("#oc_btn-play-pause-embed").attr("className", "oc_btn-play");
         });
         $('#oc_btn-fast-forward').mouseout(function () 
         {
@@ -424,6 +445,10 @@ Opencast.Initialize = (function ()
         $('#oc_btn-play-pause').mousedown(function () 
         {
             Opencast.Player.PlayPauseMouseDown();
+        });
+        $('#oc_btn-play-pause-embed').mousedown(function () 
+        {
+        	$("#oc_btn-play-pause-embed").attr("className", "oc_btn-play-clicked");     
         });
         $('#oc_btn-fast-forward').mousedown(function () 
         {
@@ -577,13 +602,44 @@ Opencast.Initialize = (function ()
         advancedUrl = embedUrl.replace(/embed.html/g, "watch.html");
         $("a[href='#']").attr('href', '' + advancedUrl + '');
         
-        $("#oc_image").attr('src', 'engage-hybrid-player/img/embed.png');
+        var coverUrl = Opencast.engage.getCoverUrl();
+        if (coverUrl === null) {
+            var coverType;
+            coverUrl = 'engage-hybrid-player/img/MatterhornEmbedLogo.png';
+
+            $.ajax(
+            {
+                type: 'GET',
+                contentType: 'text/xml',
+                url: "../../search/rest/episode",
+                data: "id=" + Opencast.engage.getMediaPackageId(),
+                dataType: 'xml',
+                success: function(xml) 
+                {
+                    $(xml).find('attachment').each( function(){
+                        coverType = $(this).attr('type');
+                        if (coverType.search(/player/) !== -1) {
+                            coverUrl = $(this).find('url').text();
+                        }
+                    }); //close each(
+
+                    $('#oc_image').attr("src", coverUrl);
+                    
+                    var imageSpace = ($("#oc_flash-player").height() - $('#oc_image').height()) / 2;
+                    
+                    $("#oc_image").css('margin-top', imageSpace + 'px'); 
+                    
+                },
+                error: function(a, b, c) 
+                {
+                    // Some error while trying to get the search result
+                }
+            }); //close ajax
+        } // close if
         
-       
         
     });
     
-
     /**
         @memberOf Opencast.Player
         @description Set new media resuliton to the videodisplay
