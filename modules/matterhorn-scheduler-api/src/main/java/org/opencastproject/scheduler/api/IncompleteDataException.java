@@ -14,7 +14,7 @@
  *
  */
 
-package org.opencastproject.scheduler.impl;
+package org.opencastproject.scheduler.api;
 
 public class IncompleteDataException extends Exception {
 

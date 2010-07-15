@@ -16,9 +16,12 @@
 package org.opencastproject.scheduler.endpoint;
 
 import org.apache.commons.io.IOUtils;
-import org.opencastproject.scheduler.impl.Event;
-import org.opencastproject.scheduler.impl.Metadata;
-import org.opencastproject.scheduler.impl.RecurringEvent;
+import org.opencastproject.scheduler.api.Metadata;
+import org.opencastproject.scheduler.api.SingleEvent;
+import org.opencastproject.scheduler.api.RecurringEvent;
+import org.opencastproject.scheduler.impl.MetadataImpl;
+import org.opencastproject.scheduler.impl.EventImpl;
+import org.opencastproject.scheduler.impl.RecurringEventImpl;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -101,14 +104,14 @@ public class SchedulerBuilder {
     return parseSchedulerFilterJaxbImpl(IOUtils.toInputStream(in, "UTF8"));
   }
 
-  public Event parseEvent(String in) throws Exception {
+  public SingleEvent parseEvent(String in) throws Exception {
     return parseEvent(IOUtils.toInputStream(in, "UTF8"));
   }
   
-  public Event parseEvent(InputStream in) throws Exception {
+  public SingleEvent parseEvent(InputStream in) throws Exception {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
     return unmarshaller.unmarshal(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in),
-                                  Event.class).getValue();
+                                  EventImpl.class).getValue();
   }
   
   public RecurringEvent parseRecurringEvent(String in) throws Exception {
@@ -118,7 +121,7 @@ public class SchedulerBuilder {
   public RecurringEvent parseRecurringEvent(InputStream in) throws Exception {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
     return unmarshaller.unmarshal(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in),
-                                  RecurringEvent.class).getValue();
+                                  RecurringEventImpl.class).getValue();
   } 
   
   public String marshallRecurringEvent (RecurringEvent e) throws Exception {
@@ -128,7 +131,7 @@ public class SchedulerBuilder {
     return writer.toString();
   }
   
-  public String marshallEvent (Event e) throws Exception {
+  public String marshallEvent (SingleEvent e) throws Exception {
     Marshaller marshaller = jaxbContext.createMarshaller();
     StringWriter writer = new StringWriter();
     marshaller.marshal(e, writer);
@@ -142,6 +145,6 @@ public class SchedulerBuilder {
   public Metadata parseMetadata(InputStream in) throws Exception {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
     return unmarshaller.unmarshal(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in),
-                                  Metadata.class).getValue();
+                                  MetadataImpl.class).getValue();
   }   
 }

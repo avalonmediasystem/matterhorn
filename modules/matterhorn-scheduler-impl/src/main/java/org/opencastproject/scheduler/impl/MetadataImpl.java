@@ -23,15 +23,18 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
+
+import org.opencastproject.scheduler.api.Metadata;
 import org.opencastproject.scheduler.endpoint.SchedulerBuilder;
 
 @Entity(name="Metadata")
 @Table(name="SCHED_METADATA")
 @Access(AccessType.FIELD)
 @XmlType(name="Metadata")
-public class Metadata {
+public class MetadataImpl implements Metadata {
   @Id
   @Column(name = "ID", length=128)
   @GeneratedValue
@@ -42,11 +45,11 @@ public class Metadata {
   @Column(name="MD_VAL")
   protected String value;
   
-  public Metadata () {
+  public MetadataImpl () {
     super();
   }
   
-  public Metadata (String key, String value) {
+  public MetadataImpl (String key, String value) {
     this.key = key;
     this.value = value;
   }
@@ -93,7 +96,7 @@ public class Metadata {
    *  @param    xmlString string representation of an event.
    *  @return   instantiated event SchdeulerEventJaxbImpl.
    */
-  public static Metadata valueOf(String xmlString) throws Exception {
-    return (Metadata) SchedulerBuilder.getInstance().parseMetadata(xmlString);
+  public static MetadataImpl valueOf(String xmlString) throws Exception {
+    return (MetadataImpl) SchedulerBuilder.getInstance().parseMetadata(xmlString);
   }   
 }
