@@ -86,6 +86,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
+import java.util.zip.ZipEntry;
 
 /**
  * Implementation of the Capture Agent: using gstreamer, generates several Pipelines
@@ -437,14 +438,15 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       long startWait = System.currentTimeMillis();
       long timeout = Long.parseLong(configService.getItem(CaptureParameters.RECORDING_SHUTDOWN_TIMEOUT));
       while (pipe != null) {
-        //TODO:  What happens if this loop never exits?
         try {
           Thread.sleep(1000);
         } catch (InterruptedException e) {}
 
         //If we've timed out then force kill the pipeline
         if (System.currentTimeMillis() - startWait >= timeout) {
-          pipe.setState(State.NULL);
+          if (pipe != null) {
+            pipe.setState(State.NULL);
+          }
           pipe = null;
         }
       }
@@ -648,7 +650,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       logger.debug("--> {}", f.getName());
 
     //Return a pointer to the zipped file
-    return ZipUtil.zip(filesToZip.toArray(new File[filesToZip.size()]), new File(recording.getDir(), CaptureParameters.ZIP_NAME).getAbsolutePath());
+    return ZipUtil.zip(filesToZip.toArray(new File[filesToZip.size()]), new File(recording.getDir(), CaptureParameters.ZIP_NAME).getAbsolutePath(), ZipEntry.STORED);
   }
 
   // FIXME: Replace HTTP-based ingest with remote implementation of the Ingest Service. (jt)
