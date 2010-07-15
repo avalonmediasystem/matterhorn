@@ -20,7 +20,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-import org.opencastproject.scheduler.impl.Metadata;
+import org.opencastproject.scheduler.api.Metadata;
 
 public class ListAdapter extends XmlAdapter<Metadata[], List<Metadata>> {
 

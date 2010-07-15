@@ -107,7 +107,7 @@ public class EventImpl extends AbstractEvent implements Event, SingleEvent {
   public String getRecurringEventId() {
     Metadata m = findMetadata("recurrenceId");
     if (m == null) {
-      logger.debug("recurring event for event {} not found", getEventId());
+      logger.debug("recurring event for event {} not found", getId());
       return null;
     }
     return m.getValue();
@@ -146,7 +146,7 @@ public class EventImpl extends AbstractEvent implements Event, SingleEvent {
     updateMetadata(new MetadataImpl("recurrencePosition", new Integer(positionInRecurrence).toString()));
   }
 
-  public String getEventId() {
+  public String getId() {
     return eventId;
   }
 
@@ -322,7 +322,7 @@ public class EventImpl extends AbstractEvent implements Event, SingleEvent {
 
   public String toString() {
     String result;
-    result = getEventId();
+    result = getId();
     if (getRecurringEventId() != null)
       result += ", Recurring Event: " + getRecurringEventId();
     else
@@ -333,7 +333,7 @@ public class EventImpl extends AbstractEvent implements Event, SingleEvent {
     return result;
   }
 
-  public static Event find(String eventId, EntityManagerFactory emf) {
+  public static SingleEvent find(String eventId, EntityManagerFactory emf) {
     logger.debug("loading event with the ID {}", eventId);
     if (eventId == null || emf == null) {
       logger.warn("could not find event {}. Null Pointer exeption");
@@ -369,7 +369,7 @@ public class EventImpl extends AbstractEvent implements Event, SingleEvent {
     if (!(o instanceof Event))
       return false;
     Event e = (Event) o;
-    if (e.getEventId() != this.getEventId())
+    if (e.getId() != this.getId())
       return false;
     for (Metadata m : metadata) {
       if (!e.containsKey(m.getKey()) || (!e.getValue(m.getKey()).equals(m.getValue())))
@@ -379,7 +379,7 @@ public class EventImpl extends AbstractEvent implements Event, SingleEvent {
   }
 
   public int hashCode() {
-    return this.getEventId().hashCode();
+    return this.getId().hashCode();
   }
   
   public void addMetadata(Metadata m){

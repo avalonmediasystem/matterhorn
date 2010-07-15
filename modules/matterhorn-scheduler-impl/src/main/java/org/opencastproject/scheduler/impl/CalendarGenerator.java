@@ -28,7 +28,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
-import org.opencastproject.scheduler.impl.Event;
+import org.opencastproject.scheduler.api.Event;
 import org.opencastproject.series.api.Series;
 import org.opencastproject.series.api.SeriesService;
 

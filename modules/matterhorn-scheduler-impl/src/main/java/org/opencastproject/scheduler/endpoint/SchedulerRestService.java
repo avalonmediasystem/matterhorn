@@ -15,11 +15,11 @@
  */
 package org.opencastproject.scheduler.endpoint;
 
+import org.opencastproject.scheduler.api.Event;
+import org.opencastproject.scheduler.api.IncompleteDataException;
+import org.opencastproject.scheduler.api.Metadata;
+import org.opencastproject.scheduler.api.RecurringEvent;
 import org.opencastproject.scheduler.api.SchedulerFilter;
-import org.opencastproject.scheduler.impl.Event;
-import org.opencastproject.scheduler.impl.IncompleteDataException;
-import org.opencastproject.scheduler.impl.Metadata;
-import org.opencastproject.scheduler.impl.RecurringEvent;
 import org.opencastproject.scheduler.impl.SchedulerFilterImpl;
 import org.opencastproject.scheduler.impl.SchedulerServiceImpl;
 import org.opencastproject.util.DocUtil;

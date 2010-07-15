@@ -21,7 +21,7 @@ import org.opencastproject.metadata.dublincore.DublinCoreCatalogImpl;
 import org.opencastproject.metadata.dublincore.DublinCoreValue;
 import org.opencastproject.metadata.dublincore.EncodingSchemeUtils;
 import org.opencastproject.metadata.dublincore.Precision;
-import org.opencastproject.scheduler.impl.Event;
+import org.opencastproject.scheduler.api.Event;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,12 +85,12 @@ public class DublinCoreGenerator {
    * @return The DublinCoreCatalog
    */
   public DublinCoreCatalog generate (Event event) {
-    logger.debug("creating Dublin Core  information for event {}", event.getEventId());
+    logger.debug("creating Dublin Core  information for event {}", event.getId());
     Hashtable<String, String> dcMetadata =  mapper.convert(event.getMetadata());
     
     DublinCoreCatalog dcCatalog = DublinCoreCatalogImpl.newInstance();
 
-    dcCatalog.add(DublinCoreCatalog.PROPERTY_IDENTIFIER, new DublinCoreValue(event.getEventId()));
+    dcCatalog.add(DublinCoreCatalog.PROPERTY_IDENTIFIER, new DublinCoreValue(event.getId()));
     dcCatalog.add(DublinCoreCatalog.PROPERTY_CREATED, EncodingSchemeUtils.encodeDate(event.getStartdate(), Precision.Second));
     for (String key : dcMetadata.keySet()) {  
       if (validDcKey(key)) {

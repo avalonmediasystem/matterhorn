@@ -37,11 +37,11 @@ import javax.persistence.spi.PersistenceProvider;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.ValidationException;
 
+import org.opencastproject.scheduler.api.Event;
+import org.opencastproject.scheduler.api.IncompleteDataException;
+import org.opencastproject.scheduler.api.RecurringEvent;
 import org.opencastproject.scheduler.api.SchedulerFilter;
 import org.opencastproject.scheduler.impl.CalendarGenerator;
-import org.opencastproject.scheduler.impl.Event;
-import org.opencastproject.scheduler.impl.IncompleteDataException;
-import org.opencastproject.scheduler.impl.RecurringEvent;
 import org.opencastproject.series.api.SeriesService;
 
 import org.osgi.service.cm.ConfigurationException;

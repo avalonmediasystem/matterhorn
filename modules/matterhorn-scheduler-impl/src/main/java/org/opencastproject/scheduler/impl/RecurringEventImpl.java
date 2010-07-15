@@ -17,9 +17,10 @@
 package org.opencastproject.scheduler.impl;
 
 import org.opencastproject.scheduler.endpoint.SchedulerBuilder;
-import org.opencastproject.scheduler.impl.Event;
-import org.opencastproject.scheduler.impl.IncompleteDataException;
-import org.opencastproject.scheduler.impl.Metadata;
+import org.opencastproject.scheduler.api.Event;
+import org.opencastproject.scheduler.api.IncompleteDataException;
+import org.opencastproject.scheduler.api.Metadata;
+import org.opencastproject.scheduler.api.RecurringEvent;
 
 import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.DateTime;
@@ -65,7 +66,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity(name = "RecurringEvent")
 @Table(name = "SCHED_R_EVENT")
 @Access(AccessType.FIELD)
-public class RecurringEvent extends AbstractEvent {
+public class RecurringEventImpl extends AbstractEvent {
   private static final Logger logger = LoggerFactory.getLogger(RecurringEvent.class);
 
   @XmlID
@@ -101,10 +102,10 @@ public class RecurringEvent extends AbstractEvent {
   @Transient
   List<Date> generatedDates;
 
-  public RecurringEvent() {
+  public RecurringEventImpl() {
   }
 
-  public RecurringEvent(String xml) {
+  public RecurringEventImpl(String xml) {
     try {
       RecurringEvent e = RecurringEvent.valueOf(xml);
       this.setRecurringEventId(e.getRecurringEventId());
@@ -119,17 +120,17 @@ public class RecurringEvent extends AbstractEvent {
   // setRecurrence(recurrence);
   // }
 
-  public RecurringEvent(String recurrence, List<Metadata> metadata) {
+  public RecurringEventImpl(String recurrence, List<Metadata> metadata) {
     this(recurrence);
     setMetadata(metadata);
   }
 
-  public RecurringEvent(String recurrence, String rEventId) {
+  public RecurringEventImpl(String recurrence, String rEventId) {
     this(recurrence);
     setRecurringEventId(rEventId);
   }
 
-  public RecurringEvent(String recurrence, String rEventId, List<Metadata> metadata) {
+  public RecurringEventImpl(String recurrence, String rEventId, List<Metadata> metadata) {
     this(recurrence, metadata);
     setRecurringEventId(rEventId);
   }
