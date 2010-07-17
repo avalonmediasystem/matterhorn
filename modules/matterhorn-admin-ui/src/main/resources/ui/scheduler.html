@@ -9,7 +9,6 @@
     <link href="infusion-1.1.2/fss/css/fss-reset.css" rel="stylesheet" type="text/css">
     <link href="infusion-1.1.2/fss/css/fss-layout.css" rel="stylesheet" type="text/css">
     <link href="infusion-1.1.2/fss/css/fss-text.css" rel="stylesheet" type="text/css">
-    <link href="infusion-1.1.2/fss/css/fss-theme-coal.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" type="text/css" href="shared_css/shared.css">
     
     <link rel="stylesheet" type="text/css" href="css/admin.css">
@@ -33,7 +32,8 @@
   </head>
   <body>
     <div id="pageHeader">
-    &nbsp;
+      <div id="currentVersion"></div>
+      <div id="newestVersion" style="text-align: right; float: right;"></div>
     </div>
 
     <!-- notification that javaScript is disabled -->
@@ -53,21 +53,23 @@
         </div>
       </center>
     </noscript>
-    <!-- LOGO -->
-    <div class="oc_headerRow">
-        <a class="oc_headerLink" href="../../welcome.html">
-          <div class="mh-logo"><img src="shared_img/MatterhornLogo_80x57.png" alt="Opencast Matterhorn"/></div>
-          <div class="mh-heading"><h1>Admin Tools</h1></div>
-        </a>
-        <a class="oc_headerLink" href="http://www.opencastproject.org/">
-          <div class="oc-logo"><img src="shared_img/opencast_logo.gif" alt="Opencast Matterhorn"/></div>
+
+    <div class="fl-container-850 fl-theme-coal">
+  <div id="header">
+         <div id="logotitle">
+            <a href="../../welcome.html">
+        	<img src="shared_img/MatterhornLogo.png" alt="Opencast Matterhorn" width="104" height="72" align="left">
+			<h1>Opencast Matterhorn</h1>
         </a>
     </div>
-    <div class="fl-container-850 fl-theme-coal" style="clear:both;">
+     	<div id="oclogo">
+       	<a href="http://www.opencastproject.org">
+        <img src="shared_img/OpencastLogo.png" width="143" height="38" alt="Opencast Community | Project">        </a>    </div>
+  </div>
       <ul class="fl-tabs fl-tabs-left" style="background-color: white;">
-        <li id="oc_tabs" class="fl-activeTab"><a class="oc_tabs-active" href="recordings.html" id="i18n_tab_recording">Recordings</a></li>
-        <li id="oc_tabs"><a class="oc_tabs" href="series.html" id="i18n_tab_series">Series</a></li>
-        <li id="oc_tabs"><a  class="oc_tabs" href="agents_status.html" id="i18n_tab_agent">Capture Agents</a></li>
+        <li class="fl-activeTab"><a href="/admin/" id="i18n_tab_recording"></a></li>
+        <li><a href="series.html" id="i18n_tab_series">Series</a></li>
+        <li><a href="/admin/agents_status.html" id="i18n_tab_agent"></a></li>
       </ul>
       <div id="stage" class="fl-tab-content wu-tab-content fl-fix" style="background:white;">
         <div class="fl-container-800" style="text-align: center;">
@@ -96,13 +98,16 @@
                   <span class="fl-icon inline-icon icon-bullet" title=""></span>Please choose at least one <a href="javascript:document.getElementById('distITunesU').focus();">distribution channel</a>.
                 </li>
                 <li id="missing-startdate" class="missing-fields-item single-error multiple-error">
-                  <span class="fl-icon inline-icon icon-bullet" title=""></span>Please choose a starting <a href="javascript:document.getElementById('startDate').focus()">date</a> and <a href="javascript:document.getElementById('startTimeHour').focus()">time</a> in the future for your recording.
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>Please choose a starting <a href="javascript:document.getElementById('startDate').focus()">date</a> and <a href="javascript:document.getElementById('startTimeHour').focus()">time</a> in the future for your recording. If you are scheduling for a capture agent in a different timezone, account for the time different in the scheduled time.
                 </li>
                 <li id="missing-duration" class="missing-fields-item single-error multiple-error">
                   <span class="fl-icon inline-icon icon-bullet" title=""></span>You must have a <a href="javascript:document.getElementById('durationHour').focus();">duration</a> greater than 0 hours and 0 minutes.
                 </li>
                 <li id="missing-agent" class="missing-fields-item single-error multiple-error">
                   <span class="fl-icon inline-icon icon-bullet" title=""></span>Please choose a <a href="javascript:document.getElementById('agent').focus();">capture agent</a> to record the event.
+                </li>
+                <li id="missing-inputs" class="missing-fields-item single-error multiple-error">
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>You must choose at least one <a href="javascript:document.getElementById('input-list').focus();">input</a>.
                 </li>
                 <li id="error-recurstart-end" class="missing-fields-item multiple-error">
                   <span class="fl-icon inline-icon icon-bullet" title=""></span>Please choose an end date that occurs after the start date.
@@ -125,8 +130,11 @@
             </div>
             <div class="fl-widget-content warnbox-content">
               <ul>
-                <li id="notice-offline" class="missing-fields-item">
+                <li id="notice-offline" class="missing-fields-item" style="display:none;">
                   <span class="fl-icon inline-icon icon-bullet" title=""></span>The <a href="javascript:document.getElementById('agent').focus();">capture agent</a> you previously selected is currently offline. You may want to select a different capture agent.
+                </li>
+                <li id="notice-tzdiff" class="missing-fields-item" style="display:none;">
+                  <span class="fl-icon inline-icon icon-bullet" title=""></span>The timezone for this <a href="javascript:document.getElementById('agent').focus();">capture agent</a> is <span id="tzdiff"></span>. Capture will occur according to the time local to the agent, though when you look at your list of Recordings it will be shown in your local time.
                 </li>
                 <li id="notice-conflict" class="missing-fields-item" style="display:none;">
                   <span class="fl-icon inline-icon icon-bullet" title=""></span>The following events conflict with your scheduled time on your selected capture agent:
@@ -621,7 +629,7 @@
                 <ul class="fl-controls-right wu-reset field-list">
                   <li>
                     <label class="fl-label">&nbsp;</label>
-                    <input type="button" value="Submit" id="submitButton" class="mouseover-pointer control-button">
+                    <input type="button" value="Schedule" id="submitButton" class="mouseover-pointer control-button">
                     <input type="button" value="Cancel" id="cancelButton" class="mouseover-pointer control-button">
                     <div id="delete-recording" style="float: right; margin-right: 160px; display: none;">
                       <input type="button" value="Delete Recording" id="deleteButton" class="mouseover-pointer control-button">
