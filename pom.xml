@@ -73,6 +73,8 @@
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
         <module>modules/matterhorn-runtime-info-ui</module>
+        <module>modules/matterhorn-remote-api</module>
+        <module>modules/matterhorn-remote-impl</module>
         <module>modules/matterhorn-security-impl</module>
         <module>modules/matterhorn-static</module>
         <module>modules/matterhorn-webconsole</module>
@@ -96,6 +98,8 @@
         <module>modules/matterhorn-kernel</module>
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
+        <module>modules/matterhorn-remote-api</module>
+        <module>modules/matterhorn-remote-impl</module>
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-security-impl</module>
         <module>modules/matterhorn-webconsole</module>
@@ -120,6 +124,8 @@
         <module>modules/matterhorn-search-service-api</module>
         <module>modules/matterhorn-search-service-feeds</module>
         <module>modules/matterhorn-search-service-impl</module>
+        <module>modules/matterhorn-remote-api</module>
+        <module>modules/matterhorn-remote-impl</module>
         <module>modules/matterhorn-security-impl</module>
         <module>modules/matterhorn-webconsole</module>
       </modules>
@@ -144,6 +150,8 @@
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-search-service-api</module>
         <module>modules/matterhorn-search-service-remote</module>
+        <module>modules/matterhorn-remote-api</module>
+        <module>modules/matterhorn-remote-impl</module>
         <module>modules/matterhorn-security-impl</module>
         <module>modules/matterhorn-webconsole</module>
       </modules>
@@ -1165,13 +1173,13 @@
   -->
   <distributionManagement>
     <snapshotRepository>
-      <id>nexus</id>
+      <id>matterhorn-maven2-snapshot</id>
       <name>OC Snapshot repo</name>
       <url>http://repository.opencastproject.org/nexus/content/repositories/snapshots</url>
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
     <repository>
-      <id>nexus</id>
+      <id>matterhorn-maven2-release</id>
       <name>OC Release repo</name>
       <url>http://repository.opencastproject.org/nexus/content/repositories/releases</url>
     </repository>
