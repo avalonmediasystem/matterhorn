@@ -61,19 +61,6 @@ Opencast.segments = ( function() {
           $container
             .css('width', ($panels[0].offsetWidth * $panels.length))
             .css('left', "0px");
-       } else {
-         // Disable and grey out "Slides" Tab
-         $("#oc_btn-slides").removeClass("oc_btn-tabs");
-         $('#oc_btn-slides').attr("disabled", "true");
-         $("#oc_btn-slides").css("color", "#dddddd");
-         $("#oc_btn-slides").css("background-color", "#aaaaaa");
-
-         // Disable and grey out "Slides Text" Tab
-         $("#oc_btn-slidetext").removeClass("oc_btn-tabs");
-         $('#oc_btn-slidetext').attr("disabled", "true");
-         $("#oc_btn-slidetext").css("color", "#dddddd");
-         $("#oc_btn-slidetext").css("background-color", "#aaaaaa");
-         
        }
       var scroll = $('#slider .scroll').css('overflow', 'hidden');
 
@@ -98,8 +85,6 @@ Opencast.segments = ( function() {
 
     // set the slide length
     setSlideLength(segmentTimes.length);
-    
-    $('#oc_video-player-controls').css('display', 'block');
 
     // Hide Slide Tab, if there are no slides
     if(segmentTimes.length === 0) {
@@ -108,82 +93,23 @@ Opencast.segments = ( function() {
       $(".oc_btn-skip-forward").hide();
     }
 
- // set the center of the controls
-    var margin = $('#oc_video-controls').width();
+    var margin = 0;
     var controlswith = 0;
-    var playerWidth = $('#oc_video-player-controls').width();
-    
-  
-    
+
+    margin = $('#oc_video-controls').width();
+
     if (Opencast.segments.getSlideLength() === 0)
     {
-        controlswith = 58;
-        margin = ((margin - controlswith) / 2 ) - 8;
-        $(".oc_btn-rewind").css("margin-left", margin + "px");
+    	controlswith = 58;
+    	margin = ((margin - controlswith) / 2 ) - 8;
+    	 $(".oc_btn-rewind").css("margin-left", margin + "px");
     }
     else
     {
-        controlswith = 90;
-        margin = ((margin - controlswith) / 2 ) - 8;
-        $('#oc_btn-skip-backward').css("margin-left", (margin + "px"));
+    	controlswith = 90;
+    	margin = ((margin - controlswith) / 2 ) - 8;
+    	$('#oc_btn-skip-backward').css("margin-left", (margin + "px"));
     }
-    
-    // set the controls visible
-    $('#oc_video-player-controls').css('visibility', 'visible');
-    
-    
- // player size
-    if( playerWidth < 460 && playerWidth >= 380)
-    {
-        $(".oc_btn-skip-backward").css('display','none');
-        $(".oc_btn-skip-forward").css('display','none');
-        $('#oc_video-controls').css('width','20%');
-        $('#oc_video-cc').css('width','12%');
-        $('#oc_video-time').css('width','40%');
-        $('.oc_slider-volume-Rail').css('width', '45px');
-        controlswith = 58;
-        margin = $('#oc_video-controls').width();
-        margin = ((margin - controlswith) / 2 ) - 8;
-        $(".oc_btn-rewind").css("margin-left", margin + "px");
-    }
-    else if (playerWidth < 380 && playerWidth >= 300)
-    {
-        $(".oc_btn-skip-backward").css('display','none');
-        $(".oc_btn-skip-forward").css('display','none');
-        
-        $(".oc_btn-rewind").css('display','none');
-        $(".oc_btn-fast-forward").css('display','none');
-        
-        $("#oc_video-cc").css('display','none');
-        $("#oc_video-cc").css('width','0%');
-        
-        
-        
-        $('#simpleEdit').css('font-size','0.8em');
-        $('#simpleEdit').css('margin-left','1px');
-        
-        $('#oc_current-time').css('width','45px');
-        $('#oc_edit-time').css('width','45px');
-        $('#oc_duration').css('width','45px');
-        $('#oc_edit-time-error').css('width','45px');
-        
-        
-        
-        $('#oc_sound').css('width','27%');
-        
-        $('#oc_video-controls').css('width','8%');
-        
-        
-        $('#oc_video-time').css('width','48%');
-        
-        $('.oc_slider-volume-Rail').css('width', '45px');
-        
-        controlswith = 16;
-        margin = $('#oc_video-controls').width();
-        margin = ((margin - controlswith) / 2 ) - 8;
-        $("#oc_btn-play-pause").css("margin-left", margin + "px");
-    }
-
 
 
     $(document).everyTime(500, function(index) {
@@ -191,31 +117,19 @@ Opencast.segments = ( function() {
       var last = 0;
       var cur = 0;
       var ibefore = 0;
-      var lastIndex;
 
       // last segment
       if (segmentTimes[segmentTimes.length-1] <= currentPosition){
-        if (segmentTimes[segmentTimes.length-1] <= currentPosition && currentPosition < parseInt(segmentTimes[segmentTimes.length-1]) + 3)
-          lastIndex = 2;
-        else
-          lastIndex = 1;
-        var ibefore = Math.max(segmentTimes.length-lastIndex,0);
+        var ibefore = Math.max(segmentTimes.length-2,0);
         beforeSlide = segmentTimes[ibefore];
-        currentSlide = segmentTimes[segmentTimes.length-1];
+        currentSlide = segmentTimes[segmentTimes.length-1];;
         nextSlide = currentSlide;
       } else{
         for (i in segmentTimes)
         {
           cur = segmentTimes[i];
-          
           if (last <= currentPosition && currentPosition < cur){
-            
-            if (last <= currentPosition && currentPosition < parseInt(last) + 3)
-              lastIndex = 2;
-            else
-              lastIndex = 1;
-
-            ibefore = Math.max(parseInt(i)-lastIndex,0);
+            ibefore = Math.max(parseInt(i)-2,0);
             beforeSlide = segmentTimes[ibefore];
             currentSlide = last;
             nextSlide = segmentTimes[i];

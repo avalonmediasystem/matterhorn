@@ -18,7 +18,7 @@ Opencast.Watch = (function ()
           SINGLEPLAYERWITHSLIDES  = "SingleplayerWithSlides",
           AUDIOPLAYER             = "Audioplayer",
           ADVANCEDPLAYER          = "advancedPlayer",
-          PLAYERSTYLE             = "embedPlayer",
+          EMBEDPLAYER             = "embedPlayer",
           mediaResolutionOne      = "",
           mediaResolutionTwo      = "",
           mediaUrlOne             = "",
@@ -32,7 +32,6 @@ Opencast.Watch = (function ()
         var mediaPackageId = Opencast.engage.getMediaPackageId();
 
         var restEndpoint = Opencast.engage.getSearchServiceEpisodeIdURL() + mediaPackageId;
-        restEndpoint = Opencast.engage.getVideoUrl() !== null ? "preview.xml" : restEndpoint;
 
         Opencast.Player.setSessionId(Opencast.engage.getCookie("JSESSIONID"));
         Opencast.Player.setMediaPackageId(mediaPackageId);
@@ -131,7 +130,7 @@ Opencast.Watch = (function ()
           mediaResolutionOne = mediaResolutionOne === null ? '' : mediaResolutionOne;
           mediaResolutionTwo = mediaResolutionTwo === null ? '' : mediaResolutionTwo;
 
-          Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo, PLAYERSTYLE);
+          Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo);
 
           if (mediaUrlOne !== '' && mediaUrlTwo !== '')
           {
@@ -198,15 +197,6 @@ Opencast.Watch = (function ()
 
           Opencast.segments.initialize();
 
-          
-         
-         
-
-
-          
-          Opencast.search.initialize();
-
-
         });
     }
   
@@ -219,30 +209,6 @@ Opencast.Watch = (function ()
     {
       $("#" + segmentId).toggleClass("segment-holder");
       $("#" + segmentId).toggleClass("segment-holder-over");
-
-      var index = parseInt(segmentId.substr(7)) - 1;
-
-      var imageHeight = 120;
-
-      //if ($.browser.msie) {
-      //  imageHeight = 30;
-      //}
-
-      $("#segment-tooltip").html('<img src="' + Opencast.segments.getSegmentPreview(index) + '" height="' + imageHeight + '"/>');
-
-      var segmentLeft = $("#" + segmentId).offset().left;
-      var segmentTop = $("#" + segmentId).offset().top;
-      var segmentWidth = $("#" + segmentId).width();
-      var tooltipWidth = $("#segment-tooltip").width();
-
-      var posLeft = segmentLeft + segmentWidth/2 - tooltipWidth/2;
-
-      posLeft = posLeft < 0 ? 0 : posLeft;
-      posLeft = posLeft > ($("#oc_seek-slider").width() - tooltipWidth - 10) ? ($("#oc_seek-slider").width() - tooltipWidth - 10) : posLeft;
-
-      $("#segment-tooltip").css("left", posLeft + "px");
-      $("#segment-tooltip").css("top", segmentTop - (imageHeight + 7) + "px");
-      $("#segment-tooltip").show();
     }
   
     /**
@@ -254,8 +220,6 @@ Opencast.Watch = (function ()
     {
       $("#" + segmentId).toggleClass("segment-holder");
       $("#" + segmentId).toggleClass("segment-holder-over");
-
-      $("#segment-tooltip").hide();
     }
 
     /**
