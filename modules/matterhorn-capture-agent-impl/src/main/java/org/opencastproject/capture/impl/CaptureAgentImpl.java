@@ -37,7 +37,12 @@ import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
 import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.mediapackage.UnsupportedElementException;
+import org.opencastproject.mediapackage.track.TrackImpl;
 import org.opencastproject.security.api.TrustedHttpClient;
+import org.opencastproject.security.api.TrustedHttpClientException;
+import org.opencastproject.util.Checksum;
+import org.opencastproject.util.ChecksumType;
+import org.opencastproject.util.MimeType;
 import org.opencastproject.util.ZipUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -73,6 +78,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -87,6 +93,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
+
+import javax.activation.MimetypesFileTypeMap;
 
 /**
  * Implementation of the Capture Agent: using gstreamer, generates several Pipelines
@@ -134,6 +142,9 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
 
   /** Is confidence monitoring enabled? */
   private boolean confidence = false;
+
+  /** Stores the start time of the current recording */
+  private long startTime = -1l;
 
     /**
    * Sets the configuration service form which this capture agent should draw its configuration data.
@@ -349,9 +360,18 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
        * {@inheritDoc}
        * @see org.gstreamer.Bus.ERROR#errorMessage(org.gstreamer.GstObject, int, java.lang.String)
        */
-      public void errorMessage(GstObject arg0, int arg1, String arg2) {
-        logger.error(arg0.getName() + ": " + arg2);
+      public void errorMessage(GstObject obj, int retCode, String msg) {
+        logger.error("{}: {}", obj.getName(), msg);
         stopCapture(false);
+      }
+    });
+    bus.connect(new Bus.WARNING() {
+      /**
+       * {@inheritDoc}
+       * @see org.gstreamer.Bus.WARNING#warningMessage(org.gstreamer.GstObject, int, java.lang.String)
+       */
+      public void warningMessage(GstObject obj, int retCode, String msg) {
+        logger.warn("{}: {}", obj.getName(), msg);
       }
     });
 
@@ -371,6 +391,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       return null;
     }
     logger.info("{} started.", pipe.getName());
+    startTime = System.currentTimeMillis();
 
     return newRec.getID();
   }
@@ -481,6 +502,9 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       return false; 
     }
 
+    theRec.setProperty(CaptureParameters.RECORDING_DURATION, String.valueOf(System.currentTimeMillis() - startTime));
+    startTime = -1l;
+
     logger.info("Recording \"{}\" succesfully stopped", theRec.getID());
 
     if (immediateIngest) {
@@ -517,8 +541,10 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
    * Generates the manifest.xml file from the files specified in the properties
    * @param recID The ID for the recording whose manifest will be created
    * @return A state boolean
+   * @throws IOException 
+   * @throws NoSuchAlgorithmException 
    */
-  public boolean createManifest(String recID) {
+  public boolean createManifest(String recID) throws NoSuchAlgorithmException, IOException {
 
     AgentRecording recording = pendingRecordings.get(recID);
     if (recording == null) {
@@ -535,7 +561,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     if (friendlyNames.length == 1 && friendlyNames[0].equals("")) {
       //Idiot check against blank name lists.
       logger.error("Unable to build mediapackage for recording {} because the device names list is blank!", recID);
-      //TODO:  Return false here?  The above line is an error...
+      return false;
     }
 
     MediaPackageElementBuilder elemBuilder = MediaPackageElementBuilderFactory.newInstance().newElementBuilder();
@@ -557,12 +583,28 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
         File outputFile = new File(recording.getDir(), recording.getProperty(outputProperty));
 
         // Adds the file to the MediaPackage
-        if (outputFile.exists())
-          recording.getMediaPackage().add(elemBuilder.elementFromURI(
+        if (outputFile.exists()) {
+          //TODO:  This should really be Track rather than TrackImpl, but otherwise a bunch of functions we need disappear...
+          TrackImpl t = (TrackImpl) elemBuilder.elementFromURI(
                   baseURI.relativize(outputFile.toURI()),
                   MediaPackageElement.Type.Track,
-                  flavor));
-        else {
+                  flavor);
+          t.setSize(outputFile.length());
+          String[] detectedMimeType = new MimetypesFileTypeMap().getContentType(outputFile).split("/");
+          t.setMimeType(new MimeType(detectedMimeType[0], detectedMimeType[1]));
+          t.setChecksum(Checksum.create(ChecksumType.DEFAULT_TYPE, outputFile));
+          t.setDuration(Long.parseLong(recording.getProperty(CaptureParameters.RECORDING_DURATION)));
+
+          //Commented out because this does not work properly with mock captures.  Also doesn't do much when it does work...
+          /*if (name.contains("hw:")) {
+            AudioStreamImpl stream = new AudioStreamImpl(outputFile.getName());
+            t.addStream(stream);
+          } else {
+            VideoStreamImpl stream = new VideoStreamImpl(outputFile.getName());
+            t.addStream(stream);
+          }*/
+          recording.getMediaPackage().add(t);
+        } else {
           // FIXME: Is the admin reading the agent logs? (jt)
           // FIXME: Who will find out why one of the tracks is missing from the media package? (jt)
           // FIXME: Think about a notification scheme, this looks like an emergency to me (jt)
@@ -741,11 +783,19 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     postMethod.setEntity(entities);
 
     // Send the file
-    HttpResponse response = client.execute(postMethod);
-
-    retValue = response.getStatusLine().getStatusCode();
-
-    client.close(response);
+    HttpResponse response = null;
+    try {
+      response = client.execute(postMethod);
+    } catch (TrustedHttpClientException e) {
+      logger.error("Unable to ingest recording {}, message reads: {}.", recID, e.getMessage());
+    } finally {
+      if (response != null) {
+        retValue = response.getStatusLine().getStatusCode();
+        client.close(response);
+      } else {
+        retValue = -1;
+      }
+    }
 
     if (retValue == 200) {
       setRecordingState(recID, RecordingState.UPLOAD_FINISHED);
@@ -893,7 +943,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     for (String s : lines) {
       result.append(s);
     }
-    
+
     return result.toString();
   }
 
