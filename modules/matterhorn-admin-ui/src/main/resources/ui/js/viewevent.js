@@ -74,52 +74,8 @@ function handleWorkflow(workflowDoc){
   }else{
     throw "Unable to parse workflow.";
   }
-//TODO: Get the extra metadata catalog, we need the Agent's id and the inputs selected.
-//$.get(caURL, handleCatalogMetadata);
-}
-
-function handleEvent(doc) {
-  var fieldMap = {
-    title : 'title',
-    seriesId : 'isPartOf',
-    creator : 'creator',
-    contributor : 'contributor',
-    subject : "subject",
-    language : "language",
-    description : 'description',
-    timeStart : 'startdate',
-    timeDuration : "duration",
-    device : "agent",
-    resources : "inputs",
-    license : "license"
-  };
-  eventDoc = createDoc();
-  var rootEl = null;
-  if (doc.documentElement) {
-    rootEl = $(doc.documentElement);
-  } else {
-    rootEl = $("event");
-  }
-  if (rootEl) {
-    $(rootEl).find('metadataList > metadata').each(function() {
-      var key = $(this).find('key').text();
-      var val = $(this).find('value').text();
-      if (fieldMap[key]) {
-        var elm = eventDoc.createElement(fieldMap[key]);
-        if (key == 'timeStart') {
-          val = new Date(new Number(val)).toLocaleString();
-        }
-        if (key == 'timeDuration') {
-          val = parseDuration(val);
-        }
-        elm.appendChild(eventDoc.createTextNode(val));
-        eventDoc.documentElement.appendChild(elm);
-      }
-    });
-    $('#stage').xslt(serialize(eventDoc), "xsl/viewevent.xsl", callback);
-  } else {
-    throw "Unable to parse event.";
-  }
+  //TODO: Get the extra metadata catalog, we need the Agent's id and the inputs selected.
+  //$.get(caURL, handleCatalogMetadata);
 }
 
 /**
@@ -134,11 +90,19 @@ function handleDCMetadata(metadataDoc){
   for( var i in fields ){
     var field = fields[i];
     el = eventDoc.createElement(field);
+    var values = new Array();
     if(metadataDoc.getElementsByTagNameNS){
-      nodeTxt = $(metadataDoc.getElementsByTagNameNS("*",field)[0]).text();
+      var dcFields = metadataDoc.getElementsByTagNameNS("*",field);
+      for (var j=0; j < dcFields.length; j++) {           // avoids getting also all memebrs of the Array object (length, etc...)
+        values.push($(dcFields[j]).text());
+      }
     } else {
-      nodeTxt = $("dcterms\\:" + field, metadataDoc).text();
+      var values = new Array();
+      $("dcterms\\:" + field, metadataDoc).each( function(idx, elm) {
+        values.push($(elm).text());
+      });
     }
+    var nodeTxt = values.join(', ');
     el.appendChild(eventDoc.createTextNode(nodeTxt));
     eventDoc.documentElement.appendChild(el);
   }
@@ -166,13 +130,13 @@ function handleCatalogMetadata(metadataDoc){
  */
 function callback(){
   $('.folder-head').click(
-    function(){
-      $(this).children('.fl-icon').toggleClass('icon-arrow-right');
-      $(this).children('.fl-icon').toggleClass('icon-arrow-down');
-      $(this).next().toggle('fast');
-      return false;
-    }
-    );
+                          function(){
+                          $(this).children('.fl-icon').toggleClass('icon-arrow-right');
+                          $(this).children('.fl-icon').toggleClass('icon-arrow-down');
+                          $(this).next().toggle('fast');
+                          return false;
+                          }
+                          );
   
 }
 
