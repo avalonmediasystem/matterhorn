@@ -67,6 +67,11 @@ Upload.init = function() {
               Upload.metadata[$(this).attr('name')].push($(this).val());
             }
           } else {
+            if($(this).attr('id') === 'isPartOf'){
+              if($('#series').val() !== '' && $('#isPartOf').val() === ''){ //have text and no id
+                Upload.createSeriesFromSearchText();
+              }
+            }
             Upload.metadata[$(this).attr('name')] = $(this).val();
           }
         }
@@ -120,13 +125,13 @@ Upload.init = function() {
   Upload.retryId = Upload.getURLParam("retry");
   if (Upload.retryId != '') {
     $('#i18n_page_title').text("Edit Recording Before Continuing");
-    $('#BtnSubmit').text("Retry");
+    $('#BtnSubmit').text("Continue Processing");
     Upload.initRetry(Upload.retryId);
   } else {                                             // FIXME well this has to be cleaned up, agile...
     Upload.retryId = Upload.getURLParam("edit");
     if (Upload.retryId != '') {
-      $('#BtnSubmit').text("Continue Processing");  
       $('#i18n_page_title').text("Edit Recording Before Continuing");
+      $('#BtnSubmit').text("Continue Processing");
       Upload.initRetry(Upload.retryId);
     }
   }
@@ -343,6 +348,24 @@ Upload.showFailedScreen = function(message) {
     $('#field-filename').children('.fieldValue').text(UploadListener.shortFilename);
     
   });
+}
+
+Upload.createSeriesFromSearchText = function(){
+  var seriesXml = '<series><metadataList><metadata><key>title</key><value>' + $('#series').val() + '</value></metadata></metadataList></series>';
+  var creationSucceeded = false;
+  $.ajax({
+    async: false,
+    type: 'PUT',
+    url: '/series/rest/series',
+    data: { series: seriesXml },
+    success: function(data){
+      if(data.success){
+        creationSucceeded = true;
+        $('#isPartOf').val(data.id);
+      }
+    }
+  });
+  return creationSucceeded;
 }
 
 /** print line to log console
