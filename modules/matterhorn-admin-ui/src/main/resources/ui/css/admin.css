@@ -270,13 +270,8 @@ select { font-size:1.15em; }
 #holdActionPanel-container {
   display:none;
   background:white;
-  /*height:400px;*/
-  width:600px;
-  z-index:100;
-  position:absolute;
-  top:100px;
-  left:100px;
-  border:1px solid silver;
+  position:relative;
+  clear:both;
 }
 
 #holdActionPanel-iframe {
@@ -368,6 +363,10 @@ select { font-size:1.15em; }
   float:right;
 }
 
+.paging-nav-container span {
+  font-size: 0.9em;
+}
+
 .paging-nav-goto {
   width:50px;
 }
@@ -378,6 +377,10 @@ select { font-size:1.15em; }
 }
 
 /* Refresh controls and text */
+.refresh-text {
+  font-size: 0.9em;
+}
+
 .refresh-text-enabled {
  color: black;
 }

@@ -426,8 +426,8 @@ public class AdminuiRestService {
                 || (recording.getState().equals(RecordingState.MANIFEST_ERROR))
                 || (recording.getState().equals(RecordingState.UPLOAD_ERROR))) {
           AdminRecordingImpl item = new AdminRecordingImpl();
-          item.setId(event.getEventId());
           item.setItemType(AdminRecording.ItemType.SCHEDULER_EVENT);
+          item.setId(event.getEventId());
           item.setTitle(event.getValue("title"));
           item.setPresenter(event.getValue("creator"));
           item.setSeriesTitle(getSeriesNameFromEvent(event));
@@ -461,6 +461,7 @@ public class AdminuiRestService {
         if (System.currentTimeMillis() < events[i].getStartdate().getTime()) {
           AdminRecording item = new AdminRecordingImpl();
           item.setId(events[i].getEventId());
+          item.setItemType(AdminRecording.ItemType.SCHEDULER_EVENT);
           item.setTitle(events[i].getValue("title"));
           item.setPresenter(events[i].getValue("creator"));
           item.setSeriesTitle(getSeriesNameFromEvent(events[i]));
@@ -498,6 +499,7 @@ public class AdminuiRestService {
                     || state.equals(RecordingState.UPLOADING)) {
               AdminRecording item = new AdminRecordingImpl();
               item.setId(event.getEventId());
+              item.setItemType(AdminRecording.ItemType.SCHEDULER_EVENT);
               item.setTitle(event.getValue("title"));
               item.setPresenter(event.getValue("creator"));
               item.setSeriesTitle(getSeriesNameFromEvent(event));
