@@ -329,7 +329,7 @@ Opencast.Initialize = (function ()
             Opencast.FlashVersion.initFlash();
             $('#oc_image').hide();
             start = true;
-            $('#oc_video-player-controls-embed').hide();
+            $('#oc_controlbar-embed').hide();
         });
         
         $('#oc_btn-volume').click(function () 
@@ -350,7 +350,11 @@ Opencast.Initialize = (function ()
             Opencast.FlashVersion.initFlash();
             $('#oc_image').hide();
             start = true;
-            $('#oc_video-player-controls-embed').hide();
+            $('#oc_controlbar-embed').hide();
+        });
+        $('#oc-link-advanced-player').click(function () 
+        {
+        	Opencast.Player.doTogglePlayPause();
         });
         
         // Handler for .mouseover()
@@ -620,6 +624,7 @@ Opencast.Initialize = (function ()
                     }); //close each(
 
                     $('#oc_image').attr("src", coverUrl);
+                    
                 },
                 error: function(a, b, c) 
                 {
