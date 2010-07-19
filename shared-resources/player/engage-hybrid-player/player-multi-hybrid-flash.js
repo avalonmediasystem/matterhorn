@@ -31,7 +31,7 @@ Opencast.FlashVersion = (function ()
     // Major version of Flash required
     var requiredMajorVersion = 10;
     // Minor version of Flash required
-    var requiredMinorVersion = 0;
+    var requiredMinorVersion = 1;
     // Minor version of Flash required
     var requiredRevision = 0;
     
@@ -235,9 +235,10 @@ Opencast.FlashVersion = (function ()
                 str += '<param name="allowScriptAccess" value="sameDomain" />';
                 str += '<param name="bgcolor" value="#000000" />';
                 str += '<param name="allowFullScreen" value="true" />';
+                str += '<param name="wmode" value="transparent" />';
                 str += '<param name="flashvars" value="bridgeName=b_Videodisplay&amp;autoplay=false"/>';
             
-            str += '<embed ';
+            str += '<embed style="z-index: 100;"';
               for (var i in embedAttrs)
                   str += i + '="' + embedAttrs[i] + '" ';
               str += '> </embed></object>';
@@ -372,6 +373,7 @@ Opencast.FlashVersion = (function ()
                 "name", "Videodisplay",
                 "allowScriptAccess", "sameDomain",
                 "type", "application/x-shockwave-flash",
+                "wmode", "transparent",
                 "pluginspage", "http://www.adobe.com/go/getflashplayer"
           );
         } 
@@ -392,6 +394,7 @@ Opencast.FlashVersion = (function ()
                 "flashvars", "bridgeName=b_Videodisplay&amp;autoplay=false",
                 "allowScriptAccess", "sameDomain",
                 "type", "application/x-shockwave-flash",
+                "wmode", "transparent",
                 "pluginspage", "http://www.adobe.com/go/getflashplayer"
             );
        
@@ -402,8 +405,8 @@ Opencast.FlashVersion = (function ()
             var alternateContent = 'Alternate HTML content should be placed here.'
             + 'This content requires the Adobe Flash Player. '
             + '<a href=http://www.adobe.com/go/getflash/>Get Flash</a>';
-            //document.write(alternateContent);  // insert non-flash content
-            $("#oc_flash-player").html(alternateContent);
+            document.write(alternateContent);  // insert non-flash content
+            //$("#oc_flash-player").write(alternateContent);
         }
     }
     
