@@ -2,11 +2,12 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns2="http://search.opencastproject.org/" version="1.0">
   <xsl:template match="/">
     <div id="oc_seek-slider">
+    <label id="skip" for="srubber">Time Slider</label>
       <div class="progress-list">
         <span class="load-progress" value="0"/>
         <span id="play-progress" class="play-progress" value="0" style="width: 0%;"/>
         <span id="scubber-channel" class="scrubber-channel">
-          <button id="scrubber" class="scrubber-button"/>
+          <button id="scrubber" class="scrubber-button" role="slider"/>
           <div id="draggable" class="ui-widget-content" style="left: 0%;" value="test"/>
         </span>
       </div>
@@ -23,7 +24,7 @@
                           <td class="segment-holder" style="width: 15px;">
                             <xsl:attribute name="id">segment<xsl:value-of select="position()"/></xsl:attribute>
                             <xsl:attribute name="onmouseover">Opencast.Watch.hoverSegment('segment<xsl:value-of select="position()"/>')</xsl:attribute>
-                            <xsl:attribute name="onmouseout">Opencast.Watch.hoverSegment('segment<xsl:value-of select="position()"/>')</xsl:attribute>
+                            <xsl:attribute name="onmouseout">Opencast.Watch.hoverOutSegment('segment<xsl:value-of select="position()"/>')</xsl:attribute>
                             <xsl:attribute name="alt">Slide <xsl:value-of select="position()"/> of <xsl:value-of select="last()"/></xsl:attribute>
                             <xsl:attribute name="onclick">Opencast.Watch.seekSegment(<xsl:value-of select="floor(./@time div 1000)"/>)</xsl:attribute>
                             <xsl:attribute name="style">width: <xsl:value-of select="./@duration div (../../mediapackage/@duration) * 100"/>%;</xsl:attribute>
@@ -52,7 +53,7 @@
                 <xsl:attribute name="id">panel_<xsl:value-of select="position()"/></xsl:attribute>
                 <div class="inside">
                   <xsl:attribute name="onmouseover">Opencast.Watch.hoverSegment('segment<xsl:value-of select="position()"/>')</xsl:attribute>
-                  <xsl:attribute name="onmouseout">Opencast.Watch.hoverSegment('segment<xsl:value-of select="position()"/>')</xsl:attribute>
+                  <xsl:attribute name="onmouseout">Opencast.Watch.hoverOutSegment('segment<xsl:value-of select="position()"/>')</xsl:attribute>
                   <a>
                     <xsl:attribute name="href">javascript:Opencast.Watch.seekSegment(<xsl:value-of select="floor(./@time div 1000)"/>)</xsl:attribute>
                     <img width="111">
@@ -289,6 +290,9 @@
         <xsl:for-each select="ns2:search-results/result/segments/segment">
           <xsl:if test="(../../mediapackage/@duration) &gt; ./@time">
             <tr>
+              <td class="oc-segments-preview">
+               <xsl:value-of select="./previews/preview" />
+              </td>
               <td class="oc-segments-time">
                 <a class="segments-time">
                   <xsl:attribute name="onclick">Opencast.Watch.seekSegment(<xsl:value-of select="floor(./@time div 1000)"/>)</xsl:attribute>
