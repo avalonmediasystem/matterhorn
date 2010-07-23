@@ -451,7 +451,7 @@ public class VideoSegmenter extends MediaAnalysisServiceSupport implements Manag
   protected URI uploadMpeg7(Mpeg7Catalog catalog) throws TransformerFactoryConfigurationError, TransformerException,
           ParserConfigurationException, IOException, URISyntaxException {
     InputStream in = mpeg7CatalogService.serialize(catalog);
-    return workspace.putInCollection(COLLECTION_ID, UUID.randomUUID().toString(), in);
+    return workspace.putInCollection(COLLECTION_ID, UUID.randomUUID().toString() + ".xml", in);
   }
 
   /**
