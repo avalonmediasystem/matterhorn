@@ -949,11 +949,13 @@ Opencast.Player = (function () {
      */
     function stopRewind()
     {
-        if (intvalRewind !== "")
+        
+    	if (intvalRewind !== "")
         {
             window.clearInterval(intvalRewind);
             intvalRewind = "";
         }
+        Videodisplay.stopRewind(); 
     }
     
     
@@ -992,6 +994,7 @@ Opencast.Player = (function () {
             window.clearInterval(intvalFastForward);
             intvalFastForward = "";
         }
+        Videodisplay.stopFastForward();
     }  
     
     /**
@@ -1591,7 +1594,8 @@ Opencast.Player = (function () {
      */
     function setVolumeSlider(newVolume) 
     {
-        Opencast.ariaSlider.changeValueFromVideodisplay(Opencast.ariaSlider.getElementId(SLIDERVOLUME), newVolume);
+        
+    	Opencast.ariaSlider.changeValueFromVideodisplay(Opencast.ariaSlider.getElementId(SLIDERVOLUME), newVolume);
     }
     
     /**
