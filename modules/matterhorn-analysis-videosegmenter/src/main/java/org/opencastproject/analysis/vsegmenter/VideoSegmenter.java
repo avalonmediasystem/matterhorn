@@ -131,7 +131,7 @@ public class VideoSegmenter extends MediaAnalysisServiceSupport implements Manag
   public static final String CONFIG_THREADS = "videosegmenter.threads";
 
   /** The default worker thread pool size to use if no configuration is specified */
-  public static final int DEFAULT_THREADS = 2;
+  public static final int DEFAULT_THREADS = 1;
 
   /** The logging facility */
   protected static final Logger logger = LoggerFactory.getLogger(VideoSegmenter.class);
