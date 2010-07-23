@@ -93,7 +93,7 @@ public class WorkingFileRepositoryImpl implements WorkingFileRepository, PathMap
     String serviceUrlString = UrlSupport.concat(serverUrl, "files");
     String canonicalFileRepositoryUrl = cc.getBundleContext().getProperty("org.opencastproject.file.repo.url");
     if (canonicalFileRepositoryUrl != null) {
-      serviceUrlString = canonicalFileRepositoryUrl;
+      serviceUrlString = UrlSupport.concat(canonicalFileRepositoryUrl, "files");
     }
     try {
       this.serviceUrl = new URI(serviceUrlString);
