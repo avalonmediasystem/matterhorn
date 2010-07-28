@@ -345,6 +345,30 @@ Opencast.FlashVersion = (function ()
     
     function initFlash()
     {
+    	$("#oc_flash-player").html(str);
+    	
+    	FABridge.addInitializationCallback("b_Videodisplay", Videodisplay.VideodisplayGo.VideodisplayReady);
+
+    	
+    	//FABridge.addInVideodisplay.VideodisplayGoitializationCallback("b_Videodisplay", Videodisplay.VideodisplayGo.VideodisplayReady);
+
+            
+        
+    	
+    	
+    }
+    
+    function laodScript()
+    {
+    	var script = document.createElement('script');
+    	script.type = 'text/javascript';
+    	script.src = 'engage-hybrid-player/bridge/Videodisplay.js';
+    	document.getElementsByTagName('head')[0].appendChild(script);  
+    	
+    	
+    	
+    }
+    
         // Version check for the Flash Player that has the ability to start Player Product Install (6.0r65)
         var hasProductInstall = DetectFlashVer(6, 0, 65);
     
