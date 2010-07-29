@@ -102,6 +102,7 @@
           </xsl:if>
         </xsl:if>
       </xsl:if>
+       
       <xsl:if test="@type='presenter/delivery'">
         <xsl:if test="./mimetype='video/x-flv'">
           <xsl:if test="substring(url, 1, 4)='rtmp'">
