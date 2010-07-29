@@ -35,6 +35,8 @@ Opencast.FlashVersion = (function ()
     // Minor version of Flash required
     var requiredRevision = 0;
     
+    var str = '';
+    
     var isIE  = (navigator.appVersion.indexOf("MSIE") != -1) ? true : false;
     var isWin = (navigator.appVersion.toLowerCase().indexOf("win") != -1) ? true : false;
     var isOpera = (navigator.userAgent.indexOf("Opera") != -1) ? true : false;
@@ -218,7 +220,7 @@ Opencast.FlashVersion = (function ()
 
     function AC_Generateobj(objAttrs, params, embedAttrs) 
     { 
-        var str = '';
+        
         if (isIE && isWin && !isOpera)
         {
               str += '<object ';
@@ -245,7 +247,7 @@ Opencast.FlashVersion = (function ()
         }
 
         //document.write(str);
-        $("#oc_flash-player").html(str);
+        
         
     }
 
@@ -347,11 +349,11 @@ Opencast.FlashVersion = (function ()
     {
     	$("#oc_flash-player").html(str);
     	
-    	FABridge.addInitializationCallback("b_Videodisplay", Videodisplay.VideodisplayGo.VideodisplayReady);
-
     	
-    	//FABridge.addInVideodisplay.VideodisplayGoitializationCallback("b_Videodisplay", Videodisplay.VideodisplayGo.VideodisplayReady);
-
+    
+             
+            	FABridge.addInitializationCallback("b_Videodisplay", Videodisplay.VideodisplayGo.VideodisplayReady);
+            
             
         
     	
@@ -366,13 +368,11 @@ Opencast.FlashVersion = (function ()
     	document.getElementsByTagName('head')[0].appendChild(script);  
     	
     	
-    	
     }
     
         // Version check for the Flash Player that has the ability to start Player Product Install (6.0r65)
         var hasProductInstall = DetectFlashVer(6, 0, 65);
     
-        var testbreite = 233;
     
         // Version check based upon the values defined in globals
         var hasRequestedVersion = DetectFlashVer(requiredMajorVersion, requiredMinorVersion, requiredRevision);
@@ -432,7 +432,7 @@ Opencast.FlashVersion = (function ()
             document.write(alternateContent);  // insert non-flash content
             //$("#oc_flash-player").write(alternateContent);
         }
-    }
+    
     
     return {
         initFlash : initFlash
