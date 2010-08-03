@@ -16,6 +16,9 @@
 package org.opencastproject.composer.impl;
 
 import org.opencastproject.composer.api.ComposerService;
+import org.opencastproject.composer.api.EmbedderEngine;
+import org.opencastproject.composer.api.EmbedderEngineFactory;
+import org.opencastproject.composer.api.EmbedderException;
 import org.opencastproject.composer.api.EncoderEngine;
 import org.opencastproject.composer.api.EncoderEngineFactory;
 import org.opencastproject.composer.api.EncoderException;
@@ -34,6 +37,7 @@ import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.UrlSupport;
 import org.opencastproject.workspace.api.Workspace;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -78,6 +82,9 @@ public class ComposerServiceImpl implements ComposerService {
   /** Reference to the encoder engine factory */
   private EncoderEngineFactory encoderEngineFactory;
 
+  /** Reference to the embedder engine factory */
+  private EmbedderEngineFactory embedderEngineFactory;
+
   /** Id builder used to create ids for encoded tracks */
   private final IdBuilder idBuilder = IdBuilderFactory.newInstance().newIdBuilder();
 
@@ -111,6 +118,16 @@ public class ComposerServiceImpl implements ComposerService {
    */
   public void setEncoderEngineFactory(EncoderEngineFactory encoderEngineFactory) {
     this.encoderEngineFactory = encoderEngineFactory;
+  }
+
+  /**
+   * Sets embedder engine factory
+   * 
+   * @param embedderEngineFactory
+   *          The embedder engine factory
+   */
+  public void setEmbedderEngineFactory(EmbedderEngineFactory embedderEngineFactory) {
+    this.embedderEngineFactory = embedderEngineFactory;
   }
 
   /**
@@ -217,6 +234,7 @@ public class ComposerServiceImpl implements ComposerService {
   /**
    * Encodes audio and video track to a file. If both an audio and a video track are given, they are muxed together into
    * one movie container.
+   * 
    * @param videoTrack
    *          the video track
    * @param audioTrack
@@ -287,17 +305,17 @@ public class ComposerServiceImpl implements ComposerService {
 
     Runnable runnable = new Runnable() {
       public void run() {
-        
+
         if (audioTrack != null && videoTrack != null)
-          logger.info("Muxing audio track {} and video track {} into {}", new String[] {
-                  audioTrack.getIdentifier(), videoTrack.getIdentifier(), targetTrackId });
+          logger.info("Muxing audio track {} and video track {} into {}", new String[] { audioTrack.getIdentifier(),
+                  videoTrack.getIdentifier(), targetTrackId });
         else if (audioTrack == null)
-          logger.info("Encoding video track {} to {} using profile '{}'", new String[] {
-                  videoTrack.getIdentifier(), targetTrackId, profileId });
+          logger.info("Encoding video track {} to {} using profile '{}'", new String[] { videoTrack.getIdentifier(),
+                  targetTrackId, profileId });
         else if (videoTrack == null)
-          logger.info("Encoding audio track {} to {} using profile '{}'", new String[] {
-                  audioTrack.getIdentifier(), targetTrackId, profileId });
-          
+          logger.info("Encoding audio track {} to {} using profile '{}'", new String[] { audioTrack.getIdentifier(),
+                  targetTrackId, profileId });
+
         composerReceipt.setStatus(Status.RUNNING);
         remoteServiceManager.updateReceipt(composerReceipt);
 
@@ -413,7 +431,7 @@ public class ComposerServiceImpl implements ComposerService {
       throw new EncoderException(null, "No encoder engine available for profile '" + profileId + "'");
     }
 
-    // ake sure there is a video stream in the track
+    // make sure there is a video stream in the track
     if (sourceTrack != null && !sourceTrack.hasVideo()) {
       throw new RuntimeException("Cannot extract an image without a video stream");
     } else if (sourceTrack == null) {
@@ -498,6 +516,144 @@ public class ComposerServiceImpl implements ComposerService {
         throw new EncoderException(encoderEngine, e);
       } catch (InterruptedException e) {
         throw new EncoderException(encoderEngine, e);
+      }
+    }
+    return receipt;
+  }
+
+  /**
+   * 
+   * {@inheritDoc} Supports inserting captions in QuickTime files.
+   * 
+   * @see org.opencastproject.composer.api.ComposerService#captions(org.opencastproject.mediapackage.Track,
+   *      org.opencastproject.mediapackage.Attachment, java.lang.String)
+   */
+  @Override
+  public Receipt captions(Track mediaTrack, Attachment captions, String language) throws EmbedderException {
+    return captions(mediaTrack, captions, language, false);
+  }
+
+  /**
+   * 
+   * {@inheritDoc} Supports inserting captions in QuickTime files.
+   * 
+   * @see org.opencastproject.composer.api.ComposerService#captions(org.opencastproject.mediapackage.Track,
+   *      org.opencastproject.mediapackage.Attachment, java.lang.String, boolean)
+   */
+  @Override
+  // TODO attachments vs catalogs?
+  public Receipt captions(Track mediaTrack, Attachment captions, final String language, boolean block)
+          throws EmbedderException {
+
+    final String targetTrackId = idBuilder.createNew().toString();
+    final Receipt receipt = remoteServiceManager.createReceipt(JOB_TYPE);
+
+    // get embedder engine
+    final EmbedderEngine engine = embedderEngineFactory.newEmbedderEngine();
+    if (engine == null) {
+      receipt.setStatus(Receipt.Status.FAILED);
+      remoteServiceManager.updateReceipt(receipt);
+      throw new EmbedderException("Embedder engine not available");
+    }
+
+    // check if media file has video track
+    if (mediaTrack == null || !mediaTrack.hasVideo()) {
+      throw new EmbedderException("Media track must contain video stream");
+    }
+
+    // retrieve media file
+    final File mediaFile;
+    try {
+      mediaFile = workspace.get(mediaTrack.getURI());
+    } catch (NotFoundException e) {
+      receipt.setStatus(Receipt.Status.FAILED);
+      remoteServiceManager.updateReceipt(receipt);
+      throw new EmbedderException("Could not find track: " + mediaTrack);
+    } catch (IOException e) {
+      receipt.setStatus(Receipt.Status.FAILED);
+      throw new EmbedderException("Error accessing track: " + mediaTrack);
+    }
+
+    // retrieve captions file
+    final File captionFile;
+    try {
+      captionFile = workspace.get(captions.getURI());
+    } catch (NotFoundException e) {
+      receipt.setStatus(Receipt.Status.FAILED);
+      remoteServiceManager.updateReceipt(receipt);
+      throw new EmbedderException("Could not found captions at: " + captions);
+    } catch (IOException e) {
+      receipt.setStatus(Receipt.Status.FAILED);
+      remoteServiceManager.updateReceipt(receipt);
+      throw new EmbedderException("Error accessing captions at: " + captions);
+    }
+
+    // create runnable
+    Runnable runnable = new Runnable() {
+
+      @Override
+      public void run() {
+
+        logger.info("Atempting to create and embed subtitles to video track");
+
+        receipt.setStatus(Receipt.Status.RUNNING);
+        remoteServiceManager.updateReceipt(receipt);
+
+        // set properties
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("param.lang", language);
+
+        File output;
+        try {
+          output = engine.embed(mediaFile, captionFile, properties);
+        } catch (EmbedderException e) {
+          receipt.setStatus(Receipt.Status.FAILED);
+          remoteServiceManager.updateReceipt(receipt);
+          throw new RuntimeException(e);
+        }
+
+        URI returnURL = null;
+        InputStream in = null;
+        try {
+          in = new FileInputStream(output);
+          returnURL = workspace.putInCollection(COLLECTION, output.getName(), in);
+          logger.info("Copied the encoded file to the workspace at {}", returnURL);
+        } catch (Exception e) {
+          receipt.setStatus(Status.FAILED);
+          remoteServiceManager.updateReceipt(receipt);
+          logger.error("Unable to put the encoded file into the workspace", e);
+          throw new RuntimeException(e);
+        } finally {
+          IOUtils.closeQuietly(in);
+          logger.info("Deleting the local copy of the embedded file at {}", output.getAbsolutePath());
+          try {
+            FileUtils.forceDelete(output);
+          } catch (IOException e) {
+            logger.warn("Could not delete local copy of file at {}", output.getAbsolutePath());
+          }
+        }
+
+        // Have the encoded track inspected and return the result
+        Receipt inspectionReceipt = inspectionService.inspect(returnURL, true);
+        if (inspectionReceipt.getStatus() == Receipt.Status.FAILED)
+          throw new RuntimeException("Media inspection failed");
+        Track inspectedTrack = (Track) inspectionReceipt.getElement();
+        inspectedTrack.setIdentifier(targetTrackId);
+
+        receipt.setElement(inspectedTrack);
+        receipt.setStatus(Status.FINISHED);
+        remoteServiceManager.updateReceipt(receipt);
+      }
+    };
+
+    Future<?> future = executor.submit(runnable);
+    if (block) {
+      try {
+        future.get();
+      } catch (ExecutionException e) {
+        throw new EmbedderException(e);
+      } catch (InterruptedException e) {
+        throw new EmbedderException(e);
       }
     }
     return receipt;
