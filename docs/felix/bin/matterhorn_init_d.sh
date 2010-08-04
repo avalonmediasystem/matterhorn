@@ -21,6 +21,8 @@ MATTERHORN=$MATTERHORN_HOME
 FELIX=$FELIX_HOME
 #eg:  Commonly opencast or matterhorn.  Can also be your normal user if you are testing.
 MATTERHORN_USER=$USERNAME
+#Enable this if this machine is a CA.  This will enable capture device autoconfiguration.
+IS_CA=false
 
 ##
 # To enable the debugger on the vm, enable all of the following options
@@ -65,12 +67,25 @@ fi
 case "$1" in
   start)
     log_begin_msg "Starting OpenCast Matterhorn: $NAME"
+    if $IS_CA ; then
+        $MATTERHORN/capture-agent/device_config.sh
+        if [ -d $MATTERHORN/capture-agent/epiphan_driver ]; then
+                make -C $MATTERHORN/capture-agent/epiphan_driver load
+        fi
+    fi
+
     [ -d ${CHROOT} ] || mkdir -p ${CHROOT}
     [ -d ${CHDIR} ] || mkdir -p ${CHDIR}
     start-stop-daemon --start --background -m --oknodo --chuid $MATTERHORN_USER --chdir $CHDIR --pidfile /var/run/matterhorn/matterhorn.pid --exec $DAEMON -- $OPTS && log_end_msg 0 || log_end_msg 1
     ;;
   stop)
     log_begin_msg "Stopping OpenCast Matterhorn: $NAME"
+    if $IS_CA ; then
+        if [ -d $MATTERHORN/capture-agent/epiphan_driver ]; then
+                make -C $MATTERHORN/capture-agent/epiphan_driver unload
+        fi
+    fi
+
     start-stop-daemon --stop --pidfile /var/run/matterhorn/matterhorn.pid --oknodo --exec $DAEMON && log_end_msg 0 || log_end_msg 1
     rm -f /var/run/matterhorn/matterhorn.pid
     ;;
