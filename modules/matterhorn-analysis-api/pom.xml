@@ -5,11 +5,11 @@
   <artifactId>matterhorn-analysis-api</artifactId>
   <packaging>bundle</packaging>
   <name>matterhorn-analysis-api</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
   <dependencies>
     <dependency>
