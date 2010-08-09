@@ -69,9 +69,6 @@ case "$1" in
     log_begin_msg "Starting OpenCast Matterhorn: $NAME"
     if $IS_CA ; then
         $MATTERHORN/capture-agent/device_config.sh
-        if [ -d $MATTERHORN/capture-agent/epiphan_driver ]; then
-                make -C $MATTERHORN/capture-agent/epiphan_driver load
-        fi
     fi
 
     [ -d ${CHROOT} ] || mkdir -p ${CHROOT}
@@ -80,12 +77,6 @@ case "$1" in
     ;;
   stop)
     log_begin_msg "Stopping OpenCast Matterhorn: $NAME"
-    if $IS_CA ; then
-        if [ -d $MATTERHORN/capture-agent/epiphan_driver ]; then
-                make -C $MATTERHORN/capture-agent/epiphan_driver unload
-        fi
-    fi
-
     start-stop-daemon --stop --pidfile /var/run/matterhorn/matterhorn.pid --oknodo --exec $DAEMON && log_end_msg 0 || log_end_msg 1
     rm -f /var/run/matterhorn/matterhorn.pid
     ;;
