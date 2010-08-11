@@ -428,25 +428,15 @@ public class PipelineFactory {
       }
       fpsfilter.setCaps(fpsCaps);
     
+    if (codec != null && codec.equalsIgnoreCase("ffenc_mpeg2video")) {
+      logger.debug("{} using encoder: {}", captureDevice.getName(), codec);
       dec = ElementFactory.make("mpeg2dec", null);
-      if(codec != null){
-        logger.debug("{} using encoder: {}", captureDevice.getName(), codec);
-        enc = ElementFactory.make(codec, null);
-      } else {
-        enc = ElementFactory.make("ffenc_mpeg2video", null);
-      }
-      
-      if (bitrate != null) {
-        logger.debug("{} bitrate set to: {}", captureDevice.getName(), bitrate);
-        enc.set("bitrate", bitrate);
-      }
-
-      if (container != null) {
-        logger.debug("{} muxing to: {}", captureDevice.getName(), container);
-        muxer = ElementFactory.make(container, null);
-      } else {
-        
-      }
+      enc = ElementFactory.make(codec, null);
+    }
+    else {
+      dec = ElementFactory.make("capsfilter", null);
+      enc = ElementFactory.make("capsfilter", null);
+    }
     
       pipeline.addMany(filesrc, queue, mpegpsdemux, mpegvideoparse, dec, videorate, fpsfilter, enc, muxer, filesink);
 
