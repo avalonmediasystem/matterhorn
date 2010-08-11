@@ -28,6 +28,71 @@ var debug = null;
  *  @param {XML Document}
  */
 function handleWorkflow(workflowDoc){
+  var opBars = [];
+  $(workflowDoc).find('operation').each(function() {
+    var opBar = {};
+    opBar.opName = $(this).attr('id');
+    if($(this).find('completed').size() > 0) {
+      var start = $(this).find('started').text();
+      var finish = $(this).find('completed').text();
+      var totalSeconds = Math.round((finish - start) / 1000);
+      opBar.queuetime = Math.round($(this).find('time-in-queue').text() / 1000);
+      opBar.runtime = totalSeconds - opBar.queuetime;
+    } else {
+      opBar.queuetime = 0;
+      opBar.runtime = 0;
+    }
+    opBars.push(opBar);
+  });
+
+  // find the maximum for this chart
+  var max = 0;
+  for(var i in opBars) {
+    var total = opBars[i].queuetime + opBars[i].runtime;
+    if(total > max) max = total;
+  }
+  
+  // collect the chart data and titles
+  var queuetimes = '';
+  // first, the queue times
+  for(var i in opBars) {
+    if(queuetimes.length > 0) {
+      queuetimes = queuetimes + ',';
+    }
+    queuetimes = queuetimes + opBars[i].queuetime;
+  }
+  // next, the run times
+  var runtimes = '';
+  for(var i in opBars) {
+    if(runtimes.length > 0) {
+      runtimes = runtimes + ',';
+    }
+    runtimes = runtimes + opBars[i].runtime;
+  }
+  
+  // finally, the labels.  the chart displays labels bottom-to-top, so reverse the array
+  opBars.reverse();
+  var chartLabels = '';
+  for(var i in opBars) {
+    chartLabels = chartLabels + '|';
+    chartLabels = chartLabels + opBars[i].opName;
+  }
+  
+  // construct the chart URL
+  var chartUrl = 'http://chart.apis.google.com/chart?'; // the base URL for the google chart API
+  chartUrl = chartUrl + 'chtt=Operation%20Timing (seconds)'; // set the title
+  chartUrl = chartUrl + '&cht=bhs'; // set the chart type (this is a horizontally stacked bar chart)
+  chartUrl = chartUrl + '&chco=4D89F9,C6D9FD'; // set the queue and runtime colors
+  chartUrl = chartUrl + '&chxt=x,y'; // show the x and y axis
+  chartUrl = chartUrl + '&chds=0,' + max + ',0,' + max; // set the data scaling
+  chartUrl = chartUrl + '&chxr=0,0,' + max; // set the x axis range
+  chartUrl = chartUrl + '&chs=500x500'; // set the overall size of the chart
+  chartUrl = chartUrl + '&chd=t:' + queuetimes + '|' + runtimes; // add the data
+  chartUrl = chartUrl + '&chxl=1:' + chartLabels; // display the operation names
+  chartUrl = chartUrl + '&chbh=12'; // set the spacing between bars
+
+  $('#chart').attr('src', chartUrl);
+    
   debug = workflowDoc;
   eventDoc = createDoc();
   var dcURL = "";
