@@ -25,6 +25,7 @@ import org.opencastproject.composer.api.EncoderException;
 import org.opencastproject.composer.api.EncodingProfile;
 import org.opencastproject.inspection.api.MediaInspectionService;
 import org.opencastproject.mediapackage.Attachment;
+import org.opencastproject.mediapackage.Catalog;
 import org.opencastproject.mediapackage.MediaPackageElementBuilder;
 import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.mediapackage.Track;
@@ -529,8 +530,8 @@ public class ComposerServiceImpl implements ComposerService {
    *      org.opencastproject.mediapackage.Attachment, java.lang.String)
    */
   @Override
-  public Receipt captions(Track mediaTrack, Attachment captions, String language) throws EmbedderException {
-    return captions(mediaTrack, captions, language, false);
+  public Receipt captions(Track mediaTrack, Catalog[] captions) throws EmbedderException {
+    return captions(mediaTrack, captions, false);
   }
 
   /**
@@ -541,9 +542,7 @@ public class ComposerServiceImpl implements ComposerService {
    *      org.opencastproject.mediapackage.Attachment, java.lang.String, boolean)
    */
   @Override
-  // TODO attachments vs catalogs?
-  public Receipt captions(Track mediaTrack, Attachment captions, final String language, boolean block)
-          throws EmbedderException {
+  public Receipt captions(Track mediaTrack, Catalog[] captions, boolean block) throws EmbedderException {
 
     final String targetTrackId = idBuilder.createNew().toString();
     final Receipt receipt = remoteServiceManager.createReceipt(JOB_TYPE);
@@ -574,18 +573,28 @@ public class ComposerServiceImpl implements ComposerService {
       throw new EmbedderException("Error accessing track: " + mediaTrack);
     }
 
-    // retrieve captions file
-    final File captionFile;
-    try {
-      captionFile = workspace.get(captions.getURI());
-    } catch (NotFoundException e) {
-      receipt.setStatus(Receipt.Status.FAILED);
-      remoteServiceManager.updateReceipt(receipt);
-      throw new EmbedderException("Could not found captions at: " + captions);
-    } catch (IOException e) {
-      receipt.setStatus(Receipt.Status.FAILED);
-      remoteServiceManager.updateReceipt(receipt);
-      throw new EmbedderException("Error accessing captions at: " + captions);
+    final File[] captionFiles = new File[captions.length];
+    final String[] captionLanguages = new String[captions.length];
+    for (int i = 0; i < captions.length; i++) {
+      // get file
+      try {
+        captionFiles[i] = workspace.get(captions[i].getURI());
+      } catch (NotFoundException e) {
+        receipt.setStatus(Receipt.Status.FAILED);
+        remoteServiceManager.updateReceipt(receipt);
+        throw new EmbedderException("Could not found captions at: " + captions[i]);
+      } catch (IOException e) {
+        receipt.setStatus(Receipt.Status.FAILED);
+        remoteServiceManager.updateReceipt(receipt);
+        throw new EmbedderException("Error accessing captions at: " + captions[i]);
+      }
+      // get language
+      captionLanguages[i] = getLanguageFromTags(captions[i].getTags());
+      if (captionLanguages[i] == null) {
+        receipt.setStatus(Receipt.Status.FAILED);
+        remoteServiceManager.updateReceipt(receipt);
+        throw new EmbedderException("Missing caption language information for captions at: " + captions[i]);
+      }
     }
 
     // create runnable
@@ -601,11 +610,11 @@ public class ComposerServiceImpl implements ComposerService {
 
         // set properties
         Map<String, String> properties = new HashMap<String, String>();
-        properties.put("param.lang", language);
+        // TODO parameter tweaking
 
         File output;
         try {
-          output = engine.embed(mediaFile, captionFile, properties);
+          output = engine.embed(mediaFile, captionFiles, captionLanguages, properties);
         } catch (EmbedderException e) {
           receipt.setStatus(Receipt.Status.FAILED);
           remoteServiceManager.updateReceipt(receipt);
@@ -657,6 +666,22 @@ public class ComposerServiceImpl implements ComposerService {
       }
     }
     return receipt;
+  }
+
+  /**
+   * Helper function that iterates tags and returns language from tag in form lang:&lt;lang&gt;
+   * 
+   * @param tags
+   *          catalog tags
+   * @return language or null if no corresponding tag was found
+   */
+  private String getLanguageFromTags(String[] tags) {
+    for (String tag : tags) {
+      if (tag.startsWith("lang:") && tag.length() > 5) {
+        return tag.substring(5);
+      }
+    }
+    return null;
   }
 
   /**

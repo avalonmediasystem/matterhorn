@@ -27,7 +27,6 @@ import org.junit.Test;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Test class for QuickTime embedder engine.
@@ -36,9 +35,9 @@ import java.util.Map;
 public class EmbedderEngineTest {
 
   private EmbedderEngine engine;
-  private File captions;
+  private File[] captions;
+  private String[] langauges;
   private File movie;
-  private Map<String, String> properties;
   private File resultingFile;
 
   @Before
@@ -46,18 +45,19 @@ public class EmbedderEngineTest {
     // create engine
     engine = new QTSbtlEmbedderEngine();
     // load captions and movie
-    captions = new File(EmbedderEngineTest.class.getResource("/captions_test.srt").toURI());
-    Assert.assertNotNull(captions);
+    File engCaptions = new File(EmbedderEngineTest.class.getResource("/captions_test_eng.srt").toURI());
+    Assert.assertNotNull(engCaptions);
+    File fraCaptions = new File(EmbedderEngineTest.class.getResource("/captions_test_fra.srt").toURI());
+    Assert.assertNotNull(fraCaptions);
+    captions = new File[] { engCaptions, fraCaptions };
+    langauges = new String[] { "en", "fr" };
     movie = new File(EmbedderEngineTest.class.getResource("/slidechanges.mov").toURI());
     Assert.assertNotNull(movie);
-    // create properties
-    properties = new HashMap<String, String>();
-    properties.put("param.lang", "en");
   }
 
   @Test
   public void testEmbedding() throws EmbedderException, URISyntaxException {
-    resultingFile = engine.embed(movie, captions, properties);
+    resultingFile = engine.embed(movie, captions, langauges, new HashMap<String, String>());
   }
 
   @After
@@ -65,5 +65,4 @@ public class EmbedderEngineTest {
     if (resultingFile != null)
       Assert.assertTrue(resultingFile.delete());
   }
-
 }

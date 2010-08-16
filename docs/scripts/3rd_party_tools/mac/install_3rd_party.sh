@@ -48,7 +48,7 @@ ocropus_revision="r644"
 mp4v2_revision="r355"
 
 # qtsbtlembedder
-qtsbtlembedder_version="0.2"
+qtsbtlembedder_version="0.3"
 
 # ---- 3rd party tools properties ----
 

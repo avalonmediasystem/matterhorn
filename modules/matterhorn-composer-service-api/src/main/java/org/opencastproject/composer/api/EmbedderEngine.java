@@ -30,16 +30,16 @@ public interface EmbedderEngine {
    * 
    * @param mediaSource
    *          media in which captions will be embedded
-   * @param captionSource
-   *          source of captions
+   * @param captionSources
+   *          source(s) of captions
+   * @param captionLanguages
+   *          corresponding language codes
    * @param properties
    *          additional properties that define embedding properties
    * @return media file with subtitles/captions
    * @throws EmbedderException
    *           if embedding fails
    */
-  File embed(File mediaSource, File captionSource, /* EmbeddingProfile TODO, */Map<String, String> properties)
+  File embed(File mediaSource, File[] captionSources, String[] captionLanguages, Map<String, String> properties)
           throws EmbedderException;
-
-  // TODO add other methods
 }

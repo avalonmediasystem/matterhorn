@@ -16,14 +16,26 @@
 package org.opencastproject.caption.api;
 
 /**
- * Indicates that exception occurred while parsing captions in specific format.
- *
+ * Represents general exception during caption converting or parsing.
+ * 
  */
-public class IllegalCaptionFormatException extends Exception {
+public class CaptionConverterException extends Exception {
 
-  private static final long serialVersionUID = 1713563947093397459L;
-  
-  public IllegalCaptionFormatException(String exception){
-    super("Illegal caption format: " + exception);
+  private static final long serialVersionUID = -2659460833497905596L;
+
+  public CaptionConverterException() {
+    super();
+  }
+
+  public CaptionConverterException(String arg0, Throwable arg1) {
+    super(arg0, arg1);
+  }
+
+  public CaptionConverterException(String arg0) {
+    super(arg0);
+  }
+
+  public CaptionConverterException(Throwable arg0) {
+    super(arg0);
   }
 }

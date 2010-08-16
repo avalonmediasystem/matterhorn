@@ -39,8 +39,8 @@ public class QTSbtlEmbedderEngine extends AbstractCmdlineEmbedderEngine {
   private static final String CONFIG_QTEMBEDDER_PATH = "composer.qtembedderpath";
 
   /** Command line template for executing job */
-  // WARNING use 0.2 with copy support
-  private static final String CMD_TEMPLATE = "#{in.media.path} #{in.captions.path} #{-lang param.lang} #{-fonth param.fonth} #{-trackh param.trackh} #{-offset param.offset} #{-opt param.optimization} #{-out out.media.path}";
+  // WARNING use 0.3 with multiple subtitle embedding capability
+  private static final String CMD_TEMPLATE = "#{-fonth param.fonth} #{-trackh param.trackh} #{-offset param.offset} #{-opt param.optimization} #{-out out.media.path} #{in.media.path} #<#{in.captions.path}@#{param.lang}>";
 
   /** the logging facility provided by log4j */
   private static final Logger logger = LoggerFactory.getLogger(QTSbtlEmbedderEngine.class);

@@ -15,7 +15,7 @@
  */
 package org.opencastproject.composer.api;
 
-import org.opencastproject.mediapackage.Attachment;
+import org.opencastproject.mediapackage.Catalog;
 import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.mediapackage.Track;
 import org.opencastproject.remote.api.Receipt;
@@ -124,7 +124,7 @@ public interface ComposerService {
   Receipt image(Track sourceTrack, String profileId, long time, boolean block) throws EncoderException;
 
   /**
-   * Insert captions in media package element identified by <code>mediaTrack</code> from attachment which contains
+   * Insert captions in media package element identified by <code>mediaTrack</code> from catalog which contains
    * captions.
    * 
    * @param mediaTrack
@@ -137,10 +137,10 @@ public interface ComposerService {
    * @throws EmbedderException
    *           if exception occurs during embedding process
    */
-  Receipt captions(Track mediaTrack, Attachment captions, String language) throws EmbedderException;
+  Receipt captions(Track mediaTrack, Catalog[] captions) throws EmbedderException;
 
   /**
-   * Insert captions in media package element identified by <code>mediaTrack</code> from attachment which contains
+   * Insert captions in media package element identified by <code>mediaTrack</code> from catalog which contains
    * captions.
    * 
    * @param mediaTrack
@@ -155,7 +155,7 @@ public interface ComposerService {
    * @throws EmbedderException
    *           if exception occurs during embedding process
    */
-  Receipt captions(Track mediaTrack, Attachment captions, String language, boolean block) throws EmbedderException;
+  Receipt captions(Track mediaTrack, Catalog[] captions, boolean block) throws EmbedderException;
 
   /**
    * @return All registered {@link EncodingProfile}s.
