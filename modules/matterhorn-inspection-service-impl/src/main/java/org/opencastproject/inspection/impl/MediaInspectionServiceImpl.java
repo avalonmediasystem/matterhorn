@@ -157,12 +157,7 @@ public class MediaInspectionServiceImpl implements MediaInspectionService {
     logger.debug("inspect(" + uri + ") called, using workspace " + workspace);
 
     // Construct a receipt for this operation
-    Job job = null;
-    try {
-      job = remoteServiceManager.createJob(JOB_TYPE);
-    } catch (ServiceRegistryException e) {
-      throw new 
-    }
+    final Job job = remoteServiceManager.createJob(JOB_TYPE);
 
     final ServiceRegistry rs = remoteServiceManager;
     Callable<Track> command = new Callable<Track>() {
