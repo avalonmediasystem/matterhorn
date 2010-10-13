@@ -17,6 +17,7 @@ package org.opencastproject.serviceregistry.api;
 
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.Job.Status;
+import org.opencastproject.util.NotFoundException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +39,7 @@ public interface ServiceRegistry {
    *          The path to the service endpoint
    * @return the service registration
    */
-  ServiceRegistration registerService(String serviceType, String host, String path);
+  ServiceRegistration registerService(String serviceType, String host, String path) throws ServiceRegistryException;
 
   /**
    * Registers a host to handle a specific type of job
@@ -53,7 +54,7 @@ public interface ServiceRegistry {
    *          Whether this service registration produces {@link Job}s to track long running operations
    * @return the service registration
    */
-  ServiceRegistration registerService(String serviceType, String host, String path, boolean jobProducer);
+  ServiceRegistration registerService(String serviceType, String host, String path, boolean jobProducer) throws ServiceRegistryException;
 
   /**
    * Unregisters a host from handling a specific type of job
@@ -65,7 +66,7 @@ public interface ServiceRegistry {
    * @param path
    *          The path to the service endpoint
    */
-  void unRegisterService(String serviceType, String host, String path);
+  void unRegisterService(String serviceType, String host, String path) throws ServiceRegistryException;
 
   /**
    * Sets a registered host's maintenance status
@@ -104,14 +105,14 @@ public interface ServiceRegistry {
    * 
    * @return the job
    */
-  Job createJob(String type);
+  Job createJob(String type) throws ServiceRegistryException;
 
   /**
    * Update the job in the database
    * 
    * @param job
    */
-  void updateJob(Job job);
+  void updateJob(Job job) throws NotFoundException, ServiceRegistryException;
 
   /**
    * Gets a receipt by its ID, or null if not found
@@ -120,7 +121,7 @@ public interface ServiceRegistry {
    *          the job id
    * @return the job or null
    */
-  Job getJob(String id);
+  Job getJob(String id) throws NotFoundException, ServiceRegistryException;
 
   /**
    * Finds the service registrations for this kind of job, ordered by load (lightest to heaviest).
@@ -129,7 +130,7 @@ public interface ServiceRegistry {
    *          The type of service that must be handled by the hosts
    * @return A list of hosts that handle this job type, in order of their running and queued job load
    */
-  List<ServiceRegistration> getServiceRegistrations(String serviceType);
+  List<ServiceRegistration> getServiceRegistrations(String serviceType) throws ServiceRegistryException;
 
   /**
    * Finds a single service registration by host and type.
@@ -140,21 +141,21 @@ public interface ServiceRegistry {
    *          the base URL of the host
    * @return The service registration, or null
    */
-  ServiceRegistration getServiceRegistration(String serviceType, String host);
+  ServiceRegistration getServiceRegistration(String serviceType, String host) throws ServiceRegistryException;
 
   /**
    * Finds all service registrations.
    * 
    * @return A list of service registrations
    */
-  List<ServiceRegistration> getServiceRegistrations();
+  List<ServiceRegistration> getServiceRegistrations() throws ServiceRegistryException;
 
   /**
    * Gets performance and runtime statistics for each known service registration.
    * 
    * @return the service statistics
    */
-  List<ServiceStatistics> getServiceStatistics();
+  List<ServiceStatistics> getServiceStatistics() throws ServiceRegistryException;
 
   /**
    * Count the number of receipts of this type in this {@link Status} across all hosts
@@ -165,7 +166,7 @@ public interface ServiceRegistry {
    *          The status of the receipts
    * @return the number of jobs
    */
-  long count(String serviceType, Status status);
+  long count(String serviceType, Status status) throws ServiceRegistryException;
 
   /**
    * Count the number of jobs in this {@link Status} on this host
@@ -178,6 +179,6 @@ public interface ServiceRegistry {
    *          The server that created and will be handling the job
    * @return the number of jobs
    */
-  long count(String serviceType, Status status, String host);
+  long count(String serviceType, Status status, String host) throws ServiceRegistryException;
 
 }

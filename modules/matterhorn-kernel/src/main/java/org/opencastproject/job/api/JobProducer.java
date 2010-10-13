@@ -18,6 +18,8 @@ package org.opencastproject.job.api;
 import org.opencastproject.job.api.Job.Status;
 import org.opencastproject.util.NotFoundException;
 
+import java.io.IOException;
+
 /**
  * A service that creates jobs for long-running operations.
  */
@@ -31,21 +33,27 @@ public interface JobProducer {
    * @return the job
    * @throws NotFoundException
    *           if the job doesn't exist
+   * @throws IOException
+   *           if an error occurs while communicating with the backing data source
    */
-  Job getJob(String id) throws NotFoundException;
+  Job getJob(String id) throws NotFoundException, IOException;
 
   /**
    * Get the number of encoding jobs in a current status on all nodes.
    * 
    * @return Number of jobs in this state
+   * @throws IOException
+   *           if an error occurs while communicating with the backing data source
    */
-  long countJobs(Status status);
+  long countJobs(Status status) throws IOException;
 
   /**
    * Get the number of encoding jobs in a current status on a specific node.
    * 
    * @return Number of running jobs
+   * @throws IOException
+   *           if an error occurs while communicating with the backing data source
    */
-  long countJobs(Status status, String host);
+  long countJobs(Status status, String host) throws IOException;
 
 }

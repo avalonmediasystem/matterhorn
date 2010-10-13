@@ -34,6 +34,7 @@ import org.opencastproject.mediapackage.track.AudioStreamImpl;
 import org.opencastproject.mediapackage.track.TrackImpl;
 import org.opencastproject.mediapackage.track.VideoStreamImpl;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
+import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.util.Checksum;
 import org.opencastproject.util.ChecksumType;
 import org.opencastproject.util.MimeTypes;
@@ -106,8 +107,12 @@ public class MediaInspectionServiceImpl implements MediaInspectionService {
    * 
    * @see org.opencastproject.job.api.JobProducer#getJob(java.lang.String)
    */
-  public Job getJob(String id) {
-    return remoteServiceManager.getJob(id);
+  public Job getJob(String id) throws NotFoundException, IOException {
+    try {
+      return remoteServiceManager.getJob(id);
+    } catch (ServiceRegistryException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -115,10 +120,14 @@ public class MediaInspectionServiceImpl implements MediaInspectionService {
    * 
    * @see org.opencastproject.job.api.JobProducer#countJobs(org.opencastproject.job.api.Job.Status)
    */
-  public long countJobs(Status status) {
+  public long countJobs(Status status) throws IOException {
     if (status == null)
       throw new IllegalArgumentException("status must not be null");
-    return remoteServiceManager.count(JOB_TYPE, status);
+    try {
+      return remoteServiceManager.count(JOB_TYPE, status);
+    } catch (ServiceRegistryException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -127,12 +136,16 @@ public class MediaInspectionServiceImpl implements MediaInspectionService {
    * @see org.opencastproject.job.api.JobProducer#countJobs(org.opencastproject.job.api.Job.Status,
    *      java.lang.String)
    */
-  public long countJobs(Status status, String host) {
+  public long countJobs(Status status, String host) throws IOException {
     if (status == null)
       throw new IllegalArgumentException("status must not be null");
     if (host == null)
       throw new IllegalArgumentException("host must not be null");
-    return remoteServiceManager.count(JOB_TYPE, status, host);
+    try {
+      return remoteServiceManager.count(JOB_TYPE, status, host);
+    } catch (ServiceRegistryException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -144,7 +157,13 @@ public class MediaInspectionServiceImpl implements MediaInspectionService {
     logger.debug("inspect(" + uri + ") called, using workspace " + workspace);
 
     // Construct a receipt for this operation
-    final Job job = remoteServiceManager.createJob(JOB_TYPE);
+    Job job = null;
+    try {
+      job = remoteServiceManager.createJob(JOB_TYPE);
+    } catch (ServiceRegistryException e) {
+      throw new 
+    }
+
     final ServiceRegistry rs = remoteServiceManager;
     Callable<Track> command = new Callable<Track>() {
       public Track call() throws Exception {
