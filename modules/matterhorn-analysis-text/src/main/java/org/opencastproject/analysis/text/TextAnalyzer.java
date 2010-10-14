@@ -29,7 +29,6 @@ import org.opencastproject.mediapackage.Catalog;
 import org.opencastproject.mediapackage.MediaPackageElement;
 import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageElements;
-import org.opencastproject.mediapackage.MediaPackageReferenceImpl;
 import org.opencastproject.metadata.mpeg7.MediaTime;
 import org.opencastproject.metadata.mpeg7.MediaTimeImpl;
 import org.opencastproject.metadata.mpeg7.Mpeg7CatalogImpl;
@@ -202,7 +201,6 @@ public class TextAnalyzer extends MediaAnalysisServiceSupport {
         Catalog catalog = (Catalog) MediaPackageElementBuilderFactory.newInstance().newElementBuilder()
                 .newElement(Catalog.TYPE, MediaPackageElements.TEXTS);
         catalog.setURI(uri);
-        catalog.setReference(new MediaPackageReferenceImpl(element));
 
         job.setElement(catalog);
         job.setStatus(Status.FINISHED);
