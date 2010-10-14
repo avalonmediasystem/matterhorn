@@ -118,8 +118,7 @@
             </Import-Package>
             <Embed-Dependency>json-simple;inline=true</Embed-Dependency>
             <Service-Component>
-              OSGI-INF/serviceregistry.xml,
-              OSGI-INF/serviceregistry-endpoint.xml
+              OSGI-INF/serviceregistry-remote.xml
             </Service-Component>
             <JPA-PersistenceUnits>org.opencastproject.serviceregistry</JPA-PersistenceUnits>
           </instructions>

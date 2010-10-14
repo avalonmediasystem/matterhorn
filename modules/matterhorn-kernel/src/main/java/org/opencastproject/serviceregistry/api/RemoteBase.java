@@ -169,8 +169,10 @@ public class RemoteBase implements JobProducer {
    * @return The receipt
    * @throws NotFoundException
    *           if the job doesn't exist
+   * @throws ServiceRegistryException
+   *           if communication with the service registry fails
    */
-  protected Job poll(String id) throws NotFoundException {
+  protected Job poll(String id) throws NotFoundException, ServiceRegistryException {
     while (true) {
       try {
         Job r = getJob(id);
@@ -180,8 +182,6 @@ public class RemoteBase implements JobProducer {
         Thread.sleep(10000);
       } catch (InterruptedException e) {
         logger.warn("polling interrupted");
-      } catch (IOException e) {
-        logger.warn("Error communicating with remote service", e);
       }
     }
   }
@@ -191,13 +191,8 @@ public class RemoteBase implements JobProducer {
    * 
    * @see org.opencastproject.job.api.JobProducer#getJob(java.lang.String)
    */
-  public Job getJob(String id) throws NotFoundException, IOException {
-    try {
-      return remoteServiceManager.getJob(id);
-    } catch (ServiceRegistryException e) {
-      logger.warn("Error communicating with remote service", e);
-      throw new IOException(e);
-    }
+  public Job getJob(String id) throws NotFoundException, ServiceRegistryException {
+    return remoteServiceManager.getJob(id);
   }
 
   /**
@@ -205,15 +200,10 @@ public class RemoteBase implements JobProducer {
    * 
    * @see org.opencastproject.job.api.JobProducer#countJobs(org.opencastproject.job.api.Job.Status)
    */
-  public long countJobs(Status status) throws IOException {
+  public long countJobs(Status status) throws ServiceRegistryException {
     if (status == null)
       throw new IllegalArgumentException("status must not be null");
-    try {
-      return remoteServiceManager.count(serviceType, status);
-    } catch (ServiceRegistryException e) {
-      logger.warn("Error communicating with remote service", e);
-      throw new IOException(e);
-    }
+    return remoteServiceManager.count(serviceType, status);
   }
 
   /**
@@ -221,17 +211,12 @@ public class RemoteBase implements JobProducer {
    * 
    * @see org.opencastproject.job.api.JobProducer#countJobs(org.opencastproject.job.api.Job.Status, java.lang.String)
    */
-  public long countJobs(Status status, String host) throws IOException {
+  public long countJobs(Status status, String host) throws ServiceRegistryException {
     if (status == null)
       throw new IllegalArgumentException("status must not be null");
     if (host == null)
       throw new IllegalArgumentException("host must not be null");
-    try {
-      return remoteServiceManager.count(serviceType, status, host);
-    } catch (ServiceRegistryException e) {
-      logger.warn("Error communicating with remote service", e);
-      throw new IOException(e);
-    }
+    return remoteServiceManager.count(serviceType, status, host);
   }
 
   /**

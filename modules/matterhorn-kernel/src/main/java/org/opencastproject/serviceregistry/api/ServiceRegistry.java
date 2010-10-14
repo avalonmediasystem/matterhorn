@@ -37,6 +37,8 @@ public interface ServiceRegistry {
    *          The base URL where the service that can handle this service type can be found
    * @param path
    *          The path to the service endpoint
+   * @throws ServiceRegistryException
+   *           if communication with the service registry fails
    * @return the service registration
    */
   ServiceRegistration registerService(String serviceType, String host, String path) throws ServiceRegistryException;
@@ -52,9 +54,12 @@ public interface ServiceRegistry {
    *          The path to the service endpoint
    * @param jobProducer
    *          Whether this service registration produces {@link Job}s to track long running operations
+   * @throws ServiceRegistryException
+   *           if communication with the service registry fails
    * @return the service registration
    */
-  ServiceRegistration registerService(String serviceType, String host, String path, boolean jobProducer) throws ServiceRegistryException;
+  ServiceRegistration registerService(String serviceType, String host, String path, boolean jobProducer)
+          throws ServiceRegistryException;
 
   /**
    * Unregisters a host from handling a specific type of job
@@ -65,6 +70,8 @@ public interface ServiceRegistry {
    *          The base URL where the service that can handle this job type can be found
    * @param path
    *          The path to the service endpoint
+   * @throws ServiceRegistryException
+   *           if communication with the service registry fails
    */
   void unRegisterService(String serviceType, String host, String path) throws ServiceRegistryException;
 
@@ -79,8 +86,11 @@ public interface ServiceRegistry {
    *          the new maintenance status for this service
    * @throws IllegalStateException
    *           if this is called for a jobType and baseUrl that is not registered
+   * @throws ServiceRegistryException
+   *           if communication with the service registry fails
    */
-  void setMaintenanceStatus(String serviceType, String host, boolean maintenance) throws IllegalStateException;
+  void setMaintenanceStatus(String serviceType, String host, boolean maintenance) throws IllegalStateException,
+          ServiceRegistryException;
 
   /**
    * Parses an xml string representing a Receipt
