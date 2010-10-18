@@ -34,8 +34,11 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CLIWorkflowOperationHandlerTest {
 
@@ -58,18 +61,22 @@ public class CLIWorkflowOperationHandlerTest {
 
   }
 
+  /**
+   * Make sure that all of the binaries used by the tests are there.
+   */
   @BeforeClass
-  public static void textEnvironment() {
-    List<String> commands = new ArrayList<String>();
-    commands.add("touch test");
-    commands.add("echo hello");
-    commands.add("cat test");
+  public static void textEnvironment() throws IOException {
+    File tmp = File.createTempFile("test", "txt");
+    Map<String, String> commands = new HashMap<String, String>();
+    commands.put("touch", tmp.getAbsolutePath());
+    commands.put("echo", "hello");
+    commands.put("cat", tmp.getAbsolutePath());
 
-    for (String command : commands) {
+    for (Map.Entry<String, String> command : commands.entrySet()) {
       try {
-        Process p = new ProcessBuilder(command).start();
+        Process p = new ProcessBuilder(command.getKey(), command.getValue()).start();
         if (p.waitFor() != 0)
-          throw new IllegalStateException();
+          throw new IllegalStateException("Command '" + command.getKey() + "' failed with status " + p.exitValue());
       } catch (Throwable t) {
         logger.warn("Skipping cli workflow tests due to incomplete environment");
         isSane = false;
