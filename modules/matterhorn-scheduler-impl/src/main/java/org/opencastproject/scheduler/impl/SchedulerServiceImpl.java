@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -49,41 +50,36 @@ import javax.persistence.spi.PersistenceProvider;
 
 /**
  * An implementation of the Scheduler service based on JPA. This version knows about series too.
- *
+ * 
  */
-public class SchedulerServiceImpl implements ManagedService{
-  
+public class SchedulerServiceImpl implements ManagedService {
+
   private static final Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
   protected PersistenceProvider persistenceProvider;
   protected Map<String, Object> persistenceProperties;
   protected EntityManagerFactory emf = null;
-    
+
   /**
    * The component context that is passed when activate is called
    */
-  protected ComponentContext componentContext;  
-  
+  protected ComponentContext componentContext;
+
   protected DublinCoreGenerator dcGenerator;
   protected CaptureAgentMetadataGenerator caGenerator;
   protected SeriesService seriesService;
-  
-  private long updated = System.currentTimeMillis();
-  private long updatedCalendar = 0;
-  private long updatedAllEvents = 0;
-  
-  private Hashtable<String, String> calendars;
-  private List<Event> cachedEvents;
-  
-  /** 
+
+  /**
    * Properties that are updated by ManagedService updated method
    */
   @SuppressWarnings("rawtypes")
   protected Dictionary properties;
-  
+
   /**
    * This method will be called, when the bundle gets loaded from OSGI
-   * @param componentContext The ComponetnContext of the OSGI bundle
+   * 
+   * @param componentContext
+   *          The ComponetnContext of the OSGI bundle
    */
   public void activate(ComponentContext componentContext) {
     emf = persistenceProvider.createEntityManagerFactory("org.opencastproject.scheduler.impl", persistenceProperties);
@@ -93,11 +89,12 @@ public class SchedulerServiceImpl implements ManagedService{
       return;
     }
     this.componentContext = componentContext;
-    URL dcMappingURL = componentContext.getBundleContext().getBundle().getResource("config/dublincoremapping.properties");
-    logger.debug("Using Dublin Core Mapping from {}.",dcMappingURL);
+    URL dcMappingURL = componentContext.getBundleContext().getBundle()
+            .getResource("config/dublincoremapping.properties");
+    logger.debug("Using Dublin Core Mapping from {}.", dcMappingURL);
     InputStream is = null;
     try {
-      if (dcMappingURL != null)  {
+      if (dcMappingURL != null) {
         URLConnection con = dcMappingURL.openConnection();
         is = con.getInputStream();
         dcGenerator = new DublinCoreGenerator(is);
@@ -107,8 +104,9 @@ public class SchedulerServiceImpl implements ManagedService{
     } finally {
       IOUtils.closeQuietly(is);
     }
-    
-    URL caMappingURL = componentContext.getBundleContext().getBundle().getResource("config/captureagentmetadatamapping.properties");
+
+    URL caMappingURL = componentContext.getBundleContext().getBundle()
+            .getResource("config/captureagentmetadatamapping.properties");
     logger.debug("Using Capture Agent Metadata Mapping from {}.", caMappingURL);
     try {
       if (caMappingURL != null) {
@@ -121,8 +119,8 @@ public class SchedulerServiceImpl implements ManagedService{
     } finally {
       IOUtils.closeQuietly(is);
     }
-  } 
-  
+  }
+
   public Map<String, Object> getPersistenceProperties() {
     return persistenceProperties;
   }
@@ -130,26 +128,30 @@ public class SchedulerServiceImpl implements ManagedService{
   public void setPersistenceProperties(Map<String, Object> persistenceProperties) {
     this.persistenceProperties = persistenceProperties;
   }
-  
+
   public void setPersistenceProvider(PersistenceProvider persistenceProvider) {
     this.persistenceProvider = persistenceProvider;
   }
-  
+
   public PersistenceProvider getPersistenceProvider() {
     return persistenceProvider;
   }
- 
+
   /**
    * Sets a DublinCoreGenerator
-   * @param dcGenerator The DublinCoreGenerator that should be used
+   * 
+   * @param dcGenerator
+   *          The DublinCoreGenerator that should be used
    */
   public void setDublinCoreGenerator(DublinCoreGenerator dcGenerator) {
     this.dcGenerator = dcGenerator;
   }
 
   /**
-   * Sets the CaptureAgentMetadataGenerator 
-   * @param caGenerator The CaptureAgentMetadataGenerator that should be used
+   * Sets the CaptureAgentMetadataGenerator
+   * 
+   * @param caGenerator
+   *          The CaptureAgentMetadataGenerator that should be used
    */
   public void setCaptureAgentMetadataGenerator(CaptureAgentMetadataGenerator caGenerator) {
     this.caGenerator = caGenerator;
@@ -157,55 +159,81 @@ public class SchedulerServiceImpl implements ManagedService{
 
   /**
    * Persist an event
-   * @param Event e
+   * 
+   * @param Event
+   *          e
    * @return The event that has been persisted
    */
   public Event addEvent(Event e) {
-    EntityManager em = emf.createEntityManager();
-    EventImpl event = (EventImpl)e;
-    event.setEntityManagerFactory(emf);
+    EntityManager em = null;
     try {
+      em = emf.createEntityManager();
+      EventImpl event = (EventImpl) e;
       EntityTransaction tx = em.getTransaction();
       tx.begin();
-      em.persist(event); //TODO: Handle EntityExistsException
+      em.persist(event); // TODO: Handle EntityExistsException
       tx.commit();
+      return event;
     } finally {
-      em.close();
-      updated = System.currentTimeMillis();
+      if (em != null)
+        em.close();
     }
-    
-    return event;
   }
-  
+
   /**
-   * Persist a recurring event
-   * @param RecurringEvent e
+   * Persist a recurring event. This will persist a recurring event and will generate all of its associated events.
+   * 
+   * @param RecurringEvent
+   *          e the recurring event
    * @return The recurring event that has been persisted
    */
   public RecurringEvent addRecurringEvent(RecurringEvent e) {
     EntityManager em = emf.createEntityManager();
-    RecurringEventImpl event = (RecurringEventImpl)e;
-    event.generatedEvents();
+
+    // Generate the events for this recurring event
+    RecurringEventImpl rEvent = (RecurringEventImpl) e;
+    if (rEvent.events == null) {
+      rEvent.events = new ArrayList<EventImpl>();
+    }
+    for (int i = 0; i < rEvent.generateDates().size(); i++) {
+      EventImpl event = new EventImpl();
+      String title = "Episode";
+      if (rEvent.getValue("title") != null) {
+        title = rEvent.getValue("title");
+      }
+      event.addMetadata(new MetadataImpl("title", title + " " + (i + 1)));
+      logger.debug("Recur event: {}", event);
+      rEvent.events.add(event);
+    }
     try {
       EntityTransaction tx = em.getTransaction();
       tx.begin();
-      em.persist(event); //TODO: Handle EntityExistsException
+      em.persist(rEvent); // TODO: Handle EntityExistsException
       tx.commit();
     } finally {
       em.close();
-      updated = System.currentTimeMillis();
     }
-    
+
     return e;
   }
-  
+
   /**
    * @param eventID
    * @return An event that matches eventID
    */
-  public Event getEvent(String eventID) {
-    return EventImpl.find(eventID, emf);
-  }  
+  public Event getEvent(String eventId) {
+    logger.debug("loading event with the ID {}", eventId);
+    if (eventId == null || emf == null) {
+      logger.warn("could not find event {}. Null Pointer exeption");
+      return null;
+    }
+    EntityManager em = emf.createEntityManager();
+    try {
+      return em.find(EventImpl.class, eventId);
+    } finally {
+      em.close();
+    }
+  }
 
   /**
    * @param recurringEventID
@@ -216,21 +244,18 @@ public class SchedulerServiceImpl implements ManagedService{
     EntityManager em = emf.createEntityManager();
     RecurringEvent e = null;
     try {
-       e = em.find(RecurringEventImpl.class, recurringEventID);
+      e = em.find(RecurringEventImpl.class, recurringEventID);
     } finally {
       em.close();
-      updated = System.currentTimeMillis();
     }
-    e.setEntityManagerFactory(emf);
     return e;
-  }  
-  
+  }
+
   /**
    * @param filter
    * @return List of events that match the supplied filter, or all events if no filter is supplied
    */
-  public List<Event> getEvents (SchedulerFilter filter) {
-    if (updatedCalendar < updated) calendars = new Hashtable<String, String>(); // reset all calendars, if data has been changed 
+  public List<Event> getEvents(SchedulerFilter filter) {
     if (filter == null) {
       logger.debug("returning all events");
       return getAllEvents();
@@ -242,204 +267,199 @@ public class SchedulerServiceImpl implements ManagedService{
       if (e != null) {
         logger.debug("using only single event with id {}.", filter.getEventIDFilter());
         events.add(e);
-      } 
+      }
     } else {
-        // all other cases
-        events = new LinkedList<Event>(getAllEvents());
-        logger.debug("using all {} events.", events.size());
+      // all other cases
+      events = new LinkedList<Event>(getAllEvents());
+      logger.debug("using all {} events.", events.size());
     }
-    
+
     // filter for device
     if (filter.getDeviceFilter() != null && filter.getDeviceFilter().length() > 0) {
       events = filterEventsForExactValue(events, "device", filter.getDeviceFilter());
       logger.debug("filtered for device. {} events left.", events.size());
     }
-    
+
     // filter for title
     if (filter.getTitleFilter() != null && filter.getTitleFilter().length() > 0) {
       events = filterEvents(events, "title", filter.getTitleFilter());
       logger.debug("filtered for Title. {} events left.", events.size());
     }
-    
+
     // filter for creator
     if (filter.getCreatorFilter() != null && filter.getCreatorFilter().length() > 0) {
       events = filterEvents(events, "creator", filter.getCreatorFilter());
       logger.debug("filtered for creator. {} events left.", events.size());
     }
-    
+
     // filter for abstract
     if (filter.getAbstractFilter() != null && filter.getAbstractFilter().length() > 0) {
       events = filterEvents(events, "abstract", filter.getAbstractFilter());
       logger.debug("filtered for abstract. {} events left.", events.size());
     }
-    
+
     // filter for contributor
     if (filter.getContributorFilter() != null && filter.getContributorFilter().length() > 0) {
       events = filterEvents(events, "contributor", filter.getContributorFilter());
       logger.debug("filtered for contributor. {} events left.", events.size());
     }
-    
+
     // filter for location
     if (filter.getLocationFilter() != null && filter.getLocationFilter().length() > 0) {
       events = filterEventsForExactValue(events, "location", filter.getLocationFilter());
       logger.debug("filtered for location. {} events left.", events.size());
     }
-    
+
     // filter for series
     if (filter.getSeriesIDFilter() != null && filter.getSeriesIDFilter().length() > 0) {
       events = filterEventsForExactValue(events, "series-id", filter.getSeriesIDFilter());
       logger.debug("filtered for series. {} events left.", events.size());
     }
-    
+
     // filter for channel
     if (filter.getChannelIDFilter() != null && filter.getChannelIDFilter().length() > 0) {
       events = filterEvents(events, "channel-id", filter.getChannelIDFilter());
       logger.debug("filtered for channel. {} events left.", events.size());
     }
-    
+
     // filter for resources
     if (filter.getResourceFilter() != null && filter.getResourceFilter().length() > 0) {
       events = filterEvents(events, "resources", filter.getResourceFilter());
       logger.debug("filtered for resources. {} events left.", events.size());
     }
-    
+
     // filter for attendees
     if (filter.getAttendeeFilter() != null && filter.getAttendeeFilter().length() > 0) {
       events = filterEvents(events, "attendes", filter.getAttendeeFilter());
       logger.debug("filtered for attendees. {} events left.", events.size());
     }
-    
+
     // filter for later Dates
     if (filter.getStart() != null && filter.getStart().getTime() > 0) {
       events = filterEventsForAfterDate(events, filter.getStart());
       logger.debug("Setting start date. {} events left.", events.size());
     }
-    
+
     // filter for later Dates
     if (filter.getEnd() != null && filter.getEnd().getTime() > 0) {
       events = filterEventsForBeforeDate(events, filter.getEnd());
       logger.debug("Setting end date. {} events left.", events.size());
     }
-    
+
     return events;
-  }  
-  
+  }
+
   /**
-   * Filters a list of events by a metadata field and removes any that do not contain key,
-   *  and any that contains key by does not contain the value.
+   * Filters a list of events by a metadata field and removes any that do not contain key, and any that contains key by
+   * does not contain the value.
+   * 
    * @param list
    * @param key
    * @param value
    * @return Filtered list of events
    */
-  private List<Event> filterEvents (List<Event> list, String key, String value) {
-    LinkedList<Event> marked = new LinkedList<Event>(); //needed because loop will not terminate correctly, if list is modified
-    for (Event e: list) {
-      if (! e.containsKey(key)) marked.add(e);
-      else if (! e.getValue(key).contains(value)) marked.add(e);
+  private List<Event> filterEvents(List<Event> list, String key, String value) {
+    LinkedList<Event> marked = new LinkedList<Event>(); // needed because loop will not terminate correctly, if list is
+                                                        // modified
+    for (Event e : list) {
+      if (!e.containsKey(key))
+        marked.add(e);
+      else if (!e.getValue(key).contains(value))
+        marked.add(e);
     }
-    for (Event e: marked) list.remove(e);
-    
+    for (Event e : marked)
+      list.remove(e);
+
     return list;
   }
-  
+
   /**
-   * Filters a list of events by metadata and removes any that does not contain key,
-   * or any that contain key but do not equal value.
+   * Filters a list of events by metadata and removes any that does not contain key, or any that contain key but do not
+   * equal value.
+   * 
    * @param list
    * @param key
    * @param value
    * @return Filtered list of events
    */
-  private List<Event> filterEventsForExactValue (List<Event> list, String key, String value) {
-    LinkedList<Event> marked = new LinkedList<Event>(); //needed because loop will not terminate correctly, if list is modified
-    for (Event e: list) {
-      if (! e.containsKey(key)) marked.add(e);
-      else if (! e.getValue(key).equals(value)) marked.add(e);
+  private List<Event> filterEventsForExactValue(List<Event> list, String key, String value) {
+    LinkedList<Event> marked = new LinkedList<Event>(); // needed because loop will not terminate correctly, if list is
+                                                        // modified
+    for (Event e : list) {
+      if (!e.containsKey(key))
+        marked.add(e);
+      else if (!e.getValue(key).equals(value))
+        marked.add(e);
     }
-    for (Event e: marked) list.remove(e);
-    
+    for (Event e : marked)
+      list.remove(e);
+
     return list;
   }
-  
+
   /**
    * Filters a list of events, removing any of those that start before provided date.
+   * 
    * @param list
    * @param time
    * @return Filtered list of events
    */
-  private List<Event> filterEventsForBeforeDate (List<Event> list, Date time) {
-    if (time == null) return list;
-    LinkedList<Event> marked = new LinkedList<Event>(); //needed because loop will not terminate correctly, if list is modified
-    for (Event e: list) {
-      if (e.getStartdate() == null || (! e.getStartdate().before(time))) marked.add(e);
+  private List<Event> filterEventsForBeforeDate(List<Event> list, Date time) {
+    if (time == null)
+      return list;
+    LinkedList<Event> marked = new LinkedList<Event>(); // needed because loop will not terminate correctly, if list is
+                                                        // modified
+    for (Event e : list) {
+      if (e.getStartDate() == null || (!e.getStartDate().before(time)))
+        marked.add(e);
     }
-    for (Event e: marked) list.remove(e);
-    
+    for (Event e : marked)
+      list.remove(e);
+
     return list;
-  }  
-  
-  /**
-   * Filters a list of recurring events, removing any of those that start before provided date.
-   * @param list
-   * @param time
-   * @return Filtered list of recurring events
-   */
-  public List<RecurringEvent> filterRecurringEventsForBeforeDate (List<RecurringEvent> list, String key, Date time) {
-    List<RecurringEvent> marked = new LinkedList<RecurringEvent>(); //needed because loop will not terminate correctly, if list is modified
-    for (RecurringEvent e: list) {
-      if (! e.containsKey(key)) marked.add(e);
-      else if (! e.getValueAsDate(key).before(time)) marked.add(e);
-    }
-    for (RecurringEvent e: marked) list.remove(e);
-    
-    return list;
-  }  
-  
+  }
+
   /**
    * Filters a list of events, removing any of those that end after provided date
+   * 
    * @param list
    * @param time
    * @return Filtered list of events
    */
-  private List<Event> filterEventsForAfterDate (List<Event> list, Date time) {
-    if (time == null) return list;
-    List<Event> marked = new LinkedList<Event>(); //needed because loop will not terminate correctly, if list is modified
-    for (Event e: list) {
-      if (e.getEnddate() == null || (! e.getEnddate().after(time))) marked.add(e);    
+  private List<Event> filterEventsForAfterDate(List<Event> list, Date time) {
+    if (time == null)
+      return list;
+    List<Event> marked = new LinkedList<Event>(); // needed because loop will not terminate correctly, if list is
+                                                  // modified
+    for (Event e : list) {
+      if (e.getStopDate() == null || (!e.getStopDate().after(time)))
+        marked.add(e);
     }
-    for (Event e: marked) list.remove(e);
-    
-    return list;    
-  }  
-  
+    for (Event e : marked)
+      list.remove(e);
+
+    return list;
+  }
+
   /**
    * @return A list of all events
    */
   @SuppressWarnings("unchecked")
-  public List<Event> getAllEvents () {
-    if (updatedAllEvents > updated && cachedEvents != null) {
-      return cachedEvents;
-    }
+  public List<Event> getAllEvents() {
     EntityManager em = emf.createEntityManager();
     Query query = em.createNamedQuery("Event.getAll");
-    List<Event> events = null;
     try {
-      events = query.getResultList();
+      return query.getResultList();
     } finally {
       em.close();
     }
-    for (Event e : events) e.setEntityManagerFactory(emf);
-    cachedEvents = events;
-    updatedAllEvents = System.currentTimeMillis();
-    return cachedEvents;
   }
-  
+
   /**
    * @return List of all recurring events
    */
   @SuppressWarnings("unchecked")
-  public List<RecurringEvent> getAllRecurringEvents () {
+  public List<RecurringEvent> getAllRecurringEvents() {
     EntityManager em = emf.createEntityManager();
     Query query = em.createNamedQuery("RecurringEvent.getAll");
     List<RecurringEvent> events = null;
@@ -448,20 +468,19 @@ public class SchedulerServiceImpl implements ManagedService{
     } finally {
       em.close();
     }
-    for (RecurringEvent e : events) e.setEntityManagerFactory(emf);
     return events;
-  }  
-  
+  }
+
   /**
    * @return List of all events that start after the current time.
    */
   public List<Event> getUpcomingEvents() {
-    SchedulerFilter upcoming = new SchedulerFilterImpl();
-    upcoming.setStart(new Date(System.currentTimeMillis()));
+    SchedulerFilter upcoming = new SchedulerFilter();
+    upcoming.withStart(new Date());
     List<Event> events = getEvents(upcoming);
     return events;
   }
-  
+
   /**
    * @param list
    * @return The list of events in a list of events that occur after the current time.
@@ -469,14 +488,16 @@ public class SchedulerServiceImpl implements ManagedService{
   public List<Event> getUpcomingEvents(List<Event> list) {
     Date now = new Date(System.currentTimeMillis());
     for (Event e : list) {
-      Date enddate = e.getEnddate();
-      if (!(enddate == null) && ! enddate.after(now)) list.remove(e);
+      Date enddate = e.getStopDate();
+      if (!(enddate == null) && !enddate.after(now))
+        list.remove(e);
     }
     return list;
   }
-  
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.opencastproject.scheduler.impl.SchedulerServiceImpl#removeEvent(java.lang.String)
    */
   public boolean removeEvent(String eventID) {
@@ -486,23 +507,16 @@ public class SchedulerServiceImpl implements ManagedService{
     try {
       em.getTransaction().begin();
       event = em.find(EventImpl.class, eventID);
-      if (event == null) return false; // Event not in database
-      String rEventID = event.getRecurringEventId();
-      if (rEventID != null) { // remove Event from recuring Event list, if necessary
-        RecurringEvent rEvent = em.find(RecurringEventImpl.class, rEventID);
-        rEvent.removeEvent(event);
-        em.merge(rEvent);
-      }
+      if (event == null)
+        return false; // Event not in database
       em.remove(event);
-      
       em.getTransaction().commit();
     } finally {
       em.close();
-      updated = System.currentTimeMillis();
     }
-    return true; 
+    return true;
   }
-  
+
   /**
    * @param rEventID
    * @return True if the reucrring event was removed
@@ -514,42 +528,36 @@ public class SchedulerServiceImpl implements ManagedService{
     try {
       em.getTransaction().begin();
       event = em.find(RecurringEventImpl.class, rEventID);
-      if (event == null) return false; // Event not in database
+      if (event == null)
+        return false; // Event not in database
       em.remove(event);
       em.getTransaction().commit();
     } finally {
       em.close();
-      updated = System.currentTimeMillis();
     }
-    return true; 
+    return true;
   }
-  
+
   /**
    * @param e
    * @return True if the event was updated
    */
   public boolean updateEvent(Event e) {
-    
+
     EntityManager em = emf.createEntityManager();
     try {
       em.getTransaction().begin();
-      Event storedEvent =  getEvent(e.getEventId());
-      logger.debug("Found stored event. {} -", storedEvent);
-      if (storedEvent == null) return false; //nothing found to update
-      storedEvent.setEntityManagerFactory(emf);
-      storedEvent.update(e);
-      em.merge(storedEvent);
+      em.merge(e);
       em.getTransaction().commit();
     } catch (Exception e1) {
-      logger.warn("Could not update event {}. Reason: {}",e,e1.getMessage());
+      logger.warn("Could not update event {}. Reason: {}", e, e1.getMessage());
       return false;
     } finally {
       em.close();
-      updated = System.currentTimeMillis();
     }
     return true;
-  }  
-  
+  }
+
   /**
    * @param e
    * @return True if the recurring event was updated
@@ -558,70 +566,24 @@ public class SchedulerServiceImpl implements ManagedService{
     EntityManager em = emf.createEntityManager();
     try {
       em.getTransaction().begin();
-      RecurringEvent storedEvent =  getRecurringEvent(e.getRecurringEventId());
-      if (storedEvent == null) return false;
-      storedEvent.setEntityManagerFactory(emf);
-      storedEvent.update(e);      
-      em.merge(storedEvent);
+      em.merge(e);
       em.getTransaction().commit();
+    } catch (Exception e1) {
+      logger.warn("Unable to update recurring event {}, {}", e, e1);
+      return false;
     } finally {
       em.close();
-      updated = System.currentTimeMillis();
     }
     return true;
-  }  
-  
-  /**
-   * @param e
-   * @return A list of events that conflict with the start, or end dates of provided event.
-   */
-  public List<Event> findConflictingEvents (Event e) {
-    logger.debug("finding conflicts for event {}.", e);
-    List<Event> events = new LinkedList<Event>(getAllEvents());
-    //reduce to device first
-    events = filterEventsForExactValue(events, "device", e.getValue("device"));
-    logger.debug("Device Filtered: {}", events);
-    //all events that start at the same time or later
-    long start = e.getStartdate().getTime() -1; // make sure that the same start time is included too;
-    events = filterEventsForAfterDate(events, new DateTime(start));
-    
-    //all events that stop at the same time or earlier
-    long end = e.getEnddate().getTime() + 1; // make sure that the same stop time is included too;
-    events = filterEventsForBeforeDate(events, new DateTime(end));
-    logger.debug("Start/end filtered: {}", events);
-    return events;
   }
-  
-  //TODO: Remove, or indicate that it is currently unused.
-  
-  /**
-   * @param rEvent
-   * @return A list of events that conflict with the provided recurring event
-   * @throws IncompleteDataException
-   */
-  public List<Event> findConflictingEvents (RecurringEvent rEvent) throws IncompleteDataException {
-    ((RecurringEventImpl)rEvent).buildMetadataTable(rEvent.getMetadata());
-    if (rEvent.getRecurrence() == null || ((RecurringEventImpl)rEvent).getValue("recurrenceStart") == null || ((RecurringEventImpl)rEvent).getValue("device") == null ||
-            ((RecurringEventImpl)rEvent).getValue("recurrenceEnd") == null || ((RecurringEventImpl)rEvent).getValue("recurrenceDuration") == null) 
-      throw new IncompleteDataException();
-    if (rEvent.getRecurringEventId() == null) rEvent.generateId();
-    List<Event> events = rEvent.generatedEvents();
-    LinkedList<Event> results = new LinkedList<Event>();
-    for (Event event : events) {
-      event.setRecurringEvent(rEvent);
-      List<Event> conflicts = findConflictingEvents(event);
-      results.addAll(conflicts);
-    }
-    
-    return results;
-  }  
-  
+
   public void destroy() {
     emf.close();
   }
-  
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
    */
   @SuppressWarnings("rawtypes")
@@ -629,97 +591,82 @@ public class SchedulerServiceImpl implements ManagedService{
   public void updated(Dictionary properties) throws ConfigurationException {
     this.properties = properties;
   }
-  
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.opencastproject.scheduler.api.SchedulerService#getCalendarForCaptureAgent(java.lang.String)
    */
   public String getCalendarForCaptureAgent(String captureAgentID) {
-    if (updatedCalendar > updated && calendars.containsKey(captureAgentID) && calendars.get(captureAgentID) != null) {
-      logger.debug("Using cached calendar for {}", captureAgentID);
-      return calendars.get(captureAgentID);
-    } 
-    if (updatedCalendar < updated) calendars = new Hashtable<String, String>(); // reset all calendars, if data has been changed 
-    
-    SchedulerFilter filter = getFilterForCaptureAgent (captureAgentID); 
+    SchedulerFilter filter = new SchedulerFilter().withDeviceFilter(captureAgentID).withStart(new Date())
+            .withOrder("time-desc");
     CalendarGenerator cal = new CalendarGenerator(dcGenerator, caGenerator, seriesService);
     List<Event> events = getEvents(filter);
     logger.debug("Events with CA '{}': {}", captureAgentID, events);
     for (Event event : events) {
       cal.addEvent(event);
     }
-    
+
     try {
       cal.getCalendar().validate();
     } catch (ValidationException e1) {
       logger.warn("Could not validate Calendar: {}", e1.getMessage());
     }
-    
+
     String result = cal.getCalendar().toString(); // CalendarOutputter performance sucks (jmh)
-    
-    updatedCalendar = System.currentTimeMillis();
-    calendars.put(captureAgentID, result);
     return result;
   }
-  
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.opencastproject.scheduler.api.SchedulerService#getDublinCoreMetadata(java.lang.String)
    */
-  public String getDublinCoreMetadata (String eventID) {
+  public String getDublinCoreMetadata(String eventID) {
     Event event = getEvent(eventID);
-    if (dcGenerator == null){
+    if (dcGenerator == null) {
       logger.error("Dublin Core generator not initialized");
       return null;
     }
     return dcGenerator.generateAsString(event);
   }
-  
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.opencastproject.scheduler.api.SchedulerService#getDublinCoreMetadata(java.lang.String)
    */
-  public String getCaptureAgentMetadata (String eventID) {
+  public String getCaptureAgentMetadata(String eventID) {
     Event event = getEvent(eventID);
-    if (caGenerator == null){
+    if (caGenerator == null) {
       logger.error("Capture Agent Metadata generator not initialized");
       return null;
     }
     return caGenerator.generateAsString(event);
-  }  
-  
+  }
+
   /**
    * Sets the series service
+   * 
    * @param s
    */
-  public void setSeriesService (SeriesService s) {
+  public void setSeriesService(SeriesService s) {
     seriesService = s;
   }
 
   /**
-   * @return An empty SchedulerFilter
-   */
-  public SchedulerFilter getNewSchedulerFilter () {
-    return new SchedulerFilterImpl();
-  }
-  
-  /**
    * @return An empty Event
    */
-  public Event getNewEvent () {
+  public Event getNewEvent() {
     return new EventImpl();
   }
-  
+
   /**
-   * resolves the appropriate Filter for the Capture Agent 
-   * @param captureAgentID The ID as provided by the capture agent 
-   * @return the Filter for this capture Agent.
+   * @param deviceId
+   * @param start
+   * @param stop
+   * @return
    */
-  protected SchedulerFilter getFilterForCaptureAgent(String captureAgentID) {
-    SchedulerFilter filter = new SchedulerFilterImpl();
-    filter.setDeviceFilter(captureAgentID);
-    filter.setOrderBy("time-desc");
-    filter.setStart(new Date(System.currentTimeMillis()));
-    return filter;
+  public List<Event> findConflictingEvents(String deviceId, Date start, Date stop) {
   }
 }

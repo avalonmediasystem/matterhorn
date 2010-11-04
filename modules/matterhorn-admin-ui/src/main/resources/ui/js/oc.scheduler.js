@@ -534,9 +534,10 @@ ocScheduler.CheckForConflictingEvents = function(){
   }else if(ocScheduler.type === MULTIPLE_EVENTS){
     if(ocScheduler.components.recurrenceStart.validate() && ocScheduler.components.recurrenceEnd.validate() &&
        ocScheduler.components.recurrence.validate() && ocScheduler.components.recurrenceDuration.validate()){
-      event = '<recurringEvent><recurrence>' + ocScheduler.components.recurrence.getValue() + '</recurrence><metadataList>' + event;
-      event += '<metadata><key>recurrenceStart</key><value>' + ocScheduler.components.recurrenceStart.getValue() + '</value></metadata>';
-      event += '<metadata><key>recurrenceEnd</key><value>' + ocScheduler.components.recurrenceEnd.getValue() + '</value></metadata>';
+      event = '<recurringEvent><recurrence>' + ocScheduler.components.recurrence.getValue() + '</recurrence>';
+      event += '<start>' + ocScheduler.components.recurrenceStart.getValue() + '</start>';
+      event += '<stop>' + ocScheduler.components.recurrenceEnd.getValue() + '</stop>';
+      event += '<metadataList>'
       event += '<metadata><key>recurrenceDuration</key><value>' + (ocScheduler.components.recurrenceDuration.getValue()) + '</value></metadata>';
       event += '</metadataList></recurringEvent>';
       endpoint = '/recurring/conflict.xml';

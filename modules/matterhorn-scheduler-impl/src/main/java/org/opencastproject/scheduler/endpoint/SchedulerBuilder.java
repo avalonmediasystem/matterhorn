@@ -84,22 +84,7 @@ public class SchedulerBuilder {
   public SchedulerEventJaxbImpl parseSchedulerEventJaxbImpl(String in) throws Exception {
     return parseSchedulerEventJaxbImpl(IOUtils.toInputStream(in, "UTF8"));
   }*/
-  
-  /**
-   * todo: Comment me!
-   */
-  public SchedulerFilterJaxbImpl parseSchedulerFilterJaxbImpl(InputStream in) throws Exception {
-    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-    return unmarshaller.unmarshal(DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in),
-                                  SchedulerFilterJaxbImpl.class).getValue();
-  }
-  
-  /**
-   * Todo: comment me!
-   */
-  public SchedulerFilterJaxbImpl parseSchedulerFilterJaxbImpl(String in) throws Exception {
-    return parseSchedulerFilterJaxbImpl(IOUtils.toInputStream(in, "UTF8"));
-  }
+    
 
   public EventImpl parseEvent(String in) throws Exception {
     return parseEvent(IOUtils.toInputStream(in, "UTF8"));

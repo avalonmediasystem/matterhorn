@@ -92,7 +92,7 @@ public class DublinCoreGenerator {
     DublinCoreCatalog dcCatalog = DublinCoreCatalogImpl.newInstance();
 
     dcCatalog.add(DublinCore.PROPERTY_IDENTIFIER, new DublinCoreValue(event.getEventId()));
-    dcCatalog.add(DublinCore.PROPERTY_CREATED, EncodingSchemeUtils.encodeDate(event.getStartdate(), Precision.Second));
+    dcCatalog.add(DublinCore.PROPERTY_CREATED, EncodingSchemeUtils.encodeDate(event.getStartDate(), Precision.Second));
     for (String key : dcMetadata.keySet()) {  
       if (validDcKey(key)) {
         DublinCoreValue value = new DublinCoreValue(dcMetadata.get(key));

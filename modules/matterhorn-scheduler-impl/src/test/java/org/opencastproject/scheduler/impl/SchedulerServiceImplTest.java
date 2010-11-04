@@ -385,7 +385,7 @@ public class SchedulerServiceImplTest {
     
     Event oldEvent = null;
     for (Event e : loadedEvent.getEvents()) {
-      Assert.assertTrue(e.getStartdate().before(e.getEnddate()));
+      Assert.assertTrue(e.getStartDate().before(e.getStopDate()));
       try {
         logger.info("recurring Event titles {} and {}", e.getValue("title"), loadedEvent.getValue("title"));
         //Assert.assertTrue(e.getValue("title").equals(loadedEvent.getValue("title"))); // Can not work because events the numbers now
@@ -395,7 +395,7 @@ public class SchedulerServiceImplTest {
       }
       if (oldEvent != null) {
          
-        Assert.assertTrue(oldEvent.getStartdate().before(e.getStartdate()));
+        Assert.assertTrue(oldEvent.getStartDate().before(e.getStartDate()));
       }
       oldEvent = e;
     }

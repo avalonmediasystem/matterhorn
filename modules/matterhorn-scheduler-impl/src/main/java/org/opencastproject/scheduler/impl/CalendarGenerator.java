@@ -106,8 +106,8 @@ public class CalendarGenerator {
    */
   public boolean addEvent (Event e) {
     logger.debug("creating iCal VEvent from SchedulerEvent: {}", e.toString());
-    Date start = e.getStartdate();
-    Date end = e.getEnddate();
+    Date start = e.getStartDate();
+    Date end = e.getStopDate();
     if(start == null){
       logger.debug("Couldn't get startdate from event!");
       return false;

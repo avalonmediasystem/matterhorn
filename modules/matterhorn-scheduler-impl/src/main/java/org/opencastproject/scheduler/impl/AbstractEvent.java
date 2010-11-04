@@ -16,81 +16,23 @@
 
 package org.opencastproject.scheduler.impl;
 
-import java.util.Date;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
-import javax.persistence.EntityManagerFactory;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.opencastproject.scheduler.api.Metadata;
-import org.opencastproject.scheduler.impl.IncompleteDataException;
 
 public abstract class AbstractEvent {
-  private static final Logger logger = LoggerFactory.getLogger(AbstractEvent.class);
   
   public Hashtable<String, String> metadataTable;
   
-  protected EntityManagerFactory emf = null;
-  
-  public String generateId() {
-    return UUID.randomUUID().toString();
-  }
-  
-  
-  public void buildMetadataTable (List<Metadata> metadata) {
-    if (metadataTable == null) metadataTable = new Hashtable<String, String>(); // Buffer metadata in Hashtable for quick
-    if (metadata == null) return;
-    for (Metadata data : metadata) {
-      if (data.getKey() != null && data.getValue() != null){
-        metadataTable.put(data.getKey(), data.getValue()); // Overwrite with event specific data
-      }
-    }
-  }
-  
-  public String getValue (String key) throws IncompleteDataException {
-   if (metadataTable == null) throw new IncompleteDataException ("Metadata table not generated");
+  public String getValue (String key) {
    return metadataTable.get(key);
    
   }
   
-  public Set<String> getKeySet () throws IncompleteDataException {
-    if (metadataTable == null) throw new IncompleteDataException ("Metadata table not generated");
+  public Set<String> getKeySet () {
     return metadataTable.keySet();
   }
   
-  public Date getValueAsDate (String key) throws IncompleteDataException {
-    if (metadataTable == null) throw new IncompleteDataException ("Metadata table not generated");
-    if (! containsKey(key)) {
-      logger.warn("Could not convert to date, because of missing entry for {}.", key);
-      return null;
-    }
-    try {
-      return new Date(Long.parseLong(metadataTable.get(key)));
-    } catch (Exception e) {
-      logger.warn("Could not parse value of {}: {}", key, metadataTable.get(key));
-      return null;
-    }
-  }
-  
-  public boolean containsKey (String key)  throws IncompleteDataException{
-    if (metadataTable == null) throw new IncompleteDataException ("Metadata table not generated");
+  public boolean containsKey (String key) {
     return metadataTable.containsKey(key);
   }
-
-  public void setEntityManagerFactory (EntityManagerFactory emf) {
-    this.emf = emf;
-  }
-  
-  public void deleteMetadataTable() {
-    metadataTable = null;
-  }
-  
-  public abstract void addMetadata(Metadata m);
-  
-  public abstract void removeMetadata(Metadata m);
 }
