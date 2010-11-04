@@ -20,45 +20,44 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.persistence;
 
 /**
  * A filter to search for {@link ch.ethz.replay.ui.scheduler.Person}s
  * 
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
  */
 public class SimplePersonFilter {
 
-    private String name;
-    private Integer maxResults;
+  private String name;
+  private Integer maxResults;
 
-    public SimplePersonFilter(String name, Integer maxResults) {
-        this.name = name;
-        this.maxResults = maxResults;
-    }
+  public SimplePersonFilter(String name, Integer maxResults) {
+    this.name = name;
+    this.maxResults = maxResults;
+  }
 
-    public SimplePersonFilter() {
-    }
+  public SimplePersonFilter() {
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    /**
-     * @return 0 means no limit
-     */
-    public Integer getMaxResults() {
-        return maxResults;
-    }
+  /**
+   * @return 0 means no limit
+   */
+  public Integer getMaxResults() {
+    return maxResults;
+  }
 
-    public void setMaxResults(Integer maxResults) {
-        this.maxResults = maxResults;
-    }
+  public void setMaxResults(Integer maxResults) {
+    this.maxResults = maxResults;
+  }
 }
-

@@ -20,35 +20,39 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler;
 
-import ch.ethz.replay.core.api.common.vcard.VCard;
-import ch.ethz.replay.core.api.common.vcard.EmailAddress;
-
-import java.util.List;
 
 /**
- * {@link Recording Recordings} have associated persons, which may be the speaker or just someone who wants to
- * get notified about the state of a recording, etc.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * {@link Recording Recordings} have associated persons, which may be the speaker or just someone who wants to get
+ * notified about the state of a recording, etc.
+ * 
+ * 
  */
-public interface Person extends External, VCard, Comparable<Person> {
+public interface Person extends Comparable<Person> {
 
-    /**
-     * Returns the internal id. This is id does not have any business meanings.
-     */
-    Long getId();
+  /**
+   * Returns the internal id. This is id does not have any business meanings.
+   */
+  Long getId();
 
-    void setGivenName(String name);
+  String getGivenName();
 
-    void setFamilyName(String name);
+  void setGivenName(String name);
 
-    void setHonorificPrefixes(String prefixes);
-    
-    void setEmailAddresses(List<EmailAddress> emailAddresses);
+  String getFamilyName();
 
-    void addEmailAddress(EmailAddress emailAddress);
+  void setFamilyName(String name);
+
+  String getHonorificPrefixes();
+
+  void setHonorificPrefixes(String prefixes);
+
+  String getEmailAddress();
+
+  void setEmailAddress(String emailAddress);
+
+  String getFormattedName();
 }

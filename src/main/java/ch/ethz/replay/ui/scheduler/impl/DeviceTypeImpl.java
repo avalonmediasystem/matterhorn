@@ -20,88 +20,84 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl;
 
-import ch.ethz.replay.ui.common.util.Utils;
 import ch.ethz.replay.ui.scheduler.DeviceType;
-import org.hibernate.annotations.CollectionOfElements;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Implementation of {@link ch.ethz.replay.ui.scheduler.DeviceType}.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 @Entity(name = "DeviceType")
-public class DeviceTypeImpl extends BaseEntity
-        implements DeviceType {
+public class DeviceTypeImpl extends BaseEntity implements DeviceType {
 
-    @Column(nullable = false, unique = true)
-    private String name;
+  @Column(nullable = false, unique = true)
+  private String name;
 
-    private String description;
+  private String description;
 
-    @CollectionOfElements
-    @JoinTable(name = "DeviceType_Capabilities",
-            joinColumns = @JoinColumn(name = "DeviceTypeId"))
-    @Column(name = "Capability", unique = true)
-    private Set<String> capabilities = new HashSet<String>();
+  @JoinTable(name = "DeviceType_Capabilities", joinColumns = @JoinColumn(name = "DeviceTypeId"))
+  @Column(name = "Capability", unique = true)
+  private Set<String> capabilities = new HashSet<String>();
 
-    //
+  //
 
-    // Hibernate only
-    DeviceTypeImpl() {
-    }
+  // Hibernate only
+  DeviceTypeImpl() {
+  }
 
-    public DeviceTypeImpl(String name) {
-        this.name = name;
-    }
+  public DeviceTypeImpl(String name) {
+    this.name = name;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public Set<String> getCapabilities() {
-        return capabilities;
-    }
+  public Set<String> getCapabilities() {
+    return capabilities;
+  }
 
-    public void setCapabilities(Set<String> capabilities) {
-        this.capabilities = capabilities;
-    }
+  public void setCapabilities(Set<String> capabilities) {
+    this.capabilities = capabilities;
+  }
 
-    /**
-     * Two DeviceTypes are defined equal if they have the same {@linkplain #getName() name}.
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        // The name is defined to be non-null and unique so it's the ideal candidate for equality
-        return (o instanceof DeviceTypeImpl) &&
-                (name.equals(((DeviceTypeImpl) o).getName()));
-    }
+  /**
+   * Two DeviceTypes are defined equal if they have the same {@linkplain #getName() name}.
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    // The name is defined to be non-null and unique so it's the ideal candidate for equality
+    return (o instanceof DeviceTypeImpl) && (name.equals(((DeviceTypeImpl) o).getName()));
+  }
 
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
 }

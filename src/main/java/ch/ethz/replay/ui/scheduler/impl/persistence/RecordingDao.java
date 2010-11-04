@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.persistence;
 
@@ -35,44 +35,45 @@ import java.util.List;
 
 /**
  * Provides access to scheduled recordings.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 public interface RecordingDao extends GenericDao<Recording, Long> {
 
-    /**
-     * Gets a recording by it's job id. Note that the allocation of a job id is optional for recordings.
-     *
-     * @return the recording or null if there is no recording with this job id
-     */
-    Recording getByJobId(String jobId);
+  /**
+   * Gets a recording by it's job id. Note that the allocation of a job id is optional for recordings.
+   * 
+   * @return the recording or null if there is no recording with this job id
+   */
+  Recording getByJobId(String jobId);
 
-    /**
-     * Delete a recording from the schedule by it's job id (if present).
-     *
-     * @param jobId the job id of the recording
-     */
-    void deleteByJobId(String jobId);
+  /**
+   * Delete a recording from the schedule by it's job id (if present).
+   * 
+   * @param jobId
+   *          the job id of the recording
+   */
+  void deleteByJobId(String jobId);
 
-    /**
-     * Returns the number of recordings in the schedule.
-     */
-    long count();
+  /**
+   * Returns the number of recordings in the schedule.
+   */
+  long count();
 
-    Date getLastModificationDate(Long locationId);
+  Date getLastModificationDate(Long locationId);
 
-    /**
-     * Removes the given person from all recordings.
-     */
-    void removeContactPersonFromRecordings(Person person);
+  /**
+   * Removes the given person from all recordings.
+   */
+  void removeContactPersonFromRecordings(Person person);
 
-    /**
-     * Returns a list of all scheduled locations.
-     */
-    List<Location> getAllScheduledLocations();
+  /**
+   * Returns a list of all scheduled locations.
+   */
+  List<Location> getAllScheduledLocations();
 
-    /**
-     * Returns a list of all scheduled locations whose names match <code>like</code>.
-     */
-    List<Location> getAllScheduledLocationsLike(String like);
+  /**
+   * Returns a list of all scheduled locations whose names match <code>like</code>.
+   */
+  List<Location> getAllScheduledLocationsLike(String like);
 }

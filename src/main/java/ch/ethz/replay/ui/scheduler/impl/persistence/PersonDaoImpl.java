@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.persistence;
 
@@ -39,52 +39,48 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * <strong>Note:</strong> <code>findBy</code> and <code>findByExample</code> return only
- * instances of {@link ch.ethz.replay.ui.scheduler.impl.PersonImpl}.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * <strong>Note:</strong> <code>findBy</code> and <code>findByExample</code> return only instances of
+ * {@link ch.ethz.replay.ui.scheduler.impl.PersonImpl}.
+ * 
+ * 
  */
 @Repository
-public class PersonDaoImpl extends TransactionalGenericHibernateDao<Person, Long>
-        implements PersonDao {
+public class PersonDaoImpl extends TransactionalGenericHibernateDao<Person, Long> implements PersonDao {
 
-    /**
-     * Supports:
-     * <ul>
-     * <li>filter: {@link SimplePersonFilter}
-     * </ul>
-     * <strong>Note:</strong> Only instances of type {@link ch.ethz.replay.ui.scheduler.impl.PersonImpl}
-     * will be returned.
-     */
-    @Transactional(readOnly = true)
-    public List<Person> findBy(Object filter) {
-        if (filter instanceof SimplePersonFilter) {
-            // by filter
-            final SimplePersonFilter f = (SimplePersonFilter) filter;
-            return (List<Person>) getHibernateTemplate().execute(new HibernateCallback() {
+  /**
+   * Supports:
+   * <ul>
+   * <li>filter: {@link SimplePersonFilter}
+   * </ul>
+   * <strong>Note:</strong> Only instances of type {@link ch.ethz.replay.ui.scheduler.impl.PersonImpl} will be returned.
+   */
+  @Transactional(readOnly = true)
+  public List<Person> findBy(Object filter) {
+    if (filter instanceof SimplePersonFilter) {
+      // by filter
+      final SimplePersonFilter f = (SimplePersonFilter) filter;
+      return (List<Person>) getHibernateTemplate().execute(new HibernateCallback() {
 
-                public Object doInHibernate(Session session) throws HibernateException, SQLException {
-                    Criteria c = session.createCriteria(PersonImpl.class)
-                            .addOrder(Order.asc("familyName"))
-                            .addOrder(Order.asc("givenName"));
-                    if (f.getMaxResults() != null)
-                        c.setMaxResults(f.getMaxResults());
-                    // todo Hibernate does not support critera queries on components and the email addresses
-                    // todo are components at the moment, so it is commented out
-                    //if (f.getEmail() != null)
-                    //    c.createCriteria("emailAddresses").add(Restrictions.eq("address", f.getEmail()));
-                    if (f.getName() != null)
-                        c.add(Restrictions.or(
-                                Expression.ilike("familyName", f.getName(), MatchMode.ANYWHERE),
-                                Expression.ilike("givenName", f.getName(), MatchMode.ANYWHERE)));
-                    return c.list();
-                }
-            });
+        public Object doInHibernate(Session session) throws HibernateException, SQLException {
+          Criteria c = session.createCriteria(PersonImpl.class).addOrder(Order.asc("familyName"))
+                  .addOrder(Order.asc("givenName"));
+          if (f.getMaxResults() != null)
+            c.setMaxResults(f.getMaxResults());
+          // todo Hibernate does not support critera queries on components and the email addresses
+          // todo are components at the moment, so it is commented out
+          // if (f.getEmail() != null)
+          // c.createCriteria("emailAddresses").add(Restrictions.eq("address", f.getEmail()));
+          if (f.getName() != null)
+            c.add(Restrictions.or(Expression.ilike("familyName", f.getName(), MatchMode.ANYWHERE),
+                    Expression.ilike("givenName", f.getName(), MatchMode.ANYWHERE)));
+          return c.list();
         }
-        throw new IllegalArgumentException("Unsupported filter " + filter);
+      });
     }
+    throw new IllegalArgumentException("Unsupported filter " + filter);
+  }
 
-    protected void customizeExampleCriterion(Example example) {
-        example.enableLike(MatchMode.ANYWHERE).ignoreCase();
-    }
+  protected void customizeExampleCriterion(Example example) {
+    example.enableLike(MatchMode.ANYWHERE).ignoreCase();
+  }
 }

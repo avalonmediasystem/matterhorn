@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.persistence;
 
@@ -28,12 +28,11 @@ import ch.ethz.replay.ui.common.util.dao.TransactionalGenericHibernateDao;
 import ch.ethz.replay.ui.scheduler.DeviceType;
 
 /**
- * A device source delivers {@link ch.ethz.replay.ui.scheduler.DeviceType}s from some kind of resource.
- * This source is read-only
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * A device source delivers {@link ch.ethz.replay.ui.scheduler.DeviceType}s from some kind of resource. This source is
+ * read-only
+ * 
+ * 
  */
-public class DeviceTypeDaoImpl extends TransactionalGenericHibernateDao<DeviceType, Long>
-        implements DeviceTypeDao {
+public class DeviceTypeDaoImpl extends TransactionalGenericHibernateDao<DeviceType, Long> implements DeviceTypeDao {
 
 }

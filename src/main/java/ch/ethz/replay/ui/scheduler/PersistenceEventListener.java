@@ -20,27 +20,27 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler;
 
 /**
- * Implement this interface to get notified about persistence lifecycle events. This interface does not
- * have any business meanings. 
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * Implement this interface to get notified about persistence lifecycle events. This interface does not have any
+ * business meanings.
+ * 
+ * 
  */
 public interface PersistenceEventListener {
 
-    /**
-     * Called just after loading.
-     */
-    void onPostLoad();
+  /**
+   * Called just after loading.
+   */
+  void onPostLoad();
 
-    /**
-     * Called just before saving.
-     *
-     * @return false to veto saving
-     */
-    boolean onPreSave();
+  /**
+   * Called just before saving.
+   * 
+   * @return false to veto saving
+   */
+  boolean onPreSave();
 }

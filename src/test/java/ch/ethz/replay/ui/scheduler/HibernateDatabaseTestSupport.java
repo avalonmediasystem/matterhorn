@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler;
 
@@ -30,19 +30,19 @@ import org.junit.Before;
 import javax.annotation.Resource;
 
 /**
- * Helps to have a fresh database for each test. The SessionFactoryBean in the application
- * context must be named <code>sessionFactory</code>.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * Helps to have a fresh database for each test. The SessionFactoryBean in the application context must be named
+ * <code>sessionFactory</code>.
+ * 
+ * 
  */
 public class HibernateDatabaseTestSupport {
 
-    @Resource(name = "&sessionFactory")
-    protected LocalSessionFactoryBean sessionFactoryBean;
+  @Resource(name = "&sessionFactory")
+  protected LocalSessionFactoryBean sessionFactoryBean;
 
-    @Before
-    public void recreateSchema() {
-        sessionFactoryBean.dropDatabaseSchema();
-        sessionFactoryBean.createDatabaseSchema();
-    }
+  @Before
+  public void recreateSchema() {
+    sessionFactoryBean.dropDatabaseSchema();
+    sessionFactoryBean.createDatabaseSchema();
+  }
 }

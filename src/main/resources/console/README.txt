@@ -1,1 +1,0 @@
-This profile contains the configuration for local scala console usage accessing ETHZ main resources. 

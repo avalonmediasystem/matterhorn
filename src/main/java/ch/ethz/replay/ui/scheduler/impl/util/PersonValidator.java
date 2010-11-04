@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.util;
 
@@ -32,23 +32,24 @@ import org.springframework.validation.Validator;
 
 /**
  * Validates a {@link ch.ethz.replay.ui.scheduler.Person}.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 public class PersonValidator implements Validator {
 
-    public boolean supports(Class clazz) {
-        return Person.class.isAssignableFrom(clazz);
-    }
+  public boolean supports(Class clazz) {
+    return Person.class.isAssignableFrom(clazz);
+  }
 
-    public void validate(Object target, Errors errors) {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "familyName", "empty");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "givenName", "empty");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "emailAddresses", "empty");
-        // todo validate email
-        Person p = (Person) target;
-        for (EmailAddress address : p.getEmailAddresses()) {
-            if (!address.getAddress().contains("@")) errors.rejectValue("emailAddresses", "empty");
-        }
+  public void validate(Object target, Errors errors) {
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "familyName", "empty");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "givenName", "empty");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "emailAddresses", "empty");
+    // todo validate email
+    Person p = (Person) target;
+    for (EmailAddress address : p.getEmailAddresses()) {
+      if (!address.getAddress().contains("@"))
+        errors.rejectValue("emailAddresses", "empty");
     }
+  }
 }

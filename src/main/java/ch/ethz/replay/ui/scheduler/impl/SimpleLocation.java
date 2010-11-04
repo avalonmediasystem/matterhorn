@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl;
 
@@ -35,63 +35,59 @@ import java.util.Set;
 
 /**
  * Simple locations only have a unique name.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 @Entity(name = "Location")
-public class SimpleLocation extends BaseEntity
-        implements Location {
+public class SimpleLocation extends BaseEntity implements Location {
 
-    @Column(nullable = true, unique = true)
-    private String name;
+  @Column(nullable = true, unique = true)
+  private String name;
 
-    @ManyToMany(targetEntity = DeviceTypeImpl.class)
-    @JoinTable(name = "Location_DeviceType",
-            joinColumns = {@JoinColumn(name = "LocationId")},
-            inverseJoinColumns = {@JoinColumn(name = "DeviceTypeId")})
-    @Cascade({CascadeType.SAVE_UPDATE})
-    private Set<DeviceType> deviceTypes = new HashSet<DeviceType>();
+  @ManyToMany(targetEntity = DeviceTypeImpl.class)
+  @JoinTable(name = "Location_DeviceType", joinColumns = { @JoinColumn(name = "LocationId") }, inverseJoinColumns = { @JoinColumn(name = "DeviceTypeId") })
+  @Cascade({ CascadeType.SAVE_UPDATE })
+  private Set<DeviceType> deviceTypes = new HashSet<DeviceType>();
 
-    //
+  //
 
-    SimpleLocation() {
-    }
+  SimpleLocation() {
+  }
 
-    public SimpleLocation(String name) {
-        this.name = name;
-    }
+  public SimpleLocation(String name) {
+    this.name = name;
+  }
 
-    public SimpleLocation(String name, Set<DeviceType> deviceTypes) {
-        this.name = name;
-        this.deviceTypes = deviceTypes;
-    }
+  public SimpleLocation(String name, Set<DeviceType> deviceTypes) {
+    this.name = name;
+    this.deviceTypes = deviceTypes;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public Set<DeviceType> getDevices() {
-        return deviceTypes;
-    }
+  public Set<DeviceType> getDevices() {
+    return deviceTypes;
+  }
 
-    /**
-     * Returns true.
-     */
-    public boolean isModifiable() {
-        return true;
-    }
+  /**
+   * Returns true.
+   */
+  public boolean isModifiable() {
+    return true;
+  }
 
-    /**
-     * Two Locations are defined equal if they have the same {@linkplain #getName() name}.
-     */
-    @Override
-    public boolean equals(Object o) {
-        return (this == o) ||
-                ((o instanceof Location) && name.equals(((Location) o).getName()));
-    }
+  /**
+   * Two Locations are defined equal if they have the same {@linkplain #getName() name}.
+   */
+  @Override
+  public boolean equals(Object o) {
+    return (this == o) || ((o instanceof Location) && name.equals(((Location) o).getName()));
+  }
 
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
 }

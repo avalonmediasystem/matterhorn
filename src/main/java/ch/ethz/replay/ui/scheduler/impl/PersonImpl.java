@@ -20,128 +20,166 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl;
 
-import ch.ethz.replay.core.api.common.vcard.EmailAddress;
-import org.hibernate.annotations.CollectionOfElements;
-import org.hibernate.annotations.IndexColumn;
-import org.springframework.util.StringUtils;
+import ch.ethz.replay.ui.scheduler.Person;
 
+import org.apache.commons.lang.StringUtils;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import java.util.ArrayList;
-import java.util.List;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 
 /**
- * Simple implementation of {@link ch.ethz.replay.ui.scheduler.Person}
- * with support for only a subset of the properties.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * Simple implementation of {@link ch.ethz.replay.ui.scheduler.Person} with support for only a subset of the properties.
+ * 
+ * 
  */
 @Entity(name = "Person")
-public class PersonImpl extends AbstractPerson {
+@Access(AccessType.FIELD)
+public class PersonImpl implements Person {
 
-    // todo make configurable
-    private static final String PROD_ID = "-//ETH Zurich//REPLAY//DE";
+  @Id
+  @GeneratedValue
+  Long id;
 
-    @Column(nullable = false)
-    private String familyName;
+  @Column(nullable = false)
+  private String familyName;
 
-    @Column(nullable = false)
-    private String givenName;
+  @Column(nullable = false)
+  private String givenName;
 
-    private String honorificPrefixes;
+  @Column(nullable = false)
+  private String honorificPrefixes;
 
-    @CollectionOfElements(targetElement = EmailAddressImpl.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "person_id")
-    @IndexColumn(name = "email_idx")
-    private List emailAddresses = new ArrayList();
+  @Column(nullable = false)
+  private String emailAddress = null;
 
-    //
+  public PersonImpl() {
+  }
 
-    public PersonImpl() {
-    }
+  public PersonImpl(String givenName, String familyName) {
+    this.familyName = familyName;
+    this.givenName = givenName;
+  }
 
-    public PersonImpl(String givenName, String familyName) {
-        this.familyName = familyName;
-        this.givenName = givenName;
-    }
+  public PersonImpl(String givenName, String familyName, String preferredEmailAddress) {
+    this.familyName = familyName;
+    this.givenName = givenName;
+    emailAddress = preferredEmailAddress;
+  }
 
-    public PersonImpl(String givenName, String familyName, String preferredEmailAddress) {
-        this.familyName = familyName;
-        this.givenName = givenName;
-        emailAddresses.add(new EmailAddressImpl(preferredEmailAddress, true));
-    }
+  @Override
+  public String getFormattedName() {
+    StringBuilder b = new StringBuilder();
+    if (StringUtils.isNotBlank(honorificPrefixes))
+      b.append(honorificPrefixes).append(" ");
+    if (StringUtils.isNotBlank(givenName))
+      b.append(givenName).append(" ");
+    if (StringUtils.isNotBlank(familyName))
+      b.append(familyName);
+    return b.toString();
+  }
 
-    @Override
-    public String getFormattedName() {
-        StringBuilder b = new StringBuilder();
-        if (StringUtils.hasText(honorificPrefixes)) b.append(honorificPrefixes).append(" ");
-        if (StringUtils.hasText(givenName)) b.append(givenName).append(" ");
-        if (StringUtils.hasText(familyName)) b.append(familyName);
-        return b.toString();
-    }
+  @Override
+  public String getFamilyName() {
+    return familyName;
+  }
 
-    @Override
-    public String getFamilyName() {
-        return familyName;
-    }
+  public void setFamilyName(String familyName) {
+    this.familyName = familyName;
+  }
 
-    public void setFamilyName(String familyName) {
-        this.familyName = familyName;
-    }
+  @Override
+  public String getGivenName() {
+    return givenName;
+  }
 
-    @Override
-    public String getGivenName() {
-        return givenName;
-    }
+  public void setGivenName(String givenName) {
+    this.givenName = givenName;
+  }
 
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
-    }
+  @Override
+  public String getHonorificPrefixes() {
+    return honorificPrefixes;
+  }
 
-    @Override
-    public String getHonorificPrefixes() {
-        return honorificPrefixes;
-    }
+  public void setHonorificPrefixes(String honorificPrefixes) {
+    this.honorificPrefixes = honorificPrefixes;
+  }
 
-    public void setHonorificPrefixes(String honorificPrefixes) {
-        this.honorificPrefixes = honorificPrefixes;
-    }
+  /**
+   * {@inheritDoc}
+   * 
+   * @see ch.ethz.replay.ui.scheduler.Person#getEmailAddress()
+   */
+  @Override
+  public String getEmailAddress() {
+    return emailAddress;
+  }
 
-    @Override
-    public List<EmailAddress> getEmailAddresses() {
-        return emailAddresses;
-    }
+  /**
+   * {@inheritDoc}
+   * 
+   * @see ch.ethz.replay.ui.scheduler.Person#setEmailAddress(java.lang.String)
+   */
+  @Override
+  public void setEmailAddress(String emailAddress) {
+    this.emailAddress = emailAddress;
+  }
 
-    @Override
-    public EmailAddress getPreferredEmailAddress() {
-        EmailAddress e = null;
-        for (Object o : emailAddresses) {
-            e = (EmailAddress) o;
-            if (e.isPreferred()) return e;
-        }
-        return e;
-    }
+  /**
+   * {@inheritDoc}
+   * 
+   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   */
+  @Override
+  public int compareTo(Person p) {
+    int result = 0;
+    result = _compareTo(getFamilyName(), p.getFamilyName());
+    if (result != 0)
+      return result;
+    result = _compareTo(getGivenName(), p.getGivenName());
+    if (result != 0)
+      return result;
+    if (emailAddress == null)
+      return p.getEmailAddress() == null ? 0 : -1;
+    if (p.getEmailAddress() == null)
+      return -1;
+    return 0;
+  }
 
-    public void setEmailAddresses(List emailAddresses) {
-        this.emailAddresses = emailAddresses;
-    }
+  @SuppressWarnings("unchecked")
+  private int _compareTo(@SuppressWarnings("rawtypes") Comparable a, @SuppressWarnings("rawtypes") Comparable b) {
+    if (a == null)
+      return b == null ? 0 : -1;
+    if (b == null)
+      return -1;
+    return a.compareTo(b);
+  }
 
-    public void addEmailAddress(EmailAddress address) {
-        emailAddresses.add(address);
-    }
+  /**
+   * {@inheritDoc}
+   * 
+   * @see ch.ethz.replay.ui.scheduler.Person#getId()
+   */
+  @Override
+  public Long getId() {
+    return id;
+  }
 
-    public boolean isModifiable() {
-        return true;
-    }
-
-    @Override
-    public String getProdId() {
-        return PROD_ID;
-    }
+  /**
+   * Sets the identifier.
+   * 
+   * @param id
+   *          the identifier
+   */
+  public void setId(Long id) {
+    this.id = id;
+  }
 }

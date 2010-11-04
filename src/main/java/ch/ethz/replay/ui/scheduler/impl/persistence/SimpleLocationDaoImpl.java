@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.persistence;
 
@@ -37,29 +37,28 @@ import java.util.List;
 
 /**
  * Provides access to {@link ch.ethz.replay.ui.scheduler.impl.SimpleLocation}s.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
-public class SimpleLocationDaoImpl extends TransactionalGenericHibernateDao<Location, Long>
-        implements LocationDao {
+public class SimpleLocationDaoImpl extends TransactionalGenericHibernateDao<Location, Long> implements LocationDao {
 
-    /**
-     * Supports {@link SimpleLocationFilter}.
-     */
-    @Override
-    public List<Location> findBy(Object filter) {
-        if (filter instanceof SimpleLocationFilter) {
-            final SimpleLocationFilter f = (SimpleLocationFilter) filter;
-            return getHibernateTemplate().executeFind(new HibernateCallback() {
+  /**
+   * Supports {@link SimpleLocationFilter}.
+   */
+  @Override
+  public List<Location> findBy(Object filter) {
+    if (filter instanceof SimpleLocationFilter) {
+      final SimpleLocationFilter f = (SimpleLocationFilter) filter;
+      return getHibernateTemplate().executeFind(new HibernateCallback() {
 
-                public Object doInHibernate(Session session) throws HibernateException, SQLException {
-                    return session.createCriteria(getEntityClass())
-                            .add(Restrictions.ilike("name", f.getName(),
-                                    f.isExactMatch() ? MatchMode.EXACT : MatchMode.ANYWHERE))
-                            .list();
-                }
-            });
+        public Object doInHibernate(Session session) throws HibernateException, SQLException {
+          return session
+                  .createCriteria(getEntityClass())
+                  .add(Restrictions.ilike("name", f.getName(), f.isExactMatch() ? MatchMode.EXACT : MatchMode.ANYWHERE))
+                  .list();
         }
-        throw new IllegalArgumentException("Unsupported filter " + filter);
+      });
     }
+    throw new IllegalArgumentException("Unsupported filter " + filter);
+  }
 }

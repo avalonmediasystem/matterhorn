@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl;
 
@@ -34,47 +34,46 @@ import java.util.Set;
 
 /**
  * Todo implement
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 @Entity(name = "EventSeries")
-public class EventSeriesImpl extends BaseEntity
-        implements EventSeries {
+public class EventSeriesImpl extends BaseEntity implements EventSeries {
 
-    private String seriesId;
+  private String seriesId;
 
-    @OneToOne(targetEntity = RecordingSeriesImpl.class, mappedBy = "eventSeries")
-    private RecordingSeries recordingSeries;
+  @OneToOne(targetEntity = RecordingSeriesImpl.class, mappedBy = "eventSeries")
+  private RecordingSeries recordingSeries;
 
-    public String getSeriesId() {
-        return seriesId;
-    }
+  public String getSeriesId() {
+    return seriesId;
+  }
 
-    public void setSeriesId(String seriesId) {
-        this.seriesId = seriesId;
-    }
+  public void setSeriesId(String seriesId) {
+    this.seriesId = seriesId;
+  }
 
-    public RecordingSeries getAssociatedRecordingSeries() {
-        return recordingSeries;
-    }
+  public RecordingSeries getAssociatedRecordingSeries() {
+    return recordingSeries;
+  }
 
-    /**
-     * Sets the recording series, null clears the association.
-     */
-    public void setRecordingSeries(RecordingSeries recordingSeries) {
-        this.recordingSeries = recordingSeries;
-    }
+  /**
+   * Sets the recording series, null clears the association.
+   */
+  public void setRecordingSeries(RecordingSeries recordingSeries) {
+    this.recordingSeries = recordingSeries;
+  }
 
-    /**
-     * Todo implement
-     */
-    public Set<Event> getEvents() {
-        return null;
-    }
+  /**
+   * Todo implement
+   */
+  public Set<Event> getEvents() {
+    return null;
+  }
 
-    /**
-     * Todo implement
-     */
-    public void addEvent(Event event) {
-    }
+  /**
+   * Todo implement
+   */
+  public void addEvent(Event event) {
+  }
 }

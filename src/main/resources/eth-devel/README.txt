@@ -1,1 +1,0 @@
-Contains the profile for the development installation on replay-devel at ETH Zurich.

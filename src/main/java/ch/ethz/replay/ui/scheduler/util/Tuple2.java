@@ -20,30 +20,30 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.util;
 
 /**
  * A tuple.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 public class Tuple2<A, B> {
 
-    private A _1;
-    private B _2;
+  private A _1;
+  private B _2;
 
-    public Tuple2(A _1, B _2) {
-        this._1 = _1;
-        this._2 = _2;
-    }
+  public Tuple2(A _1, B _2) {
+    this._1 = _1;
+    this._2 = _2;
+  }
 
-    public A get_1() {
-        return _1;
-    }
+  public A get_1() {
+    return _1;
+  }
 
-    public B get_2() {
-        return _2;
-    }
+  public B get_2() {
+    return _2;
+  }
 }

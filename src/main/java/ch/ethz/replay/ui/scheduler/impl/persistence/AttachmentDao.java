@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.persistence;
 
@@ -36,29 +36,27 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Provides access to all {@link ch.ethz.replay.ui.scheduler.Attachment} implementations of
- * package <code>impl</code>.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * Provides access to all {@link ch.ethz.replay.ui.scheduler.Attachment} implementations of package <code>impl</code>.
+ * 
+ * 
  */
 public class AttachmentDao extends TransactionalGenericHibernateDao<Attachment, Long> {
 
-    /**
-     * Supports {@link ch.ethz.replay.core.api.common.job.JobTicket}s.
-     */
-    @Transactional(readOnly = true)
-    public List<Attachment> findBy(final Object filter) {
-        if (filter instanceof JobTicket) {
-            final JobTicket f = (JobTicket) filter;
-            return getHibernateTemplate().executeFind(new HibernateCallback() {
+  /**
+   * Supports {@link ch.ethz.replay.core.api.common.job.JobTicket}s.
+   */
+  @Transactional(readOnly = true)
+  public List<Attachment> findBy(final Object filter) {
+    if (filter instanceof JobTicket) {
+      final JobTicket f = (JobTicket) filter;
+      return getHibernateTemplate().executeFind(new HibernateCallback() {
 
-                public Object doInHibernate(Session session) throws HibernateException, SQLException {
-                    return session.createQuery("from JobTicketAttachment a where a.ticketId = :id")
-                            .setString("id", f.getIdentifier())
-                            .list();
-                }
-            });
+        public Object doInHibernate(Session session) throws HibernateException, SQLException {
+          return session.createQuery("from JobTicketAttachment a where a.ticketId = :id")
+                  .setString("id", f.getIdentifier()).list();
         }
-        throw new IllegalArgumentException(filter + " is not supported");
+      });
     }
+    throw new IllegalArgumentException(filter + " is not supported");
+  }
 }

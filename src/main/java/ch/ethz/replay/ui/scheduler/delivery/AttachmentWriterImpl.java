@@ -20,60 +20,60 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.delivery;
 
-import ch.ethz.replay.core.api.common.MimeType;
-import ch.ethz.replay.core.api.common.MimeTypes;
-import ch.ethz.replay.core.common.bundle.dublincore.DublinCoreCatalogImpl;
-import ch.ethz.replay.core.common.job.JobTicketImpl;
-import static ch.ethz.replay.ui.common.web.Header.RES_CONTENT_DISPOSITION;
+import org.opencastproject.metadata.dublincore.DublinCoreCatalogImpl;
+import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
+import org.opencastproject.util.MimeType;
+import org.opencastproject.util.MimeTypes;
+
 import ch.ethz.replay.ui.scheduler.Attachment;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
+import java.io.InputStream;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
  */
 public class AttachmentWriterImpl implements AttachmentWriter {
 
-    private static final String ATTACHMENT_ENCODING = "UTF-8";
-    private static final String ATTACHMENT_DEFAULT_CONTENT_TYPE = MimeTypes.TEXT.asString();
+  private static final String ATTACHMENT_ENCODING = "UTF-8";
+  private static final String ATTACHMENT_DEFAULT_CONTENT_TYPE = MimeTypes.TEXT.asString();
 
-    public boolean write(Attachment attachment, HttpServletResponse response) throws IOException {
-        // Response header
-        MimeType contentType = attachment.getContentType();
-        response.setCharacterEncoding(ATTACHMENT_ENCODING);
-        response.setContentType(contentType != null ? contentType.asString() : ATTACHMENT_DEFAULT_CONTENT_TYPE);
-        if (attachment.getFilename() != null)
-            response.setHeader(RES_CONTENT_DISPOSITION, "attachment; filename=" + attachment.getFilename());
-        //
-        Object content = attachment.getContent();
-        if (content instanceof DublinCoreCatalogImpl) {
-            DublinCoreCatalogImpl catalog = (DublinCoreCatalogImpl) content;
-            try {
-                catalog.save(response.getOutputStream());
-            } catch (ParserConfigurationException e) {
-                throw new RuntimeException(e);
-            } catch (TransformerException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (content instanceof JobTicketImpl) {
-            JobTicketImpl jobTicket = (JobTicketImpl) content;
-            try {
-                jobTicket.save(response.getOutputStream());
-            } catch (TransformerException e) {
-                throw new RuntimeException(e);
-            } catch (ParserConfigurationException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            throw new IllegalArgumentException(attachment + " is not supported yet");
-        }
-        return true;
+  protected DublinCoreCatalogService dcService = null;
+
+  // FIXME: Set this via declarative services
+  public void setDublinCoreCatalogService(DublinCoreCatalogService dcService) {
+    this.dcService = dcService;
+  }
+
+  public boolean write(@SuppressWarnings("rawtypes") Attachment attachment, HttpServletResponse response) throws IOException {
+    // Response header
+    MimeType contentType = attachment.getContentType();
+    response.setCharacterEncoding(ATTACHMENT_ENCODING);
+    response.setContentType(contentType != null ? contentType.asString() : ATTACHMENT_DEFAULT_CONTENT_TYPE);
+    if (attachment.getFilename() != null)
+      response.setHeader("Content-disposition", "attachment; filename=" + attachment.getFilename());
+    //
+    Object content = attachment.getContent();
+    if (content instanceof DublinCoreCatalogImpl) {
+      DublinCoreCatalogImpl catalog = (DublinCoreCatalogImpl) content;
+      InputStream in = null;
+      try {
+        in = dcService.serialize(catalog);
+        IOUtils.copy(in, response.getOutputStream());
+      } finally {
+        IOUtils.closeQuietly(in);
+      }
+    } else {
+      throw new IllegalArgumentException(attachment + " is not supported yet");
     }
+    return true;
+  }
 }

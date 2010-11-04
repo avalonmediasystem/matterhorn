@@ -1,1 +1,0 @@
-Contains the profile for the main installation at ETH Zurich.

@@ -20,45 +20,54 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl;
 
-import javax.persistence.*;
-import java.io.Serializable;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Version;
 
 /**
- * Base class for entities using database generated ids and
- * optimistic locking via a version column.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * Base class for entities using database generated ids and optimistic locking via a version column.
+ * 
+ * 
  */
 @MappedSuperclass
-public abstract class BaseEntity implements Serializable {
+public abstract class BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    protected Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  protected Long id;
 
-    @Version
-    private int versionNr;
+  @Version
+  protected int versionNr;
 
-    /**
-     * Returns the id of the entity. Is null prior to make persistent.
-     *
-     * @return the database id or null if unsaved
-     * @see #isNew()
-     */
-    public Long getId() {
-        return id;
-    }
+  /**
+   * Returns the id of the entity. Is null prior to make persistent.
+   * 
+   * @return the database id or null if unsaved
+   * @see #isNew()
+   */
+  public Long getId() {
+    return id;
+  }
 
-    /**
-     * Checks if this entity is new, which means that it is not persisent yet.
-     *
-     * @see #getId()
-     */
-    public boolean isNew() {
-        return id == null;
-    }
+  /**
+   * @param id the id to set
+   */
+  public void setId(Long id) {
+    this.id = id;
+  }
+  
+  /**
+   * Checks if this entity is new, which means that it is not persisent yet.
+   * 
+   * @see #getId()
+   */
+  public boolean isNew() {
+    return id == null;
+  }
 }

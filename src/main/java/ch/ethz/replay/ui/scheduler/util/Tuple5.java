@@ -20,48 +20,48 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.util;
 
 /**
  * Tuple of 5.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 public class Tuple5<A, B, C, D, E> {
 
-    private A _1;
-    private B _2;
-    private C _3;
-    private D _4;
-    private E _5;
+  private A _1;
+  private B _2;
+  private C _3;
+  private D _4;
+  private E _5;
 
-    public Tuple5(A _1, B _2, C _3, D _4, E _5) {
-        this._1 = _1;
-        this._2 = _2;
-        this._3 = _3;
-        this._4 = _4;
-        this._5 = _5;
-    }
+  public Tuple5(A _1, B _2, C _3, D _4, E _5) {
+    this._1 = _1;
+    this._2 = _2;
+    this._3 = _3;
+    this._4 = _4;
+    this._5 = _5;
+  }
 
-    public A get_1() {
-        return _1;
-    }
+  public A get_1() {
+    return _1;
+  }
 
-    public B get_2() {
-        return _2;
-    }
+  public B get_2() {
+    return _2;
+  }
 
-    public C get_3() {
-        return _3;
-    }
+  public C get_3() {
+    return _3;
+  }
 
-    public D get_4() {
-        return _4;
-    }
+  public D get_4() {
+    return _4;
+  }
 
-    public E get_5() {
-        return _5;
-    }
+  public E get_5() {
+    return _5;
+  }
 }

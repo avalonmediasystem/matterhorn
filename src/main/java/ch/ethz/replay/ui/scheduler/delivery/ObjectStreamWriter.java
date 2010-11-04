@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.delivery;
 
@@ -29,20 +29,23 @@ import java.io.OutputStream;
 
 /**
  * Writes an object to a stream.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 public interface ObjectStreamWriter<T> {
 
-    /**
-     * Writes an object to a stream.
-     * <p>
-     * The output stream will be flushed, but not closed.
-     *
-     * @param object the object to write
-     * @param stream the stream to write to
-     * @return true the object is valid and could be successfully written
-     * @throws java.io.IOException if an IO error occurs
-     */
-    boolean write(T object, OutputStream stream) throws IOException;
+  /**
+   * Writes an object to a stream.
+   * <p>
+   * The output stream will be flushed, but not closed.
+   * 
+   * @param object
+   *          the object to write
+   * @param stream
+   *          the stream to write to
+   * @return true the object is valid and could be successfully written
+   * @throws java.io.IOException
+   *           if an IO error occurs
+   */
+  boolean write(T object, OutputStream stream) throws IOException;
 }

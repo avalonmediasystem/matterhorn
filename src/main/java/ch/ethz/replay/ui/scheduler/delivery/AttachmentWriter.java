@@ -20,17 +20,17 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.delivery;
 
 import ch.ethz.replay.ui.scheduler.Attachment;
 
 /**
- * To be implemented by classes that want to serialize {@link ch.ethz.replay.ui.scheduler.Attachment}s
- * to an output stream.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * To be implemented by classes that want to serialize {@link ch.ethz.replay.ui.scheduler.Attachment}s to an output
+ * stream.
+ * 
+ * 
  */
 public interface AttachmentWriter extends HttpWriter<Attachment> {
 

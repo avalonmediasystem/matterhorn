@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.delivery;
 
@@ -29,10 +29,10 @@ import java.io.IOException;
 
 /**
  * Interface for classes that want to write to a servlet response.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 public interface HttpWriter<T> {
 
-    boolean write(T object, HttpServletResponse response) throws IOException;
+  boolean write(T object, HttpServletResponse response) throws IOException;
 }

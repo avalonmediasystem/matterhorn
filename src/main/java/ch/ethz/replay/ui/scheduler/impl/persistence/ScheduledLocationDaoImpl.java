@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.persistence;
 
@@ -31,68 +31,68 @@ import java.util.List;
 
 /**
  * Default implementation of {@link ch.ethz.replay.ui.scheduler.impl.persistence.LocationDao} which delivers only
- * scheduled locations. It does not store locations by itself, instead it accesses the stored recordings
- * to look for scheduled locations.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * scheduled locations. It does not store locations by itself, instead it accesses the stored recordings to look for
+ * scheduled locations.
+ * 
+ * 
  */
 public class ScheduledLocationDaoImpl implements LocationDao {
 
-    private RecordingDao recordingDao;
+  private RecordingDao recordingDao;
 
-    /**
-     * DAO is based on the {@link ch.ethz.replay.ui.scheduler.impl.persistence.RecordingDao}.
-     */
-    public void setRecordingDao(RecordingDao recordingDao) {
-        this.recordingDao = recordingDao;
-    }
+  /**
+   * DAO is based on the {@link ch.ethz.replay.ui.scheduler.impl.persistence.RecordingDao}.
+   */
+  public void setRecordingDao(RecordingDao recordingDao) {
+    this.recordingDao = recordingDao;
+  }
 
-    /**
-     * Always returns null.
-     */
-    public Location get(Long id) {
-        return null;
-    }
+  /**
+   * Always returns null.
+   */
+  public Location get(Long id) {
+    return null;
+  }
 
-    public List<Location> findByExample(Location example, String... excludeProperties) {
-        return null;  //todo
-    }
+  public List<Location> findByExample(Location example, String... excludeProperties) {
+    return null; // todo
+  }
 
-    public List<Location> findAll() {
-        return recordingDao.getAllScheduledLocations();
-    }
+  public List<Location> findAll() {
+    return recordingDao.getAllScheduledLocations();
+  }
 
-    /**
-     * Supports:
-     * <ul>
-     * <li>filter: {@link SimpleLocationFilter}
-     * </ul>
-     */
-    public List<Location> findBy(Object filter) {
-        if (filter instanceof SimpleLocationFilter) {
-            SimpleLocationFilter f = (SimpleLocationFilter) filter;
-            return recordingDao.getAllScheduledLocationsLike(f.getName());
-        }
-        throw new IllegalArgumentException("Unsupported filter " + filter);
+  /**
+   * Supports:
+   * <ul>
+   * <li>filter: {@link SimpleLocationFilter}
+   * </ul>
+   */
+  public List<Location> findBy(Object filter) {
+    if (filter instanceof SimpleLocationFilter) {
+      SimpleLocationFilter f = (SimpleLocationFilter) filter;
+      return recordingDao.getAllScheduledLocationsLike(f.getName());
     }
+    throw new IllegalArgumentException("Unsupported filter " + filter);
+  }
 
-    public Location save(Location object) {
-        throw new NotWritableException("read-only source");
-    }
+  public Location save(Location object) {
+    throw new NotWritableException("read-only source");
+  }
 
-    public Location merge(Location object) {
-        throw new NotWritableException("read-only source");
-    }
+  public Location merge(Location object) {
+    throw new NotWritableException("read-only source");
+  }
 
-    public void delete(Location object) {
-        throw new NotWritableException("read-only source");
-    }
+  public void delete(Location object) {
+    throw new NotWritableException("read-only source");
+  }
 
-    public boolean isWritable() {
-        return false;
-    }
+  public boolean isWritable() {
+    return false;
+  }
 
-    public void flush() {
-        //todo
-    }
+  public void flush() {
+    // todo
+  }
 }

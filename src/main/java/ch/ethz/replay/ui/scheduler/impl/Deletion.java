@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl;
 
@@ -33,34 +33,34 @@ import java.util.Date;
 
 /**
  * Helper entity to keep track of the deletion of recordings for a certain location.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 @Entity(name = "Deletion")
 public class Deletion implements Serializable {
 
-    @Id
-    private Long locationId;
+  @Id
+  private Long locationId;
 
-    // Will be updated via AutoTimestampOnUpdateListener
-    @Temporal(value = TemporalType.TIMESTAMP)
-    private Date lastUpdated;
+  // Will be updated via AutoTimestampOnUpdateListener
+  @Temporal(value = TemporalType.TIMESTAMP)
+  private Date lastUpdated;
 
-    /**
-     * Hibernate only
-     */
-    Deletion() {
-    }
+  /**
+   * Hibernate only
+   */
+  Deletion() {
+  }
 
-    public Deletion(Long locationId) {
-        this.locationId = locationId;
-    }
+  public Deletion(Long locationId) {
+    this.locationId = locationId;
+  }
 
-    public Long getLocationId() {
-        return locationId;
-    }
+  public Long getLocationId() {
+    return locationId;
+  }
 
-    public Date getLastUpdated() {
-        return lastUpdated;
-    }
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
 }

@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.persistence;
 
@@ -28,9 +28,9 @@ import ch.ethz.replay.ui.common.util.dao.TransactionalGenericHibernateDao;
 import ch.ethz.replay.ui.scheduler.RecordingSeries;
 
 /**
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
  */
-public class RecordingSeriesDaoImpl extends TransactionalGenericHibernateDao<RecordingSeries, Long> 
-        implements RecordingSeriesDao {
+public class RecordingSeriesDaoImpl extends TransactionalGenericHibernateDao<RecordingSeries, Long> implements
+        RecordingSeriesDao {
 
 }

@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl;
 
@@ -35,50 +35,50 @@ import javax.persistence.Transient;
 
 /**
  * Todo implement
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 @Entity(name = "Event")
 public class EventImpl extends BaseEntity implements Event {
 
-    // This is the ID of the Lehrveranstaltung
-    @Column(name = "eventid")
-    private String eventId;
+  // This is the ID of the Lehrveranstaltung
+  @Column(name = "eventid")
+  private String eventId;
 
-    @Transient
-    private Belegung belegung;
+  @Transient
+  private Belegung belegung;
 
-    public EventImpl() {
-    }
+  public EventImpl() {
+  }
 
-    public EventImpl(Belegung belegung) {
-        setEventId(belegung.getLehrveranstaltung().getId());
-        this.belegung = belegung;
-    }
+  public EventImpl(Belegung belegung) {
+    setEventId(belegung.getLehrveranstaltung().getId());
+    this.belegung = belegung;
+  }
 
-    public String getEventId() {
-        return eventId;
-    }
+  public String getEventId() {
+    return eventId;
+  }
 
-    public void setEventId(Integer eventId) {
-        this.eventId = Integer.toString(eventId);
-    }
+  public void setEventId(Integer eventId) {
+    this.eventId = Integer.toString(eventId);
+  }
 
-    public Belegung getBelegung() {
-        return belegung;
-    }
+  public Belegung getBelegung() {
+    return belegung;
+  }
 
-    /**
-     * Todo implement.
-     */
-    public EventSeries getSeries() {
-        return null;
-    }
+  /**
+   * Todo implement.
+   */
+  public EventSeries getSeries() {
+    return null;
+  }
 
-    /**
-     * Todo implement.
-     */
-    public Recording getAssociatedRecording() {
-        return null;
-    }
+  /**
+   * Todo implement.
+   */
+  public Recording getAssociatedRecording() {
+    return null;
+  }
 }

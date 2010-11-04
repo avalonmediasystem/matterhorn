@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler;
 
@@ -28,43 +28,43 @@ import java.util.Set;
 
 /**
  * A device which can be used to produce a recording.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 public interface DeviceType {
 
-    /**
-     * Returns the internal id. This is id does not have any business meanings.
-     */
-    Long getId();
+  /**
+   * Returns the internal id. This is id does not have any business meanings.
+   */
+  Long getId();
 
-    /**
-     * Returns the unique device name.
-     */
-    String getName();
+  /**
+   * Returns the unique device name.
+   */
+  String getName();
 
-    /**
-     * Sets the device name. Must be unique in the system's context.
-     */
-    void setName(String name);
+  /**
+   * Sets the device name. Must be unique in the system's context.
+   */
+  void setName(String name);
 
-    /**
-     * Returns an optional description of the device.
-     */
-    String getDescription();
+  /**
+   * Returns an optional description of the device.
+   */
+  String getDescription();
 
-    /**
-     * Set the description.
-     */
-    void setDescription(String description);
+  /**
+   * Set the description.
+   */
+  void setDescription(String description);
 
-    /**
-     * Returns the capabilities of this device.
-     */
-    Set<String> getCapabilities();
+  /**
+   * Returns the capabilities of this device.
+   */
+  Set<String> getCapabilities();
 
-    /**
-     * Sets the capabilities of this device.
-     */
-    void setCapabilities(Set<String> capabilities);
+  /**
+   * Sets the capabilities of this device.
+   */
+  void setCapabilities(Set<String> capabilities);
 }

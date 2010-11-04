@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.impl.util;
 
@@ -36,59 +36,57 @@ import ch.ethz.replay.ui.common.util.AbstractValidator;
 
 /**
  * Validates a {@link ch.ethz.replay.ui.scheduler.Recording}.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * 
+ * 
  */
 public class RecordingValidator extends AbstractValidator {
 
-    private Validator dcEpisodeValidator;
-    private Validator dcSeriesValidator;
+  private Validator dcEpisodeValidator;
+  private Validator dcSeriesValidator;
 
-    public RecordingValidator(Validator dcEpisodeValidator, Validator dcSeriesValidator) {
-        this.dcEpisodeValidator = dcEpisodeValidator;
-        this.dcSeriesValidator = dcSeriesValidator;
+  public RecordingValidator(Validator dcEpisodeValidator, Validator dcSeriesValidator) {
+    this.dcEpisodeValidator = dcEpisodeValidator;
+    this.dcSeriesValidator = dcSeriesValidator;
+  }
+
+  public boolean supports(Class clazz) {
+    return Recording.class.isAssignableFrom(clazz);
+  }
+
+  @Override
+  public void validate(Object target, Errors errors) {
+    super.validate(target, errors);
+    Recording rec = (Recording) target;
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "startDate", "empty");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "endDate", "empty");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "location", "empty");
+    if (rec.getDevices().size() == 0) {
+      errors.rejectValue("devices", "empty");
+    }
+    if (rec.getEndDate() != null && rec.getStartDate() != null && !rec.getEndDate().after(rec.getStartDate())) {
+      errors.rejectValue("endDate", "error.beforeStart");
+    }
+    /*
+     * if (rec.getEndDate() != null && rec.getEndDate().before(new Date())) { errors.rejectValue("endDate",
+     * "error.endDateInPast"); }
+     */
+
+    // Validate metadata
+
+    if (rec.getDublinCore() == null)
+      errors.rejectValue("dublinCore", "empty");
+    else {
+      errors.pushNestedPath("dublinCore");
+      dcEpisodeValidator.validate(rec.getDublinCore(), errors);
+      errors.popNestedPath();
     }
 
-    public boolean supports(Class clazz) {
-        return Recording.class.isAssignableFrom(clazz);
+    if (rec.getSeries() != null && rec.getSeries().getDublinCore() != null) {
+      errors.pushNestedPath("series.dublinCore");
+      dcSeriesValidator.validate(rec.getSeries().getDublinCore(), errors);
+      errors.popNestedPath();
     }
 
-    @Override
-    public void validate(Object target, Errors errors) {
-        super.validate(target, errors);
-        Recording rec = (Recording) target;
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "startDate", "empty");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "endDate", "empty");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "location", "empty");
-        if (rec.getDevices().size() == 0) {
-            errors.rejectValue("devices", "empty");
-        }
-        if (rec.getEndDate() != null && rec.getStartDate() != null &&
-                !rec.getEndDate().after(rec.getStartDate())) {
-            errors.rejectValue("endDate", "error.beforeStart");
-        }
-        /*
-        if (rec.getEndDate() != null && rec.getEndDate().before(new Date())) {
-            errors.rejectValue("endDate", "error.endDateInPast");
-        }
-        */
-
-        // Validate metadata
-
-        if (rec.getDublinCore() == null)
-            errors.rejectValue("dublinCore", "empty");
-        else {
-            errors.pushNestedPath("dublinCore");
-            dcEpisodeValidator.validate(rec.getDublinCore(), errors);
-            errors.popNestedPath();
-        }
-
-        if (rec.getSeries() != null && rec.getSeries().getDublinCore() != null) {
-            errors.pushNestedPath("series.dublinCore");
-            dcSeriesValidator.validate(rec.getSeries().getDublinCore(), errors);
-            errors.popNestedPath();
-        }
-
-        // todo check for overlaping recordings for a certain location
-    }
+    // todo check for overlaping recordings for a certain location
+  }
 }

@@ -20,7 +20,7 @@
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-*/
+ */
 
 package ch.ethz.replay.ui.scheduler.delivery;
 
@@ -32,13 +32,13 @@ import java.util.Date;
 import java.io.IOException;
 
 /**
- * To be implemented by classes that want to serialize a Calender (i.e. a list of {@link ch.ethz.replay.ui.scheduler.Recording}s)
- * to an output stream.
- *
- * @author Christoph E. Driessen <ced@neopoly.de>
+ * To be implemented by classes that want to serialize a Calender (i.e. a list of
+ * {@link ch.ethz.replay.ui.scheduler.Recording}s) to an output stream.
+ * 
+ * 
  */
 public interface CalendarWriter extends HttpWriter<Collection<Recording>> {
 
-    boolean write(Collection<Recording> recordings, Date lastModified, boolean plainText, HttpServletResponse response)
-        throws IOException;
+  boolean write(Collection<Recording> recordings, Date lastModified, boolean plainText, HttpServletResponse response)
+          throws IOException;
 }
