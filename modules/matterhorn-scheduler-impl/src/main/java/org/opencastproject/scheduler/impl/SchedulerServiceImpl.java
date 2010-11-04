@@ -260,19 +260,8 @@ public class SchedulerServiceImpl implements ManagedService {
       logger.debug("returning all events");
       return getAllEvents();
     }
-    List<Event> events = new LinkedList<Event>();
-    // catch the case that the event id is given, what may be unrealistic
-    if (filter.getEventIDFilter() != null && filter.getEventIDFilter().length() > 0) {
-      Event e = getEvent(filter.getEventIDFilter());
-      if (e != null) {
-        logger.debug("using only single event with id {}.", filter.getEventIDFilter());
-        events.add(e);
-      }
-    } else {
-      // all other cases
-      events = new LinkedList<Event>(getAllEvents());
-      logger.debug("using all {} events.", events.size());
-    }
+    List<Event> events = new LinkedList<Event>(getAllEvents());
+    logger.debug("using all {} events.", events.size());
 
     // filter for device
     if (filter.getDeviceFilter() != null && filter.getDeviceFilter().length() > 0) {
@@ -292,60 +281,20 @@ public class SchedulerServiceImpl implements ManagedService {
       logger.debug("filtered for creator. {} events left.", events.size());
     }
 
-    // filter for abstract
-    if (filter.getAbstractFilter() != null && filter.getAbstractFilter().length() > 0) {
-      events = filterEvents(events, "abstract", filter.getAbstractFilter());
-      logger.debug("filtered for abstract. {} events left.", events.size());
-    }
-
-    // filter for contributor
-    if (filter.getContributorFilter() != null && filter.getContributorFilter().length() > 0) {
-      events = filterEvents(events, "contributor", filter.getContributorFilter());
-      logger.debug("filtered for contributor. {} events left.", events.size());
-    }
-
-    // filter for location
-    if (filter.getLocationFilter() != null && filter.getLocationFilter().length() > 0) {
-      events = filterEventsForExactValue(events, "location", filter.getLocationFilter());
-      logger.debug("filtered for location. {} events left.", events.size());
-    }
-
-    // filter for series
-    if (filter.getSeriesIDFilter() != null && filter.getSeriesIDFilter().length() > 0) {
-      events = filterEventsForExactValue(events, "series-id", filter.getSeriesIDFilter());
-      logger.debug("filtered for series. {} events left.", events.size());
-    }
-
-    // filter for channel
-    if (filter.getChannelIDFilter() != null && filter.getChannelIDFilter().length() > 0) {
-      events = filterEvents(events, "channel-id", filter.getChannelIDFilter());
-      logger.debug("filtered for channel. {} events left.", events.size());
-    }
-
-    // filter for resources
-    if (filter.getResourceFilter() != null && filter.getResourceFilter().length() > 0) {
-      events = filterEvents(events, "resources", filter.getResourceFilter());
-      logger.debug("filtered for resources. {} events left.", events.size());
-    }
-
-    // filter for attendees
-    if (filter.getAttendeeFilter() != null && filter.getAttendeeFilter().length() > 0) {
-      events = filterEvents(events, "attendes", filter.getAttendeeFilter());
-      logger.debug("filtered for attendees. {} events left.", events.size());
-    }
-
     // filter for later Dates
     if (filter.getStart() != null && filter.getStart().getTime() > 0) {
       events = filterEventsForAfterDate(events, filter.getStart());
       logger.debug("Setting start date. {} events left.", events.size());
     }
 
-    // filter for later Dates
-    if (filter.getEnd() != null && filter.getEnd().getTime() > 0) {
-      events = filterEventsForBeforeDate(events, filter.getEnd());
+    // filter for earlier Dates
+    if (filter.getStop() != null && filter.getStop().getTime() > 0) {
+      events = filterEventsForBeforeDate(events, filter.getStop());
       logger.debug("Setting end date. {} events left.", events.size());
     }
 
+    // TODO Include ordering in the filter
+    
     return events;
   }
 

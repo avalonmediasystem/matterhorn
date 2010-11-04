@@ -155,7 +155,7 @@ public class AdminuiRestService {
           @QueryParam("series") boolean filterSeries) {
     SchedulerFilter filter = new SchedulerFilter();
     if (filterTitle) {
-      filter.setTitleFilter(filterString);
+      filter.withTitleFilter(filterString);
     }
     if (filterCreator) {
       filter.withCreatorFilter(filterString);
@@ -180,7 +180,7 @@ public class AdminuiRestService {
           @QueryParam("series") boolean filterSeries) {
     SchedulerFilter filter = new SchedulerFilter();
     if (filterTitle) {
-      filter.setTitleFilter(filterString);
+      filter.withTitleFilter(filterString);
     }
     if (filterCreator) {
       filter.withCreatorFilter(filterString);
@@ -189,14 +189,6 @@ public class AdminuiRestService {
       //todo series;
     }
     return getRecordings(state, pageNumber, pageSize, sortBy, sortOrder, filter);
-  }
-
-  private String ensureString(String in) {
-    if (in != null) {
-      return in;
-    } else {
-      return "";
-    }
   }
 
   /**
@@ -516,7 +508,7 @@ public class AdminuiRestService {
   private LinkedList<AdminRecording> getFailedCaptureJobs() {
     LinkedList<AdminRecording> out = new LinkedList<AdminRecording>();
     if ((schedulerService != null) && (captureAdminService != null)) {
-      SchedulerFilter filter = schedulerService.getNewSchedulerFilter();
+      SchedulerFilter filter = new SchedulerFilter();
       filter.withStop(new Date(System.currentTimeMillis() + CAPTURE_AGENT_DELAY));
       List<Event> events = schedulerService.getEvents(filter);
       for (Event event : events) {
