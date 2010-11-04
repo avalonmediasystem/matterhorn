@@ -1,6 +1,6 @@
 General instructions:
 
-FlexBuilder + maven:
+Eclipse + FlexBuilder + maven:
 ----------------------
 
 Project uses flexmojos in order to build and maintain the code with maven. (http://code.google.com/p/flex-mojos/)
