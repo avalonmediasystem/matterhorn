@@ -4,8 +4,8 @@
     width = "100%"
     height = "100%"
     layout = "absolute"
-    verticalScrollPolicy = "off"
-    horizontalScrollPolicy = "off"
+    verticalScrollPolicy = "auto"
+    horizontalScrollPolicy = "auto"
     backgroundColor = "#000000"
     creationComplete = "init();"
     xmlns:business = "org.opencast.engage.videodisplay.business.*"
@@ -40,8 +40,6 @@
                 var initMediaPlayerEvent:InitMediaPlayerEvent = new InitMediaPlayerEvent("rtmp://freecom.serv.uni-osnabrueck.de/oflaDemo/matterhorn/0a78520a-3c23-4379-bcc7-eb7c0a803070/track-6/dozent.flv", "rtmp://freecom.serv.uni-osnabrueck.de/oflaDemo/matterhorn/0a78520a-3c23-4379-bcc7-eb7c0a803070/track-6/dozent.flv");
                 //CairngormEventDispatcher.getInstance().dispatchEvent( myEvent );
                  CairngormEventDispatcher.getInstance().dispatchEvent( initMediaPlayerEvent );
-                
-                
 
             }
         ]]>
@@ -61,6 +59,6 @@
         includeInLayout = "true"
         width = "100%"
         height = "100%"
-        
+ 
         />
 </mx:Application>

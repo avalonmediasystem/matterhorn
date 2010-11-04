@@ -23,7 +23,8 @@
     xmlns:mx = "http://www.adobe.com/2006/mxml"
     xmlns:view = "org.opencast.engage.videodisplay.view.*"
     xmlns:osmf = "com.osmf.*"
-    backgroundColor="#AAAAAA"
+    backgroundColor="#FFFFFF"
+    
     >
 
     <mx:Script>
@@ -43,8 +44,9 @@
             import org.osmf.elements.VideoElement;
          
 
-            [Bindable]
-            public var model:VideodisplayModel;
+             [Bindable]
+            public var model:VideodisplayModel = VideodisplayModel.getInstance();
+            
             public var pauseButton:Button;
             public var playButton:Button;
             public var progressBG:ProgressBar;
@@ -55,12 +57,16 @@
              */
             public function initPlayer():void
             {
-                model.parallelMediaContainer = new MediaContainer();
+                //model.parallelMediaContainer = new MediaContainer();
                 
-                this.mediaContainerUIComponent.container = model.parallelMediaContainer;
+                 
+                //this.mediaContainerUIComponent.container = model.mediaContainer;
+                mediaContainerUIComponent.container = model.parallelMediaContainer;
+               
+               
 
                 pauseButton = new Button();
-                pauseButton.y = 350;
+                pauseButton.y = 20;
                 pauseButton.x = 20;
                 pauseButton.label = "pa";
                 pauseButton.width = 20;
@@ -71,7 +77,7 @@
                 btn1.addChild( pauseButton );
 
                 playButton = new Button();
-                playButton.y = 350;
+                playButton.y = 40;
                 playButton.x = 60
                 playButton.label = "pl";
                 playButton.width = 20;
@@ -82,7 +88,7 @@
                 btn2.addChild( playButton );
 
                 progressBG = new ProgressBar();
-                progressBG.y = 400;
+                progressBG.y = 60;
                 progressBG.width = 100;
                 progressBG.height = 100;
                 progressBG.useHandCursor = true;
@@ -114,7 +120,6 @@
             {
                 //Marker 3: Add call to pause method
                 model.player.play();
-
             }
 
             protected function _onSeek( p_evt:MouseEvent ):void
@@ -131,6 +136,7 @@
         addedToStage = "initPlayer()"
         width = "100%"
         height = "100%"
+        includeInLayout="true"
         />
 
     <mx:UIComponent 
@@ -144,4 +150,9 @@
     <mx:UIComponent 
         id = "pg"
         />
+        
+        
+      
+        	
+       
 </mx:Canvas>

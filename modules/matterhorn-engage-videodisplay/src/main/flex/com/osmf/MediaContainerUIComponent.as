@@ -122,7 +122,6 @@ package com.osmf
         }
 
         private static const DEFAULT_WIDTH : Number = 320;
-
         private static const DEFAULT_HEIGHT : Number = 240;
 
 
