@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!-- COMMUNITY PROFILE                                                      -->
+<!-- ====================================================================== -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util-2.5.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+       default-autowire="byName">
+
+    <!--
+      Set system properties to allow ch.ethz.replay.core.common.handle.HandleBuilderImpl to
+      run in an Node-less environment.
+    -->
+    <bean class="ch.ethz.replay.ui.common.util.spring.SystemPropertiesSetterBean">
+        <property name="systemProperties">
+            <map>
+                <entry key="replay.handle.authority" value="${replay.handle.authority}"/>
+                <entry key="replay.handle.namespace" value="${replay.handle.namespace}"/>
+                <entry key="replay.handle.url" value="${replay.handle.url}"/>
+            </map>
+        </property>
+    </bean>
+
+    <!-- Some config data -->
+
+    <util:properties id="dublinCoreDefaults" location="classpath:dcdefaults.properties"/>
+</beans>

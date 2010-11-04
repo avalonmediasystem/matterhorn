@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Spring Root Application Context.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util-2.5.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+       default-autowire="byName">
+
+    <!--
+      Import profile specific stuff. Please note that this file must be present, even
+      if it is empty
+    -->
+    <import resource="classpath:profileContext.xml"/>
+
+    <!-- ====================================================================== -->
+    <!-- PROPERTIES                                                             -->
+    <!-- ====================================================================== -->
+
+    <!-- load configuration properties from the classpath -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:application.properties</value>
+                <value>classpath:site.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Credentials -->
+    <bean id="credentialsReader" class="ch.ethz.replay.core.common.util.CredentialsReader"
+          p:referencePrefix="ref:"/>
+
+    <!-- ====================================================================== -->
+    <!-- PERSISTENCE                                                            -->
+    <!--                                                                        -->
+    <!-- The application is persisted using Hibernate3 as the underlying ORM,   -->
+    <!-- accessed via Spring.                                                   -->
+    <!-- One aspect of the persistence layer is not configured here but in the  -->
+    <!-- servlet configuration: The OpenSessionInViewInterceptor.               -->
+    <!-- ====================================================================== -->
+
+    <!-- Configure the datasource -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+          destroy-method="close"
+          p:url="${datasource.url}"
+          p:driverClassName="${datasource.driver}">
+        <property name="username">
+            <bean factory-bean="credentialsReader" factory-method="getCredential">
+                <constructor-arg index="0" value="${datasource.user}"/>
+            </bean>
+        </property>
+        <property name="password">
+            <bean factory-bean="credentialsReader" factory-method="getCredential">
+                <constructor-arg index="0" value="${datasource.password}"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!-- Configure the Hibernate session factory and name all mapped classes -->
+    <bean id="sessionFactory"
+          class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+        <property name="annotatedClasses">
+            <list>
+                <value>ch.ethz.replay.ui.scheduler.impl.RecordingImpl</value>
+                <value>ch.ethz.replay.ui.scheduler.impl.RecordingSeriesImpl</value>
+                <value>ch.ethz.replay.ui.scheduler.impl.EventSeriesImpl</value>
+                <value>ch.ethz.replay.ui.scheduler.impl.DeviceTypeImpl</value>
+                <value>ch.ethz.replay.ui.scheduler.impl.SimpleLocation</value>
+                <value>ch.ethz.replay.ui.scheduler.impl.Deletion</value>
+                <!-- Person -->
+                <value>ch.ethz.replay.ui.scheduler.impl.PersonImpl</value>
+                <value>ch.ethz.replay.ui.scheduler.external.common.LdapPerson</value>
+                <!-- Attachment -->
+                <value>ch.ethz.replay.ui.scheduler.impl.DocumentAttachmentImpl</value>
+                <value>ch.ethz.replay.ui.scheduler.impl.JobTicketAttachmentImpl</value>
+                <value>ch.ethz.replay.ui.scheduler.impl.DublinCoreAttachmentImpl</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <!-- Set @Id of deleted entities to null -->
+                <!--<prop key="hibernate.use_identifier_rollback">true</prop>-->
+            </props>
+        </property>
+        <property name="eventListeners">
+            <map>
+                <entry key="save">
+                    <list>
+                        <ref bean="persistenceLifecycleListener"/>
+                        <ref bean="autoTimestampUpdater"/>
+                        <bean class="org.hibernate.event.def.DefaultSaveEventListener"/>
+                    </list>
+                </entry>
+                <entry key="update">
+                    <list>
+                        <ref bean="persistenceLifecycleListener"/>
+                        <ref bean="autoTimestampUpdater"/>
+                        <bean class="org.hibernate.event.def.DefaultUpdateEventListener"/>
+                    </list>
+                </entry>
+                <entry key="save-update">
+                    <list>
+                        <ref bean="persistenceLifecycleListener"/>
+                        <ref bean="autoTimestampUpdater"/>
+                        <bean class="org.hibernate.event.def.DefaultSaveOrUpdateEventListener"/>
+                    </list>
+                </entry>
+                <entry key="merge">
+                    <list>
+                        <!-- Todo persistenceLifecycleListener -->
+                        <ref bean="autoTimestampUpdater"/>
+                        <bean class="org.hibernate.event.def.DefaultMergeEventListener"/>
+                    </list>
+                </entry>
+                <entry key="post-load">
+                    <list>
+                        <ref bean="persistenceLifecycleListener"/>
+                        <bean class="org.hibernate.event.def.DefaultPostLoadEventListener"/>
+                    </list>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="autoTimestampUpdater"
+          class="ch.ethz.replay.ui.common.util.hibernate.AutoTimestampOnUpdateListener"
+          p:precision="1000"/>
+
+    <bean id="persistenceLifecycleListener"
+          class="ch.ethz.replay.ui.common.util.hibernate.PersistenceLifecycleEventListener"/>
+
+    <!--
+      Configure the Transaction Manager
+      If the bean name is "transactionManager" configuration in the <tx:annotation-driven/> Tag
+      can be omitted.
+    -->
+    <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"/>
+
+    <!--
+      Enable the configuration of transactional behavior based on annotations
+      set proxy-target-class to true otherwise annotated beans are of some $Proxy12 type and
+      cannot be injected anymore.
+    -->
+    <tx:annotation-driven proxy-target-class="true"/>
+
+    <!-- ====================================================================== -->
+    <!-- DATA SOURCES                                                           -->
+    <!-- ====================================================================== -->
+
+    <!-- LDAP -->
+    <bean id="ldapTemplate" class="org.springframework.ldap.core.LdapTemplate">
+        <constructor-arg>
+            <bean class="org.springframework.ldap.core.support.LdapContextSource"
+                  p:url="${ldap.url}"
+                  p:base="${ldap.base}"/>
+        </constructor-arg>
+    </bean>
+
+    <!-- DAOs & related -->
+
+    <bean id="recordingDao" class="ch.ethz.replay.ui.scheduler.impl.persistence.RecordingDaoImpl"/>
+
+    <bean id="recordingSeriesDao" class="ch.ethz.replay.ui.scheduler.impl.persistence.RecordingSeriesDaoImpl"/>
+
+    <bean id="ldapPersonDao" class="ch.ethz.replay.ui.scheduler.external.common.LdapPersonDao"
+          p:idAttribute="mail"/>
+    <bean class="ch.ethz.replay.ui.scheduler.external.common.LdapPersonDaoProvider"/>
+
+    <bean id="localPersonDao" class="ch.ethz.replay.ui.scheduler.impl.persistence.PersonDaoImpl"/>
+
+    <bean id="personDao" class="ch.ethz.replay.ui.scheduler.external.common.LdapBackedPersonDao"/>
+
+    <bean id="deviceTypeDao" class="ch.ethz.replay.ui.scheduler.impl.persistence.DeviceTypeDaoImpl"/>
+
+    <bean id="locationDao" class="ch.ethz.replay.ui.scheduler.impl.persistence.SimpleLocationDaoImpl"/>
+
+    <bean id="attachmentDao" class="ch.ethz.replay.ui.scheduler.impl.persistence.AttachmentDao"/>
+
+    <!-- ====================================================================== -->
+    <!-- SERVICES                                                               -->
+    <!-- ====================================================================== -->
+
+    <bean id="schedule" class="ch.ethz.replay.ui.scheduler.impl.ScheduleImpl"/>
+
+    <bean id="calendarWriter" class="ch.ethz.replay.ui.scheduler.delivery.CalendarWriterImpl"
+          p:prodId="${icalendar.prod-id}"
+          p:vcardUrl="${icalendar.vcard-url}"
+          p:attachmentUrl="${icalendar.attachment-url}"
+          p:bundleSkeletonUrl="${icalendar.bundle-skeleton-url}"/>
+
+    <bean id="vCardWriter" class="ch.ethz.replay.ui.scheduler.delivery.VCardWriterImpl"/>
+
+    <bean id="attachmentWriter" class="ch.ethz.replay.ui.scheduler.delivery.AttachmentWriterImpl"/>
+
+    <bean id="bundleSkeletonWriter" class="ch.ethz.replay.ui.scheduler.delivery.BundleSkeletonWriterImpl"/>
+
+    <bean id="jobTicketImporter" class="ch.ethz.replay.ui.scheduler.impl.JobTicketImporter"
+          p:dir="WEB-INF/jobtickets"/>
+
+    <!-- Validators -->
+
+    <bean id="dcEpisodeValidator" class="ch.ethz.replay.core.common.bundle.dublincore.ETHZDublinCoreValidator"/>
+
+    <bean id="dcSeriesValidator" class="ch.ethz.replay.core.common.bundle.dublincore.ETHZDublinCoreValidator"/>
+
+    <bean id="recordingValidator" class="ch.ethz.replay.ui.scheduler.impl.util.RecordingValidator">
+        <constructor-arg index="0" ref="dcEpisodeValidator"/>
+        <constructor-arg index="1" ref="dcEpisodeValidator"/>
+    </bean>
+
+    <bean id="recordingsValidator" class="ch.ethz.replay.ui.scheduler.impl.util.RecordingsValidator">
+        <constructor-arg index="0" ref="recordingValidator"/>
+    </bean>
+
+    <!-- ====================================================================== -->
+    <!-- CONFIGURATION                                                          -->
+    <!-- ====================================================================== -->
+
+    <!-- Default language -->
+    <bean id="defaultLanguage" class="java.lang.String">
+        <constructor-arg value="${language.default}"/>
+    </bean>
+
+    <!-- Supported languages (Dublin Core) -->
+    <util:list id="supportedLanguages">
+        <value>en</value>
+        <value>de</value>
+        <value>fr</value>
+        <value>es</value>
+    </util:list>
+
+    <!--
+    Devices
+    -->
+    <util:list id="devices" value-type="ch.ethz.replay.ui.scheduler.DeviceType">
+        <bean class="ch.ethz.replay.ui.scheduler.impl.DeviceTypeImpl" p:name="presenter"/>
+        <bean class="ch.ethz.replay.ui.scheduler.impl.DeviceTypeImpl" p:name="presentation"/>
+        <bean class="ch.ethz.replay.ui.scheduler.impl.DeviceTypeImpl" p:name="audio"/>
+    </util:list>
+
+    <!-- ====================================================================== -->
+    <!-- WEB                                                                    -->
+    <!-- ====================================================================== -->
+
+    <bean id="schedulerSession" class="ch.ethz.replay.ui.scheduler.web.SchedulerSession" scope="session">
+        <!-- This is a session bean so it needs to be proxied -->
+        <aop:scoped-proxy/>
+        <!-- Value should be the same as the one used with context:component-scan -->
+        <property name="basePackage" value="ch.ethz.replay.ui.scheduler.web.controller"/>
+    </bean>
+
+    <!-- inject into ServletContext -->
+    <bean class="org.springframework.web.context.support.ServletContextAttributeExporter">
+        <property name="attributes">
+            <map>
+                <entry key="schedule" value-ref="schedule"/>
+                <entry key="createTestRecords" value="${test.create-test-records}"/>
+                <entry key="devices" value-ref="devices"/>
+                <entry key="createDevices" value="${create.devices}"/>
+                <entry key="jobTicketImporter" value-ref="jobTicketImporter"/>
+            </map>
+        </property>
+    </bean>
+
+    <!-- ====================================================================== -->
+    <!-- MISC                                                                   -->
+    <!-- ====================================================================== -->
+
+    <!--
+      Enable injectable domain classes.
+      The spring-aspects aspects must be woven into @Configurable annotated domain classes, either at compile or
+      at load time.
+    -->
+    <!--<context:spring-configured/>-->
+
+    <!-- The new Object-ID solution -->
+    <!--
+    One Shelf per user session
+    -->
+    <bean id="shelf" class="ch.ethz.replay.ui.common.web.shelf.Shelf" scope="session">
+        <aop:scoped-proxy/>
+    </bean>
+    <bean class="ch.ethz.replay.ui.common.web.shelf.WebShelf"/>
+
+</beans>

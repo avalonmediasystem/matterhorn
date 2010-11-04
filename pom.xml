@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ch.ethz.replay</groupId>
+    <artifactId>replay-ui-scheduler</artifactId>
+    <version>0.8</version>
+    <packaging>jar</packaging>
+
+    <!-- ====================================================================== -->
+    <!-- PROJECT INFORMATION                                                    -->
+    <!-- ====================================================================== -->
+
+    <name>REPLAY:UI Scheduler</name>
+    <description>Scheduler web application. Manages the schedule of recordings.</description>
+    <inceptionYear>2008</inceptionYear>
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+            <distribution>
+                Either version 2 of the License, or (at your option) any later version.
+            </distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>ETH Zurich, Switzerland</name>
+        <url>http://www.ethz.ch</url>
+    </organization>
+    <developers>
+        <developer>
+            <id>driessen</id>
+            <name>Christoph E. Driessen</name>
+            <email>ced@neopoly.de</email>
+            <organization>private</organization>
+        </developer>
+    </developers>
+
+    <!-- ====================================================================== -->
+    <!-- PROPERTIES                                                             -->
+    <!-- ====================================================================== -->
+
+    <properties>
+        <replay.version>${project.version}</replay.version>
+        <replay.svnRepository>https://svn.origo.ethz.ch/replay/ui/scheduler/trunk</replay.svnRepository>
+        <log4j.logFileName>scheduler.log</log4j.logFileName>
+        <log4j.appLogger>ch.ethz.replay.ui.scheduler</log4j.appLogger>
+        <spring.version>2.5.5</spring.version>
+        
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!-- ====================================================================== -->
+    <!-- DEPENDENCIES                                                           -->
+    <!-- ====================================================================== -->
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Replay -->
+        <dependency>
+            <groupId>ch.ethz.replay</groupId>
+            <artifactId>replay-common</artifactId>
+            <version>${replay.version}</version>
+            <!-- Apache AXIS depends on servlet API 2.3 but we need 2.4 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ch.ethz.replay</groupId>
+            <artifactId>replay-ui-common</artifactId>
+            <version>${replay.version}</version>
+        </dependency>
+        <!-- /Replay -->
+
+        <!-- j2ee -->
+        <dependency>
+            <groupId>net.java.dev.glassfish</groupId>
+            <artifactId>glassfish-persistence-api</artifactId>
+            <version>b32g</version>
+        </dependency>
+        <dependency>
+            <groupId>javaee</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>taglibs</groupId>
+            <artifactId>standard</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <!--
+        Spring-Aspects make domain classes injectable after weaving them in by AspectJ.
+        See build section below for configuring the AspectJ Weaver
+        -->
+        <!--
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        -->
+
+        <dependency>
+            <groupId>org.springframework.ldap</groupId>
+            <artifactId>spring-ldap</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
+
+        <!-- Hibernate and Persistence -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate</artifactId>
+            <version>3.2.6.ga</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-annotations</artifactId>
+            <version>3.3.1.GA</version>
+        </dependency>
+        <!-- Commons database connection pool -->
+        <dependency>
+            <artifactId>commons-dbcp</artifactId>
+            <groupId>commons-dbcp</groupId>
+            <version>1.2.2</version>
+        </dependency>
+        <!-- HSQLDB -->
+        <dependency>
+            <groupId>hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>1.8.0.7</version>
+        </dependency>
+
+        <!-- Commons Fileupload -->
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
+        <!-- Commons Lang -->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.4</version>
+        </dependency>
+
+        <!-- Commons IO -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.4</version>
+        </dependency>
+
+        <!-- Commons Collections -->
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+
+        <!-- Commons Codec -->
+        <!-- seems to be needed by ical4j -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.3</version>
+        </dependency>
+
+        <!-- SiteMesh -->
+        <dependency>
+            <groupId>com.opensymphony</groupId>
+            <artifactId>sitemesh</artifactId>
+            <version>2.3</version>
+        </dependency>
+
+        <!-- ical4j -->
+        <dependency>
+            <groupId>net.fortuna</groupId>
+            <artifactId>ical4j</artifactId>
+            <version>1.0-beta4</version>
+        </dependency>
+
+        <!-- Joda time -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <!-- log4j -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.15</version>
+            <!-- several exclusion that are not needed -->
+            <exclusions>
+                <exclusion>
+                    <groupId>com.sun.jmx</groupId>
+                    <artifactId>jmxri</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jdmk</groupId>
+                    <artifactId>jmxtools</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.jms</groupId>
+                    <artifactId>jms</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.mail</groupId>
+                    <artifactId>mail</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.activation</groupId>
+                    <artifactId>activation</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <!-- ====================================================================== -->
+    <!-- BUILD                                                                  -->
+    <!-- ====================================================================== -->
+
+    <build>
+        <resources>
+            <!--
+            Relocate the resource directory to the shared subfolder
+            Depending on the choosen profile development or production files will be added.
+            -->
+            <resource>
+                <directory>src/main/resources/shared</directory>
+            </resource>
+        </resources>
+        <!-- Configure plugins -->
+        <plugins>
+            <!-- Compiler -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <!-- Attach sources -->
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Jetty -->
+            <plugin>
+                <groupId>org.mortbay.jetty</groupId>
+                <artifactId>maven-jetty-plugin</artifactId>
+                <version>6.1.9</version>
+                <configuration>
+                    <scanIntervalSeconds>0</scanIntervalSeconds>
+                </configuration>
+            </plugin>
+            <!-- Print profile information -->
+            <plugin>
+                <artifactId>maven-help-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>active-profiles</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- AspectJ. Currently not needed -->
+            <!--<plugin>-->
+            <!--<groupId>org.codehaus.mojo</groupId>-->
+            <!--<artifactId>aspectj-maven-plugin</artifactId>-->
+            <!--<configuration>-->
+            <!--<complianceLevel>1.5</complianceLevel>-->
+            <!--<verbose>true</verbose>-->
+            <!--<aspectLibraries>-->
+            <!--<aspectLibrary>-->
+            <!--<groupId>org.springframework</groupId>-->
+            <!--<artifactId>spring-aspects</artifactId>-->
+            <!--</aspectLibrary>-->
+            <!--</aspectLibraries>-->
+            <!--</configuration>-->
+            <!--<executions>-->
+            <!--<execution>-->
+            <!--<goals>-->
+            <!--<goal>compile</goal>-->
+            <!--</goals>-->
+            <!--</execution>-->
+            <!--</executions>-->
+            <!--
+            Override the plugin's dependencies to v1.5.4 of AspectJ because
+            Spring-Aspects 2.5.5 need version 1.6.0
+            -->
+            <!--<dependencies>-->
+            <!--<dependency>-->
+            <!--<groupId>org.aspectj</groupId>-->
+            <!--<artifactId>aspectjrt</artifactId>-->
+            <!--<version>1.6.0</version>-->
+            <!--</dependency>-->
+            <!--<dependency>-->
+            <!--<groupId>org.aspectj</groupId>-->
+            <!--<artifactId>aspectjtools</artifactId>-->
+            <!--<version>1.6.0</version>-->
+            <!--</dependency>-->
+            <!--</dependencies>-->
+            <!--</plugin>-->
+
+        </plugins>
+    </build>
+
+    <!-- ====================================================================== -->
+    <!-- PROFILES                                                               -->
+    <!-- ====================================================================== -->
+
+    <profiles>
+        <!--
+        The development profile. Contains the settings for a development build which is the default.
+        -->
+        <profile>
+            <id>develop</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <dependencies>
+                <!-- todo temp -->
+                <!-- Main installation uses a PostgresQL database -->
+                <dependency>
+                    <groupId>postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>8.3-603.jdbc3</version>
+                </dependency>
+
+                <!-- MySQL (for ETHZ VVZ) -->
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.6</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources/develop</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+
+        <!--
+        Profile for Scala console usage.
+        -->
+        <profile>
+            <id>console</id>
+            <dependencies>
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.6</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources/console</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+
+        <!--
+        The community profile. Like the development profile but suitable for everyone.
+        -->
+        <profile>
+            <id>community</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources/community</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+
+        <!--
+        The distribution profile. Contains the settings for a distribution build.
+        -->
+        <profile>
+            <id>distribution</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources/distribution</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <!-- Disable unit tests in production profile -->
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+        Profile for the main installation at ETH Zurich.
+        -->
+        <profile>
+            <id>eth-main</id>
+            <dependencies>
+                <!-- Main installation uses a PostgresQL database -->
+                <dependency>
+                    <groupId>postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>8.3-603.jdbc3</version>
+                </dependency>
+                <!-- MySQL (for ETHZ VVZ) -->
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.6</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources/eth-main</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+
+        <!--
+        Profile for the devel installation at ETH Zurich.
+        -->
+        <profile>
+            <id>eth-devel</id>
+            <dependencies>
+                <!-- Devel installation uses a PostgresQL database -->
+                <dependency>
+                    <groupId>postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>8.3-603.jdbc3</version>
+                </dependency>
+                <!-- MySQL (for ETHZ VVZ) -->
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.6</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources/eth-devel</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+    </profiles>
+
+    <!-- ====================================================================== -->
+    <!-- SCM                                                                    -->
+    <!-- ====================================================================== -->
+
+    <scm>
+        <connection>scm:svn:${replay.svnRepository}</connection>
+        <developerConnection>scm:svn:${replay.svnRepository}</developerConnection>
+    </scm>
+
+    <!-- ====================================================================== -->
+    <!-- REPOSITORIES                                                           -->
+    <!-- ====================================================================== -->
+
+    <repositories>
+        <!-- the apache snapshot repo -->
+        <repository>
+            <id>apache-maven-snapshots</id>
+            <url>http://people.apache.org/repo/m2-snapshot-repository</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <!-- the java.net repo -->
+        <repository>
+            <id>java.net</id>
+            <url>http://download.java.net/maven/1</url>
+            <layout>legacy</layout>
+        </repository>
+        <!-- project repo containing all artifact that are not provided in public repositories -->
+        <repository>
+            <id>project-dependencies</id>
+            <name>Project Dependencies</name>
+            <url>file:repository</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+</project>

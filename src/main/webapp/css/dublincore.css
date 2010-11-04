@@ -1,0 +1,76 @@
+table#form {
+    margin-bottom: 20px;
+}
+
+table#form td:first-child {
+    width: 30px;    
+}
+
+table#form td.label select {
+    width: auto;
+}
+
+table#form td.label {
+    width: auto;
+    text-align: right;
+}
+
+input[type=text], textarea {
+    width: 400px !important;
+}
+
+div.help {
+    display: none;
+    padding: 3px 0 10px 5px;
+    text-align: left;
+    font-size: 90%;
+    color: #aaa;
+}
+
+div.group, div.group div.multiple {
+    padding: 4px 0 4px 0;
+    vertical-align: top;
+}
+
+h3 {
+    position: relative;
+    display: inline-block;
+    padding-left: 3px;
+}
+
+div#actions {
+    position: relative;
+    display: inline-block;
+    top: 30px;
+}
+
+input[type=checkbox].tmpl-assigned {
+    position: absolute;
+    display: inline-block;
+}
+
+*[readonly] {
+    color: #999;
+    border-color: #fff !important;
+}
+
+/* Drag styles */
+
+tr.tDnD_whileDrag {
+    background: #eee;
+}
+
+tr.tDnD_whileDrag td, tr.tDnD_whileDrag input {
+    background: #eee;
+    color: #999;
+}
+
+tr.tDnD_whileDrag td.drag-handle {
+    background: #eee;
+    color: #000;
+}
+
+td.drag-handle {
+    cursor: move;
+    color: #999;
+}

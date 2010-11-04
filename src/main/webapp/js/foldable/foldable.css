@@ -1,0 +1,26 @@
+div.foldable-header {
+    position: relative;
+    height: 20px;
+}
+
+div.foldable-open {
+    position: relative;
+    width: 12px;
+    height: 13px;
+    margin: 0 3px 0 4px;
+    background: url( "foldable-open.gif" ) bottom left no-repeat;
+    float: left;
+}
+
+div.foldable-closed {
+    position: relative;
+    width: 12px;
+    height: 12px;
+    margin: 0 3px 0 4px;
+    background: url( "foldable-closed.gif" ) bottom left no-repeat;
+    float: left;
+}
+
+div.foldable-header span {
+    line-height: 17px;
+}

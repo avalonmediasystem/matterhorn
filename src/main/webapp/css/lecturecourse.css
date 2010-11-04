@@ -1,0 +1,53 @@
+#formSave {
+    float: right;
+    margin-top: 10px;    
+}
+
+a.form-save {
+    display: block;
+    height: 19px;
+    width: 80px;
+    margin: 0;
+    border: 2px double greenyellow;
+    padding-top: 4px;
+    text-align: center;
+    background: url( "save-bg.gif" ) repeat-x;
+    color: black;
+    font-size: 12px;
+}
+
+table {
+    width: 100%;
+}
+
+table a.rec {
+    font-weight: bold;
+    padding: 2px 5px 2px 5px;
+    border: 1px solid gray;
+    margin-right: 5px;
+    background: lightgray;
+}
+
+table a.invalid {
+    background: lightpink;
+}
+
+table a.differ {
+    background: lightblue;
+}
+
+table a.invalid.differ {
+    background: lightpink;
+}
+
+table tr.even th {
+    border-bottom: none;
+}
+
+table td {
+    vertical-align: middle;
+}
+
+#result-pane {
+    margin-top: 20px;
+}

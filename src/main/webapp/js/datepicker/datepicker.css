@@ -1,0 +1,118 @@
+div.datepicker {
+    position: absolute;
+    width: 176px;
+    border: 1px solid #e8e8e8;
+    margin-top: 2px;
+    background: #f6f6f6;
+    cursor: default;
+    z-index: 99;
+}
+
+/* --- menubar ---*/
+
+div.datepicker div.menubar {
+    height: 18px;
+    background: url( "datepickerhead.gif" );
+    cursor: pointer;
+}
+
+div.datepicker div.menubar span.button {
+    display: block;
+    float: left;
+    height: 18px;
+    width: 22px;
+    cursor: pointer;
+}
+
+div.datepicker div.menubar span.button:hover {
+}
+
+/* */
+
+div.datepicker table {
+    border-collapse: collapse;
+    border: 0;
+}
+
+div.datepicker table.calendar tbody {
+    border-top: 1px solid #e8e8e8;
+    border-bottom: 1px solid #e8e8e8;
+    background: lightgray;
+    cursor: pointer;
+}
+
+div.datepicker table.calendar thead tr {
+    background: white;
+    color: black;
+}
+
+div.datepicker table.calendar thead th {
+    padding: 1px;
+    font-weight: normal;
+    font-size: 95%;
+    text-align: center;
+}
+
+div.datepicker td, div.datepicker th, div.month-year {
+    line-height: 1.2em;
+}
+
+div.datepicker table td {
+    padding: 2px 0 2px 0;
+    width: 14%;
+    text-align: right;
+}
+
+div.datepicker table td.cm {
+    background: white;
+    color: black;
+}
+
+div.datepicker table td:hover {
+    background: #d3ff91;
+}
+
+div.datepicker table td.today {
+    background: lightgreen;
+}
+
+div.datepicker table td.cm.today {
+    background: greenyellow;
+}
+
+div.datepicker table td.selected {
+    background: yellowgreen;
+}
+
+div.datepicker span.month, div.datepicker span.year {
+    padding-left: 3px;
+}
+
+/* */
+
+div.datepicker .month-year {
+    text-align: center;
+    padding: 2px;
+    background: greenyellow;
+}
+
+/* time slider & display */
+div.datepicker div.time-select {
+    padding: 5px;
+}
+
+div.datepicker div.time {
+    text-align: center;
+}
+
+div.datepicker div.slider {
+    height: 5px;
+    background: greenyellow;
+    margin: 1px;
+}
+
+div.datepicker div.handle {
+    width: 5px;
+    height: 5px;
+    background: darkgreen;
+}

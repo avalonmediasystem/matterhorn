@@ -1,0 +1,8 @@
+<JobTicket id="special">
+	<Name>Special Settings</Name>
+	<Properties>
+		<!-- Settings for iTunes U publishing -->
+		<Property><Name>itunes.publish</Name><Value>yes</Value></Property>
+		<Property><Name>itunes.account</Name><Value>account</Value></Property>
+	</Properties>
+</JobTicket>

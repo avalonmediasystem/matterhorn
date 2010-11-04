@@ -1,0 +1,104 @@
+/*
+ * Stylesheet for schedule page
+ */
+
+#p-schedule div#header {
+    border-bottom: 1px solid #aaa;
+}
+
+#p-schedule div#schedule {
+    margin-top: 30px;
+}
+
+#p-schedule tr.day-separator td {
+    padding: 15px 0 0 5px;
+    border-bottom: 1px solid #eee;
+}
+
+#p-schedule span.day-separator-date {
+    font-weight: bold;
+    text-align: center;
+    padding: 1px 5px 0px 5px;
+    -border-left: 1px solid #eee;
+    -border-right: 1px solid #eee;
+    -border-top: 1px solid #eee;
+    color: #3b5e3b;
+    background: #dff0df;
+}
+
+#p-schedule table#recordings {
+    width: 100%;
+}
+
+#p-schedule tr.recording td {
+    border-bottom: 1px solid #eee;
+    padding: 5px;
+}
+
+#p-schedule tr.bygone,
+#p-schedule tr.bygone div.body,
+#p-schedule tr.bygone span.period,
+#p-schedule tr.bygone span.location,
+#p-schedule tr.bygone span.bullet {
+    color: darkgray !important;
+    background: #e8e8e8 !important;
+}
+
+#p-schedule tr.bygone a {
+    color: darkgray;
+}
+
+#p-schedule tr.running {
+    background: #ffedff;
+}
+
+#p-schedule div.head {
+    position: relative;
+    height: 15px;
+    line-height: 15px;
+}
+
+#p-schedule div.body {
+    padding: 3px 2px 0 20px;
+    color: #666;
+}
+
+#p-schedule #recordings .location {
+    position: absolute;
+    left: 150px;
+    font-size: 10px;
+    color: #777;
+}
+
+#p-schedule #recordings .period {
+    position: absolute;
+    left: 20px;
+    width: 120px;
+    font-size: 10px;
+    color: #777;
+}
+
+#p-schedule #recordings .day {
+    position: absolute;
+    left: 0px;
+}
+
+#p-schedule #recordings .series {
+    position: absolute;
+    left: 520px;
+}
+
+#p-schedule #recordings .recording-marker {
+    margin-right: 15px;
+    color: darkred;
+    font-weight: bold;
+}
+
+#p-schedule span.bullet {
+    position: absolute;
+    top: -1px;
+    color: #3B5E3B;
+    font-size: 15px;
+}
+
+

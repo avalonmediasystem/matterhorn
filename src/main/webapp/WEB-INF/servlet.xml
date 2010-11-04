@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Bean definitions regarding the web layer.
+
+  Christoph E. Driessen <ced@neopoly.de>
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util-2.5.xsd"
+       default-autowire="byName">
+
+    <!-- load configuration properties from the classpath -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"
+          p:location="classpath:application.properties"/>
+
+    <!--
+    Scan application for Spring Components
+    -->
+    <context:component-scan base-package="ch.ethz.replay.ui.scheduler.web.controller"/>
+
+    <!--
+    URL to Controller Mapping
+    We want the appropriate controller being found by it's class name.
+    -->
+    <bean id="urlMapping" class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"
+          p:basePackage="ch.ethz.replay.ui.scheduler.web.controller">
+        <property name="interceptors">
+            <list>
+                <!--
+                  Enable Open Session In View, which allows for lazy loading of depended entities
+                  in the view layer.
+                 -->
+                <bean class="org.springframework.orm.hibernate3.support.OpenSessionInViewInterceptor"/>
+            </list>
+        </property>
+    </bean>
+
+    <!--
+    View Resolver
+    Use the InternalResourceViewResolver to resolve view names to JSPs and to
+    expose beans to them.
+    -->
+    <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+          p:prefix="/WEB-INF/jsp/"
+          p:suffix=".jsp"
+          p:requestContextAttribute="requestContext">
+        <property name="exposedContextBeanNames">
+            <list>
+                <value>i18n</value>
+                <value>conc</value>
+                <value>on</value>
+                <value>shelve</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--
+    A bean generating view names for us if omitted by the controller.
+    -->
+    <bean id="viewNameTranslator" class="org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator"/>
+
+    <!--
+    Multipart Resolver is used for file uploads.
+    -->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
+          p:maxUploadSize="10000000"/>
+
+    <!--
+    Message Sources
+    -->
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource"
+          p:useCodeAsDefaultMessage="true">
+        <property name="basenames">
+            <list>
+                <value>messages</value>
+                <value>errors</value>
+                <value>languages</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- locale resolver -->
+    <!--
+    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.FixedLocaleResolver">
+        <property name="defaultLocale">
+            <util:constant static-field="java.util.Locale.US"/>
+        </property>
+    </bean>
+    -->
+
+    <!--
+    JSP service beans
+    Register those beans with a ViewResolver
+    -->
+
+    <bean id="i18n"
+          class="ch.ethz.replay.ui.common.web.functionbeans.I18n"
+          scope="request">
+        <property name="localeContext">
+            <bean class="org.springframework.context.i18n.LocaleContextHolder"
+                  factory-method="getLocaleContext"/>
+        </property>
+        <property name="defaultLocale" value="${locale.default}"/>
+    </bean>
+
+    <bean id="conc" class="ch.ethz.replay.ui.common.web.functionbeans.Concat" scope="prototype"/>
+    <bean id="on" class="ch.ethz.replay.ui.common.web.functionbeans.On" scope="prototype"/>
+    <bean id="shelve" class="ch.ethz.replay.ui.common.web.shelf.ELObjectShelver"/>
+</beans>

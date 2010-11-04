@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!-- CONSOLE PROFILE                                                        -->
+<!-- ====================================================================== -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util-2.5.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+       default-autowire="byName">
+
+    <!--
+      Set system properties to allow ch.ethz.replay.core.common.handle.HandleBuilderImpl to
+      run in an Node-less environment.
+    -->
+    <bean class="ch.ethz.replay.ui.common.util.spring.SystemPropertiesSetterBean">
+        <property name="systemProperties">
+            <map>
+                <entry key="replay.handle.authority" value="${replay.handle.authority}"/>
+                <entry key="replay.handle.namespace" value="${replay.handle.namespace}"/>
+                <entry key="replay.handle.url" value="${replay.handle.url}"/>
+            </map>
+        </property>
+    </bean>
+
+    <!--
+      ETHZ VVZ connectivity
+    -->
+
+    <!-- VVZ data source -->
+    <bean id="vvzDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"
+          p:url="${vvz.datasource.url}"
+          p:driverClassName="${vvz.datasource.driver}">
+        <property name="username">
+            <bean factory-bean="credentialsReader" factory-method="getCredential">
+                <constructor-arg index="0" value="${vvz.datasource.user}"/>
+            </bean>
+        </property>
+        <property name="password">
+            <bean factory-bean="credentialsReader" factory-method="getCredential">
+                <constructor-arg index="0" value="${vvz.datasource.password}"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!-- Configure the Hibernate session factory and name all mapped classes -->
+    <bean id="vvzSessionFactory"
+          class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+        <property name="dataSource" ref="vvzDataSource"/>
+        <property name="annotatedClasses">
+            <list>
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.Lerneinheit</value>
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.Lehrveranstalter</value>
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.Veranstalter</value>
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.Belegung</value>
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.Lehrveranstaltung</value>
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.Suchindex</value>
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.Semester</value>
+                <!-- Metadata mappings -->
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.MStudiengang</value>
+                <value>ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.MRegion</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.hbm2ddl.auto">${vvz.hibernate.hbm2dll.auto}</prop>
+                <prop key="hibernate.dialect">${vvz.hibernate.dialect}</prop>
+                <prop key="hibernate.show_sql">${vvz.hibernate.show-sql}</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <!-- Set @Id of deleted entities to null -->
+                <!--<prop key="hibernate.use_identifier_rollback">true</prop>-->
+            </props>
+        </property>
+    </bean>
+
+    <!-- DAOs & services -->
+
+    <bean id="vvzConnector" class="ch.ethz.replay.ui.scheduler.external.ethz.VvzConnector"
+          autowire="no"
+          lazy-init="true"
+          p:sessionFactory-ref="vvzSessionFactory"
+          p:schedule-ref="schedule"
+          p:suchindexDAO-ref="suchindexDAO"
+          p:semesterDAO-ref="semesterDAO"
+          p:lehrveranstaltungDAO-ref="lehrveranstaltungDAO"
+          p:studiengangDAO-ref="studiengangDAO"
+          p:regionDAO-ref="regionDAO"
+          p:deviceTypeDao-ref="deviceTypeDao"
+          p:dublinCoreDefaults-ref="dublinCoreDefaults"/>
+
+
+    <bean id="lerneinheitDAO" class="ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.LerneinheitDAO"
+          p:sessionFactory-ref="vvzSessionFactory"/>
+
+    <bean id="suchindexDAO" class="ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.SuchindexDAO"
+          p:sessionFactory-ref="vvzSessionFactory"
+          p:onlyLectures="${vvz.showOnlyLectures}"/>
+
+    <bean id="semesterDAO" class="ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.SemesterDAO"
+          p:sessionFactory-ref="vvzSessionFactory"/>
+
+    <bean id="lehrveranstaltungDAO" class="ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.LehrveranstaltungDAO"
+          p:sessionFactory-ref="vvzSessionFactory"/>
+
+    <bean id="studiengangDAO" class="ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.MStudiengangDAO"
+            p:sessionFactory-ref="vvzSessionFactory"/>
+
+    <bean id="regionDAO" class="ch.ethz.replay.ui.scheduler.external.ethz.soapvvz.MRegionDAO"
+            p:sessionFactory-ref="vvzSessionFactory"/>
+
+    <!-- Some config data -->
+
+    <util:properties id="dublinCoreDefaults" location="classpath:dcdefaults.properties"/>
+</beans>

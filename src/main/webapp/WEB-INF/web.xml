@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!-- The REPLAY Schedule web application relies an Spring MVC               -->
+<!-- ====================================================================== -->
+
+<web-app version="2.4"
+         xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+    <!--
+      Define and map the DispatcherServlet which is the heart of Spring MVC.
+
+      Bean definitions concerning the web layer are loaded from servlet.xml
+    -->
+    <servlet>
+        <servlet-name>replay-ui-scheduler</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>/WEB-INF/servlet.xml</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>replay-ui-scheduler</servlet-name>
+        <url-pattern>/app/*</url-pattern>
+    </servlet-mapping>
+
+    <!--
+    <servlet>
+        <servlet-name>resourceServlet</servlet-name>
+        <servlet-class>ch.ethz.replay.ui.scheduler.web.PatternStaticResourcesServlet</servlet-class>
+        <init-param>
+            <param-name>resourcePattern</param-name>
+            <param-value>.+\.xml$</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>resourceServlet</servlet-name>
+        <url-pattern>/resource/*</url-pattern>
+    </servlet-mapping>
+    -->
+
+    <!-- ====================================================================== -->
+    <!-- FILTER                                                                 -->
+    <!-- ====================================================================== -->
+    
+    <!--
+      Initialize application.
+    -->
+    <filter>
+        <filter-name>initializer</filter-name>
+        <filter-class>ch.ethz.replay.ui.scheduler.web.Initializer</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>initializer</filter-name>
+        <url-pattern>/app/*</url-pattern>
+    </filter-mapping>
+
+    <!--
+      Load Spring's root WebApplicationContext (/WEB-INF/applicationContext.xml)
+    -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.xml</param-value>
+    </context-param>
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!--
+      SiteMesh
+    -->
+    <filter>
+        <filter-name>sitemesh</filter-name>
+        <filter-class>com.opensymphony.module.sitemesh.filter.PageFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>sitemesh</filter-name>
+        <url-pattern>/app/*</url-pattern>
+    </filter-mapping>
+
+    <!--
+      utf8 encoding filter
+    -->
+    <filter>
+        <filter-name>utf8</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>utf-8</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>utf8</filter-name>
+        <url-pattern>/app/*</url-pattern>
+    </filter-mapping>
+
+    <!--
+      Path exposer
+    -->
+    <filter>
+        <filter-name>path-exposer</filter-name>
+        <filter-class>ch.ethz.replay.ui.common.web.PathExposerFilter</filter-class>
+        <init-param>
+            <!--
+              true, if you have registered an url pattern like "*.do",
+              false, if it is a path pattern like "/app/*"
+            -->
+            <param-name>dispatcherMappedByExtension</param-name>
+            <param-value>false</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>path-exposer</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!--
+    <filter>
+        <filter-name>request-dumper</filter-name>
+        <filter-class>ch.ethz.replay.ui.common.web.RequestLoggerFilter</filter-class>
+        <init-param>
+            <param-name>verbose</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>request-dumper</filter-name>
+        <url-pattern>/app/*</url-pattern>
+    </filter-mapping>
+    -->
+
+    <!-- ====================================================================== -->
+    <!-- CONTEXT LISTENER                                                       -->
+    <!-- ====================================================================== -->
+
+    <listener>
+        <description>Initialize REPLAY's log system</description>
+        <listener-class>ch.ethz.replay.core.common.console.log4j.web.LogInitializerContextListener</listener-class>
+    </listener>
+
+    <!-- # -->
+    
+    <session-config>
+        <session-timeout>60</session-timeout>
+    </session-config>
+
+    <welcome-file-list>
+        <welcome-file>/index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <error-page>
+        <exception-type>org.springframework.web.HttpSessionRequiredException</exception-type>
+        <location>/sessionexpired.jsp</location>
+    </error-page>
+
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/error.jsp</location>
+    </error-page>
+</web-app>
