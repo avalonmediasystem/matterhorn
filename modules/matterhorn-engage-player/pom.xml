@@ -264,7 +264,7 @@
 				<reportSets>
 					<reportSet>
 						<reports>
-							<!-- include the desired reports -->
+							<!-- include the desired reports jslint jsdoc -->
 							<report>jslint</report>
 							<report>jsdoc</report>
 						</reports>
