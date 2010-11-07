@@ -1,33 +1,28 @@
 package org.opencast.engage.videodisplay.command
 {
-    import com.adobe.cairngorm.commands.Command;
-    import com.adobe.cairngorm.control.CairngormEvent;
-    
-    import org.opencast.engage.videodisplay.model.VideodisplayModel;
-    import org.opencast.engage.videodisplay.util.*;
-    import org.osmf.containers.MediaContainer;
-    import mx.controls.Alert;
-    
+	import com.adobe.cairngorm.commands.Command;
+	import com.adobe.cairngorm.control.CairngormEvent;
 
-    public class InitMediaPlayerCommand implements Command
-    {
-    	[Bindable]
-        public var model:VideodisplayModel = VideodisplayModel.getInstance();
-    	
-        public function InitMediaPlayerCommand()
-        {
-        	
-        	//model.parallelMedia = new ParallelMedia();
-        	
-        }
+	import org.opencast.engage.videodisplay.event.InitMediaPlayerEvent;
+	import org.opencast.engage.videodisplay.model.VideodisplayModel;
+	import org.opencast.engage.videodisplay.util.*;
 
-        public function execute( event:CairngormEvent ):void
-        {
-        	
-            // TODO Auto-generated add your code here
-            model.parallelMedia = new ParallelMedia();
-          
-            
-        }
-    }
+
+	public class InitMediaPlayerCommand implements Command
+	{
+		[Bindable]
+		public var model:VideodisplayModel=VideodisplayModel.getInstance();
+
+		public function InitMediaPlayerCommand()
+		{
+
+		}
+
+		public function execute(event:CairngormEvent):void
+		{
+			var initMediaPlayerEvent:InitMediaPlayerEvent=InitMediaPlayerEvent(event);
+			model.parallelMedia=new ParallelMedia(initMediaPlayerEvent._mediaURLOne, initMediaPlayerEvent._mediaURLTwo);
+			model.player.play();
+		}
+	}
 }
