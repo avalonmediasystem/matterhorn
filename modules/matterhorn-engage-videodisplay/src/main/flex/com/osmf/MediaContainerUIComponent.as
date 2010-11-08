@@ -34,9 +34,9 @@ package com.osmf
      **/
     public class MediaContainerUIComponent extends UIComponent
     {
-        /** 
-        * Constructor 
-        */
+        /**
+         * Constructor
+         */
         public function MediaContainerUIComponent() : void
         {
             // do nothing
@@ -128,3 +128,4 @@ package com.osmf
         private var _container : MediaContainer;
     }
 }
+
