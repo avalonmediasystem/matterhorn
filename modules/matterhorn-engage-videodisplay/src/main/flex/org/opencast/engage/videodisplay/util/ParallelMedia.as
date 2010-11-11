@@ -1,5 +1,7 @@
 package org.opencast.engage.videodisplay.util
 {
+	import mx.core.Application;
+
 	import org.opencast.engage.videodisplay.model.VideodisplayModel;
 	import org.osmf.containers.MediaContainer;
 	import org.osmf.elements.LightweightVideoElement;
@@ -18,6 +20,7 @@ package org.opencast.engage.videodisplay.util
 	import org.osmf.traits.AudioTrait;
 	import org.osmf.traits.LoadState;
 	import org.osmf.traits.MediaTraitType;
+	import flash.display.Stage;
 
 	/**
 	 *
@@ -65,38 +68,38 @@ package org.opencast.engage.videodisplay.util
 			mediaContainer=new MediaContainer();
 
 			var leftlayoutData:LayoutMetadata=new LayoutMetadata();
-			//leftlayoutData.width=Application.application.width;
-			//leftlayoutData.height=Application.application.height;
+			leftlayoutData.width=Application.application.width;
+			leftlayoutData.height=Application.application.height;
 			leftlayoutData.scaleMode=ScaleMode.LETTERBOX;
 
 			var rigthlayoutData:LayoutMetadata=new LayoutMetadata();
-//			rigthlayoutData.width=Application.application.width;
-//			rigthlayoutData.height=Application.application.height;
+			rigthlayoutData.width=Application.application.width;
+			rigthlayoutData.height=Application.application.height;
 			rigthlayoutData.scaleMode=ScaleMode.LETTERBOX;
 
 			videoElement=new LightweightVideoElement();
-			videoElement.resource=new URLResource(_url1);
+			videoElement.resource=new URLResource(HUTTO1);
 			videoElement.smoothing=true;
 			videoElement.defaultDuration=1000;
 			//var mediaElementVideoOne:MediaElement=videoElement;
 
 			videoElement2=new LightweightVideoElement();
-			videoElement2.resource=new URLResource(_url2);
+			videoElement2.resource=new URLResource(HUTTO2);
 			videoElement2.smoothing=true;
 			videoElement2.defaultDuration=1000;
 			//var mediaElementVideoTwo:MediaElement=videoElement2;
 
 
-			testvideo3=new LightweightVideoElement();
-			testvideo3.resource=new URLResource(FMS);
-			testvideo3.smoothing=true;
+			//testvideo3=new LightweightVideoElement();
+			//testvideo3.resource=new URLResource(FMS);
+			//testvideo3.smoothing=true;
 
 
 			var oProxyElementTwo:OProxyElement=new OProxyElement(videoElement2);
 
 			videoElement.metadata.addValue(LayoutMetadata.LAYOUT_NAMESPACE, leftlayoutData);
 			videoElement2.metadata.addValue(LayoutMetadata.LAYOUT_NAMESPACE, rigthlayoutData);
-			testvideo3.metadata.addValue(LayoutMetadata.LAYOUT_NAMESPACE, rigthlayoutData);
+			//testvideo3.metadata.addValue(LayoutMetadata.LAYOUT_NAMESPACE, rigthlayoutData);
 
 			var parallelElement:ParallelElement=new ParallelElement();
 
@@ -108,13 +111,13 @@ package org.opencast.engage.videodisplay.util
 			var layoutData:LayoutMetadata=new LayoutMetadata();
 			layoutData.layoutMode=LayoutMode.HORIZONTAL;
 
-			//layoutData.horizontalAlign=HorizontalAlign.LEFT;
-			//layoutData.verticalAlign=VerticalAlign.TOP;
+			layoutData.horizontalAlign=HorizontalAlign.LEFT;
+			layoutData.verticalAlign=VerticalAlign.TOP;
 			//layoutData.horizontalAlign=HorizontalAlign.CENTER;
 			//layoutData.verticalAlign=VerticalAlign.MIDDLE;
 
-			//layoutData.top=-10;
-			//layoutData.left=-10;
+			layoutData.top=-10;
+			layoutData.left=-10;
 			//layoutData.width=Application.application.width;
 			//layoutData.height=Application.application.height;
 			layoutData.scaleMode=ScaleMode.LETTERBOX;
@@ -129,6 +132,7 @@ package org.opencast.engage.videodisplay.util
 			mediaContainer.addMediaElement(parallelElement);
 			model.parallelMediaContainer=mediaContainer;
 
+
 		}
 
 		/**
@@ -142,11 +146,12 @@ package org.opencast.engage.videodisplay.util
 		 */
 		public var mediaContainer:MediaContainer;
 
-		[Bindable]
+
 		/**
 		 *
 		 * @default
 		 */
+		[Bindable]
 		public var model:VideodisplayModel=VideodisplayModel.getInstance();
 		/**
 		 *

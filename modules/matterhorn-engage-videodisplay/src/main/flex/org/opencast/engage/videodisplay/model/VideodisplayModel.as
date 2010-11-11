@@ -2,6 +2,8 @@ package org.opencast.engage.videodisplay.model
 {
 	import com.adobe.cairngorm.model.ModelLocator;
 
+	import mx.core.UIComponent;
+
 	import org.opencast.engage.videodisplay.util.ParallelMedia;
 	import org.osmf.containers.MediaContainer;
 	import org.osmf.media.MediaPlayer;
@@ -32,6 +34,7 @@ package org.opencast.engage.videodisplay.model
 
 		public var parallelMedia:ParallelMedia;
 		public var parallelMediaContainer:MediaContainer;
+		public var mediaContainerUIComponent:UIComponent;
 		public var player:MediaPlayer;
 
 		public var mainContainer:MediaContainer;
