@@ -158,8 +158,13 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
   public WorkflowStatistics getStatistics() throws WorkflowDatabaseException {
     HttpGet get = new HttpGet("/statistics");
     HttpResponse response = getResponse(get, HttpStatus.SC_OK);
-    // TODO Implement
-    return null;
+    try {
+      return WorkflowBuilder.getInstance().parseWorkflowStatistics(response.getEntity().getContent());
+    } catch (Exception e) {
+      throw new WorkflowDatabaseException("Unable to load workflow statistics", e);
+    } finally {
+      closeConnection(response);
+    }
   }
 
   /**

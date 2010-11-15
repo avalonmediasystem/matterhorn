@@ -28,6 +28,8 @@ import org.opencastproject.workflow.api.WorkflowSet;
 import org.opencastproject.workflow.api.WorkflowSetImpl;
 import org.opencastproject.workflow.api.WorkflowStatistics;
 import org.opencastproject.workflow.api.WorkflowInstance.WorkflowState;
+import org.opencastproject.workflow.api.WorkflowStatistics.WorkflowDefinitionReport;
+import org.opencastproject.workflow.api.WorkflowStatistics.WorkflowDefinitionReport.OperationReport;
 import org.opencastproject.workspace.api.Workspace;
 
 import org.apache.commons.io.FileUtils;
@@ -370,7 +372,14 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
   @Override
   public WorkflowStatistics getStatistics() throws WorkflowDatabaseException {
     // TODO: Implement loading of statistics data
-    return new WorkflowStatistics();
+    WorkflowStatistics stats = new WorkflowStatistics();
+    WorkflowDefinitionReport defReport = new WorkflowDefinitionReport();
+    defReport.setId("def1");
+    OperationReport opReport = new OperationReport();
+    opReport.setId("operation1");
+    defReport.getOperations().add(opReport);
+    stats.getDefinitions().add(defReport);
+    return stats;
   }
 
   /**

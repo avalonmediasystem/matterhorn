@@ -158,6 +158,16 @@ public class WorkflowRestService {
     instanceEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, instanceEndpoint);
 
+    // Workflow statistics
+    RestEndpoint statisticsEndpoint = new RestEndpoint("stats", RestEndpoint.Method.GET, "/statistics.{format}",
+    "Get workflow instance statistics");
+    statisticsEndpoint.addFormat(new Format("xml", null, null));
+    statisticsEndpoint.addFormat(new Format("json", null, null));
+    statisticsEndpoint.addStatus(org.opencastproject.util.doc.Status.OK("Valid request, results returned"));
+    statisticsEndpoint.addPathParam(new Param("format", Type.STRING, "xml", "The format of the results: xml or json"));
+    statisticsEndpoint.setTestForm(RestTestForm.auto());
+    data.addEndpoint(RestEndpoint.Type.READ, statisticsEndpoint);
+    
     // Operation Handlers
     RestEndpoint handlersEndpoint = new RestEndpoint("handlers", RestEndpoint.Method.GET, "/handlers.json",
             "List all registered workflow operation handlers (implementations)");
@@ -327,14 +337,22 @@ public class WorkflowRestService {
   }
 
   @GET
-  @Path("/statistics")
-  public Response getStatistics() {
+  @Produces(MediaType.TEXT_XML)
+  @Path("/statistics.xml")
+  public Response getStatisticsAsXml() {
     try {
       WorkflowStatistics statistics = service.getStatistics();
       return Response.ok(statistics).build();
     } catch (WorkflowDatabaseException e) {
       throw new WebApplicationException(e);
     }
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/statistics.json")
+  public Response getStatisticsAsJson() {
+    return getStatisticsAsXml();
   }
 
   @SuppressWarnings("unchecked")
