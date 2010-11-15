@@ -385,10 +385,10 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.impl.WorkflowServiceImplDao#getWorkflowById(java.lang.String)
+   * @see org.opencastproject.workflow.impl.WorkflowServiceImplDao#getWorkflowById(long)
    */
   @Override
-  public WorkflowInstance getWorkflowById(String workflowId) throws WorkflowDatabaseException, NotFoundException {
+  public WorkflowInstance getWorkflowById(long workflowId) throws WorkflowDatabaseException, NotFoundException {
     try {
       QueryResponse response = solrServer.query(new SolrQuery(ID_KEY + ":" + workflowId));
       if (response.getResults().size() == 0) {
@@ -414,7 +414,7 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
    * @return the URI to the workflow. Note that there may not be a file at this URI. If so, calling
    *         {@link Workspace#get(URI)} will throw a {@link NotFoundException}
    */
-  private URI getWorkflowFileUri(String workflowId) {
+  private URI getWorkflowFileUri(long workflowId) {
     return workspace.getCollectionURI(COLLECTION_ID, getFilename(workflowId));
   }
 
@@ -498,12 +498,12 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.impl.WorkflowServiceImplDao#remove(java.lang.String)
+   * @see org.opencastproject.workflow.impl.WorkflowServiceImplDao#remove(long)
    */
   @Override
-  public void remove(String id) throws WorkflowDatabaseException, NotFoundException {
+  public void remove(long id) throws WorkflowDatabaseException, NotFoundException {
     try {
-      solrServer.deleteById(id);
+      solrServer.deleteById(Long.toString(id));
       solrServer.commit();
       URI uri = getWorkflowFileUri(id);
       workspace.delete(uri);
@@ -541,7 +541,8 @@ public class WorkflowServiceImplDaoFileImpl implements WorkflowServiceImplDao {
    * @param workflowId
    * @return
    */
-  private String getFilename(String workflowId) {
+  private String getFilename(long workflowId) {
     return workflowId + ".xml";
   }
+
 }

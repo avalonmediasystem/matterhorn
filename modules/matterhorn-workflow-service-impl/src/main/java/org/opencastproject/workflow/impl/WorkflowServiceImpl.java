@@ -29,7 +29,6 @@ import org.opencastproject.workflow.api.WorkflowBuilder;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowInstance;
-import org.opencastproject.workflow.api.WorkflowStatistics;
 import org.opencastproject.workflow.api.WorkflowInstance.WorkflowState;
 import org.opencastproject.workflow.api.WorkflowInstanceImpl;
 import org.opencastproject.workflow.api.WorkflowOperationDefinition;
@@ -45,6 +44,7 @@ import org.opencastproject.workflow.api.WorkflowQuery;
 import org.opencastproject.workflow.api.WorkflowSelectionStrategy;
 import org.opencastproject.workflow.api.WorkflowService;
 import org.opencastproject.workflow.api.WorkflowSet;
+import org.opencastproject.workflow.api.WorkflowStatistics;
 
 import org.apache.commons.codec.EncoderException;
 import org.osgi.framework.InvalidSyntaxException;
@@ -387,9 +387,9 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.api.WorkflowService#getWorkflowById(java.lang.String)
+   * @see org.opencastproject.workflow.api.WorkflowService#getWorkflowById(long)
    */
-  public WorkflowInstance getWorkflowById(String id) throws WorkflowDatabaseException, NotFoundException {
+  public WorkflowInstance getWorkflowById(long id) throws WorkflowDatabaseException, NotFoundException {
     return dao.getWorkflowById(id);
   }
 
@@ -397,11 +397,11 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
    * {@inheritDoc}
    * 
    * @see org.opencastproject.workflow.api.WorkflowService#start(org.opencastproject.workflow.api.WorkflowDefinition,
-   *      org.opencastproject.mediapackage.MediaPackage, java.lang.String, java.util.Map)
+   *      org.opencastproject.mediapackage.MediaPackage, Long, java.util.Map)
    */
   @Override
   public WorkflowInstance start(WorkflowDefinition workflowDefinition, MediaPackage mediaPackage,
-          String parentWorkflowId, Map<String, String> properties) throws WorkflowDatabaseException, NotFoundException {
+          Long parentWorkflowId, Map<String, String> properties) throws WorkflowDatabaseException, NotFoundException {
     if (workflowDefinition == null)
       throw new IllegalArgumentException("workflow definition must not be null");
     if (mediaPackage == null)
@@ -419,7 +419,7 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
       throw new WorkflowDatabaseException("Unable to create a job", e);
     }
 
-    String id = job.getId();
+    long id = job.getId();
     logger.info("Starting a new workflow instance with ID={}", id);
 
     try {
@@ -509,10 +509,10 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
         handlerList.add(handlerReg.handler);
       }
     }
-    // Select one of the possibly multiple operation handlers. TODO Allow for a pluggable strategy for this mechanism
-    if (handlerList.size() > 0) {
-      int index = (int) Math.round((handlerList.size() - 1) * Math.random());
-      return handlerList.get(index);
+    if (handlerList.size() > 1) {
+      throw new IllegalStateException("Multiple operation handlers found for operation '" + operation.getId() + "'");
+    } else if (handlerList.size() == 1) {
+      return handlerList.get(0);
     }
     logger.warn("No workflow operation handlers found for operation '{}'", operation.getId());
     return null;
@@ -549,9 +549,9 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.api.WorkflowService#stop(java.lang.String)
+   * @see org.opencastproject.workflow.api.WorkflowService#stop(long)
    */
-  public void stop(String workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
+  public void stop(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
     WorkflowInstanceImpl instance = (WorkflowInstanceImpl) getWorkflowById(workflowInstanceId);
     if (instance == null)
       throw new NotFoundException("Workflow ID='" + workflowInstanceId + "' does not exist");
@@ -574,9 +574,9 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.api.WorkflowService#suspend(java.lang.String)
+   * @see org.opencastproject.workflow.api.WorkflowService#suspend(long)
    */
-  public void suspend(String workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
+  public void suspend(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
     WorkflowInstanceImpl instance = (WorkflowInstanceImpl) getWorkflowById(workflowInstanceId);
     if (instance == null)
       throw new NotFoundException("Workflow ID='" + workflowInstanceId + "' does not exist");
@@ -599,19 +599,19 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.api.WorkflowService#resume(java.lang.String)
+   * @see org.opencastproject.workflow.api.WorkflowService#resume(long)
    */
   @Override
-  public void resume(String id) throws WorkflowDatabaseException, NotFoundException {
+  public void resume(long id) throws WorkflowDatabaseException, NotFoundException {
     resume(id, new HashMap<String, String>());
   }
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.api.WorkflowService#resume(java.lang.String)
+   * @see org.opencastproject.workflow.api.WorkflowService#resume(long)
    */
-  public void resume(String workflowInstanceId, Map<String, String> properties) throws WorkflowDatabaseException,
+  public void resume(long workflowInstanceId, Map<String, String> properties) throws WorkflowDatabaseException,
           NotFoundException {
     WorkflowInstanceImpl workflowInstance = (WorkflowInstanceImpl) updateConfiguration(
             getWorkflowById(workflowInstanceId), properties);
@@ -649,7 +649,7 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
    * @param id
    *          The id of the workflow instance to remove
    */
-  public void removeFromDatabase(String id) throws WorkflowDatabaseException, NotFoundException {
+  public void removeFromDatabase(long id) throws WorkflowDatabaseException, NotFoundException {
     dao.remove(id);
   }
 

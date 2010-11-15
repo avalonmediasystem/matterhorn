@@ -45,7 +45,6 @@ import org.opencastproject.workflow.impl.WorkflowServiceImpl;
 import org.opencastproject.workflow.impl.WorkflowServiceImpl.HandlerRegistration;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.osgi.service.component.ComponentContext;
@@ -462,7 +461,7 @@ public class WorkflowRestService {
   @GET
   @Produces(MediaType.TEXT_XML)
   @Path("instance/{id}.xml")
-  public Response getWorkflowAsXml(@PathParam("id") String id) {
+  public Response getWorkflowAsXml(@PathParam("id") long id) {
     WorkflowInstance instance;
     try {
       instance = service.getWorkflowById(id);
@@ -477,7 +476,7 @@ public class WorkflowRestService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("instance/{id}.json")
-  public Response getWorkflowAsJson(@PathParam("id") String id) {
+  public Response getWorkflowAsJson(@PathParam("id") long id) {
     return getWorkflowAsXml(id);
   }
 
@@ -485,11 +484,11 @@ public class WorkflowRestService {
   @Path("start")
   @Produces(MediaType.TEXT_XML)
   public WorkflowInstanceImpl start(@FormParam("definition") WorkflowDefinitionImpl workflowDefinition,
-          @FormParam("mediapackage") MediaPackageImpl mp, @FormParam("parent") String parentWorkflowId,
+          @FormParam("mediapackage") MediaPackageImpl mp, @FormParam("parent") Long parentWorkflowId,
           @FormParam("properties") LocalHashMap localMap) {
     Map<String, String> properties = localMap.getMap();
     try {
-      return (WorkflowInstanceImpl) service.start(workflowDefinition, mp, StringUtils.trimToNull(parentWorkflowId),
+      return (WorkflowInstanceImpl) service.start(workflowDefinition, mp, parentWorkflowId,
               properties);
     } catch (WorkflowDatabaseException e) {
       throw new WebApplicationException(e);
@@ -501,7 +500,7 @@ public class WorkflowRestService {
   @POST
   @Path("stop")
   @Produces(MediaType.TEXT_PLAIN)
-  public Response stop(@FormParam("id") String workflowInstanceId) {
+  public Response stop(@FormParam("id") long workflowInstanceId) {
     try {
       service.stop(workflowInstanceId);
       return Response.noContent().build();
@@ -515,7 +514,7 @@ public class WorkflowRestService {
   @POST
   @Path("suspend")
   @Produces(MediaType.TEXT_PLAIN)
-  public Response suspend(@FormParam("id") String workflowInstanceId) {
+  public Response suspend(@FormParam("id") long workflowInstanceId) {
     try {
       service.suspend(workflowInstanceId);
       return Response.noContent().build();
@@ -529,7 +528,7 @@ public class WorkflowRestService {
   @POST
   @Path("resume")
   @Produces(MediaType.TEXT_PLAIN)
-  public Response resume(@FormParam("id") String workflowInstanceId, @FormParam("properties") LocalHashMap properties) {
+  public Response resume(@FormParam("id") long workflowInstanceId, @FormParam("properties") LocalHashMap properties) {
     Map<String, String> map;
     if (properties == null) {
       map = new HashMap<String, String>();
@@ -549,7 +548,7 @@ public class WorkflowRestService {
   @POST
   @Path("replaceAndresume")
   @Produces(MediaType.TEXT_PLAIN)
-  public Response resume(@FormParam("id") String workflowInstanceId,
+  public Response resume(@FormParam("id") long workflowInstanceId,
           @FormParam("mediapackage") MediaPackageImpl mediaPackage, @FormParam("properties") LocalHashMap properties) {
     Map<String, String> map;
     if (properties == null) {

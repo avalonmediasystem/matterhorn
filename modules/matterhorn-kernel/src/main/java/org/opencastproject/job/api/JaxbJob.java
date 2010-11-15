@@ -73,7 +73,7 @@ public class JaxbJob implements Job {
   }
 
   /** The job ID */
-  protected String id;
+  protected long id;
 
   /** The job type */
   protected String jobType;
@@ -110,17 +110,17 @@ public class JaxbJob implements Job {
   @XmlID
   @XmlAttribute
   @Override
-  public String getId() {
+  public long getId() {
     return id;
   }
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.job.api.Job#setId(java.lang.String)
+   * @see org.opencastproject.job.api.Job#setId(long)
    */
   @Override
-  public void setId(String id) {
+  public void setId(long id) {
     this.id = id;
   }
 
@@ -357,7 +357,7 @@ public class JaxbJob implements Job {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof Job) {
-      return ((Job)obj).getId().equals(id);
+      return ((Job)obj).getId() == id;
     }
     return false;
   }
@@ -368,7 +368,7 @@ public class JaxbJob implements Job {
    */
   @Override
   public int hashCode() {
-    return id.hashCode();
+    return (int)id >> 32;
   }
   
   /**

@@ -294,7 +294,7 @@ public class AdminuiRestService {
       for (int i = 0; i < workflows.length; i++) {
         MediaPackage mediapackage = workflows[i].getMediaPackage();
         AdminRecording item = new AdminRecordingImpl();
-        item.setId(workflows[i].getId());
+        item.setId(Long.toString(workflows[i].getId()));
         item.setItemType(AdminRecording.ItemType.WORKFLOW);
         item.setTitle(mediapackage.getTitle());
         item.setPresenter(joinStringArray(mediapackage.getCreators()));

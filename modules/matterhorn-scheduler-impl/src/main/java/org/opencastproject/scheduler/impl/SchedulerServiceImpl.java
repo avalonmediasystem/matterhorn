@@ -85,9 +85,6 @@ public class SchedulerServiceImpl implements ManagedService {
   /** The schedule workflow operation identifier */
   public static final String SCHEDULE_OPERATION_ID = "schedule";
 
-  /** The workflow operation property that stores the event id */
-  public static final String WORKFLOW_OPERATION_KEY_SCHEDULE_ID = "schedule.id";
-
   /** The workflow operation property that stores the event start time, as milliseconds since 1970 */
   public static final String WORKFLOW_OPERATION_KEY_SCHEDULE_START = "schedule.start";
 
@@ -269,19 +266,30 @@ public class SchedulerServiceImpl implements ManagedService {
   /**
    * Persist an event
    * 
-   * @param e
+   * @param event
    *          the event to add
    * 
    * @return The event that has been persisted
    */
-  public Event addEvent(Event e) throws SchedulerException {
-    EventImpl event = null;
+  public Event addEvent(Event event) throws SchedulerException {
     EntityManager em = null;
     EntityTransaction tx = null;
+
+    // Start a workflow so we have an event id that we can associate the event with
+    WorkflowInstance workflow = null;
     try {
+      workflow = startWorkflowInstance(event);
+    } catch (WorkflowDatabaseException workflowException) {
+      throw new SchedulerException(workflowException);
+    } catch (MediaPackageException mediaPackageException) {
+      throw new SchedulerException(mediaPackageException);
+    }
+
+    try {
+      event.setEventId(workflow.getId());
       em = emf.createEntityManager();
       tx = em.getTransaction();
-      event = (EventImpl) e;
+      event = (EventImpl) event;
       tx.begin();
       em.persist(event);
       tx.commit();
@@ -295,18 +303,7 @@ public class SchedulerServiceImpl implements ManagedService {
         em.close();
       }
     }
-    try {
-      WorkflowInstance workflow = addWorkflowInstance(event);
-      // store the workflow id in the event, in case we need to look up the workflow later
-      event.addMetadata(new MetadataImpl(WORKFLOW_INSTANCE_ID_KEY, workflow.getId()));
-      updateEvent(event, false); // false since there is nothing to update in the workflow
-    } catch (WorkflowDatabaseException workflowException) {
-      throw new SchedulerException(workflowException);
-    } catch (MediaPackageException mediaPackageException) {
-      throw new SchedulerException(mediaPackageException);
-    } catch (NotFoundException notFoundException) {
-      throw new SchedulerException(notFoundException); // we just saved this event, so this should never happen
-    }
+
     updated = System.currentTimeMillis();
     return event;
   }
@@ -322,7 +319,7 @@ public class SchedulerServiceImpl implements ManagedService {
    * @throws MediaPackageException
    *           if the mediapackage can not be created
    */
-  protected WorkflowInstance addWorkflowInstance(Event event) throws WorkflowDatabaseException, MediaPackageException {
+  protected WorkflowInstance startWorkflowInstance(Event event) throws WorkflowDatabaseException, MediaPackageException {
     // Build a mediapackage using the event metadata
     MediaPackage mediapackage = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder().createNew();
     mediapackage.setTitle(event.getTitle());
@@ -333,7 +330,6 @@ public class SchedulerServiceImpl implements ManagedService {
 
     // Build a properties set for this event
     Map<String, String> properties = new HashMap<String, String>();
-    properties.put(WORKFLOW_OPERATION_KEY_SCHEDULE_ID, Long.toString(event.getEventId()));
     properties.put(WORKFLOW_OPERATION_KEY_SCHEDULE_START, Long.toString(event.getStartDate().getTime()));
     properties.put(WORKFLOW_OPERATION_KEY_SCHEDULE_STOP, Long.toString(event.getEndDate().getTime()));
     properties.put(WORKFLOW_OPERATION_KEY_SCHEDULE_LOCATION, event.getDevice());
@@ -355,14 +351,10 @@ public class SchedulerServiceImpl implements ManagedService {
    *           if the workflow can not be stopped
    */
   protected void stopWorkflowInstance(Event event) throws NotFoundException {
-    String workflowId = event.getMetadataValueByKey(WORKFLOW_INSTANCE_ID_KEY);
-    if (workflowId == null) {
-      logger.warn("can not find the workflow ID from event {}.", event.getEventId());
-    }
     try {
-      workflowService.stop(workflowId);
+      workflowService.stop(event.getEventId());
     } catch (WorkflowDatabaseException e) {
-      logger.warn("can not stop workflow {}, {}", workflowId, e);
+      logger.warn("can not stop workflow {}, {}", event.getEventId(), e);
     }
   }
 
@@ -639,8 +631,7 @@ public class SchedulerServiceImpl implements ManagedService {
   }
 
   protected void updateWorkflow(Event event) throws NotFoundException, WorkflowDatabaseException, SchedulerException {
-    String workflowId = event.getMetadataValueByKey(WORKFLOW_INSTANCE_ID_KEY);
-    WorkflowInstance workflow = workflowService.getWorkflowById(workflowId);
+    WorkflowInstance workflow = workflowService.getWorkflowById(event.getEventId());
     WorkflowOperationInstance scheduleOperation = workflow.getCurrentOperation();
 
     // if the workflow is not in the hold state with 'schedule' as the current operation, we can't update the event
@@ -660,7 +651,6 @@ public class SchedulerServiceImpl implements ManagedService {
     mediapackage.setSeriesTitle(event.getSeries());
 
     // Update the properties
-    scheduleOperation.setConfiguration(WORKFLOW_OPERATION_KEY_SCHEDULE_ID, Long.toString(event.getEventId()));
     scheduleOperation.setConfiguration(WORKFLOW_OPERATION_KEY_SCHEDULE_START,
             Long.toString(event.getStartDate().getTime()));
     scheduleOperation.setConfiguration(WORKFLOW_OPERATION_KEY_SCHEDULE_STOP,

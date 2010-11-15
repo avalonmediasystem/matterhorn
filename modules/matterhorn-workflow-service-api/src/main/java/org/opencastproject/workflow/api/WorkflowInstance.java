@@ -32,7 +32,7 @@ public interface WorkflowInstance extends Configurable {
   /**
    * The unique ID of this {@link WorkflowInstance}
    */
-  String getId();
+  long getId();
 
   /**
    * The short title of the workflow definition used to create this workflow instance
@@ -52,7 +52,7 @@ public interface WorkflowInstance extends Configurable {
   /**
    * The parent workflow instance ID, if any
    */
-  String getParentId();
+  Long getParentId();
   
   /**
    * Returns the {@link WorkflowOperationInstance}s that make up this workflow.

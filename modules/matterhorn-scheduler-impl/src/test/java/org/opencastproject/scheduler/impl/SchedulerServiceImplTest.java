@@ -135,9 +135,9 @@ public class SchedulerServiceImplTest {
     EasyMock.expect(
             workflowService.start((WorkflowDefinition) EasyMock.anyObject(), (MediaPackage) EasyMock.anyObject(),
                     (Map<String, String>) EasyMock.anyObject())).andReturn(workflowInstance);
-    EasyMock.expect(workflowService.getWorkflowById((String) EasyMock.anyObject())).andReturn(workflowInstance)
+    EasyMock.expect(workflowService.getWorkflowById(EasyMock.anyLong())).andReturn(workflowInstance)
             .anyTimes();
-    workflowService.stop((String) EasyMock.anyObject());
+    workflowService.stop(EasyMock.anyLong());
     workflowService.update((WorkflowInstance) EasyMock.anyObject());
     EasyMock.replay(workflowService);
     service.setWorkflowService(workflowService);
@@ -208,7 +208,7 @@ public class SchedulerServiceImplTest {
 
   protected WorkflowInstance getSampleWorkflowInstance() throws Exception {
     WorkflowInstanceImpl instance = new WorkflowInstanceImpl();
-    instance.setId("workflow-" + System.currentTimeMillis());
+    instance.setId(System.currentTimeMillis());
     instance.setMediaPackage(MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder().createNew());
     instance.setState(WorkflowState.PAUSED);
 

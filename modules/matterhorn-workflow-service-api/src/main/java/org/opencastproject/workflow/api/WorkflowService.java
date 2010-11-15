@@ -59,7 +59,7 @@ public interface WorkflowService {
    * @throws NotFoundException
    *           if there is no workflow instance with this identifier
    */
-  WorkflowInstance getWorkflowById(String workflowId) throws WorkflowDatabaseException, NotFoundException;
+  WorkflowInstance getWorkflowById(long workflowId) throws WorkflowDatabaseException, NotFoundException;
 
   /**
    * Finds workflow instances based on the specified query.
@@ -105,7 +105,7 @@ public interface WorkflowService {
    * @throws WorkflowDatabaseException
    *           if there is a problem storing the workflow instance in persistence
    */
-  WorkflowInstance start(WorkflowDefinition workflowDefinition, MediaPackage mediaPackage, String parentWorkflowId,
+  WorkflowInstance start(WorkflowDefinition workflowDefinition, MediaPackage mediaPackage, Long parentWorkflowId,
           Map<String, String> properties) throws WorkflowDatabaseException, NotFoundException;
 
   /**
@@ -191,7 +191,7 @@ public interface WorkflowService {
    * @throws WorkflowDatabaseException
    *           if there is a problem accessing the workflow instance in persistence
    */
-  void stop(String workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
+  void stop(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
 
   /**
    * Temporarily suspends a started workflow instance.
@@ -203,7 +203,7 @@ public interface WorkflowService {
    * @throws WorkflowDatabaseException
    *           if there is a problem accessing the workflow instance in persistence
    */
-  void suspend(String workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
+  void suspend(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
 
   /**
    * Resumes a suspended workflow instance.
@@ -215,7 +215,7 @@ public interface WorkflowService {
    * @throws WorkflowDatabaseException
    *           if there is a problem accessing the workflow instance in persistence
    */
-  void resume(String workflowInstanceId) throws NotFoundException, WorkflowDatabaseException;
+  void resume(long workflowInstanceId) throws NotFoundException, WorkflowDatabaseException;
 
   /**
    * Resumes a suspended workflow instance, applying new properties to the workflow.
@@ -229,7 +229,7 @@ public interface WorkflowService {
    * @throws WorkflowDatabaseException
    *           if there is a problem accessing the workflow instance in persistence
    */
-  void resume(String workflowInstanceId, Map<String, String> properties) throws NotFoundException,
+  void resume(long workflowInstanceId, Map<String, String> properties) throws NotFoundException,
           WorkflowDatabaseException;
 
   /**
