@@ -588,8 +588,8 @@ public class AdminuiRestService {
       //logger.debug("getting capturing recordings from scheduler");
       Map<String, Recording> recordings = captureAdminService.getKnownRecordings();
       for (Entry<String, Recording> recording : recordings.entrySet()) {
-        Event event = schedulerService.getEvent(Long.parseLong(recording.getKey()));
         try {
+          Event event = schedulerService.getEvent(Long.parseLong(recording.getKey()));
           Recording r = recording.getValue();
           if (r != null) {
             String state = r.getState();

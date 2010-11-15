@@ -29,7 +29,6 @@ import org.opencastproject.capture.impl.jobs.AgentStateJob;
 import org.opencastproject.capture.impl.jobs.JobParameters;
 import org.opencastproject.capture.impl.jobs.LoadRecordingsJob;
 import org.opencastproject.capture.pipeline.AudioMonitoring;
-import org.opencastproject.capture.pipeline.InvalidDeviceNameException;
 import org.opencastproject.capture.pipeline.PipelineFactory;
 import org.opencastproject.mediapackage.DefaultMediaPackageSerializerImpl;
 import org.opencastproject.mediapackage.MediaPackage;
