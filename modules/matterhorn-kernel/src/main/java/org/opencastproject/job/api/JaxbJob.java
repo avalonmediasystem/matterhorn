@@ -15,19 +15,6 @@
  */
 package org.opencastproject.job.api;
 
-import java.util.Date;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.apache.commons.io.IOUtils;
 import org.opencastproject.mediapackage.AbstractMediaPackageElement;
 import org.opencastproject.mediapackage.Attachment;
 import org.opencastproject.mediapackage.Catalog;
@@ -35,7 +22,20 @@ import org.opencastproject.mediapackage.DefaultMediaPackageSerializerImpl;
 import org.opencastproject.mediapackage.MediaPackageElement;
 import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.mediapackage.Track;
+
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
+
+import java.util.Date;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * A long running, asynchronously executed job.
@@ -107,7 +107,6 @@ public class JaxbJob implements Job {
    * 
    * @see org.opencastproject.job.api.Job#getId()
    */
-  @XmlID
   @XmlAttribute
   @Override
   public long getId() {

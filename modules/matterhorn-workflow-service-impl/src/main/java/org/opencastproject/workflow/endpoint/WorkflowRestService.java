@@ -484,11 +484,19 @@ public class WorkflowRestService {
   @Path("start")
   @Produces(MediaType.TEXT_XML)
   public WorkflowInstanceImpl start(@FormParam("definition") WorkflowDefinitionImpl workflowDefinition,
-          @FormParam("mediapackage") MediaPackageImpl mp, @FormParam("parent") Long parentWorkflowId,
+          @FormParam("mediapackage") MediaPackageImpl mp, @FormParam("parent") String parentWorkflowId,
           @FormParam("properties") LocalHashMap localMap) {
     Map<String, String> properties = localMap.getMap();
+    Long parentIdAsLong = null;
+    if(parentWorkflowId != null) {
+      try {
+        parentIdAsLong = Long.parseLong(parentWorkflowId);
+      } catch(NumberFormatException e) {
+        throw new WebApplicationException(e);
+      }
+    }
     try {
-      return (WorkflowInstanceImpl) service.start(workflowDefinition, mp, parentWorkflowId,
+      return (WorkflowInstanceImpl) service.start(workflowDefinition, mp, parentIdAsLong,
               properties);
     } catch (WorkflowDatabaseException e) {
       throw new WebApplicationException(e);

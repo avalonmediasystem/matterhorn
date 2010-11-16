@@ -46,7 +46,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -106,7 +105,6 @@ public class JobJpaImpl extends JaxbJob {
    * @see org.opencastproject.job.api.Job#getId()
    */
   @Id
-  @XmlID
   @GeneratedValue
   @XmlAttribute
   @Override
