@@ -11,12 +11,9 @@
         <configuration key="schedule.start">${schedule.start}</configuration>
         <configuration key="schedule.stop">${schedule.stop}</configuration>
         <configuration key="schedule.location">${schedule.location}</configuration>
-        <configuration key="schedule.id">${schedule.id}</configuration>
       </configurations>
     </operation>
-    <operation id="capture" fail-on-error="true" description="Capture">
-        <configuration key="schedule.id">${schedule.id}</configuration>
-    </operation>
+    <operation id="capture" fail-on-error="true" description="Capture" />
     <operation id="ingest" fail-on-error="true" description="Ingest" />
   </operations>
 </definition>
