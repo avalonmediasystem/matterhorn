@@ -111,7 +111,11 @@ public class IngestServiceImpl implements IngestService {
    */
   public WorkflowInstance addZippedMediaPackage(InputStream zipStream) throws IngestException, IOException,
           MediaPackageException {
-    return addZippedMediaPackage(zipStream, null, null);
+    try {
+      return addZippedMediaPackage(zipStream, null, null);
+    } catch (NotFoundException e) {
+      throw new IllegalStateException("A not found exception was thrown without a lookup");
+    }
   }
 
   /**
@@ -120,7 +124,7 @@ public class IngestServiceImpl implements IngestService {
    * @see org.opencastproject.ingest.api.IngestService#addZippedMediaPackage(java.io.InputStream, java.lang.String)
    */
   public WorkflowInstance addZippedMediaPackage(InputStream zipStream, String wd) throws MediaPackageException,
-          IOException, IngestException {
+          IOException, IngestException, NotFoundException {
     return addZippedMediaPackage(zipStream, wd, null);
   }
 
@@ -130,7 +134,18 @@ public class IngestServiceImpl implements IngestService {
    * @see org.opencastproject.ingest.api.IngestService#addZippedMediaPackage(java.io.InputStream, java.lang.String)
    */
   public WorkflowInstance addZippedMediaPackage(InputStream zipStream, String wd, Map<String, String> workflowConfig)
-          throws MediaPackageException, IOException, IngestException {
+          throws MediaPackageException, IOException, IngestException, NotFoundException {
+    return addZippedMediaPackage(zipStream, wd, workflowConfig, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.ingest.api.IngestService#addZippedMediaPackage(java.io.InputStream, java.lang.String,
+   *      java.util.Map, java.lang.Long)
+   */
+  public WorkflowInstance addZippedMediaPackage(InputStream zipStream, String wd, Map<String, String> workflowConfig,
+          Long workflowId) throws MediaPackageException, IOException, IngestException, NotFoundException {
     // Start a job synchronously. We can't keep the open input stream waiting around.
     Job job = null;
 
@@ -217,7 +232,7 @@ public class IngestServiceImpl implements IngestService {
       if (wd == null) {
         workflowInstance = ingest(mp);
       } else {
-        workflowInstance = ingest(mp, wd, workflowConfig); // workflowConfig == null is handled by ingest(mp, wd, props)
+        workflowInstance = ingest(mp, wd, workflowConfig, workflowId);
       }
       job.setStatus(Job.Status.FINISHED);
       return workflowInstance;
@@ -522,7 +537,7 @@ public class IngestServiceImpl implements IngestService {
    *      java.lang.String)
    */
   @Override
-  public WorkflowInstance ingest(MediaPackage mp, String wd) throws IngestException {
+  public WorkflowInstance ingest(MediaPackage mp, String wd) throws IngestException, NotFoundException {
     return ingest(mp, wd, null);
   }
 
@@ -533,18 +548,37 @@ public class IngestServiceImpl implements IngestService {
    *      java.lang.String, java.util.Map)
    */
   @Override
-  public WorkflowInstance ingest(MediaPackage mp, String wd, Map<String, String> properties) throws IngestException {
-    WorkflowDefinition workflowDef;
+  public WorkflowInstance ingest(MediaPackage mp, String wd, Map<String, String> properties) throws IngestException, NotFoundException {
+    return ingest(mp, wd, properties, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.ingest.api.IngestService#ingest(org.opencastproject.mediapackage.MediaPackage,
+   *      java.lang.String, java.util.Map, java.lang.Long)
+   */
+  public WorkflowInstance ingest(MediaPackage mp, String wd, Map<String, String> properties, Long workflowId)
+          throws IngestException, NotFoundException {
     try {
-      workflowDef = workflowService.getWorkflowDefinitionById(wd);
-    } catch (WorkflowDatabaseException e) {
-      throw new IngestException(e);
-    } catch (NotFoundException e) {
-      throw new IllegalArgumentException(wd + " is not a registered workflow definition");
-    }
-    try {
-      return (properties == null) ? workflowService.start(workflowDef, mp) :
-        workflowService.start(workflowDef, mp, properties);
+      if (workflowId != null) {
+        WorkflowInstance workflow = workflowService.getWorkflowById(workflowId.longValue());
+        WorkflowDefinition workflowDef = workflowService.getWorkflowDefinitionById(wd);
+        
+        // Replace the current mediapackage with the new one
+        workflow.setMediaPackage(mp);
+        workflow.extend(workflowDef);
+        workflowService.update(workflow);
+
+        // Extend the workflow by the operations found in the workflow defintion
+        workflowService.resume(workflowId.longValue(), properties);
+
+        // Return the updated worflow instance
+        return workflowService.getWorkflowById(workflowId.longValue());
+      } else {
+        WorkflowDefinition workflowDef = workflowService.getWorkflowDefinitionById(wd);
+        return workflowService.start(workflowDef, mp,properties);
+      }
     } catch (WorkflowDatabaseException e) {
       throw new IngestException(e);
     }

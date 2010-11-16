@@ -426,4 +426,15 @@ public class WorkflowInstanceImpl implements WorkflowInstance {
     this.errorMessages = errors;
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.workflow.api.WorkflowInstance#extend(org.opencastproject.workflow.api.WorkflowDefinition)
+   */
+  @Override
+  public void extend(WorkflowDefinition workflowDefinition) {
+    for (WorkflowOperationDefinition operationDefintion : workflowDefinition.getOperations()) {
+      this.operations.add(new WorkflowOperationInstanceImpl(operationDefintion));
+    }
+  }
+  
 }
