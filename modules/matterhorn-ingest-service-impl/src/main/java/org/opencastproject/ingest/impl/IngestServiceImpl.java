@@ -40,6 +40,7 @@ import org.opencastproject.util.ZipUtil;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowInstance;
+import org.opencastproject.workflow.api.WorkflowInstance.WorkflowState;
 import org.opencastproject.workflow.api.WorkflowService;
 import org.opencastproject.workspace.api.Workspace;
 
@@ -548,7 +549,8 @@ public class IngestServiceImpl implements IngestService {
    *      java.lang.String, java.util.Map)
    */
   @Override
-  public WorkflowInstance ingest(MediaPackage mp, String wd, Map<String, String> properties) throws IngestException, NotFoundException {
+  public WorkflowInstance ingest(MediaPackage mp, String wd, Map<String, String> properties) throws IngestException,
+          NotFoundException {
     return ingest(mp, wd, properties, null);
   }
 
@@ -560,11 +562,30 @@ public class IngestServiceImpl implements IngestService {
    */
   public WorkflowInstance ingest(MediaPackage mp, String wd, Map<String, String> properties, Long workflowId)
           throws IngestException, NotFoundException {
+
+    // Look for the workflow instance (if provided)
+    WorkflowInstance workflow = null;
+    if (workflowId != null) {
+      try {
+        workflow = workflowService.getWorkflowById(workflowId.longValue());
+        if (!workflow.getState().equals(WorkflowState.PAUSED)) {
+          logger.warn("The workflow with id '{}' is not in paused state", workflow.getId());
+          workflow = null;
+        }
+      } catch (NotFoundException e) {
+        logger.warn("Failed to find a workflow with id '{}'", workflowId);
+      } catch (WorkflowDatabaseException e) {
+        throw new IngestException(e);
+      }
+    }
+
     try {
-      if (workflowId != null) {
-        WorkflowInstance workflow = workflowService.getWorkflowById(workflowId.longValue());
+      if (workflow == null) {
         WorkflowDefinition workflowDef = workflowService.getWorkflowDefinitionById(wd);
-        
+        return workflowService.start(workflowDef, mp, properties);
+      } else {
+        WorkflowDefinition workflowDef = workflowService.getWorkflowDefinitionById(wd);
+
         // Replace the current mediapackage with the new one
         workflow.setMediaPackage(mp);
         workflow.extend(workflowDef);
@@ -575,9 +596,6 @@ public class IngestServiceImpl implements IngestService {
 
         // Return the updated worflow instance
         return workflowService.getWorkflowById(workflowId.longValue());
-      } else {
-        WorkflowDefinition workflowDef = workflowService.getWorkflowDefinitionById(wd);
-        return workflowService.start(workflowDef, mp,properties);
       }
     } catch (WorkflowDatabaseException e) {
       throw new IngestException(e);

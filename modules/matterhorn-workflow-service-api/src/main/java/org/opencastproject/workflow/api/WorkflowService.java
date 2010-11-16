@@ -186,36 +186,39 @@ public interface WorkflowService {
    * 
    * @param workflowInstanceId
    *          the workflow instance identifier
+   * @return the workflow instance
    * @throws NotFoundException
    *           if no running workflow with this identifier exists
    * @throws WorkflowDatabaseException
    *           if there is a problem accessing the workflow instance in persistence
    */
-  void stop(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
+  WorkflowInstance stop(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
 
   /**
    * Temporarily suspends a started workflow instance.
    * 
    * @param workflowInstanceId
    *          the workflow instance identifier
+   * @return the workflow instance
    * @throws NotFoundException
    *           if no running workflow with this identifier exists
    * @throws WorkflowDatabaseException
    *           if there is a problem accessing the workflow instance in persistence
    */
-  void suspend(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
+  WorkflowInstance suspend(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
 
   /**
    * Resumes a suspended workflow instance.
    * 
    * @param workflowInstanceId
    *          the workflow instance identifier
+   * @return the workflow instance
    * @throws NotFoundException
    *           if no paused workflow with this identifier exists
    * @throws WorkflowDatabaseException
    *           if there is a problem accessing the workflow instance in persistence
    */
-  void resume(long workflowInstanceId) throws NotFoundException, WorkflowDatabaseException;
+  WorkflowInstance resume(long workflowInstanceId) throws NotFoundException, WorkflowDatabaseException;
 
   /**
    * Resumes a suspended workflow instance, applying new properties to the workflow.
@@ -224,12 +227,13 @@ public interface WorkflowService {
    *          the workflow to resume
    * @param properties
    *          the properties to apply to the resumed workflow
+   * @return the workflow instance
    * @throws NotFoundException
    *           if no paused workflow with this identifier exists
    * @throws WorkflowDatabaseException
    *           if there is a problem accessing the workflow instance in persistence
    */
-  void resume(long workflowInstanceId, Map<String, String> properties) throws NotFoundException,
+  WorkflowInstance resume(long workflowInstanceId, Map<String, String> properties) throws NotFoundException,
           WorkflowDatabaseException;
 
   /**

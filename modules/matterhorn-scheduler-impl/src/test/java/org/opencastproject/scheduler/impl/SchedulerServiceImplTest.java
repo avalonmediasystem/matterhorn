@@ -137,7 +137,7 @@ public class SchedulerServiceImplTest {
                     (Map<String, String>) EasyMock.anyObject())).andReturn(workflowInstance);
     EasyMock.expect(workflowService.getWorkflowById(EasyMock.anyLong())).andReturn(workflowInstance)
             .anyTimes();
-    workflowService.stop(EasyMock.anyLong());
+    EasyMock.expect(workflowService.stop(EasyMock.anyLong())).andReturn(workflowInstance);
     workflowService.update((WorkflowInstance) EasyMock.anyObject());
     EasyMock.replay(workflowService);
     service.setWorkflowService(workflowService);

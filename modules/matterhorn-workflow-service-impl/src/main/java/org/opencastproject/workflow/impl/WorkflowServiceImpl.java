@@ -91,7 +91,7 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
 
   /** The configuration key that defines the number of threads to use in the workflow instance thread pool */
   protected static final String WORKFLOW_THREADS_CONFIGURATION = "org.opencastproject.concurrent.jobs";
-  
+
   /** TODO: Remove references to the component context once felix scr 1.2 becomes available */
   protected ComponentContext componentContext = null;
 
@@ -228,7 +228,7 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
   public void activate(ComponentContext componentContext) {
     this.componentContext = componentContext;
     logger.debug("Creating a new thread pool with default size of {}", DEFAULT_THREADS);
-    executorService = (ThreadPoolExecutor)Executors.newFixedThreadPool(DEFAULT_THREADS);
+    executorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(DEFAULT_THREADS);
   }
 
   /**
@@ -551,10 +551,8 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
    * 
    * @see org.opencastproject.workflow.api.WorkflowService#stop(long)
    */
-  public void stop(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
+  public WorkflowInstance stop(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
     WorkflowInstanceImpl instance = (WorkflowInstanceImpl) getWorkflowById(workflowInstanceId);
-    if (instance == null)
-      throw new NotFoundException("Workflow ID='" + workflowInstanceId + "' does not exist");
 
     // Update the workflow instance
     instance.setState(WorkflowState.STOPPED);
@@ -569,6 +567,8 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
     } catch (ServiceRegistryException e) {
       throw new WorkflowDatabaseException("Unable to update job status ", e);
     }
+    
+    return instance;
   }
 
   /**
@@ -576,10 +576,8 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
    * 
    * @see org.opencastproject.workflow.api.WorkflowService#suspend(long)
    */
-  public void suspend(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
+  public WorkflowInstance suspend(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
     WorkflowInstanceImpl instance = (WorkflowInstanceImpl) getWorkflowById(workflowInstanceId);
-    if (instance == null)
-      throw new NotFoundException("Workflow ID='" + workflowInstanceId + "' does not exist");
 
     // Update the workflow instance
     instance.setState(WorkflowState.PAUSED);
@@ -594,6 +592,8 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
     } catch (ServiceRegistryException e) {
       throw new WorkflowDatabaseException("Unable to update job status ", e);
     }
+
+    return instance;
   }
 
   /**
@@ -602,8 +602,8 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
    * @see org.opencastproject.workflow.api.WorkflowService#resume(long)
    */
   @Override
-  public void resume(long id) throws WorkflowDatabaseException, NotFoundException {
-    resume(id, new HashMap<String, String>());
+  public WorkflowInstance resume(long id) throws WorkflowDatabaseException, NotFoundException {
+    return resume(id, new HashMap<String, String>());
   }
 
   /**
@@ -611,12 +611,10 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
    * 
    * @see org.opencastproject.workflow.api.WorkflowService#resume(long)
    */
-  public void resume(long workflowInstanceId, Map<String, String> properties) throws WorkflowDatabaseException,
-          NotFoundException {
+  public WorkflowInstance resume(long workflowInstanceId, Map<String, String> properties)
+          throws WorkflowDatabaseException, NotFoundException {
     WorkflowInstanceImpl workflowInstance = (WorkflowInstanceImpl) updateConfiguration(
             getWorkflowById(workflowInstanceId), properties);
-    if (workflowInstance == null)
-      throw new NotFoundException("Workflow ID='" + workflowInstanceId + "' does not exist");
 
     // Update the workflow instance
     workflowInstance.setState(WorkflowInstance.WorkflowState.RUNNING);
@@ -632,6 +630,8 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
     } catch (ServiceRegistryException e) {
       throw new WorkflowDatabaseException("Unable to update job status ", e);
     }
+
+    return workflowInstance;
   }
 
   /**
@@ -655,6 +655,7 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.opencastproject.workflow.api.WorkflowService#countWorkflowInstances()
    */
   @Override
@@ -664,22 +665,25 @@ public class WorkflowServiceImpl implements WorkflowService, ManagedService {
 
   /**
    * {@inheritDoc}
-   * @see org.opencastproject.workflow.api.WorkflowService#countWorkflowInstances(org.opencastproject.workflow.api.WorkflowInstance.WorkflowState, java.lang.String)
+   * 
+   * @see org.opencastproject.workflow.api.WorkflowService#countWorkflowInstances(org.opencastproject.workflow.api.WorkflowInstance.WorkflowState,
+   *      java.lang.String)
    */
   @Override
   public long countWorkflowInstances(WorkflowState state, String operation) throws WorkflowDatabaseException {
     return dao.countWorkflowInstances(state, operation);
   }
-  
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.opencastproject.workflow.api.WorkflowService#getStatistics()
    */
   @Override
   public WorkflowStatistics getStatistics() throws WorkflowDatabaseException {
     return dao.getStatistics();
   }
-  
+
   /**
    * {@inheritDoc}
    * 

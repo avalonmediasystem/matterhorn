@@ -332,6 +332,8 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
         return Long.parseLong(body);
       } catch (NumberFormatException e) {
         throw new WorkflowDatabaseException("Unable to parse the response body as a long: " + body);
+      } finally {
+        closeConnection(response);
       }
     }
   }
@@ -342,7 +344,7 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
    * @see org.opencastproject.workflow.api.WorkflowService#stop(long)
    */
   @Override
-  public void stop(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
+  public WorkflowInstance stop(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
     HttpPost post = new HttpPost("/stop");
     List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
     params.add(new BasicNameValuePair("id", Long.toString(workflowInstanceId)));
@@ -351,14 +353,20 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
     } catch (UnsupportedEncodingException e) {
       throw new IllegalStateException("Unable to assemble a remote workflow service request", e);
     }
-    HttpResponse response = getResponse(post, HttpStatus.SC_NO_CONTENT, HttpStatus.SC_NOT_FOUND);
+    HttpResponse response = getResponse(post, HttpStatus.SC_OK, HttpStatus.SC_NOT_FOUND);
     if (response == null) {
       throw new WorkflowDatabaseException("Unexpected HTTP response code");
     } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
       throw new NotFoundException("Workflow instance with id='" + workflowInstanceId + "' not found");
     } else {
       logger.info("Workflow '{}' stopped", workflowInstanceId);
-      return;
+      try {
+        return WorkflowBuilder.getInstance().parseWorkflowInstance(response.getEntity().getContent());
+      } catch(Exception e) {
+        throw new WorkflowDatabaseException(e);
+      } finally {
+        closeConnection(response);
+      }
     }
   }
 
@@ -368,7 +376,7 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
    * @see org.opencastproject.workflow.api.WorkflowService#suspend(long)
    */
   @Override
-  public void suspend(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
+  public WorkflowInstance suspend(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
     HttpPost post = new HttpPost("/suspend");
     List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
     params.add(new BasicNameValuePair("id", Long.toString(workflowInstanceId)));
@@ -384,7 +392,13 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
       throw new NotFoundException("Workflow instance with id='" + workflowInstanceId + "' not found");
     } else {
       logger.info("Workflow '{}' suspended", workflowInstanceId);
-      return;
+      try {
+        return WorkflowBuilder.getInstance().parseWorkflowInstance(response.getEntity().getContent());
+      } catch(Exception e) {
+        throw new WorkflowDatabaseException(e);
+      } finally {
+        closeConnection(response);
+      }
     }
   }
 
@@ -394,8 +408,8 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
    * @see org.opencastproject.workflow.api.WorkflowService#resume(long)
    */
   @Override
-  public void resume(long workflowInstanceId) throws NotFoundException, WorkflowDatabaseException {
-    resume(workflowInstanceId, null);
+  public WorkflowInstance resume(long workflowInstanceId) throws NotFoundException, WorkflowDatabaseException {
+    return resume(workflowInstanceId, null);
   }
 
   /**
@@ -404,7 +418,7 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
    * @see org.opencastproject.workflow.api.WorkflowService#resume(long, java.util.Map)
    */
   @Override
-  public void resume(long workflowInstanceId, Map<String, String> properties) throws NotFoundException,
+  public WorkflowInstance resume(long workflowInstanceId, Map<String, String> properties) throws NotFoundException,
           WorkflowDatabaseException {
     HttpPost post = new HttpPost("/resume");
     List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
@@ -422,7 +436,13 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
       throw new NotFoundException("Workflow instance with id='" + workflowInstanceId + "' not found");
     } else {
       logger.info("Workflow '{}' resumed", workflowInstanceId);
-      return;
+      try {
+        return WorkflowBuilder.getInstance().parseWorkflowInstance(response.getEntity().getContent());
+      } catch(Exception e) {
+        throw new WorkflowDatabaseException(e);
+      } finally {
+        closeConnection(response);
+      }
     }
   }
 
