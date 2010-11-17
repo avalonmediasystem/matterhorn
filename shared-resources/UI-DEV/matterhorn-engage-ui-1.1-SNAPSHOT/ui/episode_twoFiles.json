@@ -1,0 +1,572 @@
+{
+  "search-results": {
+    "@searchTime": "1",
+    "@total": "1",
+    "@limit": "1",
+    "@offset": "0",
+    "query": "(id:f48c2be3-c2ca-4bc7-9725-c9e93259b67a OR dc_is_part_of:f48c2be3-c2ca-4bc7-9725-c9e93259b67a)",
+    "result": {
+      "@id": "f48c2be3-c2ca-4bc7-9725-c9e93259b67a",
+      "mediapackage": {
+        "@start": "2010-11-12T13:53:50",
+        "@id": "f48c2be3-c2ca-4bc7-9725-c9e93259b67a",
+        "@duration": "234985",
+        "title": "Matterhorn",
+        "media": {
+          "track": [
+            {
+              "@ref": "track:3918afc2-c586-458e-a3e6-7be2f4846ac0",
+              "@type": "presentation/delivery",
+              "@id": "track-8",
+              "mimetype": "audio/m4a",
+              "tags": {
+                "tag": [
+                  "atom",
+                  "publish",
+                  "rss"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/3918afc2-c586-458e-a3e6-7be2f4846ac0/iLOVE_Matterhorn.m4a",
+              "checksum": {
+                "@type": "md5",
+                "$": "6846038ef34442fe03cdf494ef5adca6"
+              },
+              "duration": 234985,
+              "audio": {
+                "@id": "audio-1",
+                "device": "",
+                "encoder": {
+                  "@type": "AAC"
+                },
+                "bitdepth": 16,
+                "channels": 2,
+                "samplingrate": 44100,
+                "bitrate": 187669
+              }
+            },
+            {
+              "@ref": "track:939c74a0-3e9c-42bf-883a-75cd559efc14",
+              "@type": "presentation/delivery",
+              "@id": "track-9",
+              "mimetype": "video/avi",
+              "tags": {
+                "tag": [
+                  "atom",
+                  "publish",
+                  "rss"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/939c74a0-3e9c-42bf-883a-75cd559efc14/iLOVE_Matterhorn.avi",
+              "checksum": {
+                "@type": "md5",
+                "$": "02ba5a39719b73220c5d2b722025ad63"
+              },
+              "duration": 235000,
+              "audio": {
+                "@id": "audio-1",
+                "device": "",
+                "encoder": {
+                  "@type": "MPEG Audio"
+                },
+                "bitdepth": 16,
+                "channels": 2,
+                "samplingrate": 44100,
+                "bitrate": 64000
+              },
+              "video": {
+                "@id": "video-1",
+                "device": "",
+                "encoder": {
+                  "@type": "MPEG-4 Visual"
+                },
+                "bitrate": 208696,
+                "framerate": 25,
+                "resolution": "320x240",
+                "scantype": {
+                  "@type": "Progressive"
+                }
+              }
+            },
+            {
+              "@ref": "track:1c37af95-709d-41f5-9935-7a60a6043365",
+              "@type": "presentation/delivery",
+              "@id": "track-10",
+              "mimetype": "video/x-flv",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/1c37af95-709d-41f5-9935-7a60a6043365/iLOVE_Matterhorn.flv",
+              "checksum": {
+                "@type": "md5",
+                "$": "b7d716d0f334c1035c07a19e103f306d"
+              },
+              "duration": 235200,
+              "audio": {
+                "@id": "audio-1",
+                "device": "",
+                "encoder": {
+                  "@type": "ADPCM"
+                },
+                "bitdepth": 16,
+                "channels": 2,
+                "samplingrate": 22050,
+                "bitrate": 93750
+              },
+              "video": {
+                "@id": "video-1",
+                "device": "",
+                "encoder": {
+                  "@type": "H.263"
+                },
+                "bitrate": 500000,
+                "framerate": 5,
+                "resolution": "480x270"
+              }
+            }
+                {
+              "@ref": "track:3918afc2-c586-458e-a3e6-7be2f4846ac0",
+              "@type": "presentation/delivery",
+              "@id": "track-9",
+              "mimetype": "audio/m4a",
+              "tags": {
+                "tag": [
+                  "atom",
+                  "publish",
+                  "rss"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/3918afc2-c586-458e-a3e6-7be2f4846ac0/iLOVE_Matterhorn.m4a",
+              "checksum": {
+                "@type": "md5",
+                "$": "6846038ef34442fe03cdf494ef5adca6"
+              },
+              "duration": 234985,
+              "audio": {
+                "@id": "audio-1",
+                "device": "",
+                "encoder": {
+                  "@type": "AAC"
+                },
+                "bitdepth": 16,
+                "channels": 2,
+                "samplingrate": 44100,
+                "bitrate": 187669
+              }
+            },
+            {
+              "@ref": "track:939c74a0-3e9c-42bf-883a-75cd559efc14",
+              "@type": "presentation/delivery",
+              "@id": "track-9",
+              "mimetype": "video/avi",
+              "tags": {
+                "tag": [
+                  "atom",
+                  "publish",
+                  "rss"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/939c74a0-3e9c-42bf-883a-75cd559efc14/iLOVE_Matterhorn.avi",
+              "checksum": {
+                "@type": "md5",
+                "$": "02ba5a39719b73220c5d2b722025ad63"
+              },
+              "duration": 235000,
+              "audio": {
+                "@id": "audio-1",
+                "device": "",
+                "encoder": {
+                  "@type": "MPEG Audio"
+                },
+                "bitdepth": 16,
+                "channels": 2,
+                "samplingrate": 44100,
+                "bitrate": 64000
+              },
+              "video": {
+                "@id": "video-1",
+                "device": "",
+                "encoder": {
+                  "@type": "MPEG-4 Visual"
+                },
+                "bitrate": 208696,
+                "framerate": 25,
+                "resolution": "320x240",
+                "scantype": {
+                  "@type": "Progressive"
+                }
+              }
+            },
+            {
+              "@ref": "track:1c37af95-709d-41f5-9935-7a60a6043365",
+              "@type": "presentation/delivery",
+              "@id": "track-10",
+              "mimetype": "video/x-flv",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://131​.173.22.24​/static/da​b950e1-c64​b-4907-b9e​3-c61bf8ec​6110/track​-9/dozent.​mp4",
+              "checksum": {
+                "@type": "md5",
+                "$": "b7d716d0f334c1035c07a19e103f306d"
+              },
+              "duration": 235200,
+              "audio": {
+                "@id": "audio-1",
+                "device": "",
+                "encoder": {
+                  "@type": "ADPCM"
+                },
+                "bitdepth": 16,
+                "channels": 2,
+                "samplingrate": 22050,
+                "bitrate": 93750
+              },
+              "video": {
+                "@id": "video-1",
+                "device": "",
+                "encoder": {
+                  "@type": "H.263"
+                },
+                "bitrate": 500000,
+                "framerate": 5,
+                "resolution": "480x270"
+              }
+            }
+          ]
+        },
+        "metadata": {
+          "catalog": [
+            {
+              "@ref": "catalog:catalog-2",
+              "@type": "mpeg-7/segments",
+              "@id": "catalog-4",
+              "mimetype": "text/xml",
+              "tags": {
+                "tag": "publish"
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/catalog-2/segments.xml"
+            },
+            {
+              "@ref": "catalog:catalog-3",
+              "@type": "mpeg-7/text",
+              "@id": "catalog-5",
+              "mimetype": "text/xml",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/catalog-3/slidetext.xml"
+            },
+            {
+              "@ref": "catalog:da42dd81-2330-4408-8f23-9ab3ec58b85f",
+              "@type": "dublincore/episode",
+              "@id": "catalog-6",
+              "mimetype": "text/xml",
+              "tags": {
+                "tag": "publish"
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/da42dd81-2330-4408-8f23-9ab3ec58b85f/dublincore.xml"
+            }
+          ]
+        },
+        "attachments": {
+          "attachment": [
+            {
+              "@ref": "attachment:attachment-6;time=T00:00:18:0F1000",
+              "@type": "presentation/segment+preview",
+              "@id": "attachment-12",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-6/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-7;time=T00:00:35:0F1000",
+              "@type": "presentation/segment+preview",
+              "@id": "attachment-13",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-7/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-8;time=T00:01:34:0F1000",
+              "@type": "presentation/segment+preview",
+              "@id": "attachment-14",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-8/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-9;time=T00:01:53:0F1000",
+              "@type": "presentation/segment+preview",
+              "@id": "attachment-15",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-9/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-2",
+              "@type": "presentation/search+preview",
+              "@id": "attachment-16",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-2/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-3",
+              "@type": "presentation/feed+preview",
+              "@id": "attachment-17",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "atom",
+                  "publish",
+                  "rss"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-3/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-10;time=T00:02:06:0F1000",
+              "@type": "presentation/segment+preview",
+              "@id": "attachment-18",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-10/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-4;time=T00:00:00:0F1000",
+              "@type": "presentation/segment+preview",
+              "@id": "attachment-19",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-4/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-11;time=T00:03:00:0F1000",
+              "@type": "presentation/segment+preview",
+              "@id": "attachment-20",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-11/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-5;time=T00:00:06:0F1000",
+              "@type": "presentation/segment+preview",
+              "@id": "attachment-21",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-5/iLOVE_Matterhorn.jpg"
+            },
+            {
+              "@ref": "attachment:attachment-1",
+              "@type": "presentation/player+preview",
+              "@id": "attachment-22",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": [
+                  "engage",
+                  "publish"
+                ]
+              },
+              "url": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-1/iLOVE_Matterhorn.jpg"
+            }
+          ]
+        }
+      },
+      "dcExtent": 235000,
+      "dcTitle": "Matterhorn",
+      "dcSubject": "",
+      "dcCreator": "",
+      "dcPublisher": "",
+      "dcContributor": "",
+      "dcAbstract": "",
+      "dcDescription": "",
+      "dcCreated": "2010-11-12T14:53:50+01:00",
+      "dcLanguage": "",
+      "dcRightsHolder": "",
+      "dcSpatial": "",
+      "dcTemporal": "",
+      "dcIsPartOf": "",
+      "dcReplaces": "",
+      "dcType": "",
+      "dcAccessRights": "",
+      "dcLicense": "",
+      "mediaType": "AudioVisual",
+      "keywords": {
+        "keywords": ""
+      },
+      "cover": "",
+      "modified": "2010-11-12T15:55:52+01:00",
+      "score": 0.04500804,
+      "segments": {
+        "segment": [
+          {
+            "@hit": "false",
+            "@relevance": "-1",
+            "@duration": "6000",
+            "@time": "0",
+            "@index": "0",
+            "text": "l",
+            "previews": {
+              "preview": {
+                "@ref": "attachment-4",
+                "$": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-4/iLOVE_Matterhorn.jpg"
+              }
+            }
+          },
+          {
+            "@hit": "false",
+            "@relevance": "-1",
+            "@duration": "12000",
+            "@time": "6000",
+            "@index": "1",
+            "text": "Y W r",
+            "previews": {
+              "preview": {
+                "@ref": "attachment-5",
+                "$": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-5/iLOVE_Matterhorn.jpg"
+              }
+            }
+          },
+          {
+            "@hit": "false",
+            "@relevance": "-1",
+            "@duration": "17000",
+            "@time": "18000",
+            "@index": "2",
+            "text": "",
+            "previews": {
+              "preview": {
+                "@ref": "attachment-6",
+                "$": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-6/iLOVE_Matterhorn.jpg"
+              }
+            }
+          },
+          {
+            "@hit": "false",
+            "@relevance": "-1",
+            "@duration": "59000",
+            "@time": "35000",
+            "@index": "3",
+            "text": "i matter",
+            "previews": {
+              "preview": {
+                "@ref": "attachment-7",
+                "$": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-7/iLOVE_Matterhorn.jpg"
+              }
+            }
+          },
+          {
+            "@hit": "false",
+            "@relevance": "-1",
+            "@duration": "19000",
+            "@time": "94000",
+            "@index": "4",
+            "text": "i matter",
+            "previews": {
+              "preview": {
+                "@ref": "attachment-8",
+                "$": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-8/iLOVE_Matterhorn.jpg"
+              }
+            }
+          },
+          {
+            "@hit": "false",
+            "@relevance": "-1",
+            "@duration": "13000",
+            "@time": "113000",
+            "@index": "5",
+            "text": "i matter",
+            "previews": {
+              "preview": {
+                "@ref": "attachment-9",
+                "$": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-9/iLOVE_Matterhorn.jpg"
+              }
+            }
+          },
+          {
+            "@hit": "false",
+            "@relevance": "-1",
+            "@duration": "54000",
+            "@time": "126000",
+            "@index": "6",
+            "text": "i matter",
+            "previews": {
+              "preview": {
+                "@ref": "attachment-10",
+                "$": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-10/iLOVE_Matterhorn.jpg"
+              }
+            }
+          },
+          {
+            "@hit": "false",
+            "@relevance": "-1",
+            "@duration": "55000",
+            "@time": "180000",
+            "@index": "7",
+            "text": "",
+            "previews": {
+              "preview": {
+                "@ref": "attachment-11",
+                "$": "http://localhost:8080/static/f48c2be3-c2ca-4bc7-9725-c9e93259b67a/attachment-11/iLOVE_Matterhorn.jpg"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

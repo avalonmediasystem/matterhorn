@@ -1,0 +1,286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+  <head>
+    <title>Opencast Matterhorn - Media Player</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <link rel="shortcut icon" href="img/favicon.ico">
+
+    <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/player-multi-hybrid.css" />
+    <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/player-multi-hybrid-icons.css" />
+    <link rel="stylesheet" type="text/css" href="css/shared.css" />
+    <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/opencast-reset.css" />
+    <link rel="stylesheet" type="text/css" href="jquery/plugins/jwysiwyg/jquery.wysiwyg.css"  />
+    <link rel="stylesheet" type="text/css" href="css/oc.segments.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui-1.8.5.custom.css">
+    <style type="text/css">
+      .scroll {height: 100px; overflow: scroll;}
+    </style>
+
+    <script type="text/javascript" src="jquery/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.xslt.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.hotkeys-0.7.9.js"></script>
+    <script type="text/javascript" src="engage-hybrid-player/bridge/lib/FABridge.js"></script>
+    <script type="text/javascript" src="engage-hybrid-player/bridge/Videodisplay.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jARIA.js"></script>
+    <script type="text/javascript" src="jquery/jquery-ui-1.8.1.custom.min.js"></script>
+    <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-scubber.js"></script>
+    <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid.js"></script>
+    <script type="text/javascript" src="engage-hybrid-player/aria/js/ariaSlider.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jwysiwyg/jquery.wysiwyg.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.client.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.sparkline.min.js"></script>
+    <script type="text/javascript" src="js/engage-ui.js"></script>
+    <script type="text/javascript" src="js/version.js"></script>
+    <script type="text/javascript" src="js/jquery.timers-1.2.js"></script>
+    <script type="text/javascript" src="js/segments.js"></script>
+    <script type="text/javascript" src="js/bookmarks.js"></script>
+    <script type="text/javascript" src="js/engage_plugins/analytics-plugin.js"></script>
+    <script type="text/javascript" src="js/engage_plugins/analytics.js"></script>
+    <script type="text/javascript" src="js/engage_plugins/annotation_chapter-plugin.js"></script>
+    <script type="text/javascript" src="js/engage_plugins/annotation_chapter.js"></script>
+    <script type="text/javascript" src="js/engage_plugins/description-plugin.js"></script>
+    <script type="text/javascript" src="js/engage_plugins/description.js"></script>
+    <script type="text/javascript" src="js/engage_plugins/getVideodata.js"></script>
+    <script type="text/javascript" src="js/search.js"></script>
+    <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-initialize.js"></script>
+    <script type="text/javascript" src="js/watch.js"></script>
+    <script type="text/javascript" src="trimpath/trimpath-template-1.0.38.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function(){
+          // parse the query string (TODO: move this into a js utility class)
+          function parseQueryString(qs) {
+            var urlParams = {};
+            var e,
+            d = function (s) { return decodeURIComponent(s.replace(/\+/g, " ")); },
+            q = window.location.search.substring(1),
+            r = /([^&=]+)=?([^&]*)/g;
+            while (e = r.exec(q))
+              urlParams[d(e[1])] = d(e[2]);
+            return urlParams;
+          }
+
+        if(parseQueryString(window.location.search.substring(1)).embed) {
+          $('#oc_title-bar').hide();
+          $('#oc_embed').hide();
+          $('#oc_btn-embed').hide();
+          $('#oc_slidetext').addClass('scroll');
+        }
+        /* initalise embed buttons */
+        $( "#oc_embed-icon-one, #oc_embed-icon-two, #oc_embed-icon-three, #oc_embed-icon-four, #oc_embed-icon-five", "#oc_embed-left" ).button();
+        /* initalise search button */
+        $( "#oc_btn-search", "#oc_search" ).button();
+        /* initalise share button */
+        $( "#oc_share-button, #oc_shortcut-button", "#oc_player-head-right" ).button();
+
+        /* initalise closed tabs */
+        $("#oc_ui_tabs").tabs({ selected: -1});
+        $("#oc_ui_tabs").tabs( "option", "collapsible", true );
+        /* handle select event for each tab */
+        $("#oc_ui_tabs").tabs({
+            select: function(event, ui)
+            {
+              switch(ui.index)
+              {
+                case 0: Opencast.Description.doToggleDescription(); break;
+                case 1: Opencast.Player.doToggleSlides(); break;
+                case 2: Opencast.Player.doToggleSlideText(); break;
+              }
+            }
+        });
+        $('#oc_share-button').click(function() { Opencast.Player.doToggleShare(); });
+        $('#oc_btn-email').click(function() { Opencast.Player.doToggleShare(); });
+        $('label[for="oc_checkbox-statistics"]').click(function() { Opencast.Analytics.doToggleAnalytics(); return false;});
+        $('label[for="oc_checkbox-annotations"]').click(function() { Opencast.Annotation_Chapter.doToggleAnnotation_Chapter(); return false;});
+        //bind click events to show dialog
+        $('#oc_shortcuts').dialog({ autoOpen: false, width: 600});
+        $('#oc_shortcut-button').click(function() {$('#oc_shortcuts').dialog('open'); $('#oc_shortcut-button').removeClass('ui-state-focus'); return true;});
+        $('#oc_embed').dialog({ autoOpen: false, width: 800});
+        $('#oc_btn-embed').click(function() {$('#oc_embed').dialog('open'); Opencast.Player.doToggleShare(); return false;})
+      });
+    </script>
+  </head>
+
+  <body>
+  <noscript>
+    <p style="color:red;">JavaScript is turned off in your web browser. So this site wouldn't work properly! <br />
+      <strong>Please turn JavaScript on to use this site, then refresh the page.</strong>
+    </p>
+  </noscript>
+  <div id="skip">
+  <a href="#controls">Skip to player controls</a>
+  </div>
+    <div id="skip">
+  <a href="#shortcuts" onclick="$('#oc_shortcuts').dialog('open')">Skip to Shortcuts</a>
+  </div>
+
+  <div id="oc_title-bar" class="ui-widget ui-widget-header ui-corner-all">
+    <div id="oc_title-bar-container" class="">
+
+      <div id="oc_title-bar-logo">
+        <img src="img/MatterhornLogo_42x30.png" alt="Back to Media Module" title="Back to Media Module" />
+      </div>
+
+      <div id="oc_search">
+        <form action="index.html">
+          <label id="skip" for="oc_searchField">Search Field</label>
+          <input id="oc_searchField" class="oc_search-Field handcursor ui-corner-all" type="text" name="q" value="Search Matterhorn" />
+          <input id="oc_btn-search" class="handcursor" type="submit" name="search" alt="search" title="search" value="Search"></input>
+        </form>
+      </div>
+
+      <div id="oc_title-bar-gallery-link">
+        <div id="oc_gallery" class="ui-helper-reset">Go to <a href="index.html" title="Video Gallery">Video Gallery</a></div>
+      </div>
+    </div>
+    <div class="clear"></div>
+  </div><!-- END #oc_title-bar -->
+
+  <div id="oc_body" class="ui-widget ui-widget-content ui-corner-all">
+    <div id="oc_player-head">
+      <h2 id="oc_title"></h2>
+      <div id="oc_player-head-right">
+        <a href="javascript: " id="oc_share-button">Share</a>
+        <a href="javascript: " id="oc_shortcut-button">Shortcuts</a>
+      </div>
+      <div class="clear"></div>
+    </div>
+   <div id="oc_flash-player">
+      <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js"></script>
+    <script type="text/javascript">
+  alert("Opencast: "+ Opencast.Videodata.getVideodata1());
+  </script>
+    </div>
+
+    <div id="oc_video-player-controls" class="ui-widget ui-widget-header">
+
+      <div id="oc_video-time">
+        <div id="simpleEdit">
+          <input id="oc_current-time" class="oc_current-time handcursor" type="submit" name="Current Time" title="Current Time" value="00:00:00" tabIndex="0"></input>
+          <input id="oc_edit-time" class="oc_edit-time-hide handcursor" type="text" maxlength="8" size="8" name="Edit Current Time HH:MM:SS" title="Edit Current Time HH:MM:SS" value="00:00:00"></input>
+          of
+          <span id="oc_duration" class="oc_duration" name="Duration" title="Duration" tabIndex="0">00:00:00</span>
+        </div>
+      </div>
+
+      <div id="oc_video-controls">
+        <span id="skip">
+            <a name="controls"></a>
+            <h2>Video Player Controls</h2>
+        </span>
+        <input id="oc_btn-skip-backward" class="oc_btn-skip-backward handcursor" type="submit" name="Jump To The Previous Slide" alt="Jump To The Previous Slide" title="Jump To The Previous Slide" value=""></input>
+        <input id="oc_btn-rewind" class="oc_btn-rewind handcursor" type="submit" name="Jump Back: Control + Alt + R" alt="Jump Back: Control + Alt + R" title="Jump Back: Control + Alt + R" value=""></input>
+        <input id="oc_btn-play-pause" class="oc_btn-play handcursor" type="submit" name="Play: Control + Alt + P"  alt="Play: Control + Alt + P" title="Play: Control + Alt + P" value=""></input>
+        <input id="oc_btn-fast-forward" class="oc_btn-fast-forward handcursor" type="submit" name="Jump Forward: Control + Alt + F" alt="Jump Forward: Control + Alt + F" title="Jump Forward: Control + Alt + F" value=""></input>
+        <input id="oc_btn-skip-forward" class="oc_btn-skip-forward handcursor" type="submit" name="Jump To The Next Slide"  alt="Jump To The Next Slide" title="Jump To The Next Slide" value=""></input>
+      </div>
+
+      <div id="oc_sound">
+        <span id="oc_volume-dropdown">
+            <input id="oc_btn-volume" class="oc_btn-volume-high handcursor" type="submit" name="Unmute: Control + Alt + M" alt="Unmute: Control + Alt + M" title="Unmute: Control + Alt + M" value=""></input>
+        </span>
+        <span id="oc_volume-menue">
+            <div id="oc_volume-dropdown-div">
+                <div id="oc_volume-slider">
+                    <div id="slider_volume_Rail" class="oc_slider-volume-Rail handcursor" title="Volume" alt="Volume">
+                        <label id="volumeLabel" for="slider_volume_Rail" class="oc_offScreen-hidden "></label>
+                        <input id="slider_volume_Thumb" class="oc_slider-volume-Thumb handcursor" type="submit" value=""></input>
+                    </div>
+                </div>
+            </div>
+        </span>
+      </div>
+
+      <div id="oc_video-cc">
+        <input id="oc_btn-cc" class="oc_btn-cc-off" type="submit" name="Closed Caption Off: Control + Alt + C" alt="Closed Caption Off: Control + Alt + C" title="Closed Caption Off: Control + Alt + C" value=""></input>
+      </div>
+
+      <div id="oc_video-size-controls" >
+        <span id="oc_video-size-dropdown">
+            <input id="oc_btn-dropdown" class="oc_btn-centerDisplay" type="submit" name="Video Size Controls" alt="Video Size Controls" title="Video Size Controls" value=""></input>
+        </span>
+      </div>
+    </div>
+    <div id="oc_player_video-dropdown"></div>
+
+    <div id="data"></div>
+    <div id="oc_video-view">
+      <ul>
+        <li><label for="oc_checkbox-statistics"><input id="oc_checkbox-statistics" type="checkbox"> Viewing Statistics</label></li>
+        <li><label for="oc_checkbox-annotations"><input id="oc_checkbox-annotations" type="checkbox"> Annotations</label></li>
+        <li><strong>View:</strong></li>
+      </ul>
+      <div class="clear"></div>
+    </div>
+
+  </div>
+  
+  <div id="oc_ui_tabs">
+      <div id="oc_tabs" class="oc_tabs-input">
+        <ul>
+          <li><a href="#oc_description" id="oc_btn-description" class="oc_btn-tabs handcursor" title="Description">Description</a></li>
+          <li><a href="#oc_slides" id="oc_btn-slides" class="oc_btn-tabs handcursor" title="Segments">Segments</a></li>
+          <li><a href="#oc_slidetext" id="oc_btn-slidetext" class="oc_btn-tabs handcursor" title="Segment Text">Segment Text</a></li>
+        </ul>
+      </div>
+
+      <div id="oc_description" class="fl-fix">
+        <h4>Description</h4>
+      </div>
+
+      <div id="oc_slides" class="oc_DisplayBlock">
+        <div id="segments-holder" class="oc-segments-holder">
+          <div id="oc_segment-table" class="oc-segments">
+          </div>
+        </div>
+      </div>
+
+      <div id="oc_slidetext" class="fl-fix">
+        <div id="oc_slidetext-right" class="oc_slidetext-right">
+          <input id="oc_lecturer-search-field" class="oc_search-Field" type="text" onkeyup="Opencast.search.showResult(this.value)" size="30" value="Search this Recording"></input>
+        </div>
+        <div id="oc_slidetext-left" class="oc_slidetext-left"></div>
+      </div>
+
+      <div class="clear"></div>
+    </div><!-- END #oc_ui_tabs -->
+  <div id="segment-tooltip" class="segment-tooltip" style="display: none;"></div>
+  <!-- Shortcut dialog -->
+  <div id="oc_shortcuts" title="Shortcuts">
+        <span id="skip">
+          <a name="shortcuts"></a>
+        </span>
+        <div id="oc_client_shortcuts"></div>
+  </div>
+  <!-- #share-button-layer dialog -->
+  <div id="oc_share-layer" class="ui-widget ui-widget-content ui-corner-all" title="Shortcuts">
+    <ul id="oc_share-list">
+      <li><a href="javascript: " id="oc_btn-embed" class="handcursor" title="Embed">Embed</a></li>
+      <li><a href="javascript: " id="oc_btn-email" class="handcursor" title="Email">Email</a></li>
+    </ul>
+  </div>
+  <!-- Embed Dialog -->
+  <div id="oc_embed" title="Embed">
+    <div id="oc_embed-left">
+    <input id="oc_embed-icon-one" class="oc_embed-icon-one" type="submit" name="" alt="" title="" value=""> </input>
+    <input id="oc_embed-icon-two" class="oc_embed-icon-two" type="submit" name="" alt="" title="" value=""> </input>
+    <input id="oc_embed-icon-three" class="oc_embed-icon-three" type="submit" name="" alt="" title="" value=""> </input>
+    <input id="oc_embed-icon-four" class="oc_embed-icon-four" type="submit" name="" alt="" title="" value=""> </input>
+    <input id="oc_embed-icon-five" class="oc_embed-icon-five" type="submit" name="" alt="" title="" value=""> </input>
+     </div>
+   <div id="oc_embed-right">
+      <div id="oc_embed-custom-title">Custom Size:</div>
+      <input id="oc_costum-width" type="text" value="width:" disabled></input>
+      <input id="oc_embed-costum-width-textinput" maxlength="4" type="text" name="Costum width min 300px" alt="Costum width min 300px" title="Costum width min 300px" value=""></input>
+      <div class="clear"></div>
+      <input id="oc_costum-height" type="text" value="height:" disabled></input>
+      <input id="oc_embed-costum-height-textinput" maxlength="4" type="text" name="" alt="" title="" value=""></input>
+    </div>
+     <div class="clear"></div>
+        Choose your embed size. Copy the text and paste it in your html page.
+        <textarea id="oc_embed-textarea" class="oc_embed-textarea" rows="2" cols="1"></textarea>
+      </div>
+  </body>
+</html>
