@@ -5,7 +5,7 @@
 				layout="absolute"
 				verticalScrollPolicy="auto"
 				horizontalScrollPolicy="auto"
-				backgroundColor="#000000"
+				backgroundColor="#FFFFFF"
 				creationComplete="init();"
 				addedToStage="onAddedToStage()"
 				xmlns:business="org.opencast.engage.videodisplay.business.*"
@@ -38,8 +38,8 @@
 			public function init():void
 			{
 
-				//var initMediaPlayerEvent:InitMediaPlayerEvent=new InitMediaPlayerEvent("rtmp://freecom.serv.uni-osnabrueck.de/oflaDemo/matterhorn/0a78520a-3c23-4379-bcc7-eb7c0a803070/track-6/dozent.flv", "rtmp://freecom.serv.uni-osnabrueck.de/oflaDemo/matterhorn/0a78520a-3c23-4379-bcc7-eb7c0a803070/track-7/vga.flv");
-				//CairngormEventDispatcher.getInstance().dispatchEvent(initMediaPlayerEvent);
+				var initMediaPlayerEvent:InitMediaPlayerEvent=new InitMediaPlayerEvent("rtmp://freecom.serv.uni-osnabrueck.de/oflaDemo/matterhorn/0a78520a-3c23-4379-bcc7-eb7c0a803070/track-6/dozent.flv", "rtmp://freecom.serv.uni-osnabrueck.de/oflaDemo/matterhorn/0a78520a-3c23-4379-bcc7-eb7c0a803070/track-7/vga.flv");
+				CairngormEventDispatcher.getInstance().dispatchEvent(initMediaPlayerEvent);
 			}
 
 			/**

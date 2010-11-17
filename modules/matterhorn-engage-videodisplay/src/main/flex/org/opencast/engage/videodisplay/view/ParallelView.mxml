@@ -35,6 +35,7 @@
 			import mx.controls.sliderClasses.Slider;
 			import mx.core.Application;
 			import mx.core.Container;
+			import org.osmf.containers.MediaContainer;
 			import mx.events.SliderEvent;
 			import org.opencast.engage.videodisplay.event.VideoplayerInteractionEvent;
 			import org.opencast.engage.videodisplay.model.VideodisplayModel;
@@ -42,6 +43,8 @@
 			import org.osmf.elements.VideoElement;
 			import org.osmf.layout.ScaleMode;
 			import org.osmf.media.MediaPlayer;
+
+			import bridge.ExternalFunction;
 
 			[Bindable]
 			public var model:VideodisplayModel=VideodisplayModel.getInstance();
@@ -61,34 +64,35 @@
 				//model.parallelMediaContainer = new MediaContainer();
 
 				//this.mediaContainerUIComponent.container = model.mediaContainer;
-				mediaContainerUIComponent.container=model.parallelMediaContainer;
+				//mediaContainerUIComponent.container=model.parallelMediaContainer;
 
 				pauseButton=new Button();
 				pauseButton.y=20;
 				pauseButton.x=20;
-				pauseButton.label="pa";
-				pauseButton.width=20;
-				pauseButton.height=20;
+				pauseButton.width=60;
+				pauseButton.height=60;
+				pauseButton.label="pause";
 				pauseButton.useHandCursor=true;
 				pauseButton.buttonMode=true;
 				pauseButton.addEventListener(MouseEvent.CLICK, _onPauseClick);
 				btn1.addChild(pauseButton);
 
 				playButton=new Button();
-				playButton.y=40;
-				playButton.x=60
-				playButton.label="pl";
-				playButton.width=20;
-				playButton.height=20;
+				playButton.y=20;
+				playButton.x=pauseButton.x+70;
+				playButton.label="play";
+				playButton.width=60;
+				playButton.height=60;
 				playButton.useHandCursor=true;
 				playButton.buttonMode=true;
 				playButton.addEventListener(MouseEvent.CLICK, _onPlayClick);
 				btn2.addChild(playButton);
 
 				progressBG=new ProgressBar();
-				progressBG.y=60;
-				progressBG.width=100;
-				progressBG.height=100;
+				progressBG.y=100;
+				progressBG.x=20;
+				progressBG.width=130
+				progressBG.height=200;
 				progressBG.useHandCursor=true;
 				progressBG.buttonMode=true;
 				progressBG.addEventListener(MouseEvent.CLICK, _onSeek);
@@ -104,6 +108,12 @@
 			public function resizeVideodisplay():void
 			{
 
+			}
+
+
+			public function attachVideo(container:MediaContainer):void
+			{
+				mediaContainerUIComponent.container=container;
 			}
 
 			//USER EVENT HANDLERS

@@ -1,5 +1,9 @@
 package org.opencast.engage.videodisplay.util
 {
+	import bridge.ExternalFunction;
+
+	import flash.external.ExternalInterface;
+
 	import mx.core.Application;
 
 	import org.opencast.engage.videodisplay.model.VideodisplayModel;
@@ -10,6 +14,7 @@ package org.opencast.engage.videodisplay.util
 	import org.osmf.events.LoadEvent;
 	import org.osmf.events.MediaErrorEvent;
 	import org.osmf.events.MediaPlayerCapabilityChangeEvent;
+	import org.osmf.events.TimeEvent;
 	import org.osmf.layout.HorizontalAlign;
 	import org.osmf.layout.LayoutMetadata;
 	import org.osmf.layout.LayoutMode;
@@ -20,7 +25,7 @@ package org.opencast.engage.videodisplay.util
 	import org.osmf.traits.AudioTrait;
 	import org.osmf.traits.LoadState;
 	import org.osmf.traits.MediaTraitType;
-	import flash.display.Stage;
+	import mx.controls.Alert;
 
 	/**
 	 *
@@ -54,6 +59,9 @@ package org.opencast.engage.videodisplay.util
 		 */
 		public static const lighty:String="http://131.173.22.24/static/dab950e1-c64b-4907-b9e3-c61bf8ec6110/track-10/vga.mp4";
 
+
+		private var _time:TimeCode;
+
 		/**
 		 *
 		 * @param mediaUrl1
@@ -61,11 +69,12 @@ package org.opencast.engage.videodisplay.util
 		 */
 		public function ParallelMedia(mediaUrl1:String, mediaUrl2:String)
 		{
-
 			_url1=mediaUrl1;
 			_url2=mediaUrl2;
-
+			//Alert.show("ParallelMedia");
 			mediaContainer=new MediaContainer();
+			// initialize the timeCode
+			_time=new TimeCode();
 
 			var leftlayoutData:LayoutMetadata=new LayoutMetadata();
 			leftlayoutData.width=Application.application.width;
@@ -78,13 +87,13 @@ package org.opencast.engage.videodisplay.util
 			rigthlayoutData.scaleMode=ScaleMode.LETTERBOX;
 
 			videoElement=new LightweightVideoElement();
-			videoElement.resource=new URLResource(HUTTO1);
+			videoElement.resource=new URLResource(mediaUrl1);
 			videoElement.smoothing=true;
 			videoElement.defaultDuration=1000;
 			//var mediaElementVideoOne:MediaElement=videoElement;
 
 			videoElement2=new LightweightVideoElement();
-			videoElement2.resource=new URLResource(HUTTO2);
+			videoElement2.resource=new URLResource(mediaUrl2);
 			videoElement2.smoothing=true;
 			videoElement2.defaultDuration=1000;
 			//var mediaElementVideoTwo:MediaElement=videoElement2;
@@ -125,13 +134,24 @@ package org.opencast.engage.videodisplay.util
 			parallelElement.metadata.addValue(LayoutMetadata.LAYOUT_NAMESPACE, layoutData);
 
 			player=new MediaPlayer(parallelElement);
+			player.autoRewind=true;
+			player.autoPlay=false;
+
 			player.addEventListener(MediaPlayerCapabilityChangeEvent.CAN_PLAY_CHANGE, onViewable);
 			player.addEventListener(DisplayObjectEvent.MEDIA_SIZE_CHANGE, onDimensionChange);
+			player.addEventListener(TimeEvent.DURATION_CHANGE, durationChange);
+			player.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, onCurrentTimeChange);
+
+
 
 			model.player=player;
 			mediaContainer.addMediaElement(parallelElement);
 			model.parallelMediaContainer=mediaContainer;
 
+			Application.application.bx_multi.attachVideo(mediaContainer);
+
+			// ExternalInterface.call( ExternalFunction.SETTOTALTIME, 120000 );
+			//  ExternalInterface.call( ExternalFunction.SETVOLUMESLIDER, 100 );
 
 		}
 
@@ -243,6 +263,35 @@ package org.opencast.engage.videodisplay.util
 				}
 			}
 		}
+
+		private function durationChange(event:TimeEvent):void
+		{
+			// Store new duration as current duration in the videodisplay model
+			//duration might change in a media composition
+			model.currentDuration=event.time;
+			model.currentDurationString=_time.getTC(event.time);
+			ExternalInterface.call(ExternalFunction.SETDURATION, event.time);
+			ExternalInterface.call(ExternalFunction.SETTOTALTIME, model.currentDurationString);
+			ExternalInterface.call(ExternalFunction.SETVOLUMESLIDER, 100);
+
+		}
+
+
+		/**
+		 * onCurrentTimeChange
+		 * When the current time is change.
+		 * @eventType TimeEvent event
+		 */
+		private function onCurrentTimeChange(event:TimeEvent):void
+		{
+			model.currentPlayheadSingle=event.time;
+			var newPositionString:String='';
+			newPositionString=_time.getTC(model.currentPlayheadSingle);
+			ExternalInterface.call(ExternalFunction.SETCURRENTTIME, newPositionString);
+			ExternalInterface.call(ExternalFunction.SETPLAYHEAD, model.currentPlayheadSingle);
+		}
+
 	}
+
 }
 

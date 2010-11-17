@@ -20,12 +20,11 @@ package org.opencast.engage.videodisplay.business
 	import com.adobe.cairngorm.control.CairngormEventDispatcher;
 
 	import flash.external.ExternalInterface;
-
-	import org.opencast.engage.videodisplay.event.VideoplayerInteractionEvent;
+	import mx.controls.Alert;
 	import org.opencast.engage.videodisplay.event.InitMediaPlayerEvent;
+	import org.opencast.engage.videodisplay.event.VideoplayerInteractionEvent;
 	import org.opencast.engage.videodisplay.model.VideodisplayModel;
 	import org.opencast.engage.videodisplay.util.TimeCode;
-	import mx.controls.Alert;
 
 	public class FlexAjaxBridge
 	{
@@ -44,14 +43,13 @@ package org.opencast.engage.videodisplay.business
 		{
 		}
 
-
 		/**
 		 * setMediaURL
 		 * Set media URL. Call the event InitMediaPlayerEvent.
 		 * Developer: You can change your own urls here.
 		 * @param String coverURLOne, String coverURLTwo, String mediaURLOne, String mediaURLTwo, String mimetypeOne, String mimetypeTwo, String playerMode
 		 */
-		public function initializeMedia(url1:String, url2:String):void
+		public function initMedia(url1:String, url2:String):void
 		{
 			var initMediaPlayerEvent:InitMediaPlayerEvent=new InitMediaPlayerEvent(url1, url2);
 			CairngormEventDispatcher.getInstance().dispatchEvent(initMediaPlayerEvent);
@@ -94,6 +92,31 @@ package org.opencast.engage.videodisplay.business
 			CairngormEventDispatcher.getInstance().dispatchEvent(videoplayerInteractionEvent);
 		}
 
+		public function setMediaResolution(newWidthMediaOne:Number, newHeightMediaOne:Number, newWidthMediaTwo:Number, newHeightMediaTwo:Number, multiMediaContainerLeft:Number):void
+		{
+
+		}
+
+
+		public function seek(time:Number):Number
+		{
+			//var test : Number = 400;
+			//Alert.show("seek: "+time);
+			_time=new TimeCode();
+			var newPositionString:String=_time.getTC(time);
+			ExternalInterface.call(ExternalFunction.SETCURRENTTIME, newPositionString);
+			var videoplayerInteractionEvent:VideoplayerInteractionEvent=new VideoplayerInteractionEvent("SEEK", time);
+			CairngormEventDispatcher.getInstance().dispatchEvent(videoplayerInteractionEvent);
+			/*  if( model.startPlay == false )
+			   {
+			   model.startSeek = time;
+			   _time = new TimeCode();
+			   var newPositionString : String = _time.getTC( time );
+			   ExternalInterface.call( ExternalFunction.SETCURRENTTIME, newPositionString );
+			   }
+			 model.player.seek(time);*/
+			return time;
+		}
 
 		/**
 		 * onBridgeReady
@@ -105,3 +128,4 @@ package org.opencast.engage.videodisplay.business
 		}
 	}
 }
+

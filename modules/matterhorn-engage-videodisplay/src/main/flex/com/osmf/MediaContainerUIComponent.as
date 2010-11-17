@@ -27,6 +27,7 @@ package com.osmf
     import org.osmf.containers.MediaContainer;
     import org.osmf.events.DisplayObjectEvent;
     import org.osmf.layout.LayoutRendererBase;
+    import mx.controls.Alert;
 
     /**
      * UIComponent that exposes an OSMF MediaContainer.  Useful for integrating
@@ -40,6 +41,7 @@ package com.osmf
         public function MediaContainerUIComponent() : void
         {
             // do nothing
+           // Alert.show("Bin schon da");
         }
 
         // Public Interface
