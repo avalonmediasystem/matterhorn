@@ -16,86 +16,10 @@
 package org.opencastproject.usertracking.api;
 
 /**
- * Provides annotation capabilities, possibly to the engage tools, possibly to other services.
+ * Provides user track capabilities to the engage tools, possibly to other services.
  */
 public interface UserTrackingService {
 
-  /**
-   * Adds a new annotation to the database and returns the event with an updated annotationId, to make sure the
-   * annotationId stays unique
-   * 
-   * @param a
-   *          The Annotation that will be added to the database
-   * @return the updated annotation, with a new ID. NULL if there are errors while adding the annotation.
-   */
-  Annotation addAnnotation(Annotation a);
-
-  /**
-   * Returns annotations
-   * 
-   * @param offset
-   *          the offset
-   * @param limit
-   *          the limit
-   * @return the annotation list
-   */
-  AnnotationList getAnnotations(int offset, int limit);
-  
-  /**
-   * Returns annotations of a given key
-   * 
-   * @param key
-   *          The annotation key
-   * @param offset
-   *          the offset
-   * @param limit
-   *          the limit
-   * @return the annotation list
-   */
-  AnnotationList getAnnotationsByKey(String key, int offset, int limit);
-
-  /**
-   * Returns annotations of a given day (YYYYMMDD)
-   * 
-   * @param day
-   *          The day in the format of YYYYMMDD
-   * @param offset
-   *          the offset
-   * @param limit
-   *          the limit
-   * @return the annotation list
-   */
-  AnnotationList getAnnotationsByDay(String day, int offset, int limit);
-
-  /**
-   * Returns annotations of a given key and day
-   * 
-   * @param key
-   *          the annotation key
-   * @param day
-   *          the day
-   * @param offset
-   *          the offset
-   * @param limit
-   *          the limit
-   * @return the annotation list
-   */
-  AnnotationList getAnnotationsByKeyAndDay(String key, String day, int offset, int limit);
-
-  /**
-   * Returns annotations of a given key and mediapackage id
-   * 
-   * @param key
-   *          the annotation key
-   * @param mediapackageId
-   *          the mediapackage id
-   * @param offset
-   *          the offset
-   * @param limit
-   *          the limit
-   * @return the annotation list
-   */
-  AnnotationList getAnnotationsByKeyAndMediapackageId(String key, String mediapackageId, int offset, int limit);
 
   /**
    * Returns the views of a mediapackage

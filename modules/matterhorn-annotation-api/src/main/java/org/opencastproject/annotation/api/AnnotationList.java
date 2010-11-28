@@ -13,20 +13,24 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.usertracking.api;
+package org.opencastproject.annotation.api;
+
+import java.util.List;
+
 
 /**
  * A List of {@link Annotation}s
- * 
  */
 public interface AnnotationList {
-  
+
+  int getTotal();
   void setTotal(int total);
-  
+
+  int getLimit();
   void setLimit(int limit);
-  
+
+  int getOffset();
   void setOffset(int offset);
   
-  void add(Annotation annotation);
-  
+  List<Annotation> getAnnotations();
 }

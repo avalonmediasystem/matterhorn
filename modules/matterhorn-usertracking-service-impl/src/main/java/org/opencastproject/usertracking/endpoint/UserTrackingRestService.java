@@ -17,7 +17,6 @@ package org.opencastproject.usertracking.endpoint;
 
 import org.opencastproject.rest.RestPublisher;
 import org.opencastproject.security.api.SecurityService;
-import org.opencastproject.usertracking.api.Annotation;
 import org.opencastproject.usertracking.api.Stats;
 import org.opencastproject.usertracking.api.UserTrackingService;
 import org.opencastproject.util.DocUtil;

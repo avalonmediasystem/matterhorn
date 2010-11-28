@@ -13,9 +13,10 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.usertracking.endpoint;
+package org.opencastproject.annotation.impl;
 
-import org.opencastproject.usertracking.api.Annotation;
+
+import org.opencastproject.annotation.api.Annotation;
 
 import java.util.Date;
 
@@ -39,27 +40,23 @@ import javax.xml.bind.annotation.XmlType;
 /**
  * A JAXB-annotated implementation of {@link Annotation}
  */
-@Entity(name = "AnnotationImpl")
+@Entity(name = "Annotation")
 @Table(name = "ANNOTATION")
 @NamedQueries( {
-        @NamedQuery(name = "findAnnotations", query = "SELECT a FROM AnnotationImpl a"),
-        @NamedQuery(name = "countSessionsGroupByMediapackage", query = "SELECT a.mediapackageId, COUNT(distinct a.sessionId), SUM(a.length) FROM AnnotationImpl a GROUP BY a.mediapackageId"),
-        @NamedQuery(name = "countSessionsGroupByMediapackageByIntervall", query = "SELECT a.mediapackageId, COUNT(distinct a.sessionId), SUM(a.length) FROM AnnotationImpl a WHERE :begin <= a.created AND a.created <= :end GROUP BY a.mediapackageId"),
-        @NamedQuery(name = "countSessionsOfMediapackage", query = "SELECT COUNT(distinct a.sessionId) FROM AnnotationImpl a WHERE a.mediapackageId = :mediapackageId"),
-        @NamedQuery(name = "findLastAnnotationsOfSession", query = "SELECT a FROM AnnotationImpl a  WHERE a.sessionId = :sessionId ORDER BY a.created DESC"),
-        @NamedQuery(name = "findAnnotationsByKey", query = "SELECT a FROM AnnotationImpl a WHERE a.key = :key"),
-        @NamedQuery(name = "findAnnotationsByKeyAndMediapackageId", query = "SELECT a FROM AnnotationImpl a WHERE a.mediapackageId = :mediapackageId AND a.key = :key"),
-        @NamedQuery(name = "findAnnotationsByKeyAndMediapackageIdOrderByOutpointDESC", query = "SELECT a FROM AnnotationImpl a WHERE a.mediapackageId = :mediapackageId AND a.key = :key ORDER BY a.outpoint DESC"),
-        @NamedQuery(name = "findAnnotationsByIntervall", query = "SELECT a FROM AnnotationImpl a WHERE :begin <= a.created AND a.created <= :end"),
-        @NamedQuery(name = "findAnnotationsByKeyAndIntervall", query = "SELECT a FROM AnnotationImpl a WHERE :begin <= a.created AND a.created <= :end AND a.key = :key"),
-        @NamedQuery(name = "findTotal", query = "SELECT COUNT(a) FROM AnnotationImpl a"),
-        @NamedQuery(name = "findTotalByKey", query = "SELECT COUNT(a) FROM AnnotationImpl a WHERE a.key = :key"),
-        @NamedQuery(name = "findTotalByKeyAndMediapackageId", query = "SELECT COUNT(a) FROM AnnotationImpl a WHERE a.mediapackageId = :mediapackageId AND a.key = :key"),
-        @NamedQuery(name = "findTotalByIntervall", query = "SELECT COUNT(a) FROM AnnotationImpl a WHERE :begin <= a.created AND a.created <= :end"),
-        @NamedQuery(name = "findDistinctEpisodeIdTotalByIntervall", query = "SELECT COUNT(distinct a.mediapackageId) FROM AnnotationImpl a WHERE :begin <= a.created AND a.created <= :end"),
-        @NamedQuery(name = "findTotalByKeyAndIntervall", query = "SELECT COUNT(a) FROM AnnotationImpl a WHERE :begin <= a.created AND a.created <= :end AND a.key = :key") })
-@XmlType(name = "annotation", namespace = "http://usertracking.opencastproject.org/")
-@XmlRootElement(name = "annotation", namespace = "http://usertracking.opencastproject.org/")
+        @NamedQuery(name = "findAnnotations", query = "SELECT a FROM Annotation a WHERE a.userId = :userId"),
+        @NamedQuery(name = "findAnnotationsByType", query = "SELECT a FROM Annotation a WHERE a.type = :type AND a.userId = :userId"),
+        @NamedQuery(name = "findAnnotationsByTypeAndMediapackageId", query = "SELECT a FROM Annotation a WHERE a.mediapackageId = :mediapackageId AND a.type = :type AND a.userId = :userId"),
+        @NamedQuery(name = "findAnnotationsByTypeAndMediapackageIdOrderByOutpointDESC", query = "SELECT a FROM Annotation a WHERE a.mediapackageId = :mediapackageId AND a.type = :type AND a.userId = :userId ORDER BY a.outpoint DESC"),
+        @NamedQuery(name = "findAnnotationsByIntervall", query = "SELECT a FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.userId = :userId"),
+        @NamedQuery(name = "findAnnotationsByTypeAndIntervall", query = "SELECT a FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.type = :type AND a.userId = :userId"),
+        @NamedQuery(name = "findTotal", query = "SELECT COUNT(a) FROM Annotation a WHERE a.userId = :userId"),
+        @NamedQuery(name = "findTotalByType", query = "SELECT COUNT(a) FROM Annotation a WHERE a.type = :type AND a.userId = :userId"),
+        @NamedQuery(name = "findTotalByTypeAndMediapackageId", query = "SELECT COUNT(a) FROM Annotation a WHERE a.mediapackageId = :mediapackageId AND a.type = :type AND a.userId = :userId"),
+        @NamedQuery(name = "findTotalByIntervall", query = "SELECT COUNT(a) FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.userId = :userId"),
+        @NamedQuery(name = "findDistinctEpisodeIdTotalByIntervall", query = "SELECT COUNT(distinct a.mediapackageId) FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.userId = :userId"),
+        @NamedQuery(name = "findTotalByTypeAndIntervall", query = "SELECT COUNT(a) FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.type = :type AND a.userId = :userId") })
+@XmlType(name = "annotation", namespace = "http://annotation.opencastproject.org/")
+@XmlRootElement(name = "annotation", namespace = "http://annotation.opencastproject.org/")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class AnnotationImpl implements Annotation {
 
@@ -67,7 +64,7 @@ public class AnnotationImpl implements Annotation {
   @Column(name="ID")
   @GeneratedValue(strategy = GenerationType.AUTO)
   @XmlElement(name = "annotationId")
-  private int annotationId;
+  private Long annotationId;
 
   @Column(name = "MEDIA_PACKAGE_ID", length = 36)
   @XmlElement(name = "mediapackageId")
@@ -93,9 +90,9 @@ public class AnnotationImpl implements Annotation {
   @XmlElement(name = "length")
   private int length;
 
-  @Column(name = "ANNOTATION_KEY")
-  @XmlElement(name = "key")
-  private String key;
+  @Column(name = "ANNOTATION_TYPE")
+  @XmlElement(name = "type")
+  private String type;
 
   @Column(name = "ANNOTATION_VAL")
   @XmlElement(name = "value")
@@ -113,11 +110,11 @@ public class AnnotationImpl implements Annotation {
   public AnnotationImpl() {
   }
 
-  public int getAnnotationId() {
+  public Long getAnnotationId() {
     return annotationId;
   }
 
-  public void setAnnotationId(int annotationId) {
+  public void setAnnotationId(Long annotationId) {
     this.annotationId = annotationId;
   }
 
@@ -167,12 +164,12 @@ public class AnnotationImpl implements Annotation {
     return length;
   }
 
-  public String getKey() {
-    return key;
+  public String getType() {
+    return type;
   }
 
-  public void setKey(String key) {
-    this.key = key;
+  public void setType(String type) {
+    this.type = type;
   }
 
   public String getValue() {

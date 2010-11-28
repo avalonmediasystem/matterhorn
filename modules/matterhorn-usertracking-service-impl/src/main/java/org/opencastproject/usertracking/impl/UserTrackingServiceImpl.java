@@ -28,15 +28,12 @@ import javax.persistence.Query;
 import javax.persistence.TemporalType;
 import javax.persistence.spi.PersistenceProvider;
 
-import org.opencastproject.usertracking.api.Annotation;
-import org.opencastproject.usertracking.api.AnnotationList;
 import org.opencastproject.usertracking.api.UserTrackingService;
 import org.opencastproject.usertracking.api.Footprint;
 import org.opencastproject.usertracking.api.FootprintList;
 import org.opencastproject.usertracking.api.Report;
 import org.opencastproject.usertracking.api.ReportItem;
 import org.opencastproject.search.api.SearchService;
-import org.opencastproject.usertracking.endpoint.AnnotationListImpl;
 import org.opencastproject.usertracking.endpoint.FootprintImpl;
 import org.opencastproject.usertracking.endpoint.FootprintsListImpl;
 import org.opencastproject.usertracking.endpoint.ReportImpl;
@@ -57,14 +54,6 @@ public class UserTrackingServiceImpl implements UserTrackingService {
   private static final Logger logger = LoggerFactory.getLogger(UserTrackingServiceImpl.class);
 
   private SearchService searchService;
-
-  /**
-   * The component context that is passed when activate is called
-   */
-  protected ComponentContext componentContext;
-
-  /** The entity manager used for persisting Java objects. */
-  protected EntityManager em = null;
 
   /**
    * @param persistenceProvider
@@ -107,228 +96,34 @@ public class UserTrackingServiceImpl implements UserTrackingService {
    *          The ComponetnContext of the OSGI bundle
    */
   public void activate(ComponentContext componentContext) {
-    logger.info("activation started.");
-    if (componentContext == null) {
-      logger.error("Could not activate because of missing ComponentContext");
-      return;
-    }
-    this.componentContext = componentContext;
+    logger.debug("activation started.");
     emf = persistenceProvider.createEntityManagerFactory("org.opencastproject.usertracking", persistenceProperties);
-    em = emf.createEntityManager();
   }
 
   public void destroy() {
-    em.close();
     emf.close();
   }
 
   public int getViews(String mediapackageId) {
-    Query q = em.createNamedQuery("countSessionsOfMediapackage");
-    q.setParameter("mediapackageId", mediapackageId);
-    return ((Long) q.getSingleResult()).intValue();
-  }
-
-  @SuppressWarnings("unchecked")
-  public Annotation addAnnotation(Annotation a) {
-    EntityTransaction tx = em.getTransaction();
+    EntityManager em = null;
     try {
-      tx.begin();
-      Query q = em.createNamedQuery("findLastAnnotationsOfSession");
-      q.setMaxResults(1);
-      q.setParameter("sessionId", a.getSessionId());
-      Collection<Annotation> annotations = q.getResultList();
-
-      if (annotations.size() >= 1) {
-        Annotation last = annotations.iterator().next();
-        if (last.getMediapackageId().equals(a.getMediapackageId()) && last.getKey().equals(a.getKey())
-                && last.getOutpoint() == a.getInpoint()) {
-          last.setOutpoint(a.getOutpoint());
-          a = last;
-        } else {
-          em.persist(a);
-        }
-
-      } else {
-        em.persist(a);
-      }
-      tx.commit();
-      return a;
+      em = emf.createEntityManager();
+      Query q = em.createNamedQuery("countSessionsOfMediapackage");
+      q.setParameter("mediapackageId", mediapackageId);
+      return ((Long) q.getSingleResult()).intValue();
     } finally {
-      if (tx.isActive()) {
-        tx.rollback();
-      }
+      em.close();
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  public AnnotationList getAnnotations(int offset, int limit) {
-    AnnotationList result = new AnnotationListImpl();
-
-    result.setTotal(getTotal());
-    result.setOffset(offset);
-    result.setLimit(limit);
-
-    Query q = em.createNamedQuery("findAnnotations");
-    q.setFirstResult(offset);
-    q.setMaxResults(limit);
-    Collection<Annotation> annotations = q.getResultList();
-
-    for (Annotation a : annotations) {
-      result.add(a);
-    }
-
-    return result;
-  }
-
-  private int getTotal() {
-    Query q = em.createNamedQuery("findTotal");
-    return ((Long) q.getSingleResult()).intValue();
-  }
-
-  @SuppressWarnings("unchecked")
-  public AnnotationList getAnnotationsByKey(String key, int offset, int limit) {
-    AnnotationList result = new AnnotationListImpl();
-
-    result.setTotal(getTotal(key));
-    result.setOffset(offset);
-    result.setLimit(limit);
-
-    Query q = em.createNamedQuery("findAnnotationsByKey");
-    q.setParameter("key", key);
-    q.setFirstResult(offset);
-    q.setMaxResults(limit);
-    Collection<Annotation> annotations = q.getResultList();
-
-    for (Annotation a : annotations) {
-      result.add(a);
-    }
-
-    return result;
-  }
-
-  private int getTotal(String key) {
-
-    Query q = em.createNamedQuery("findTotalByKey");
-    q.setParameter("key", key);
-    return ((Long) q.getSingleResult()).intValue();
-  }
-
-  public AnnotationList getAnnotationsByKeyAndMediapackageId(String key, String mediapackageId, int offset, int limit) {
-    AnnotationList result = new AnnotationListImpl();
-
-    result.setTotal(getTotal(key, mediapackageId));
-    result.setOffset(offset);
-    result.setLimit(limit);
-
-    Query q = em.createNamedQuery("findAnnotationsByKeyAndMediapackageId");
-    q.setParameter("key", key);
-    q.setParameter("mediapackageId", mediapackageId);
-    q.setFirstResult(offset);
-    q.setMaxResults(limit);
-    Collection<Annotation> annotations = q.getResultList();
-
-    for (Annotation a : annotations) {
-      result.add(a);
-    }
-
-    return result;
-  }
-
-  @SuppressWarnings("unchecked")
-  public AnnotationList getAnnotationsByKeyAndDay(String key, String day, int offset, int limit) {
-    AnnotationList result = new AnnotationListImpl();
-
-    int year = Integer.parseInt(day.substring(0, 4));
-    int month = Integer.parseInt(day.substring(4, 6)) - 1;
-    int date = Integer.parseInt(day.substring(6, 8));
-
-    Calendar calBegin = new GregorianCalendar();
-    calBegin.set(year, month, date, 0, 0);
-    Calendar calEnd = new GregorianCalendar();
-    calEnd.set(year, month, date, 23, 59);
-
-    result.setTotal(getTotal(key, calBegin, calEnd));
-    result.setOffset(offset);
-    result.setLimit(limit);
-
-    Query q = em.createNamedQuery("findAnnotationsByKeyAndIntervall");
-    q.setParameter("key", key);
-    q.setParameter("begin", calBegin, TemporalType.TIMESTAMP);
-    q.setParameter("end", calEnd, TemporalType.TIMESTAMP);
-    q.setFirstResult(offset);
-    q.setMaxResults(limit);
-    Collection<Annotation> annotations = q.getResultList();
-
-    for (Annotation a : annotations) {
-      result.add(a);
-    }
-
-    return result;
-  }
-
-  private int getTotal(String key, Calendar calBegin, Calendar calEnd) {
-
-    Query q = em.createNamedQuery("findTotalByKeyAndIntervall");
-    q.setParameter("key", key);
-    q.setParameter("begin", calBegin, TemporalType.TIMESTAMP);
-    q.setParameter("end", calEnd, TemporalType.TIMESTAMP);
-    return ((Long) q.getSingleResult()).intValue();
-  }
-
-  private int getTotal(String key, String mediapackageId) {
-
-    Query q = em.createNamedQuery("findTotalByKeyAndMediapackageId");
-    q.setParameter("key", key);
-    q.setParameter("mediapackageId", mediapackageId);
-    return ((Long) q.getSingleResult()).intValue();
-  }
-
-  @SuppressWarnings("unchecked")
-  public AnnotationList getAnnotationsByDay(String day, int offset, int limit) {
-    AnnotationList result = new AnnotationListImpl();
-
-    int year = Integer.parseInt(day.substring(0, 4));
-    int month = Integer.parseInt(day.substring(4, 6)) - 1;
-    int date = Integer.parseInt(day.substring(6, 8));
-
-    Calendar calBegin = new GregorianCalendar();
-    calBegin.set(year, month, date, 0, 0);
-    Calendar calEnd = new GregorianCalendar();
-    calEnd.set(year, month, date, 23, 59);
-
-    result.setTotal(getTotal(calBegin, calEnd));
-    result.setOffset(offset);
-    result.setLimit(limit);
-
-    Query q = em.createNamedQuery("findAnnotationsByIntervall");
-    q.setParameter("begin", calBegin, TemporalType.TIMESTAMP);
-    q.setParameter("end", calEnd, TemporalType.TIMESTAMP);
-    q.setFirstResult(offset);
-    q.setMaxResults(limit);
-    Collection<Annotation> annotations = q.getResultList();
-
-    for (Annotation a : annotations) {
-      result.add(a);
-    }
-
-    return result;
-  }
-
-  private int getTotal(Calendar calBegin, Calendar calEnd) {
-    Query q = em.createNamedQuery("findTotalByIntervall");
-    q.setParameter("begin", calBegin, TemporalType.TIMESTAMP);
-    q.setParameter("end", calEnd, TemporalType.TIMESTAMP);
-    return ((Long) q.getSingleResult()).intValue();
   }
   
-  private int getDistinctEpisodeIdTotal(Calendar calBegin, Calendar calEnd) {
+  private int getDistinctEpisodeIdTotal(Calendar calBegin, Calendar calEnd, EntityManager em) {
     Query q = em.createNamedQuery("findDistinctEpisodeIdTotalByIntervall");
     q.setParameter("begin", calBegin, TemporalType.TIMESTAMP);
     q.setParameter("end", calEnd, TemporalType.TIMESTAMP);
     return ((Long) q.getSingleResult()).intValue();
   }
 
-  public Report getReport(int offset, int limit) {
+  public Report getReport(int offset, int limit, EntityManager em) {
     Report report = new ReportImpl();
     report.setLimit(limit);
     report.setOffset(offset);
@@ -337,6 +132,7 @@ public class UserTrackingServiceImpl implements UserTrackingService {
     q.setFirstResult(offset);
     q.setMaxResults(limit);
 
+    @SuppressWarnings("unchecked")
     List<Object[]> result = q.getResultList();
     ReportItem item;
 
@@ -351,7 +147,7 @@ public class UserTrackingServiceImpl implements UserTrackingService {
     return report;
   }
 
-  public Report getReport(String from, String to, int offset, int limit) {
+  public Report getReport(String from, String to, int offset, int limit, EntityManager em) {
     Report report = new ReportImpl();
     report.setLimit(limit);
     report.setOffset(offset);
@@ -368,13 +164,14 @@ public class UserTrackingServiceImpl implements UserTrackingService {
     Calendar calEnd = new GregorianCalendar();
     calEnd.set(year, month, date, 23, 59);
 
-    report.setTotal(getDistinctEpisodeIdTotal(calBegin, calEnd));
+    report.setTotal(getDistinctEpisodeIdTotal(calBegin, calEnd, em));
     Query q = em.createNamedQuery("countSessionsGroupByMediapackageByIntervall");
     q.setParameter("begin", calBegin, TemporalType.TIMESTAMP);
     q.setParameter("end", calEnd, TemporalType.TIMESTAMP);
     q.setFirstResult(offset);
     q.setMaxResults(limit);
 
+    @SuppressWarnings("unchecked")
     List<Object[]> result = q.getResultList();
     ReportItem item;
 
@@ -391,16 +188,16 @@ public class UserTrackingServiceImpl implements UserTrackingService {
 
   public FootprintList getFootprints(String mediapackageId, String userId) {
     FootprintList result = new FootprintsListImpl();
-
+    EntityManager em = emf.createEntityManager();
     Query q = em.createNamedQuery("findAnnotationsByKeyAndMediapackageIdOrderByOutpointDESC");
     q.setParameter("key", FOOTPRINT_KEY);
     q.setParameter("mediapackageId", mediapackageId);
-    Collection<Annotation> annotations = q.getResultList();
+    Collection<FootprintImpl> annotations = q.getResultList();
 
     int[] resultArray = new int[1];
     boolean first = true;
 
-    for (Annotation a : annotations) {
+    for (FootprintImpl a : annotations) {
       if (first) {
         // Get one more item than the known outpoint to append a footprint of 0 views at the end of the result set
         resultArray = new int[a.getOutpoint() + 1];
