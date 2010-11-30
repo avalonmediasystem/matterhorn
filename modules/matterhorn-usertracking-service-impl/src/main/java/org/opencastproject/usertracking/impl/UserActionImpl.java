@@ -13,10 +13,9 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.annotation.impl;
+package org.opencastproject.usertracking.impl;
 
-
-import org.opencastproject.annotation.api.Annotation;
+import org.opencastproject.usertracking.api.UserAction;
 
 import java.util.Date;
 
@@ -26,7 +25,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -39,35 +37,39 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * A JAXB-annotated implementation of {@link Annotation}
+ * A JAXB-annotated implementation of {@link UserAction}
  */
-@Entity(name = "Annotation")
-@Table(name = "ANNOTATION")
+@Entity(name = "UserAction")
+@Table(name = "USER_ACTION")
 @NamedQueries( {
-        @NamedQuery(name = "findAnnotations", query = "SELECT a FROM Annotation a WHERE a.userId = :userId"),
-        @NamedQuery(name = "findAnnotationsByType", query = "SELECT a FROM Annotation a WHERE a.type = :type AND a.userId = :userId"),
-        @NamedQuery(name = "findAnnotationsByTypeAndMediapackageId", query = "SELECT a FROM Annotation a WHERE a.mediapackageId = :mediapackageId AND a.type = :type AND a.userId = :userId"),
-        @NamedQuery(name = "findAnnotationsByTypeAndMediapackageIdOrderByOutpointDESC", query = "SELECT a FROM Annotation a WHERE a.mediapackageId = :mediapackageId AND a.type = :type AND a.userId = :userId ORDER BY a.outpoint DESC"),
-        @NamedQuery(name = "findAnnotationsByIntervall", query = "SELECT a FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.userId = :userId"),
-        @NamedQuery(name = "findAnnotationsByTypeAndIntervall", query = "SELECT a FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.type = :type AND a.userId = :userId"),
-        @NamedQuery(name = "findTotal", query = "SELECT COUNT(a) FROM Annotation a WHERE a.userId = :userId"),
-        @NamedQuery(name = "findTotalByType", query = "SELECT COUNT(a) FROM Annotation a WHERE a.type = :type AND a.userId = :userId"),
-        @NamedQuery(name = "findTotalByTypeAndMediapackageId", query = "SELECT COUNT(a) FROM Annotation a WHERE a.mediapackageId = :mediapackageId AND a.type = :type AND a.userId = :userId"),
-        @NamedQuery(name = "findTotalByIntervall", query = "SELECT COUNT(a) FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.userId = :userId"),
-        @NamedQuery(name = "findDistinctEpisodeIdTotalByIntervall", query = "SELECT COUNT(distinct a.mediapackageId) FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.userId = :userId"),
-        @NamedQuery(name = "findTotalByTypeAndIntervall", query = "SELECT COUNT(a) FROM Annotation a WHERE :begin <= a.created AND a.created <= :end AND a.type = :type AND a.userId = :userId") })
-@XmlType(name = "annotation", namespace = "http://annotation.opencastproject.org/")
-@XmlRootElement(name = "annotation", namespace = "http://annotation.opencastproject.org/")
+        @NamedQuery(name = "findUserActions", query = "SELECT a FROM UserAction a"),
+        @NamedQuery(name = "countSessionsGroupByMediapackage", query = "SELECT a.mediapackageId, COUNT(distinct a.sessionId), SUM(a.length) FROM UserAction a GROUP BY a.mediapackageId"),
+        @NamedQuery(name = "countSessionsGroupByMediapackageByIntervall", query = "SELECT a.mediapackageId, COUNT(distinct a.sessionId), SUM(a.length) FROM UserAction a WHERE :begin <= a.created AND a.created <= :end GROUP BY a.mediapackageId"),
+        @NamedQuery(name = "countSessionsOfMediapackage", query = "SELECT COUNT(distinct a.sessionId) FROM UserAction a WHERE a.mediapackageId = :mediapackageId"),
+        @NamedQuery(name = "findLastUserActionsOfSession", query = "SELECT a FROM UserAction a  WHERE a.sessionId = :sessionId ORDER BY a.created DESC"),
+        @NamedQuery(name = "findUserActionsByType", query = "SELECT a FROM UserAction a WHERE a.type = :type"),
+        @NamedQuery(name = "findUserActionsByTypeAndMediapackageId", query = "SELECT a FROM UserAction a WHERE a.mediapackageId = :mediapackageId AND a.type = :type"),
+        @NamedQuery(name = "findUserActionsByTypeAndMediapackageIdOrderByOutpointDESC", query = "SELECT a FROM UserAction a WHERE a.mediapackageId = :mediapackageId AND a.type = :type ORDER BY a.outpoint DESC"),
+        @NamedQuery(name = "findUserActionsByIntervall", query = "SELECT a FROM UserAction a WHERE :begin <= a.created AND a.created <= :end"),
+        @NamedQuery(name = "findUserActionsByTypeAndIntervall", query = "SELECT a FROM UserAction a WHERE :begin <= a.created AND a.created <= :end AND a.type = :type"),
+        @NamedQuery(name = "findTotal", query = "SELECT COUNT(a) FROM UserAction a"),
+        @NamedQuery(name = "findTotalByType", query = "SELECT COUNT(a) FROM UserAction a WHERE a.type = :type"),
+        @NamedQuery(name = "findTotalByTypeAndMediapackageId", query = "SELECT COUNT(a) FROM UserAction a WHERE a.mediapackageId = :mediapackageId AND a.type = :type"),
+        @NamedQuery(name = "findTotalByIntervall", query = "SELECT COUNT(a) FROM UserAction a WHERE :begin <= a.created AND a.created <= :end"),
+        @NamedQuery(name = "findDistinctEpisodeIdTotalByIntervall", query = "SELECT COUNT(distinct a.mediapackageId) FROM UserAction a WHERE :begin <= a.created AND a.created <= :end"),
+        @NamedQuery(name = "findTotalByTypeAndIntervall", query = "SELECT COUNT(a) FROM UserAction a WHERE :begin <= a.created AND a.created <= :end AND a.type = :type") })
+@XmlType(name = "action", namespace = "http://usertracking.opencastproject.org/")
+@XmlRootElement(name = "action", namespace = "http://usertracking.opencastproject.org/")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AnnotationImpl implements Annotation {
+public class UserActionImpl implements UserAction {
 
   @Id
   @Column(name="ID")
   @GeneratedValue(strategy = GenerationType.AUTO)
-  @XmlElement(name = "annotationId")
-  private Long annotationId;
+  @XmlElement(name = "id")
+  private Long id;
 
-  @Column(name = "MEDIA_PACKAGE_ID", length = 36)
+  @Column(name = "MEDIA_PACKAGE_ID", length = 128)
   @XmlElement(name = "mediapackageId")
   private String mediapackageId;
 
@@ -91,14 +93,9 @@ public class AnnotationImpl implements Annotation {
   @XmlElement(name = "length")
   private int length;
 
-  @Column(name = "ANNOTATION_TYPE")
+  @Column(name = "TYPE")
   @XmlElement(name = "type")
   private String type;
-
-  @Lob
-  @Column(name = "ANNOTATION_VAL")
-  @XmlElement(name = "value")
-  private String value;
 
   @Basic(optional = false)
   @Column(name = "CREATED")
@@ -109,15 +106,15 @@ public class AnnotationImpl implements Annotation {
   /**
    * A no-arg constructor needed by JAXB
    */
-  public AnnotationImpl() {
+  public UserActionImpl() {
   }
 
-  public Long getAnnotationId() {
-    return annotationId;
+  public Long getId() {
+    return id;
   }
 
-  public void setAnnotationId(Long annotationId) {
-    this.annotationId = annotationId;
+  public void setId(Long id) {
+    this.id = id;
   }
 
   public String getMediapackageId() {
@@ -172,14 +169,6 @@ public class AnnotationImpl implements Annotation {
 
   public void setType(String type) {
     this.type = type;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  public void setValue(String value) {
-    this.value = value;
   }
 
   public Date getCreated() {

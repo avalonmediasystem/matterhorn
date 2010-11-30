@@ -15,6 +15,11 @@
     <checkstyle.skip>false</checkstyle.skip>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-kernel</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

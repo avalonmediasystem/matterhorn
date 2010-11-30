@@ -225,7 +225,7 @@ public class AnnotationRestService {
     addEndpoint.addRequiredParam(new Param("in", Type.STRING, null, "The time, or inpoint, of the annotation"));
     addEndpoint.addOptionalParam(new Param("out", Type.STRING, null, "The optional outpoint of the annotation"));
     addEndpoint.addRequiredParam(new Param("type", Type.STRING, null, "The type of annotation"));
-    addEndpoint.addRequiredParam(new Param("annotation", Type.STRING, null, "The value of the annotation"));
+    addEndpoint.addRequiredParam(new Param("value", Type.TEXT, null, "The value of the annotation"));
     addEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, addEndpoint);
 
