@@ -406,6 +406,8 @@ UI.HandleAgentChange = function(elm){
             }else{
               AdminUI.log("Couldn't parse TZ");
             }
+          } else if( s == 'capture.device.timezone') {
+            Scheduler.components.agentTimeZone.setValue($(i).text());
           }
         });
         if(capabilities.length){
@@ -746,6 +748,8 @@ UI.RegisterComponents = function(){
         return checked;
       }
     });
+  Scheduler.components.agentTimeZone = new AdminForm.Component(['agentTimeZone']);
+  
   if(Scheduler.type === MULTIPLE_EVENTS){
     //Series validation override for recurring events.
     Scheduler.components.seriesId.validate = function(){
