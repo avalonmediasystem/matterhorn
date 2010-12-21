@@ -19,7 +19,6 @@ import org.gstreamer.Bus;
 import org.gstreamer.Element;
 import org.gstreamer.Message;
 import org.gstreamer.MessageType;
-import org.gstreamer.lowlevel.NativeObject.Initializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,6 @@ public class BufferThread implements Runnable {
       }
     });
 
-    Element element = new Element(new Initializer());
   }
 
   /** Checks the buffer, bytes and time on the queue at every tick. **/
