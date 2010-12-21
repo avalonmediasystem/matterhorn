@@ -15,8 +15,6 @@
  */
 package org.opencastproject.capture.api;
 
-import org.opencastproject.capture.admin.api.Recording;
-
 import java.util.Map;
 
 /**
@@ -57,6 +55,6 @@ public interface StateService {
    * @return A state defined in RecordingState.  May return null if the implementation is not active.
    * @see org.opencastproject.capture.admin.api.RecordingState
    */
-  Recording getRecordingState(String recordingID);
+  AgentRecording getRecordingState(String recordingID);
 }
 

@@ -19,7 +19,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
-import org.opencastproject.capture.admin.api.AgentState;
+import org.opencastproject.capture.api.AgentState;
 import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.pipeline.bins.producers.ProducerType;

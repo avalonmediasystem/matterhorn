@@ -15,7 +15,10 @@
  */
 package org.opencastproject.capture.pipeline.bins.producers;
 
-import java.util.List;
+import org.opencastproject.capture.impl.CaptureAgentImpl;
+import org.opencastproject.capture.pipeline.bins.GStreamerProperties;
+import org.opencastproject.capture.pipeline.bins.UnableToCreateElementException;
+
 import org.gstreamer.Caps;
 import org.gstreamer.Element;
 import org.gstreamer.Pad;
@@ -24,11 +27,10 @@ import org.gstreamer.elements.AppSrc;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.opencastproject.capture.impl.CaptureAgentImpl;
-import org.opencastproject.capture.pipeline.bins.GStreamerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.opencastproject.capture.pipeline.bins.UnableToCreateElementException;
+
+import java.util.List;
 
 
 /**

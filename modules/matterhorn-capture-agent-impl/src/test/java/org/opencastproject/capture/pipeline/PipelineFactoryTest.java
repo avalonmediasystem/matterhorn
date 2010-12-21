@@ -21,7 +21,6 @@ import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.impl.ConfigurationManager;
 import org.opencastproject.util.XProperties;
-import org.osgi.service.cm.ConfigurationException;
 
 import org.gstreamer.Gst;
 import org.gstreamer.Pipeline;
@@ -29,6 +28,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.osgi.service.cm.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

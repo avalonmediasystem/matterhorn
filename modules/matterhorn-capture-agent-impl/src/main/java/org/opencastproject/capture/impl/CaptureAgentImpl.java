@@ -15,13 +15,12 @@
  */
 package org.opencastproject.capture.impl;
 
-import org.opencastproject.capture.admin.api.AgentState;
-import org.opencastproject.capture.admin.api.Recording;
-import org.opencastproject.capture.admin.api.RecordingState;
 import org.opencastproject.capture.api.AgentRecording;
+import org.opencastproject.capture.api.AgentState;
 import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.api.ConfidenceMonitor;
+import org.opencastproject.capture.api.RecordingState;
 import org.opencastproject.capture.api.ScheduledEvent;
 import org.opencastproject.capture.api.StateService;
 import org.opencastproject.capture.impl.jobs.AgentCapabilitiesJob;
@@ -1094,7 +1093,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
    * 
    * @see org.opencastproject.capture.api.StateService#getRecordingState(java.lang.String)
    */
-  public Recording getRecordingState(String recID) {
+  public AgentRecording getRecordingState(String recID) {
     return pendingRecordings.get(recID);
   }
 

@@ -15,9 +15,9 @@
  */
 package org.opencastproject.capture.impl;
 
-import org.opencastproject.capture.admin.api.RecordingState;
 import org.opencastproject.capture.api.AgentRecording;
 import org.opencastproject.capture.api.CaptureParameters;
+import org.opencastproject.capture.api.RecordingState;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageElement;
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
@@ -233,7 +234,7 @@ public class RecordingImpl implements AgentRecording, Serializable {
 
   /**
    * {@inheritDoc}
-   * @see org.opencastproject.capture.admin.api.Recording#getID()
+   * @see org.opencastproject.capture.admin.admin.api.Recording#getID()
    */
   public String getID() {
     return id;
@@ -266,7 +267,7 @@ public class RecordingImpl implements AgentRecording, Serializable {
 
   /**
    * {@inheritDoc}
-   * @see org.opencastproject.capture.admin.api.Recording#setState(java.lang.String)
+   * @see org.opencastproject.capture.admin.admin.api.Recording#setState(java.lang.String)
    */
   public void setState(String state) {
     if (state == null) {
@@ -279,7 +280,7 @@ public class RecordingImpl implements AgentRecording, Serializable {
 
   /**
    * {@inheritDoc}
-   * @see org.opencastproject.capture.admin.api.Recording#getState()
+   * @see org.opencastproject.capture.admin.admin.api.Recording#getState()
    */
   public String getState() {
     return state;
@@ -287,7 +288,7 @@ public class RecordingImpl implements AgentRecording, Serializable {
 
   /**
    * {@inheritDoc}
-   * @see org.opencastproject.capture.admin.api.Recording#getLastCheckinTime()
+   * @see org.opencastproject.capture.admin.admin.api.Recording#getLastCheckinTime()
    */
   public Long getLastCheckinTime() {
     return lastHeardFrom;

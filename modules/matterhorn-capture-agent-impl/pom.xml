@@ -24,11 +24,6 @@
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
-      <artifactId>matterhorn-capture-admin-service-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-static</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -184,6 +179,7 @@
           <instructions>
             <Bundle-SymbolicName> ${project.artifactId} </Bundle-SymbolicName>
             <Import-Package>
+              org.opencastproject.capture.api;version=${project.version},
               org.opencastproject.capture.api.*;version=${project.version},
               org.opencastproject.mediapackage.*;version=${project.version},
               org.opencastproject.http;version=${project.version},

@@ -19,7 +19,7 @@ import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
 
-import org.opencastproject.capture.admin.api.AgentState;
+import org.opencastproject.capture.api.AgentState;
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.api.ScheduledEvent;
 

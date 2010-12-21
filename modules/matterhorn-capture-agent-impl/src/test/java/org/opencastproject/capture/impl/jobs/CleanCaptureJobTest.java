@@ -15,9 +15,9 @@
  */
 package org.opencastproject.capture.impl.jobs;
 
-import org.opencastproject.capture.admin.api.RecordingState;
 import org.opencastproject.capture.api.AgentRecording;
 import org.opencastproject.capture.api.CaptureParameters;
+import org.opencastproject.capture.api.RecordingState;
 import org.opencastproject.capture.impl.RecordingImpl;
 import org.opencastproject.util.XProperties;
 

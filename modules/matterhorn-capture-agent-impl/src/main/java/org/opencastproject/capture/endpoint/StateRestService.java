@@ -15,8 +15,8 @@
  */
 package org.opencastproject.capture.endpoint;
 
-import org.opencastproject.capture.admin.api.RecordingStateUpdate;
 import org.opencastproject.capture.api.AgentRecording;
+import org.opencastproject.capture.api.RecordingStateUpdate;
 import org.opencastproject.capture.api.StateService;
 import org.opencastproject.rest.RestPublisher;
 import org.opencastproject.util.DocUtil;
