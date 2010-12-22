@@ -5,11 +5,11 @@
   <artifactId>matterhorn-analysis-text-remote</artifactId>
   <packaging>bundle</packaging>
   <name>matterhorn-analysis-text-remote</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.1.9418</version>
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.1.9418</version>
   </parent>
   <dependencies>
   
