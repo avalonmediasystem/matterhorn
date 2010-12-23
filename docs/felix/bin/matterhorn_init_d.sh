@@ -4,7 +4,7 @@
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
-# Default-Stop:      1
+# Default-Stop:      0 1 6
 # Short-Description: lecture recording and management system
 ### END INIT INFO
 # /etc/init.d/matterhorn
@@ -16,15 +16,21 @@ set -e
 # These variables are set in the configuration scripts.
 ##
 #eg:  /opt/matterhorn
-MATTERHORN=$MATTERHORN_HOME
+MATTERHORN=${MATTERHORN_HOME:-/opt/matterhorn}
 #eg:  /opt/matterhorn/felix, or $MATTERHORN/felix
-FELIX=$FELIX_HOME
+FELIX=${FELIX_HOME:-$MATTERHORN/felix}
 #eg:  /opt/matterhorn/capture-agent, or $MATTERHORN/capture-agent
-CA=$CA_DIR
+CA=${CA_DIR:-$MATTERHORN/capture-agent}
 #eg:  Commonly opencast or matterhorn.  Can also be your normal user if you are testing.
-MATTERHORN_USER=$USERNAME
+MATTERHORN_USER=$USER
+M2_REPOSITORY=${M2_REPO:-/home/$MATTERHORN_USER/.m2/repository}
 #Enable this if this machine is a CA.  This will enable capture device autoconfiguration.
 IS_CA=false
+
+LOGDIR=$FELIX/logs
+
+NAME=matterhorn
+PATH=$PATH:$FELIX
 
 ##
 # To enable the debugger on the vm, enable all of the following options
@@ -38,37 +44,25 @@ DEBUG_SUSPEND="n"
 # Only change the line below if you want to customize the server
 ##
 
-LOGDIR=$MATTERHORN/logs
-MAVEN_ARG="-DM2_REPO=$M2_REPO"
+MAVEN_ARG="-DM2_REPO=$M2_REPOSITORY"
 FELIX_FILEINSTALL_OPTS="-Dfelix.fileinstall.dir=$FELIX/load"
 PAX_CONFMAN_OPTS="-Dbundles.configuration.location=$FELIX/conf"
 PAX_LOGGING_OPTS="-Dorg.ops4j.pax.logging.DefaultServiceLog.level=WARN -Dopencast.logdir=$LOGDIR"
 UTIL_LOGGING_OPTS="-Djava.util.logging.config.file=$FELIX/conf/services/java.util.logging.properties"
 GRAPHICS_OPTS="-Djava.awt.headless=true -Dawt.toolkit=sun.awt.HeadlessToolkit"
+JAVA_OPTS="-Xms256m -Xmx256m -XX:MaxPermSize=128m"
 
 FELIX_CACHE="$FELIX/felix-cache"
 
-DAEMON="/usr/bin/java"
-OPTS="$DEBUG_OPTS $GRAPHICS_OPTS $MAVEN_ARG $FELIX_FILEINSTALL_OPTS $PAX_CONFMAN_OPTS $PAX_LOGGING_OPTS $UTIL_LOGGING_OPTS $CXF_OPTS -jar $FELIX/bin/felix.jar $FELIX_CACHE"
-NAME=matterhorn
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:$FELIX
-LOGFILE=/var/log/matterhorn.log
-CHROOT=/var/run/matterhorn/empty
-CHDIR=$FELIX
 
-test -x $DAEMON || exit 0
-. /lib/lsb/init-functions
+###############################
+### NO CHANGES NEEDED BELOW ###
+###############################
 
-if [ ! -e "$LOGFILE" ]
-then
-  touch $LOGFILE
-  chmod 640 $LOGFILE
-  chown root:adm $LOGFILE
-fi
-
+ 
 case "$1" in
   start)
-    log_begin_msg "Starting OpenCast Matterhorn: $NAME"
+    echo -n "Starting Matterhorn as user $MATTERHORN_USER: " 
     if $IS_CA ; then
         $CA/device_config.sh
         if [ -d $CA/epiphan_driver -a -z "$(lsmod | grep vga2usb)" ]; then
@@ -76,45 +70,73 @@ case "$1" in
         fi
     fi
 
-    [ -d ${CHROOT} ] || mkdir -p ${CHROOT}
-    [ -d ${CHDIR} ] || mkdir -p ${CHDIR}
-    start-stop-daemon --start --background -m --oknodo --chuid $MATTERHORN_USER --chdir $CHDIR --pidfile /var/run/matterhorn/matterhorn.pid --exec $DAEMON -- $OPTS && log_end_msg 0 || log_end_msg 1
-    ;;
+# check if felix is already running
+    MATTERHORN_PID=`ps aux | awk '/felix.jar/ && !/awk/ {print $2}'`
+    if [ ! -z "$MATTERHORN_PID" ]; then
+      echo "OpenCast Matterhorn is already running"
+      exit 1
+    fi
+
+
+# Make sure matterhorn bundles are reloaded
+    if [ -d "$FELIX_CACHE" ]; then
+      echo "Removing cached matterhorn bundles from $FELIX_CACHE"
+      for bundle in `find "$FELIX_CACHE" -type f -name bundle.location | xargs grep --files-with-match -e "file:" | sed -e s/bundle.location// `; do
+        rm -r $bundle
+      done
+    fi
+    
+    cd $FELIX
+
+# starting felix
+
+    su -c "cd $FELIX && java -Dgosh.args='--noshutdown -c noop=true' $DEBUG_OPTS $GRAPHICS_OPTS $MAVEN_ARG $JAVA_OPTS $FELIX_FILEINSTALL_OPTS $PAX_CONFMAN_OPTS $PAX_LOGGING_OPTS $UTIL_LOGGING_OPTS $CXF_OPTS -jar $FELIX/bin/felix.jar $FELIX_CACHE &" $MATTERHORN_USER > /dev/null 2> /dev/null
+    echo "done." 
+    ;;    
   stop)
-    log_begin_msg "Stopping OpenCast Matterhorn: $NAME"
-    start-stop-daemon --stop --pidfile /var/run/matterhorn/matterhorn.pid --oknodo --retry=TERM/10/KILL/5 --exec $DAEMON && log_end_msg 0 || log_end_msg 1
+    echo -n "Stopping Matterhorn: " 
+    MATTERHORN_PID=`ps aux | awk '/felix.jar/ && !/awk/ {print $2}'`
+    if [ -z "$MATTERHORN_PID" ]; then
+      echo "Matterhorn already stopped"
+      exit 1
+    fi
+
+    kill $MATTERHORN_PID
+
+    sleep 7
+
+    MATTERHORN_PID=`ps aux | awk '/felix.jar/ && !/awk/ {print $2}'`
+    if [ ! -z $MATTERHORN_PID ]; then
+      echo "Hard killing since felix ($MATTERHORN_PID) seems unresponsive to regular kill"
+    
+      kill -9 $MATTERHORN_PID
+    fi
+
 
     if $IS_CA ; then
         if [ -d $CA/epiphan_driver -a -z "$(lsmod | grep vga2usb)" ]; then
                 make -C $CA/epiphan_driver unload
         fi
     fi
-    rm -f /var/run/matterhorn/matterhorn.pid
+
+    echo "done."
     ;;
   restart)
     $0 stop
     $0 start
     ;;
-  reload|force-reload)
-    log_begin_msg "Reloading $NAME configuration files"
-    start-stop-daemon --stop --pidfile /var/run/matterhorn/matterhorn.pid --signal 1 --exec $DAEMON && log_end_msg 0 || log_end_msg 1
-    ;;
   status)
-    pid=`cat /var/run/matterhorn/matterhorn.pid 2>/dev/null` || true
-    if test ! -f /var/run/matterhorn/matterhorn.pid -o -z "$pid"; then
-      echo "OpenCast Matterhorn is not running"
-      exit 3
-    fi
-    if ps "$pid" >/dev/null 2>&1; then
-      echo "OpenCast Matterhorn is running"
+    MATTERHORN_PID=`ps aux | awk '/felix.jar/ && !/awk/ {print $2}'`
+    if [ -z "$MATTERHORN_PID" ]; then
+      echo "Matterhorn is not running"
       exit 0
     else
-      echo "OpenCast Matterhorn is not running"
-      exit 1
-    fi
+      echo "OpenCast Matterhorn is running with PID $MATTERHORN_PID"
+      exit 0
+    fi   
     ;;
   *)
-    log_success_msg "Usage: /etc/init.d/$NAME {start|stop|restart|reload|status}"
+    echo "Usage: /etc/init.d/$NAME {start|stop|restart|status}"
     exit 1
     ;;
 esac
