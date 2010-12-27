@@ -1,5 +1,5 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:sec="http://www.springframework.org/schema/security"
-  xmlns:oauth="http://spring-security-oauth.codehaus.org/3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/security
@@ -8,12 +8,10 @@
   <sec:http create-session="ifRequired" servlet-api-provision="true" realm="Opencast Matterhorn"
     entry-point-ref="matterhornEntryPoint">
     <!-- ######################### -->
-    <!--        URL SECURITY       -->
+    <!-- URL SECURITY -->
     <!-- ######################### -->
-    <!--
-      Enable anonymous access to public resources. Use filters="none" only if there are no audit requirements for these
-      resources.
-    -->
+    <!-- Enable anonymous access to public resources. Use filters="none" only if there are no audit requirements for these 
+      resources. -->
     <sec:intercept-url pattern='/login.html' access='ROLE_ANONYMOUS' />
     <sec:intercept-url pattern="/admin/img/favicon.ico" filters="none" />
     <sec:intercept-url pattern="/favicon.ico" filters="none" />
@@ -23,11 +21,15 @@
     <sec:intercept-url pattern='/style.css' filters='none' />
     <sec:intercept-url pattern="/css/**" filters="none" />
 
+    <!-- Enable 2-legged OAuth -->
+    <sec:intercept-url pattern="/oauth/**" access="ROLE_OAUTH_USER" />
+
     <!-- Enable anonymous access to the engage player and the GET endpoints it requires -->
-    <sec:intercept-url pattern='/engage/ui/**' access='ROLE_ANONYMOUS, ROLE_USER' />
-    <sec:intercept-url pattern='/search/rest/**' method="GET" access='ROLE_ANONYMOUS, ROLE_USER' />
-    <sec:intercept-url pattern='/usertracking/rest/**' method="GET" access='ROLE_ANONYMOUS, ROLE_USER' />
-    <sec:intercept-url pattern='/static/**' method="GET" access='ROLE_ANONYMOUS, ROLE_USER' />
+    <sec:intercept-url pattern='/engage/ui/**' access='ROLE_ANONYMOUS, ROLE_USER, ROLE_OAUTH_USER' />
+    <sec:intercept-url pattern='/search/rest/**' method="GET" access='ROLE_ANONYMOUS, ROLE_USER, ROLE_OAUTH_USER' />
+    <sec:intercept-url pattern='/usertracking/rest/**' method="GET"
+      access='ROLE_ANONYMOUS, ROLE_USER, ROLE_OAUTH_USER' />
+    <sec:intercept-url pattern='/static/**' method="GET" access='ROLE_ANONYMOUS, ROLE_USER, ROLE_OAUTH_USER' />
 
     <!-- Secure the management URLs for admins only -->
     <sec:intercept-url pattern='/remote/*' access='ROLE_ADMIN' />
@@ -40,23 +42,21 @@
     <!-- LOGIN / LOGOUT MECHANISMS -->
     <!-- ######################### -->
 
-    <!--  Enable x509 client certificates for identifying clients -->
+    <!-- Enable x509 client certificates for identifying clients -->
     <sec:x509 subject-principal-regex="CN=(.*?)," user-service-ref="userDetailsService" />
 
     <!-- Enable and configure the failure URL for form-based logins -->
     <sec:form-login authentication-failure-url="/login.html?error" />
 
-    <!--
-      Enable support for openID. Note that *any* URL specified in the user detail service (see below) can log in to the
-      system
-    -->
-    <sec:openid-login authentication-failure-url="/login.html?error" />
+    <!-- Enable support for openID. Note that *any* URL specified in the user detail service (see below) can log in to the 
+      system -->
+    <sec:openid-login authentication-failure-url="/login.html?error" user-service-ref="userDetailsService" />
 
     <!-- Digest auth is used by capture agents and is used to enable transparent clustering of services -->
     <sec:custom-filter position="BASIC_AUTH_FILTER" ref="digestFilter" />
 
     <!-- Enables "remember me" functionality for form- and openid- based logins -->
-    <sec:remember-me key="matterhorn" />
+    <sec:remember-me key="matterhorn" user-service-ref="userDetailsService" />
 
     <!-- If any URLs are to be exposed to anonymous users, the "sec:anonymous" filter must be present -->
     <sec:anonymous />
@@ -72,13 +72,14 @@
   </sec:user-service>
 
   <sec:authentication-manager>
-    <sec:authentication-provider user-service-ref="userDetailsService" />
+    <sec:authentication-provider user-service-ref="oAuthConsumerDetailsService" />
   </sec:authentication-manager>
 
-  <!-- Differentiates between "normal" user requests and those requesting digest auth. -->
+  <!-- Differentiates between "normal" user requests and those requesting digest auth or oAuth -->
   <bean id="matterhornEntryPoint" class="org.opencastproject.security.DelegatingAuthenticationEntryPoint">
     <property name="userEntryPoint" ref="userEntryPoint" />
-    <property name="systemAuthenticationEntryPoint" ref="digestEntryPoint" />
+    <property name="digestAuthenticationEntryPoint" ref="digestEntryPoint" />
+    <property name="oAuthAuthenticationEntryPoint" ref="oauthProcessingFilterEntryPoint" />
   </bean>
 
   <!-- Redirects unauthenticated requests to the login form -->
@@ -102,6 +103,58 @@
     </property>
   </bean>
 
+  <!-- OAuth -->
+  <bean name="oAuthConsumerDetailsService" class="org.opencastproject.security.OAuthSingleConsumerDetailsService">
+    <constructor-arg index="0" ref="userDetailsService" />
+  </bean>
+  <bean name="oAuthAuthenticationHandler" class="org.opencastproject.security.OAuthAuthenticationHandler" />
+  <bean name="oauthProcessingFilterEntryPoint" class="org.springframework.security.oauth.provider.OAuthProcessingFilterEntryPoint" />
+
+  <bean name="oauthRequestTokenFilter" class="org.springframework.security.oauth.provider.UnauthenticatedRequestTokenProcessingFilter">
+    <property name="consumerDetailsService" ref="oAuthConsumerDetailsService" />
+    <property name="tokenServices" ref="oAuthTokenServices" />
+    <property name="filterProcessesUrl" value="/oauth/request_token" />
+    <property name="nonceServices" ref="oauthNonceServices" />
+    <property name="require10a" value="false" />
+  </bean>
+  
+  <bean name="oauthAuthenticateTokenFilter" class="org.springframework.security.oauth.provider.UserAuthorizationProcessingFilter">
+    <constructor-arg index="0" value="/engage/ui/index.html" />
+    <property name="authenticationManager" ref="org.springframework.security.authenticationManager" />
+    <property name="tokenServices" ref="oAuthTokenServices" />
+    <property name="verifierServices" ref="oauthVerifierServices" />
+    <property name="filterProcessesUrl" value="/oauth/authorize" />
+    <property name="require10a" value="false" />
+    <property name="authenticationSuccessHandler" ref="oauthSuccessfulAuthenticationHandler" />
+  </bean>
+  
+  <bean name="oauthFailureHandler" class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler">
+    <constructor-arg index="0" value="/login.html?error" />
+  </bean>
+
+  <bean name="oauthAccessTokenFilter" class="org.springframework.security.oauth.provider.AccessTokenProcessingFilter">
+    <property name="consumerDetailsService" ref="oAuthConsumerDetailsService" />
+    <property name="tokenServices" ref="oAuthTokenServices" />
+    <property name="filterProcessesUrl" value="/oauth/access_token" />
+    <property name="nonceServices" ref="oauthNonceServices" />
+    <property name="require10a" value="false" />
+  </bean>
+
+  <bean name="oauthProtectedResourceFilter" class="org.springframework.security.oauth.provider.ProtectedResourceProcessingFilter">
+    <property name="consumerDetailsService" ref="oAuthConsumerDetailsService" />
+    <property name="tokenServices" ref="oAuthTokenServices" />
+    <property name="nonceServices" ref="oauthNonceServices" />
+    <property name="authHandler" ref="oAuthAuthenticationHandler" />
+  </bean>
+
+  <bean name="oauthSuccessfulAuthenticationHandler" class="org.springframework.security.oauth.provider.UserAuthorizationSuccessfulAuthenticationHandler">
+    <property name="require10a" value="false" />
+  </bean>
+
+  <bean name="oauthNonceServices" class="org.springframework.security.oauth.provider.nonce.ExpiringTimestampNonceServices" />
+  <bean name="oAuthTokenServices" class="org.springframework.security.oauth.provider.token.InMemoryProviderTokenServices" />
+  <bean name="oauthVerifierServices" class="org.springframework.security.oauth.provider.verifier.RandomValueVerifierServices" />
+  
   <!-- Exposes spring security's context holder via jsr 250 annotations -->
   <sec:global-method-security jsr250-annotations="enabled" />
 
