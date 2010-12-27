@@ -28,6 +28,7 @@ import org.springframework.security.oauth.common.signature.SharedConsumerSecret;
 import org.springframework.security.oauth.provider.BaseConsumerDetails;
 import org.springframework.security.oauth.provider.ConsumerDetails;
 import org.springframework.security.oauth.provider.ConsumerDetailsService;
+import org.springframework.security.oauth.provider.ExtraTrustConsumerDetails;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,7 @@ public class OAuthSingleConsumerDetailsService implements ConsumerDetailsService
     consumer = createConsumerDetails("consumerkey", "consumername", "consumersecret");
   }
 
-  private ConsumerDetails createConsumerDetails(String consumerKey, String consumerName, String consumerSecret) {
+  private ExtraTrustConsumerDetails createConsumerDetails(String consumerKey, String consumerName, String consumerSecret) {
     SharedConsumerSecret secret = new SharedConsumerSecret(consumerSecret);
     BaseConsumerDetails bcd = new BaseConsumerDetails();
     bcd.setConsumerKey(consumerKey);

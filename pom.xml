@@ -851,6 +851,12 @@
       </dependency>
 
       <dependency>
+        <groupId>net.oauth.core</groupId>
+        <artifactId>oauth-httpclient4</artifactId>
+        <version>20100601</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-cas-client</artifactId>
         <version>3.0.2.RELEASE</version>

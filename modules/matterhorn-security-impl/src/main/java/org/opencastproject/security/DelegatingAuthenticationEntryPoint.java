@@ -15,9 +15,7 @@
  */
 package org.opencastproject.security;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth.provider.OAuthProcessingFilterEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint;
 
@@ -38,7 +36,6 @@ public class DelegatingAuthenticationEntryPoint implements AuthenticationEntryPo
 
   protected AuthenticationEntryPoint userEntryPoint;
   protected DigestAuthenticationEntryPoint digestAuthenticationEntryPoint;
-  protected OAuthProcessingFilterEntryPoint oAuthProcessingFilterEntryPoint;
 
   /**
    * {@inheritDoc}
@@ -51,8 +48,6 @@ public class DelegatingAuthenticationEntryPoint implements AuthenticationEntryPo
           throws IOException, ServletException {
     if (DIGEST_AUTH.equals(request.getHeader(REQUESTED_AUTH_HEADER))) {
       digestAuthenticationEntryPoint.commence(request, response, authException);
-    } else if (StringUtils.isNotEmpty(request.getParameter(OAUTH_SIGNATURE))) {
-      oAuthProcessingFilterEntryPoint.commence(request, response, authException);
     } else {
       userEntryPoint.commence(request, response, authException);
     }
@@ -72,13 +67,5 @@ public class DelegatingAuthenticationEntryPoint implements AuthenticationEntryPo
    */
   public void setDigestAuthenticationEntryPoint(DigestAuthenticationEntryPoint digestAuthenticationEntryPoint) {
     this.digestAuthenticationEntryPoint = digestAuthenticationEntryPoint;
-  }
-
-  /**
-   * @param oAuthProcessingFilterEntryPoint
-   *          the oAuthProcessingFilterEntryPoint to set
-   */
-  public void setOAuthAuthenticationEntryPoint(OAuthProcessingFilterEntryPoint oAuthProcessingFilterEntryPoint) {
-    this.oAuthProcessingFilterEntryPoint = oAuthProcessingFilterEntryPoint;
   }
 }
