@@ -126,44 +126,6 @@
 
   <bean name="oAuthTokenServices" class="org.springframework.security.oauth.provider.token.InMemoryProviderTokenServices" />
 
-<!-- OAuth beans that may be used for 3 legged oauth -->
-<!--
-  <bean name="oauthProcessingFilterEntryPoint" class="org.springframework.security.oauth.provider.OAuthProcessingFilterEntryPoint" />
-
-  <bean name="oauthRequestTokenFilter" class="org.springframework.security.oauth.provider.UnauthenticatedRequestTokenProcessingFilter">
-    <property name="consumerDetailsService" ref="oAuthConsumerDetailsService" />
-    <property name="tokenServices" ref="oAuthTokenServices" />
-    <property name="filterProcessesUrl" value="/oauth/request_token" />
-    <property name="nonceServices" ref="oauthNonceServices" />
-    <property name="require10a" value="false" />
-  </bean>
-
-  <bean name="oauthAuthenticateTokenFilter" class="org.springframework.security.oauth.provider.UserAuthorizationProcessingFilter">
-    <constructor-arg index="0" value="/oauth/index.html" />
-    <property name="authenticationManager" ref="org.springframework.security.authenticationManager" />
-    <property name="tokenServices" ref="oAuthTokenServices" />
-    <property name="verifierServices" ref="oauthVerifierServices" />
-    <property name="filterProcessesUrl" value="/oauth/authorize" />
-    <property name="require10a" value="false" />
-    <property name="authenticationSuccessHandler" ref="oauthSuccessfulAuthenticationHandler" />
-  </bean>
-
-  <bean name="oauthFailureHandler" class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler">
-    <constructor-arg index="0" value="/login.html?error" />
-  </bean>
-
-  <bean name="oauthAccessTokenFilter" class="org.springframework.security.oauth.provider.AccessTokenProcessingFilter">
-    <property name="consumerDetailsService" ref="oAuthConsumerDetailsService" />
-    <property name="tokenServices" ref="oAuthTokenServices" />
-    <property name="filterProcessesUrl" value="/oauth/access_token" />
-    <property name="nonceServices" ref="oauthNonceServices" />
-    <property name="require10a" value="false" />
-  </bean>
-
-  <bean name="oauthVerifierServices" class="org.springframework.security.oauth.provider.verifier.RandomValueVerifierServices" />
-
--->
-
   <!-- Exposes spring security's context holder via jsr 250 annotations -->
   <sec:global-method-security jsr250-annotations="enabled" />
 

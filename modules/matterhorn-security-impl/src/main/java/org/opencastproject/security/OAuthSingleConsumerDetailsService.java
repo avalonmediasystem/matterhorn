@@ -71,9 +71,9 @@ public class OAuthSingleConsumerDetailsService implements ConsumerDetailsService
 
   @Override
   public ConsumerDetails loadConsumerByConsumerKey(String key) throws OAuthException {
-    logger.info("Request received to find consumer for consumerKey=[" + key + "]");
+    logger.debug("Request received to find consumer for consumerKey=[" + key + "]");
     if (!consumer.getConsumerKey().equals(key)) {
-      logger.info("Result: No consumer found for [" + key + "]");
+      logger.debug("Result: No consumer found for [" + key + "]");
       throw new OAuthException("No consumer found for key " + key);
     }
     logger.debug("Result: Found consumer [" + consumer.getConsumerName() + "]");
