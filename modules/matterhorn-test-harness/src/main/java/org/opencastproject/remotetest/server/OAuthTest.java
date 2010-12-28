@@ -28,7 +28,13 @@ import net.oauth.client.OAuthClient;
 import net.oauth.client.OAuthResponseMessage;
 import net.oauth.client.httpclient4.HttpClient4;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -50,6 +56,8 @@ public class OAuthTest {
 
   public static final String CONSUMER_SECRET = "consumersecret";
   
+  public static final String LTI_CONSUMER_USER = "admin";
+  
   @BeforeClass
   public static void setupClass() throws Exception {
     logger.info("Running " + OAuthTest.class.getName());
@@ -70,23 +78,47 @@ public class OAuthTest {
 
   @Test
   public void testOAuthRequest() throws Exception {
-    // Construct and signa message
+    // Construct a GET request
     OAuthMessage oauthMessage = new OAuthMessage(OAuthMessage.GET, Main.BASE_URL + "/oauth/index.html", null);
+    
+    // add the required oauth parameters
+    String nonce = UUID.randomUUID().toString();
     oauthMessage.addParameter(OAuth.OAUTH_CONSUMER_KEY, CONSUMER_KEY);
     oauthMessage.addParameter(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.HMAC_SHA1);
-    oauthMessage.addParameter(OAuth.OAUTH_NONCE, UUID.randomUUID().toString());
+    oauthMessage.addParameter(OAuth.OAUTH_NONCE, nonce);
     oauthMessage.addParameter(OAuth.OAUTH_TIMESTAMP, Long.toString(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
+    
+    // Add the LTI parameters
+    oauthMessage.addParameter("user_id", LTI_CONSUMER_USER);
+
+    // Sign the request
     OAuthConsumer consumer = new OAuthConsumer(null, CONSUMER_KEY, CONSUMER_SECRET, null);
     OAuthAccessor accessor = new OAuthAccessor(consumer);
-    
     oauthMessage.sign(accessor);
 
     // Get the response
-    OAuthClient client = new OAuthClient(new HttpClient4());
-    OAuthResponseMessage response = (OAuthResponseMessage)client.invoke(oauthMessage, ParameterStyle.QUERY_STRING);
+    OAuthClient oauthClient = new OAuthClient(new HttpClient4());
+    OAuthResponseMessage oauthResponse = (OAuthResponseMessage)oauthClient.invoke(oauthMessage, ParameterStyle.QUERY_STRING);
     
     // Make sure we got what we wanted
-    Assert.assertEquals(HttpStatus.SC_OK, response.getHttpResponse().getStatusCode());
+    Assert.assertEquals(HttpStatus.SC_OK, oauthResponse.getHttpResponse().getStatusCode());
+    String cookie = oauthResponse.getHttpResponse().getHeader("Set-Cookie");
+    Assert.assertNotNull(cookie);
+    
+    // Make a request to "/info/rest/me.json" using this cookie
+    HttpGet get = new HttpGet(Main.BASE_URL + "/info/rest/me.json");
+    get.setHeader("Cookie", cookie.substring(0, cookie.lastIndexOf(";")));
+    DefaultHttpClient httpClient = new DefaultHttpClient();
+    HttpResponse httpResponse = httpClient.execute(get);
+    String me = EntityUtils.toString(httpResponse.getEntity());
+    JSONObject meJson = (JSONObject) new JSONParser().parse(me);
+    
+    // Ensure that the "current user" was set by the LTI consumer
+    Assert.assertEquals(LTI_CONSUMER_USER, meJson.get("username"));
+    
+    // Make sure we can't use the same nonce twice
+    oauthResponse = (OAuthResponseMessage)oauthClient.invoke(oauthMessage, ParameterStyle.BODY);
+    Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, oauthResponse.getHttpResponse().getStatusCode());
   }
 
 }

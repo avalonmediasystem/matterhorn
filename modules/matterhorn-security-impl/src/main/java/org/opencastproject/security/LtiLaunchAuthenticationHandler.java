@@ -16,8 +16,15 @@
 package org.opencastproject.security;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth.provider.ConsumerAuthentication;
 import org.springframework.security.oauth.provider.token.OAuthAccessProviderToken;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+
+import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,8 +32,24 @@ import javax.servlet.http.HttpServletRequest;
  * Callback interface for handing authentication details that are used when an authenticated request for a protected
  * resource is received.
  */
-public class OAuthAuthenticationHandler implements
+public class LtiLaunchAuthenticationHandler implements
         org.springframework.security.oauth.provider.OAuthAuthenticationHandler {
+
+  /** The Http request parameter, sent by the LTI consumer, containing the user ID. */
+  public static final String LTI_USER_ID_PARAM = "user_id";
+
+  /** The user details service */
+  protected UserDetailsService userDetailsService = null;
+
+  /**
+   * Constructs a new LTI authentication handler, using the supplied user details service for performing user lookups.
+   * 
+   * @param userDetailsService
+   *          the user details service used to map user identifiers to more detailed information
+   */
+  public LtiLaunchAuthenticationHandler(UserDetailsService userDetailsService) {
+    this.userDetailsService = userDetailsService;
+  }
 
   /**
    * {@inheritDoc}
@@ -38,8 +61,14 @@ public class OAuthAuthenticationHandler implements
   @Override
   public Authentication createAuthentication(HttpServletRequest request, ConsumerAuthentication authentication,
           OAuthAccessProviderToken authToken) {
-    // return the consumer authentication to replace the user authentication
-    return authentication;
+    // The User ID must be provided by the LTI consumer
+    String userIdFromConsumer = request.getParameter(LTI_USER_ID_PARAM);
+    UserDetails userDetails = userDetailsService.loadUserByUsername(userIdFromConsumer);
+    Collection<GrantedAuthority> userAuthorities = userDetails.getAuthorities();
+    Authentication ltiAuth = new PreAuthenticatedAuthenticationToken(userDetails, authentication.getCredentials(),
+            userAuthorities);
+    SecurityContextHolder.getContext().setAuthentication(ltiAuth);
+    return ltiAuth;
   }
 
 }

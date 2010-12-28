@@ -22,7 +22,7 @@
     <sec:intercept-url pattern="/css/**" filters="none" />
 
     <!-- Enable 2-legged OAuth access to /oauth/** resources -->
-    <sec:intercept-url pattern="/oauth/**" access="ROLE_OAUTH_USER" />
+    <sec:intercept-url pattern="/oauth/**" access="ROLE_USER" />
 
     <!-- Enable anonymous access to the engage player and the GET endpoints it requires -->
     <sec:intercept-url pattern='/engage/ui/**' access='ROLE_ANONYMOUS, ROLE_USER' />
@@ -57,7 +57,7 @@
     <!-- 2-legged oauth is used by trusted 3rd party applications -->
     <sec:custom-filter after="BASIC_AUTH_FILTER" ref="oauthProtectedResourceFilter" />
 
-    <!-- Enables "remember me" functionality for form- and openid- based logins -->
+    <!-- Enables "remember me" functionality -->
     <sec:remember-me key="matterhorn" user-service-ref="userDetailsService" />
 
     <!-- If any URLs are to be exposed to anonymous users, the "sec:anonymous" filter must be present -->
@@ -104,14 +104,16 @@
     </property>
   </bean>
 
-  <!-- OAuth -->
+  <!-- OAuth for supporting the LTI 'basic' profile -->
   <bean name="oAuthConsumerDetailsService" class="org.opencastproject.security.OAuthSingleConsumerDetailsService">
     <constructor-arg index="0" ref="userDetailsService" />
   </bean>
 
-  <bean name="oAuthAuthenticationHandler" class="org.opencastproject.security.OAuthAuthenticationHandler" />
+  <bean name="oAuthAuthenticationHandler" class="org.opencastproject.security.LtiLaunchAuthenticationHandler">
+    <constructor-arg index="0" ref="userDetailsService" />
+  </bean>
 
-  <bean name="oauthProtectedResourceFilter" class="org.springframework.security.oauth.provider.ProtectedResourceProcessingFilter">
+  <bean name="oauthProtectedResourceFilter" class="org.opencastproject.security.LtiProcessingFilter">
     <property name="consumerDetailsService" ref="oAuthConsumerDetailsService" />
     <property name="tokenServices" ref="oAuthTokenServices" />
     <property name="nonceServices" ref="oauthNonceServices" />
