@@ -23,6 +23,7 @@ import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthConsumer;
 import net.oauth.OAuthMessage;
+import net.oauth.OAuthProblemException;
 import net.oauth.ParameterStyle;
 import net.oauth.client.OAuthClient;
 import net.oauth.client.OAuthResponseMessage;
@@ -78,15 +79,14 @@ public class OAuthTest {
 
   @Test
   public void testOAuthRequest() throws Exception {
-    // Construct a GET request
-    OAuthMessage oauthMessage = new OAuthMessage(OAuthMessage.GET, Main.BASE_URL + "/oauth/index.html", null);
-    
-    // add the required oauth parameters
+    // Construct a POST message with the oauth parameters
     String nonce = UUID.randomUUID().toString();
+    String timestamp = Long.toString(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
+    OAuthMessage oauthMessage = new OAuthMessage(OAuthMessage.POST, Main.BASE_URL + "/lti", null);
     oauthMessage.addParameter(OAuth.OAUTH_CONSUMER_KEY, CONSUMER_KEY);
     oauthMessage.addParameter(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.HMAC_SHA1);
     oauthMessage.addParameter(OAuth.OAUTH_NONCE, nonce);
-    oauthMessage.addParameter(OAuth.OAUTH_TIMESTAMP, Long.toString(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
+    oauthMessage.addParameter(OAuth.OAUTH_TIMESTAMP, timestamp);
     
     // Add the LTI parameters
     oauthMessage.addParameter("user_id", LTI_CONSUMER_USER);
@@ -98,10 +98,11 @@ public class OAuthTest {
 
     // Get the response
     OAuthClient oauthClient = new OAuthClient(new HttpClient4());
-    OAuthResponseMessage oauthResponse = (OAuthResponseMessage)oauthClient.invoke(oauthMessage, ParameterStyle.QUERY_STRING);
+    OAuthResponseMessage oauthResponse = (OAuthResponseMessage)oauthClient.invoke(oauthMessage, ParameterStyle.BODY);
     
     // Make sure we got what we wanted
     Assert.assertEquals(HttpStatus.SC_OK, oauthResponse.getHttpResponse().getStatusCode());
+    Assert.assertTrue(oauthResponse.getHttpResponse().getHeader("Location").contains("/engage/ui/"));
     String cookie = oauthResponse.getHttpResponse().getHeader("Set-Cookie");
     Assert.assertNotNull(cookie);
     
@@ -117,8 +118,12 @@ public class OAuthTest {
     Assert.assertEquals(LTI_CONSUMER_USER, meJson.get("username"));
     
     // Make sure we can't use the same nonce twice
-    oauthResponse = (OAuthResponseMessage)oauthClient.invoke(oauthMessage, ParameterStyle.BODY);
-    Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, oauthResponse.getHttpResponse().getStatusCode());
+    try {
+      oauthResponse = (OAuthResponseMessage)oauthClient.invoke(oauthMessage, ParameterStyle.BODY);
+      Assert.fail();
+    } catch(OAuthProblemException e) {
+      // expected
+    }
   }
 
 }

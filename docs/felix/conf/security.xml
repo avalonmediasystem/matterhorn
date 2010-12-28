@@ -21,9 +21,6 @@
     <sec:intercept-url pattern='/style.css' filters='none' />
     <sec:intercept-url pattern="/css/**" filters="none" />
 
-    <!-- Enable 2-legged OAuth access to /oauth/** resources -->
-    <sec:intercept-url pattern="/oauth/**" access="ROLE_USER" />
-
     <!-- Enable anonymous access to the engage player and the GET endpoints it requires -->
     <sec:intercept-url pattern='/engage/ui/**' access='ROLE_ANONYMOUS, ROLE_USER' />
     <sec:intercept-url pattern='/search/rest/**' method="GET" access='ROLE_ANONYMOUS, ROLE_USER' />
@@ -33,6 +30,9 @@
     <!-- Secure the management URLs for admins only -->
     <sec:intercept-url pattern='/remote/*' access='ROLE_ADMIN' />
     <sec:intercept-url pattern='/system/**' access='ROLE_ADMIN' />
+
+    <!-- Enable 2-legged OAuth access ("signed fetch") to the LTI launch servlet -->
+    <sec:intercept-url pattern="/lti" method="POST" access="ROLE_USER" />
 
     <!-- Everything else is for any logged in user -->
     <sec:intercept-url pattern='/**' access='ROLE_USER, ROLE_ADMIN' />
@@ -109,24 +109,20 @@
     <constructor-arg index="0" ref="userDetailsService" />
   </bean>
 
-  <bean name="oAuthAuthenticationHandler" class="org.opencastproject.security.LtiLaunchAuthenticationHandler">
-    <constructor-arg index="0" ref="userDetailsService" />
-  </bean>
-
   <bean name="oauthProtectedResourceFilter" class="org.opencastproject.security.LtiProcessingFilter">
     <property name="consumerDetailsService" ref="oAuthConsumerDetailsService" />
-    <property name="tokenServices" ref="oAuthTokenServices" />
-    <property name="nonceServices" ref="oauthNonceServices" />
-    <property name="authHandler" ref="oAuthAuthenticationHandler" />
+    <property name="tokenServices">
+      <bean class="org.springframework.security.oauth.provider.token.InMemoryProviderTokenServices" />
+    </property>
+    <property name="nonceServices">
+      <bean class="org.springframework.security.oauth.provider.nonce.InMemoryNonceServices" />
+    </property>
+    <property name="authHandler">
+      <bean class="org.opencastproject.security.LtiLaunchAuthenticationHandler">
+        <constructor-arg index="0" ref="userDetailsService" />
+      </bean>
+    </property>
   </bean>
-
-  <bean name="oauthSuccessfulAuthenticationHandler" class="org.springframework.security.oauth.provider.UserAuthorizationSuccessfulAuthenticationHandler">
-    <property name="require10a" value="false" />
-  </bean>
-
-  <bean name="oauthNonceServices" class="org.springframework.security.oauth.provider.nonce.ExpiringTimestampNonceServices" />
-
-  <bean name="oAuthTokenServices" class="org.springframework.security.oauth.provider.token.InMemoryProviderTokenServices" />
 
   <!-- Exposes spring security's context holder via jsr 250 annotations -->
   <sec:global-method-security jsr250-annotations="enabled" />
