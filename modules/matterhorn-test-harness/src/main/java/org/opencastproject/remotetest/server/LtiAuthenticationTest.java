@@ -50,8 +50,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests the functionality of a remote workflow service rest endpoint
  */
-public class OAuthTest {
-  private static final Logger logger = LoggerFactory.getLogger(OAuthTest.class);
+public class LtiAuthenticationTest {
+  private static final Logger logger = LoggerFactory.getLogger(LtiAuthenticationTest.class);
 
   public static final String CONSUMER_KEY = "consumerkey";
 
@@ -61,12 +61,12 @@ public class OAuthTest {
   
   @BeforeClass
   public static void setupClass() throws Exception {
-    logger.info("Running " + OAuthTest.class.getName());
+    logger.info("Running " + LtiAuthenticationTest.class.getName());
   }
 
   @AfterClass
   public static void tearDownClass() throws Exception {
-    logger.info("Finished " + OAuthTest.class.getName());
+    logger.info("Finished " + LtiAuthenticationTest.class.getName());
   }
   
   @Before

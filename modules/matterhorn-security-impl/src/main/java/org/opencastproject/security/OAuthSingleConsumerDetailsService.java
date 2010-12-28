@@ -39,6 +39,9 @@ import java.util.List;
  * <li>key=consumerkey <li>name=consumername <li>secret=consumersecret
  * 
  * A UserDetailsService must be provided for delegating user lookup requests.
+ * 
+ * TODO: Replace the single, hard-coded consumer with database lookup from a separate service.
+ * 
  */
 public class OAuthSingleConsumerDetailsService implements ConsumerDetailsService, UserDetailsService {
 
@@ -51,6 +54,12 @@ public class OAuthSingleConsumerDetailsService implements ConsumerDetailsService
   /** The user details service to use as a delegate for user lookups */
   private UserDetailsService delegate;
 
+  /**
+   * Constructs this consumer detail service with a user details service to delegate user lookups.
+   * 
+   * @param delegate
+   *          the user detail service to handle user lookups
+   */
   public OAuthSingleConsumerDetailsService(UserDetailsService delegate) {
     this.delegate = delegate;
     consumer = createConsumerDetails("consumerkey", "consumername", "consumersecret");
