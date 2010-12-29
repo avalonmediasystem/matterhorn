@@ -41,6 +41,7 @@
         <module>modules/matterhorn-ingest-service-api</module>
         <module>modules/matterhorn-ingest-service-impl</module>
         <module>modules/matterhorn-kernel</module>
+        <module>modules/matterhorn-lti</module>
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
         <module>modules/matterhorn-serviceregistry</module>
@@ -146,6 +147,7 @@
         <module>modules/matterhorn-annotation-api</module>
         <module>modules/matterhorn-annotation-impl</module>
         <module>modules/matterhorn-kernel</module>
+        <module>modules/matterhorn-lti</module>
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
         <module>modules/matterhorn-runtime-info-ui</module>
@@ -177,6 +179,7 @@
 
         <module>modules/matterhorn-dublincore</module>
         <module>modules/matterhorn-kernel</module>
+        <module>modules/matterhorn-lti</module>
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
         <module>modules/matterhorn-runtime-info-ui</module>

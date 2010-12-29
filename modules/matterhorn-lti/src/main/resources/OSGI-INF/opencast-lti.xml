@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0"
-  name="org.opencastproject.security.lti.launch" immediate="true">
-  <implementation class="org.opencastproject.security.LtiLaunchServlet" />
-  <property name="service.description" value="LTI Launch Servlet" />
+  name="org.opencastproject.lti.servlet" immediate="true">
+  <implementation class="org.opencastproject.lti.LtiServlet" />
+  <property name="service.description" value="LTI Servlet" />
   <property name="alias" value="/lti" />
   <property name="contextId" value="opencast.httpcontext" />
   <service>

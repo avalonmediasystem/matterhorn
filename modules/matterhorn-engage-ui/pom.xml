@@ -203,8 +203,7 @@
             <Import-Package> org.opencastproject.http;version=${project.version}, * </Import-Package>
             <Private-Package>ui.*</Private-Package>
             <Service-Component>
-              OSGI-INF/engage-ui.xml,
-              OSGI-INF/oauth-sample-protected-resource.xml
+              OSGI-INF/engage-ui.xml
             </Service-Component>
           </instructions>
         </configuration>

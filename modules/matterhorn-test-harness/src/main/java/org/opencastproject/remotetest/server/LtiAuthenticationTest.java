@@ -58,7 +58,11 @@ public class LtiAuthenticationTest {
   public static final String CONSUMER_SECRET = "consumersecret";
   
   public static final String LTI_CONSUMER_USER = "admin";
+
+  public static final String LTI_CONSUMER_CONTEXT = "a sample course";
   
+  private DefaultHttpClient httpClient;
+
   @BeforeClass
   public static void setupClass() throws Exception {
     logger.info("Running " + LtiAuthenticationTest.class.getName());
@@ -71,14 +75,16 @@ public class LtiAuthenticationTest {
   
   @Before
   public void setup() throws Exception {
+    httpClient = new DefaultHttpClient();
   }
 
   @After
   public void tearDown() throws Exception {
+    httpClient.getConnectionManager().shutdown();
   }
 
   @Test
-  public void testOAuthRequest() throws Exception {
+  public void testLtiLaunch() throws Exception {
     // Construct a POST message with the oauth parameters
     String nonce = UUID.randomUUID().toString();
     String timestamp = Long.toString(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
@@ -88,8 +94,9 @@ public class LtiAuthenticationTest {
     oauthMessage.addParameter(OAuth.OAUTH_NONCE, nonce);
     oauthMessage.addParameter(OAuth.OAUTH_TIMESTAMP, timestamp);
     
-    // Add the LTI parameters
+    // Add some LTI parameters
     oauthMessage.addParameter("user_id", LTI_CONSUMER_USER);
+    oauthMessage.addParameter("context_id", LTI_CONSUMER_CONTEXT);
 
     // Sign the request
     OAuthConsumer consumer = new OAuthConsumer(null, CONSUMER_KEY, CONSUMER_SECRET, null);
@@ -102,20 +109,31 @@ public class LtiAuthenticationTest {
     
     // Make sure we got what we wanted
     Assert.assertEquals(HttpStatus.SC_OK, oauthResponse.getHttpResponse().getStatusCode());
-    Assert.assertTrue(oauthResponse.getHttpResponse().getHeader("Location").contains("/engage/ui/"));
+    Assert.assertNotNull(oauthResponse.getHttpResponse().getHeader("Location"));
     String cookie = oauthResponse.getHttpResponse().getHeader("Set-Cookie");
     Assert.assertNotNull(cookie);
     
-    // Make a request to "/info/rest/me.json" using this cookie
+    String sessionId = cookie.substring(0, cookie.lastIndexOf(";"));
+    
+    // Send a GET request to "/info/rest/me.json" using this cookie
     HttpGet get = new HttpGet(Main.BASE_URL + "/info/rest/me.json");
-    get.setHeader("Cookie", cookie.substring(0, cookie.lastIndexOf(";")));
-    DefaultHttpClient httpClient = new DefaultHttpClient();
+    get.setHeader("Cookie", sessionId);
     HttpResponse httpResponse = httpClient.execute(get);
     String me = EntityUtils.toString(httpResponse.getEntity());
     JSONObject meJson = (JSONObject) new JSONParser().parse(me);
     
     // Ensure that the "current user" was set by the LTI consumer
     Assert.assertEquals(LTI_CONSUMER_USER, meJson.get("username"));
+    
+    // Send a GET request to "/lti" using this cookie
+    get = new HttpGet(Main.BASE_URL + "/lti");
+    get.setHeader("Cookie", sessionId);
+    httpResponse = httpClient.execute(get);
+    String lti = EntityUtils.toString(httpResponse.getEntity());
+    JSONObject ltiJson = (JSONObject) new JSONParser().parse(lti);
+
+    // Ensure that the LTI information sent by the tool consumer is available
+    Assert.assertEquals(LTI_CONSUMER_CONTEXT, ltiJson.get("context_id"));
     
     // Make sure we can't use the same nonce twice
     try {
