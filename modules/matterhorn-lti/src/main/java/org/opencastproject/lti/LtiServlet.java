@@ -163,10 +163,15 @@ public class LtiServlet extends HttpServlet {
     HttpSession session = req.getSession(false);
     session.setAttribute(SESSION_ATTRIBUTE_KEY, getLtiValuesAsMap(req));
 
+    // We must return a 200 for some oauth client libraries to accept this as a valid response
+
     // The URL of the LTI tool.  Currently, we don't have a real LTI tool, so make due with the sample
     String toolUrl = "/ltisample/"; 
-    // We must return a 200 for some oauth client libraries to accept this as a valid response
-    resp.setHeader("Location", toolUrl);
+
+    // Always set the session cookie
+    resp.setHeader("Set-Cookie", "JSESSIONID=" + session.getId() + ";Path=/");
+    
+    // TODO: Write client-side js to sent the user someplace useful
     resp.getWriter().write("<a href=\"" + toolUrl + "\">continue...</a>");
   }
 

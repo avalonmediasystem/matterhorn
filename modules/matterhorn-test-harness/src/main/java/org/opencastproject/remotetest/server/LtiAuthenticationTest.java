@@ -62,6 +62,8 @@ public class LtiAuthenticationTest {
   public static final String LTI_CONSUMER_CONTEXT = "a sample course";
   
   private DefaultHttpClient httpClient;
+  private OAuthClient oauthClient;
+
 
   @BeforeClass
   public static void setupClass() throws Exception {
@@ -76,6 +78,7 @@ public class LtiAuthenticationTest {
   @Before
   public void setup() throws Exception {
     httpClient = new DefaultHttpClient();
+    oauthClient = new OAuthClient(new HttpClient4());
   }
 
   @After
@@ -104,12 +107,10 @@ public class LtiAuthenticationTest {
     oauthMessage.sign(accessor);
 
     // Get the response
-    OAuthClient oauthClient = new OAuthClient(new HttpClient4());
     OAuthResponseMessage oauthResponse = (OAuthResponseMessage)oauthClient.invoke(oauthMessage, ParameterStyle.BODY);
     
     // Make sure we got what we wanted
     Assert.assertEquals(HttpStatus.SC_OK, oauthResponse.getHttpResponse().getStatusCode());
-    Assert.assertNotNull(oauthResponse.getHttpResponse().getHeader("Location"));
     String cookie = oauthResponse.getHttpResponse().getHeader("Set-Cookie");
     Assert.assertNotNull(cookie);
     
@@ -142,6 +143,49 @@ public class LtiAuthenticationTest {
     } catch(OAuthProblemException e) {
       // expected
     }
+  }
+
+  @Test
+  public void testLtiLaunchFromUnknownUser() throws Exception {
+    // Construct a POST message with the oauth parameters
+    String nonce = UUID.randomUUID().toString();
+    String timestamp = Long.toString(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
+    String unknownUserId = "somebody_unknown_to_matterhorn";
+
+    OAuthMessage oauthMessage = new OAuthMessage(OAuthMessage.POST, Main.BASE_URL + "/lti", null);
+    oauthMessage.addParameter(OAuth.OAUTH_CONSUMER_KEY, CONSUMER_KEY);
+    oauthMessage.addParameter(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.HMAC_SHA1);
+    oauthMessage.addParameter(OAuth.OAUTH_NONCE, nonce);
+    oauthMessage.addParameter(OAuth.OAUTH_TIMESTAMP, timestamp);
+    
+    // Add some LTI parameters
+    oauthMessage.addParameter("user_id", unknownUserId);
+    oauthMessage.addParameter("context_id", LTI_CONSUMER_CONTEXT);
+
+    // Sign the request
+    OAuthConsumer consumer = new OAuthConsumer(null, CONSUMER_KEY, CONSUMER_SECRET, null);
+    OAuthAccessor accessor = new OAuthAccessor(consumer);
+    oauthMessage.sign(accessor);
+
+    // Get the response
+    OAuthResponseMessage oauthResponse = (OAuthResponseMessage)oauthClient.invoke(oauthMessage, ParameterStyle.BODY);
+    
+    // Make sure we got what we wanted
+    Assert.assertEquals(HttpStatus.SC_OK, oauthResponse.getHttpResponse().getStatusCode());
+    String cookie = oauthResponse.getHttpResponse().getHeader("Set-Cookie");
+    Assert.assertNotNull(cookie);
+    
+    String sessionId = cookie.substring(0, cookie.lastIndexOf(";"));
+    
+    // Send a GET request to "/info/rest/me.json" using this cookie
+    HttpGet get = new HttpGet(Main.BASE_URL + "/info/rest/me.json");
+    get.setHeader("Cookie", sessionId);
+    HttpResponse httpResponse = httpClient.execute(get);
+    String me = EntityUtils.toString(httpResponse.getEntity());
+    JSONObject meJson = (JSONObject) new JSONParser().parse(me);
+    
+    // Ensure that the "current user" was set by the LTI consumer
+    Assert.assertEquals(unknownUserId, meJson.get("username"));
   }
 
 }

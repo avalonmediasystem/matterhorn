@@ -17,14 +17,18 @@ package org.opencastproject.security;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth.provider.ConsumerAuthentication;
 import org.springframework.security.oauth.provider.token.OAuthAccessProviderToken;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -63,8 +67,18 @@ public class LtiLaunchAuthenticationHandler implements
           OAuthAccessProviderToken authToken) {
     // The User ID must be provided by the LTI consumer
     String userIdFromConsumer = request.getParameter(LTI_USER_ID_PARAM);
-    UserDetails userDetails = userDetailsService.loadUserByUsername(userIdFromConsumer);
-    Collection<GrantedAuthority> userAuthorities = userDetails.getAuthorities();
+    UserDetails userDetails = null;
+    Collection<GrantedAuthority> userAuthorities = null;
+    try {
+      userDetails = userDetailsService.loadUserByUsername(userIdFromConsumer);
+      userAuthorities = userDetails.getAuthorities();
+    } catch (UsernameNotFoundException e) {
+      // This user is known to the tool consumer, but not to Matterhorn. Create a user "on the fly"
+      userAuthorities = new HashSet<GrantedAuthority>();
+      // TODO: should we add the authorities passed in from the tool consumer?
+      userAuthorities.add(new GrantedAuthorityImpl("ROLE_USER"));
+      userDetails = new User(userIdFromConsumer, "oauth", true, true, true, true, userAuthorities);
+    }
     Authentication ltiAuth = new PreAuthenticatedAuthenticationToken(userDetails, authentication.getCredentials(),
             userAuthorities);
     SecurityContextHolder.getContext().setAuthentication(ltiAuth);
