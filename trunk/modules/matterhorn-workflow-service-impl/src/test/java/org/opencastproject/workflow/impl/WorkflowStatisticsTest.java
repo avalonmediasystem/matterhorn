@@ -1,0 +1,343 @@
+/**
+ *  Copyright 2009, 2010 The Regents of the University of California
+ *  Licensed under the Educational Community License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance
+ *  with the License. You may obtain a copy of the License at
+ *
+ *  http://www.osedu.org/licenses/ECL-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an "AS IS"
+ *  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *  or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ *
+ */
+package org.opencastproject.workflow.impl;
+
+import static org.opencastproject.workflow.api.WorkflowInstance.WorkflowState;
+import static org.junit.Assert.assertEquals;
+
+import org.opencastproject.mediapackage.DefaultMediaPackageSerializerImpl;
+import org.opencastproject.mediapackage.MediaPackage;
+import org.opencastproject.mediapackage.MediaPackageBuilder;
+import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
+import org.opencastproject.serviceregistry.api.ServiceRegistry;
+import org.opencastproject.serviceregistry.api.ServiceRegistryInMemoryImpl;
+import org.opencastproject.workflow.api.WorkflowDefinition;
+import org.opencastproject.workflow.api.WorkflowDefinitionImpl;
+import org.opencastproject.workflow.api.WorkflowInstance;
+import org.opencastproject.workflow.api.WorkflowListener;
+import org.opencastproject.workflow.api.WorkflowOperationDefinition;
+import org.opencastproject.workflow.api.WorkflowOperationDefinitionImpl;
+import org.opencastproject.workflow.api.WorkflowOperationHandler;
+import org.opencastproject.workflow.api.WorkflowOperationResult.Action;
+import org.opencastproject.workflow.api.WorkflowParser;
+import org.opencastproject.workflow.api.WorkflowStatistics;
+import org.opencastproject.workflow.api.WorkflowStatistics.WorkflowDefinitionReport;
+import org.opencastproject.workflow.api.WorkflowStatistics.WorkflowDefinitionReport.OperationReport;
+import org.opencastproject.workflow.impl.WorkflowServiceImpl.HandlerRegistration;
+import org.opencastproject.workspace.api.Workspace;
+
+import junit.framework.Assert;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.easymock.EasyMock;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
+/**
+ * Test cases for the implementation at {@link WorkflowStatistics}.
+ */
+public class WorkflowStatisticsTest {
+
+  private static final Logger logger = LoggerFactory.getLogger(WorkflowStatisticsTest.class);
+
+  /** Number of operations per workflow */
+  private static final int WORKFLOW_DEFINITION_COUNT = 2;
+
+  /** Number of operations per workflow */
+  private static final int OPERATION_COUNT = 3;
+
+  private WorkflowServiceImpl workflowService = null;
+  private List<WorkflowDefinition> workflowDefinitions = null;
+  private Set<HandlerRegistration> workflowHandlers = null;
+  private WorkflowServiceDaoSolrImpl dao = null;
+  private Workspace workspace = null;
+  private MediaPackage mediaPackage = null;
+  private ServiceRegistry serviceRegistry = null;
+  
+  private File sRoot = null;
+
+  protected static final String getStorageRoot() {
+    return "." + File.separator + "target" + File.separator + System.currentTimeMillis();
+  }
+
+  @Before
+  public void setup() throws Exception {
+    // always start with a fresh solr root directory
+    sRoot = new File(getStorageRoot());
+    try {
+      FileUtils.forceMkdir(sRoot);
+    } catch (IOException e) {
+      Assert.fail(e.getMessage());
+    }
+
+    workflowDefinitions = new ArrayList<WorkflowDefinition>();
+    workflowHandlers = new HashSet<HandlerRegistration>();
+    String opId = "op";
+    WorkflowOperationDefinition op = new WorkflowOperationDefinitionImpl(opId, "Pausing operation", null, true);
+    WorkflowOperationHandler opHandler = new ResumableTestWorkflowOperationHandler(opId, Action.PAUSE, Action.CONTINUE);
+    HandlerRegistration handler = new HandlerRegistration(opId, opHandler);
+    workflowHandlers.add(handler);
+
+    // create operation handlers for our workflows
+    for (int i = 1; i <= WORKFLOW_DEFINITION_COUNT; i++) {
+      WorkflowDefinition workflowDef = new WorkflowDefinitionImpl();
+      workflowDef.setId("def-" + i);
+      for (int opCount = 1; opCount <= OPERATION_COUNT; opCount++) {
+        workflowDef.add(op);
+      }
+      workflowDefinitions.add(workflowDef);
+    }
+
+    // instantiate a service implementation and its DAO, overriding the methods that depend on the osgi runtime
+    workflowService = new WorkflowServiceImpl() {
+      public Set<HandlerRegistration> getRegisteredHandlers() {
+        return workflowHandlers;
+      }
+    };
+
+    // Register the workflow definitions
+    for (WorkflowDefinition workflowDefinition : workflowDefinitions) {
+      workflowService.registerWorkflowDefinition(workflowDefinition);
+    }
+
+    // Mock the workspace
+    workspace = EasyMock.createNiceMock(Workspace.class);
+    EasyMock.expect(workspace.getCollectionContents((String) EasyMock.anyObject())).andReturn(new URI[0]);
+    EasyMock.replay(workspace);
+
+    // Mock the service registry
+    serviceRegistry = new ServiceRegistryInMemoryImpl();
+
+    // Create the workflow database (solr)
+    dao = new WorkflowServiceDaoSolrImpl();
+    dao.solrRoot = sRoot + File.separator + "solr." + System.currentTimeMillis();
+    dao.setServiceRegistry(serviceRegistry);
+    dao.activate();
+    workflowService.setDao(dao);
+    workflowService.activate(null);
+
+    // Ensure the workflow service has an unbounded thread pool for testing
+    workflowService.executorService = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+
+    // Crate a media package
+    InputStream is = null;
+    try {
+      MediaPackageBuilder mediaPackageBuilder = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder();
+      mediaPackageBuilder.setSerializer(new DefaultMediaPackageSerializerImpl(new File("target/test-classes")));
+      is = WorkflowStatisticsTest.class.getResourceAsStream("/mediapackage-1.xml");
+      mediaPackage = mediaPackageBuilder.loadFromXml(is);
+      IOUtils.closeQuietly(is);
+      Assert.assertNotNull(mediaPackage.getIdentifier());
+    } catch (Exception e) {
+      Assert.fail(e.getMessage());
+    }
+  }
+
+  @After
+  public void teardown() throws Exception {
+    System.out.println("All tests finished... tearing down...");
+    dao.deactivate();
+    workflowService.deactivate();
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
+  }
+
+  /**
+   * Tests whether the workflow service statistics are gathered correctly while there are no workflows active in the
+   * system. Since no workflows are known, not even empty definition reports are to be expected.
+   */
+  @Test
+  public void testEmptyStatistics() throws Exception {
+    WorkflowStatistics stats = workflowService.getStatistics();
+    assertEquals(0, stats.getDefinitions().size());
+    assertEquals(0, stats.getFailed());
+    assertEquals(0, stats.getFailing());
+    assertEquals(0, stats.getFinished());
+    assertEquals(0, stats.getInstantiated());
+    assertEquals(0, stats.getPaused());
+    assertEquals(0, stats.getRunning());
+    assertEquals(0, stats.getStopped());
+    assertEquals(0, stats.getTotal());
+  }
+
+  class TestWorkflowListener implements WorkflowListener {
+    int stateChanges = 0;
+    
+    @Override
+    public void stateChanged(WorkflowInstance workflow) {
+      synchronized (this) {
+        stateChanges++;
+        notifyAll();
+      }
+    }
+    
+    @Override
+    public void operationChanged(WorkflowInstance workflow) {
+    }
+  }
+  
+  class IndividualWorkflowListener implements WorkflowListener {
+    long id = -1;
+    
+    IndividualWorkflowListener(long id) {
+      this.id = id;    
+    }
+    
+    @Override
+    public void operationChanged(WorkflowInstance workflow) {
+    }
+    
+    @Override
+    public void stateChanged(WorkflowInstance workflow) {
+      if (workflow.getId() != id)
+        return;
+      synchronized (this) {
+        WorkflowState state = workflow.getState();
+        if (state.equals(WorkflowState.PAUSED) || state.equals(WorkflowState.SUCCEEDED)) {
+          notifyAll();
+        }
+      }
+    }
+  }
+  
+  
+  /**
+   * Tests whether the workflow service statistics are gathered correctly.
+   */
+  @Test
+  public void testStatistics() throws Exception {
+
+    // Start the workflows and advance them in "random" order. With every definition, an instance is started for every
+    // operation that is part of the definition. So we end up with an instance per definition and operation, and there
+    // are no two workflows that are in the same operation.
+
+    int total = 0;
+    int paused = 0;
+    int failed = 0;
+    int failing = 0;
+    int instantiated = 0;
+    int running = 0;
+    int stopped = 0;
+    int succeeded = 0;
+
+    TestWorkflowListener listener = new TestWorkflowListener();
+    workflowService.addWorkflowListener(listener);
+    
+    List<WorkflowInstance> instances = new ArrayList<WorkflowInstance>();
+    for (WorkflowDefinition def : workflowDefinitions) {
+      for (int j = 0; j < def.getOperations().size(); j++) {
+        instances.add(workflowService.start(def, mediaPackage));
+        total++;
+        paused++;
+      }
+    }
+
+    // Wait for all the workflows to go into "paused" state
+    synchronized (listener) {
+      while (listener.stateChanges < paused * 3) {
+        listener.wait();
+      }
+    }
+    
+    workflowService.removeWorkflowLister(listener);
+    
+    // Resume all of them, so some will be finished, some won't
+    int j = 0;
+    for (WorkflowInstance instance : instances) {
+      WorkflowListener instanceListener = new IndividualWorkflowListener(instance.getId());
+      workflowService.addWorkflowListener(instanceListener);
+      for (int k = 0; k <= (j % OPERATION_COUNT - 1); k++) {
+        synchronized(instanceListener) {
+          workflowService.resume(instance.getId(), null);
+          instanceListener.wait();
+        }
+      }
+      j++;
+    }
+
+    // TODO: Add failed, failing, stopped etc. workflows as well
+
+    // Get the statistics
+    WorkflowStatistics stats = workflowService.getStatistics();
+    assertEquals(failed, stats.getFailed());
+    assertEquals(failing, stats.getFailing());
+    assertEquals(instantiated, stats.getInstantiated());
+    assertEquals(succeeded, stats.getFinished());
+    assertEquals(paused, stats.getPaused());
+    assertEquals(running, stats.getRunning());
+    assertEquals(stopped, stats.getStopped());
+    assertEquals(total, stats.getTotal());
+
+    // TODO: Test the operations
+    // Make sure they are as expected
+    // for (WorkflowDefinitionReport report : stats.getDefinitions()) {
+    //
+    // }
+
+  }
+
+  /**
+   * 
+   * @throws Exception
+   */
+  @Test
+  public void testStatisticsMarshalling() throws Exception {
+    WorkflowStatistics stats = new WorkflowStatistics();
+    stats.setFailed(100);
+    stats.setInstantiated(20);
+
+    OperationReport op1 = new OperationReport();
+    op1.setId("compose");
+    op1.setInstantiated(10);
+    op1.setFailing(1);
+
+    List<OperationReport> ops1 = new ArrayList<WorkflowStatistics.WorkflowDefinitionReport.OperationReport>();
+    ops1.add(op1);
+
+    WorkflowDefinitionReport def1 = new WorkflowDefinitionReport();
+    def1.setFailed(40);
+    def1.setInstantiated(10);
+    def1.setOperations(ops1);
+    def1.setId("def1");
+    def1.setOperations(ops1);
+
+    WorkflowDefinitionReport def2 = new WorkflowDefinitionReport();
+    def1.setFailed(60);
+    def1.setInstantiated(10);
+
+    List<WorkflowDefinitionReport> reports = new ArrayList<WorkflowDefinitionReport>();
+    reports.add(def1);
+    reports.add(def2);
+    stats.setDefinitions(reports);
+
+    logger.info(WorkflowParser.toXml(stats));
+  }
+
+}
