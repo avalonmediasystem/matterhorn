@@ -116,6 +116,7 @@ public class CountWorkflowsTest {
   public void teardown() throws Exception {
     dao.deactivate();
     service.deactivate();
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
   }
 
   @Test

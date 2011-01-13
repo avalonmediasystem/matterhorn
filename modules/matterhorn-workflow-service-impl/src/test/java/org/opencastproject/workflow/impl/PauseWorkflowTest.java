@@ -63,6 +63,7 @@ public class PauseWorkflowTest {
   private Workspace workspace = null;
   private SampleWorkflowOperationHandler firstHandler = null;
   private SampleWorkflowOperationHandler secondHandler = null;
+  private ServiceRegistry serviceRegistry = null;
 
   private File sRoot = null;
 
@@ -101,7 +102,7 @@ public class PauseWorkflowTest {
       }
     };
 
-    ServiceRegistry serviceRegistry = new ServiceRegistryInMemoryImpl();
+    serviceRegistry = new ServiceRegistryInMemoryImpl();
 
     workspace = EasyMock.createNiceMock(Workspace.class);
     EasyMock.expect(workspace.getCollectionContents((String) EasyMock.anyObject())).andReturn(new URI[0]);
@@ -124,6 +125,7 @@ public class PauseWorkflowTest {
   public void teardown() throws Exception {
     dao.deactivate();
     service.deactivate();
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
   }
 
   @Test

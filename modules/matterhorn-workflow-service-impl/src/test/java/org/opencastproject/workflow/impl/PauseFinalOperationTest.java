@@ -53,6 +53,7 @@ public class PauseFinalOperationTest {
   private WorkflowServiceDaoSolrImpl dao = null;
   private Workspace workspace = null;
   private ResumableTestWorkflowOperationHandler handler = null;
+  private ServiceRegistry serviceRegistry = null;
 
   private File sRoot = null;
 
@@ -89,7 +90,7 @@ public class PauseFinalOperationTest {
       }
     };
 
-    ServiceRegistry serviceRegistry = new ServiceRegistryInMemoryImpl();
+    serviceRegistry = new ServiceRegistryInMemoryImpl();
 
     workspace = EasyMock.createNiceMock(Workspace.class);
     EasyMock.expect(workspace.getCollectionContents((String) EasyMock.anyObject())).andReturn(new URI[0]);
@@ -111,6 +112,7 @@ public class PauseFinalOperationTest {
   public void teardown() throws Exception {
     dao.deactivate();
     service.deactivate();
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
   }
 
   @Test

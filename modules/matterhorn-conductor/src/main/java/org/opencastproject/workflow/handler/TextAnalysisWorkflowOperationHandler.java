@@ -302,13 +302,17 @@ public class TextAnalysisWorkflowOperationHandler extends AbstractWorkflowOperat
         }
 
         // If there is a corresponding spaciotemporal decomposition, remove all the videotext elements
-        Job receipt = analysisService.extract(image, true);
+        Job job = analysisService.extract(image);
+        if (!waitForStatus(job).isSuccess()) {
+          logger.warn("Text analysis failed on " + image);
+          continue;
+        }
 
         // add this receipt's queue time to the total
-        long timeInQueue = receipt.getDateStarted().getTime() - receipt.getDateCreated().getTime();
+        long timeInQueue = job.getDateStarted().getTime() - job.getDateCreated().getTime();
         totalTimeInQueue += timeInQueue;
 
-        Catalog catalog = (Catalog) AbstractMediaPackageElement.getFromXml(receipt.getPayload());
+        Catalog catalog = (Catalog) AbstractMediaPackageElement.getFromXml(job.getPayload());
         workspace.delete(image.getURI());
         if (catalog == null) {
           logger.warn("Text analysis did not return a valid mpeg7 for segment {}", segment);

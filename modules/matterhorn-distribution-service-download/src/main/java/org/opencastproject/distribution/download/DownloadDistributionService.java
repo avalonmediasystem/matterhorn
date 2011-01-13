@@ -19,6 +19,8 @@ import org.opencastproject.distribution.api.DistributionException;
 import org.opencastproject.distribution.api.DistributionService;
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.Job.Status;
+import org.opencastproject.job.api.JobProducer;
+import org.opencastproject.mediapackage.AbstractMediaPackageElement;
 import org.opencastproject.mediapackage.MediaPackageElement;
 import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
@@ -42,17 +44,22 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * Distributes media to the local media delivery directory.
  */
-public class DownloadDistributionService implements DistributionService {
+public class DownloadDistributionService implements DistributionService, JobProducer {
 
   /** Logging facility */
   private static final Logger logger = LoggerFactory.getLogger(DownloadDistributionService.class);
+
+  /** List of available operations on jobs */
+  private enum Operation {
+    Distribute, Retract
+  };
 
   /** Receipt type */
   public static final String JOB_TYPE = "org.opencastproject.distribution.download";
@@ -117,105 +124,105 @@ public class DownloadDistributionService implements DistributionService {
   }
 
   /**
-   * Distributes the mediapackage's element to the location that is returned by the concrete implementation. In
-   * addition, a representation of the distributed element is added to the mediapackage.
-   * 
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.distribution.api.DistributionService#distribute(String, MediaPackageElement)
+   * @see org.opencastproject.distribution.api.DistributionService#distribute(java.lang.String,
+   *      org.opencastproject.mediapackage.MediaPackageElement)
    */
   @Override
-  public Job distribute(final String mediaPackageId, final MediaPackageElement element)
-          throws DistributionException, MediaPackageException {
-    if (mediaPackageId == null) {
-      throw new DistributionException("Mediapackage ID must be specified");
-    }
-    if (element == null) {
-      throw new DistributionException("Mediapackage element must be specified");
-    }
-    if (element.getIdentifier() == null) {
-      throw new DistributionException("Mediapackage element must have an identifier");
-    }
-    final Job job;
+  public Job distribute(String mediaPackageId, MediaPackageElement element) throws DistributionException,
+          MediaPackageException {
+
+    if (mediaPackageId == null)
+      throw new MediaPackageException("Mediapackage ID must be specified");
+    if (element == null)
+      throw new MediaPackageException("Mediapackage element must be specified");
+
     try {
-      job = serviceRegistry.createJob(JOB_TYPE, DISTRIBUTE, Arrays.asList(mediaPackageId, element.getAsXml()));
+      return serviceRegistry.createJob(JOB_TYPE, Operation.Distribute.toString(),
+              Arrays.asList(mediaPackageId, element.getAsXml()));
     } catch (ServiceUnavailableException e) {
       throw new DistributionException("The " + JOB_TYPE
               + " service is not registered on this host, so no job can be created", e);
     } catch (ServiceRegistryException e) {
       throw new DistributionException("Unable to create a job", e);
     }
+  }
 
-    Callable<Void> command = new Callable<Void>() {
-      /**
-       * {@inheritDoc}
-       * 
-       * @see java.util.concurrent.Callable#call()
-       */
-      @Override
-      public Void call() throws DistributionException {
-        try {
-          job.setStatus(Status.RUNNING);
-          updateJob(job);
+  /**
+   * Distributes the mediapackage's element to the location that is returned by the concrete implementation. In
+   * addition, a representation of the distributed element is added to the mediapackage.
+   * 
+   * @see org.opencastproject.distribution.api.DistributionService#distribute(String, MediaPackageElement)
+   */
+  private MediaPackageElement distribute(Job job, String mediaPackageId, MediaPackageElement element)
+          throws DistributionException, MediaPackageException {
 
-          File sourceFile;
-          try {
-            sourceFile = workspace.get(element.getURI());
-          } catch (NotFoundException e) {
-            throw new DistributionException("Unable to find " + element.getURI() + " in the workspace", e);
-          } catch (IOException e) {
-            throw new DistributionException("Error loading " + element.getURI() + " from the workspace", e);
-          }
-          File destination = getDistributionFile(mediaPackageId, element);
+    if (mediaPackageId == null)
+      throw new IllegalArgumentException("Mediapackage ID must be specified");
+    if (element == null)
+      throw new IllegalArgumentException("Mediapackage element must be specified");
+    if (element.getIdentifier() == null)
+      throw new IllegalArgumentException("Mediapackage element must have an identifier");
 
-          // Put the file in place
-          try {
-            FileUtils.forceMkdir(destination.getParentFile());
-          } catch (IOException e) {
-            throw new DistributionException("Unable to create " + destination.getParentFile(), e);
-          }
-          logger.info("Distributing {} to {}", element, destination);
+    try {
+      job.setStatus(Status.RUNNING);
+      updateJob(job);
 
-          try {
-            FileSupport.copy(sourceFile, destination);
-          } catch (IOException e) {
-            throw new DistributionException("Unable to copy " + sourceFile + " to " + destination, e);
-          }
-
-          // Create a representation of the distributed file in the mediapackage
-          MediaPackageElement distributedElement = (MediaPackageElement) element.clone();
-          try {
-            distributedElement.setURI(getDistributionUri(mediaPackageId, element));
-          } catch (URISyntaxException e) {
-            throw new DistributionException("Distributed element produces an invalid URI", e);
-          }
-          distributedElement.setIdentifier(null);
-
-          job.setPayload(distributedElement.getAsXml());
-          job.setStatus(Status.FINISHED);
-          updateJob(job);
-
-          logger.info("Finished distribution of {}", element);
-          return null;
-        } catch (Exception e) {
-          logger.warn("Error distributing " + element, e);
-          try {
-            job.setStatus(Status.FAILED);
-            updateJob(job);
-          } catch (Exception failureToFail) {
-            logger.warn("Unable to update job to failed state", failureToFail);
-          }
-          if (e instanceof DistributionException) {
-            throw (DistributionException) e;
-          } else {
-            throw new DistributionException(e);
-          }
-        }
+      File sourceFile;
+      try {
+        sourceFile = workspace.get(element.getURI());
+      } catch (NotFoundException e) {
+        throw new DistributionException("Unable to find " + element.getURI() + " in the workspace", e);
+      } catch (IOException e) {
+        throw new DistributionException("Error loading " + element.getURI() + " from the workspace", e);
       }
-    };
+      File destination = getDistributionFile(mediaPackageId, element);
 
-    executor.submit(command);
-    return job;
+      // Put the file in place
+      try {
+        FileUtils.forceMkdir(destination.getParentFile());
+      } catch (IOException e) {
+        throw new DistributionException("Unable to create " + destination.getParentFile(), e);
+      }
+      logger.info("Distributing {} to {}", element, destination);
+
+      try {
+        FileSupport.copy(sourceFile, destination);
+      } catch (IOException e) {
+        throw new DistributionException("Unable to copy " + sourceFile + " to " + destination, e);
+      }
+
+      // Create a representation of the distributed file in the mediapackage
+      MediaPackageElement distributedElement = (MediaPackageElement) element.clone();
+      try {
+        distributedElement.setURI(getDistributionUri(mediaPackageId, element));
+      } catch (URISyntaxException e) {
+        throw new DistributionException("Distributed element produces an invalid URI", e);
+      }
+      distributedElement.setIdentifier(null);
+
+      job.setPayload(distributedElement.getAsXml());
+      job.setStatus(Status.FINISHED);
+      updateJob(job);
+
+      logger.info("Finished distribution of {}", element);
+      return distributedElement;
+
+    } catch (Exception e) {
+      logger.warn("Error distributing " + element, e);
+      try {
+        job.setStatus(Status.FAILED);
+        updateJob(job);
+      } catch (Exception failureToFail) {
+        logger.warn("Unable to update job to failed state", failureToFail);
+      }
+      if (e instanceof DistributionException) {
+        throw (DistributionException) e;
+      } else {
+        throw new DistributionException(e);
+      }
+    }
   }
 
   /**
@@ -224,74 +231,90 @@ public class DownloadDistributionService implements DistributionService {
    * @see org.opencastproject.distribution.api.DistributionService#retract(java.lang.String)
    */
   @Override
-  public Job retract(final String mediaPackageId) throws DistributionException {
-    final Job job;
+  public Job retract(String mediaPackageId) throws DistributionException {
+
+    if (mediaPackageId == null)
+      throw new IllegalArgumentException("Mediapackage ID must be specified");
+
     try {
-      job = serviceRegistry.createJob(JOB_TYPE, RETRACT, Arrays.asList(mediaPackageId));
+      return serviceRegistry.createJob(JOB_TYPE, Operation.Retract.toString(), Arrays.asList(mediaPackageId));
     } catch (ServiceUnavailableException e) {
       throw new DistributionException("The " + JOB_TYPE
               + " service is not registered on this host, so no job can be created", e);
     } catch (ServiceRegistryException e) {
       throw new DistributionException("Unable to create a job", e);
     }
+  }
 
-    Callable<Void> command = new Callable<Void>() {
-      /**
-       * {@inheritDoc}
-       * 
-       * @see java.util.concurrent.Callable#call()
-       */
-      @Override
-      public Void call() throws DistributionException {
-        try {
-          job.setStatus(Status.RUNNING);
-          updateJob(job);
-          if (!FileSupport.delete(getMediaPackageDirectory(mediaPackageId), true)) {
-            throw new DistributionException("Unable to retract mediapackage " + mediaPackageId);
-          }
-          job.setStatus(Status.FINISHED);
-          updateJob(job);
-          logger.info("Finished rectracting media package {}", mediaPackageId);
-          return null;
-        } catch (Exception e) {
-          logger.warn("Error retracting mediapackage " + mediaPackageId, e);
-          try {
-            job.setStatus(Status.FAILED);
-            updateJob(job);
-          } catch (Exception failureToFail) {
-            logger.warn("Unable to update job to failed state", failureToFail);
-          }
-          if (e instanceof DistributionException) {
-            throw (DistributionException) e;
-          } else {
-            throw new DistributionException(e);
-          }
-        }
+  /**
+   * Retracts the mediapackage with the given identifier from the distribution channel.
+   * 
+   * @param job
+   *          the associated job
+   * @param mediapackageId
+   *          the mediapackage identifier
+   */
+  private void retract(Job job, String mediaPackageId) throws DistributionException {
+    try {
+      job.setStatus(Status.RUNNING);
+      updateJob(job);
+
+      // Try to remove the file
+      File mediapackageDir = getMediaPackageDirectory(mediaPackageId);
+      if (mediapackageDir.exists() && !FileSupport.delete(mediapackageDir, true)) {
+        throw new DistributionException("Unable to retract mediapackage " + mediaPackageId);
       }
-    };
 
-    executor.submit(command);
-    return job;
+      job.setStatus(Status.FINISHED);
+      updateJob(job);
+
+      logger.info("Finished rectracting media package {}", mediaPackageId);
+    } catch (Exception e) {
+      logger.warn("Error retracting mediapackage " + mediaPackageId, e);
+      try {
+        job.setStatus(Status.FAILED);
+        updateJob(job);
+      } catch (Exception failureToFail) {
+        logger.warn("Unable to update job to failed state", failureToFail);
+      }
+      if (e instanceof DistributionException) {
+        throw (DistributionException) e;
+      } else {
+        throw new DistributionException(e);
+      }
+    }
   }
 
   /**
-   * Callback for the OSGi environment to set the workspace reference.
+   * {@inheritDoc}
    * 
-   * @param workspace
-   *          the workspace
+   * @see org.opencastproject.job.api.JobProducer#startJob(org.opencastproject.job.api.Job, java.lang.String,
+   *      java.util.List)
    */
-  public void setWorkspace(Workspace workspace) {
-    this.workspace = workspace;
-  }
-
-  /**
-   * Callback for the OSGi environment to set the service registry reference.
-   * 
-   * @param remoteServiceManager
-   *          the service registry
-   */
-  public void setRemoteServiceManager(ServiceRegistry remoteServiceManager) {
-    this.serviceRegistry = remoteServiceManager;
+  @Override
+  public void startJob(Job job, String operation, List<String> arguments) throws ServiceRegistryException {
+    Operation op = null;
+    try {
+      op = Operation.valueOf(operation);
+      String mediapackageId = arguments.get(0);
+      switch (op) {
+        case Distribute:
+          MediaPackageElement element = AbstractMediaPackageElement.getFromXml(arguments.get(1));
+          distribute(job, mediapackageId, element);
+          break;
+        case Retract:
+          retract(job, mediapackageId);
+          break;
+        default:
+          throw new IllegalStateException("Don't know how to handle operation '" + operation + "'");
+      }
+    } catch (IllegalArgumentException e) {
+      throw new ServiceRegistryException("This service can't handle operations of type '" + op + "'");
+    } catch (IndexOutOfBoundsException e) {
+      throw new ServiceRegistryException("This argument list for operation '" + op + "' does not meet expectations");
+    } catch (Exception e) {
+      throw new ServiceRegistryException("Error handling operation '" + op + "'");
+    }
   }
 
   /**
@@ -301,6 +324,16 @@ public class DownloadDistributionService implements DistributionService {
    */
   public Job getJob(long id) throws NotFoundException, ServiceRegistryException {
     return serviceRegistry.getJob(id);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.job.api.JobProducer#getJobType()
+   */
+  @Override
+  public String getJobType() {
+    return JOB_TYPE;
   }
 
   /**
@@ -391,6 +424,26 @@ public class DownloadDistributionService implements DistributionService {
     } catch (ServiceRegistryException serviceRegException) {
       throw new DistributionException("Unable to update job '" + job + "' in service registry", serviceRegException);
     }
+  }
+
+  /**
+   * Callback for the OSGi environment to set the workspace reference.
+   * 
+   * @param workspace
+   *          the workspace
+   */
+  void setWorkspace(Workspace workspace) {
+    this.workspace = workspace;
+  }
+
+  /**
+   * Callback for the OSGi environment to set the service registry reference.
+   * 
+   * @param remoteServiceManager
+   *          the service registry
+   */
+  void setRemoteServiceManager(ServiceRegistry remoteServiceManager) {
+    this.serviceRegistry = remoteServiceManager;
   }
 
 }

@@ -72,7 +72,7 @@ public class VideoSegmenterTest {
   protected static final long secondSegmentDuration = mediaDuration - firstSegmentDuration;
 
   /** The in-memory service registration */
-  protected ServiceRegistry serviceRegistry = new ServiceRegistryInMemoryImpl();
+  protected ServiceRegistry serviceRegistry = null;
   
   /** The video segmenter */
   protected VideoSegmenterServiceImpl vsegmenter = null;
@@ -127,10 +127,12 @@ public class VideoSegmenterTest {
     EasyMock.replay(workspace);
 
     vsegmenter = new VideoSegmenterServiceImpl();
-    vsegmenter.setExecutorThreads(1);
+    serviceRegistry = new ServiceRegistryInMemoryImpl(vsegmenter);
+    vsegmenter.setRemoteServiceManager(serviceRegistry);
+    
     vsegmenter.setMpeg7CatalogService(mpeg7Service);
     vsegmenter.setWorkspace(workspace);
-    vsegmenter.setRemoteServiceManager(serviceRegistry);
+    
   }
 
   /**
@@ -139,12 +141,7 @@ public class VideoSegmenterTest {
   @After
   public void tearDown() throws Exception {
     FileUtils.deleteQuietly(tempFile);
-  }
-
-  @Test
-  public void testImageExtraction() {
-    // int undefined = -16777216;
-
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
   }
 
   @Test

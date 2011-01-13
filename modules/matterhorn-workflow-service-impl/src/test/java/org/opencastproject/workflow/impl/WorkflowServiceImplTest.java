@@ -71,6 +71,7 @@ public class WorkflowServiceImplTest {
   private WorkflowServiceDaoSolrImpl dao = null;
   private Set<HandlerRegistration> handlerRegistrations = null;
   private Workspace workspace = null;
+  private ServiceRegistry serviceRegistry = null;
 
   private File sRoot = null;
 
@@ -105,7 +106,7 @@ public class WorkflowServiceImplTest {
     EasyMock.expect(workspace.getCollectionContents((String) EasyMock.anyObject())).andReturn(new URI[0]);
     EasyMock.replay(workspace);
 
-    ServiceRegistry serviceRegistry = new ServiceRegistryInMemoryImpl();
+    serviceRegistry = new ServiceRegistryInMemoryImpl();
 
     dao = new WorkflowServiceDaoSolrImpl();
     dao.setServiceRegistry(serviceRegistry);
@@ -154,6 +155,7 @@ public class WorkflowServiceImplTest {
     System.out.println("All tests finished... tearing down...");
     dao.deactivate();
     service.deactivate();
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
   }
 
   @Test

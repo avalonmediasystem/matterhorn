@@ -23,7 +23,6 @@ import org.opencastproject.mediapackage.MediaPackageElement;
 import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.util.DocUtil;
-import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.doc.DocRestData;
 import org.opencastproject.util.doc.Format;
 import org.opencastproject.util.doc.Param;
@@ -43,7 +42,6 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -109,22 +107,6 @@ public class MediaInspectionRestEndpoint {
       return Response.ok(new JaxbJob(job)).build();
     } catch (Exception e) {
       logger.info(e.getMessage(), e);
-      return Response.serverError().build();
-    }
-  }
-
-  @GET
-  @Path("receipt/{id}.xml")
-  @Produces(MediaType.TEXT_XML)
-  public Response getJob(@PathParam("id") long id) {
-    checkNotNull(service);
-    try {
-      Job job = service.getJob(id);
-      return Response.ok(new JaxbJob(job)).build();
-    } catch (NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).build();
-    } catch (Exception e) {
-      logger.info(e.getMessage());
       return Response.serverError().build();
     }
   }

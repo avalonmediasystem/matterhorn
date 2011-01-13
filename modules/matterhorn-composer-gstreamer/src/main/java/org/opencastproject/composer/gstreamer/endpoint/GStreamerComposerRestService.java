@@ -23,7 +23,6 @@ import org.opencastproject.composer.api.EncodingProfileImpl;
 import org.opencastproject.composer.api.EncodingProfileList;
 import org.opencastproject.job.api.JaxbJob;
 import org.opencastproject.job.api.Job;
-import org.opencastproject.job.api.Job.Status;
 import org.opencastproject.mediapackage.Catalog;
 import org.opencastproject.mediapackage.DefaultMediaPackageSerializerImpl;
 import org.opencastproject.mediapackage.MediaPackageElement;
@@ -32,9 +31,7 @@ import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageSerializer;
 import org.opencastproject.mediapackage.Track;
 import org.opencastproject.rest.RestConstants;
-import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.util.DocUtil;
-import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.UrlSupport;
 import org.opencastproject.util.doc.DocRestData;
 import org.opencastproject.util.doc.Format;
@@ -63,8 +60,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.parsers.DocumentBuilder;
@@ -309,21 +304,6 @@ public class GStreamerComposerRestService {
   }
 
   @GET
-  @Path("job/{id}.xml")
-  @Produces(MediaType.TEXT_XML)
-  public Response getJob(@PathParam("id") long id) {
-    Job job = null;
-    try {
-      job = composerService.getJob(id);
-      return Response.ok().entity(new JaxbJob(job)).build();
-    } catch (NotFoundException e) {
-      return Response.status(Response.Status.NOT_FOUND).build();
-    } catch (Exception e) {
-      throw new WebApplicationException(e);
-    }
-  }
-
-  @GET
   @Path("profiles.xml")
   @Produces(MediaType.TEXT_XML)
   public EncodingProfileList listProfiles() {
@@ -342,26 +322,6 @@ public class GStreamerComposerRestService {
     if (profile == null)
       return Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
     return Response.ok(profile).build();
-  }
-
-  @GET
-  @Produces(MediaType.TEXT_PLAIN)
-  @Path("count")
-  public Response count(@QueryParam("status") String status, @QueryParam("host") String host) {
-    if (status == null)
-      return Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
-    long count;
-
-    try {
-      if (host == null) {
-        count = composerService.countJobs(Status.valueOf(status.toUpperCase()));
-      } else {
-        count = composerService.countJobs(Status.valueOf(status.toUpperCase()), host);
-      }
-      return Response.ok(count).build();
-    } catch (ServiceRegistryException e) {
-      throw new WebApplicationException(e);
-    }
   }
 
   @GET

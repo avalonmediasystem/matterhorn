@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="5.0">
+<file name="/Users/wunden/Library/Eclipse/Workspace/Opencast/matterhorn/trunk/modules/matterhorn-speechanalyzer-api/src/main/java/org/opencastproject/speechanalyzer/api/SpeechAnalyzerException.java">
+</file>
+<file name="/Users/wunden/Library/Eclipse/Workspace/Opencast/matterhorn/trunk/modules/matterhorn-speechanalyzer-api/src/main/java/org/opencastproject/speechanalyzer/api/SpeechAnalyzerService.java">
+<error line="21" column="8" severity="error" message="Unused import - org.opencastproject.mediapackage.MediaPackageElement." source="com.puppycrawl.tools.checkstyle.checks.imports.UnusedImportsCheck"/>
+</file>
+</checkstyle>

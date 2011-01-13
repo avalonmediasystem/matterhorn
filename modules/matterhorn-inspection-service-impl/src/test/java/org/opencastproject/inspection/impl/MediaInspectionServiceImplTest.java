@@ -31,6 +31,7 @@ import org.opencastproject.workspace.api.Workspace;
 import junit.framework.Assert;
 
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,7 +47,7 @@ public class MediaInspectionServiceImplTest {
   
   private MediaInspectionServiceImpl service = null;
   private Workspace workspace = null;
-  private ServiceRegistry serviceRegistry = new ServiceRegistryInMemoryImpl();
+  private ServiceRegistry serviceRegistry = null;
 
   private URI uriTrack;
 
@@ -56,7 +57,7 @@ public class MediaInspectionServiceImplTest {
   private static boolean mediainfoInstalled = true;
   
   @BeforeClass
-  public static void testOcropus() {
+  public static void setupClass() {
     StreamHelper stdout = null;
     StreamHelper stderr = null;
     Process p = null;
@@ -85,6 +86,7 @@ public class MediaInspectionServiceImplTest {
     File f = new File(uriTrack);
     // set up services and mock objects
     service = new MediaInspectionServiceImpl();
+    serviceRegistry = new ServiceRegistryInMemoryImpl(service);
 
     workspace = EasyMock.createNiceMock(Workspace.class);
     EasyMock.expect(workspace.get(uriTrack)).andReturn(f);
@@ -94,7 +96,12 @@ public class MediaInspectionServiceImplTest {
     service.setWorkspace(workspace);
 
     service.setServiceRegistry(serviceRegistry);
-    service.executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(1);
+    service.executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(1);    
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
   }
 
   @Test

@@ -80,7 +80,8 @@ public class WorkflowStatisticsTest {
   private WorkflowServiceDaoSolrImpl dao = null;
   private Workspace workspace = null;
   private MediaPackage mediaPackage = null;
-
+  private ServiceRegistry serviceRegistry = null;
+  
   private File sRoot = null;
 
   protected static final String getStorageRoot() {
@@ -133,7 +134,7 @@ public class WorkflowStatisticsTest {
     EasyMock.replay(workspace);
 
     // Mock the service registry
-    ServiceRegistry serviceRegistry = new ServiceRegistryInMemoryImpl();
+    serviceRegistry = new ServiceRegistryInMemoryImpl();
 
     // Create the workflow database (solr)
     dao = new WorkflowServiceDaoSolrImpl();
@@ -165,6 +166,7 @@ public class WorkflowStatisticsTest {
     System.out.println("All tests finished... tearing down...");
     dao.deactivate();
     workflowService.deactivate();
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
   }
 
   /**

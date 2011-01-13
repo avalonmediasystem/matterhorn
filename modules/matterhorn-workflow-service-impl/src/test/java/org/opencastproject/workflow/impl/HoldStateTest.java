@@ -57,6 +57,7 @@ public class HoldStateTest {
   private MediaPackage mp = null;
   private WorkflowServiceDaoSolrImpl dao = null;
   private ResumableTestWorkflowOperationHandler holdingOperationHandler;
+  private ServiceRegistry serviceRegistry = null;
 
   private File sRoot = null;
 
@@ -94,7 +95,7 @@ public class HoldStateTest {
       }
     };
 
-    ServiceRegistry serviceRegistry = new ServiceRegistryInMemoryImpl();
+    serviceRegistry = new ServiceRegistryInMemoryImpl();
 
     dao = new WorkflowServiceDaoSolrImpl();
     dao.solrRoot = sRoot + File.separator + "solr";
@@ -121,6 +122,7 @@ public class HoldStateTest {
     }
     dao.deactivate();
     service.deactivate();
+    ((ServiceRegistryInMemoryImpl)serviceRegistry).dispose();
   }
 
   @Test

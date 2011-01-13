@@ -22,10 +22,8 @@ import org.opencastproject.mediapackage.DefaultMediaPackageSerializerImpl;
 import org.opencastproject.mediapackage.MediaPackageElement;
 import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
 import org.opencastproject.rest.RestConstants;
-import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.textanalyzer.api.TextAnalyzerService;
 import org.opencastproject.util.DocUtil;
-import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.doc.DocRestData;
 import org.opencastproject.util.doc.Format;
 import org.opencastproject.util.doc.Param;
@@ -43,9 +41,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -92,7 +88,7 @@ public class TextAnalysisRestEndpoint {
       MediaPackageElement element = MediaPackageElementBuilderFactory.newInstance().newElementBuilder()
               .elementFromManifest(doc.getDocumentElement(), new DefaultMediaPackageSerializerImpl());
       if (element instanceof Attachment) {
-        Job job = textAnalyzer.extract((Attachment) element, false);
+        Job job = textAnalyzer.extract((Attachment) element);
         return Response.ok(new JaxbJob(job)).build();
       } else {
         return Response.status(Status.BAD_REQUEST).build();
@@ -100,25 +96,6 @@ public class TextAnalysisRestEndpoint {
     } catch (Exception e) {
       logger.warn(e.getMessage(), e);
       return Response.serverError().build();
-    }
-  }
-
-  @GET
-  @Produces(MediaType.TEXT_XML)
-  @Path("/{id}.xml")
-  public Response getJob(@PathParam("id") long id) {
-    Job job;
-    try {
-      job = textAnalyzer.getJob(id);
-    } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
-    } catch (ServiceRegistryException e) {
-      throw new WebApplicationException(e);
-    }
-    if (job == null) {
-      return Response.status(Status.NOT_FOUND).build();
-    } else {
-      return Response.ok(new JaxbJob(job)).build();
     }
   }
 
