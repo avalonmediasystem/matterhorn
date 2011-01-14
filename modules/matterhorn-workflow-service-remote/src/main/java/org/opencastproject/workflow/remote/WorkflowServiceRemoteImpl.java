@@ -19,6 +19,7 @@ import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.serviceregistry.api.RemoteBase;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.SolrUtils;
+import org.opencastproject.workflow.api.WorkflowListener;
 import org.opencastproject.workflow.api.WorkflowParser;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
@@ -552,6 +553,24 @@ public class WorkflowServiceRemoteImpl extends RemoteBase implements WorkflowSer
     if (response == null) {
       throw new WorkflowDatabaseException("Unable to delete workflow definition '" + workflowDefinitionId + "'");
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.workflow.api.WorkflowService#addWorkflowListener(org.opencastproject.workflow.api.WorkflowListener)
+   */
+  @Override
+  public void addWorkflowListener(WorkflowListener listener) {
+    throw new UnsupportedOperationException("Adding workflow listeners to a remote workflow service is not supported");
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.workflow.api.WorkflowService#removeWorkflowLister(org.opencastproject.workflow.api.WorkflowListener)
+   */
+  @Override
+  public void removeWorkflowLister(WorkflowListener listener) {
+    throw new UnsupportedOperationException("Removing workflow listeners from a remote workflow service is not supported");
   }
 
 }
