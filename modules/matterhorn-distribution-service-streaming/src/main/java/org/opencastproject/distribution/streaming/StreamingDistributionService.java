@@ -46,8 +46,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Distributes media to the local media delivery directory.
@@ -80,9 +78,6 @@ public class StreamingDistributionService implements DistributionService, JobPro
   /** The base URL for streaming */
   protected String streamingUrl = null;
 
-  /** The executor service used to queue and run jobs */
-  protected ExecutorService executor = null;
-
   protected void activate(ComponentContext cc) {
     // Get the configured streaming and server URLs
     if (cc != null) {
@@ -107,26 +102,7 @@ public class StreamingDistributionService implements DistributionService, JobPro
       }
 
       logger.info("Streaming distribution directory is {}", distributionDirectory);
-
-      int threads = 1;
-      String threadsConfig = StringUtils.trimToNull(cc.getBundleContext().getProperty(
-              "org.opencastproject.distribution.streaming.threads"));
-      if (threadsConfig != null) {
-        try {
-          threads = Integer.parseInt(threadsConfig);
-        } catch (NumberFormatException e) {
-          logger.warn("streaming distribution threads configuration is malformed: '{}'", threadsConfig);
-        }
-      }
-      executor = Executors.newFixedThreadPool(threads);
     }
-  }
-
-  /**
-   * Called when service deactivates. Defined in OSGi resource file.
-   */
-  public void deactivate() {
-    executor.shutdown();
   }
 
   /**

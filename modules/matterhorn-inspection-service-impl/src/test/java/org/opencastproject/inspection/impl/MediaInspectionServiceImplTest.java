@@ -40,8 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class MediaInspectionServiceImplTest {
   
@@ -96,7 +94,6 @@ public class MediaInspectionServiceImplTest {
     service.setWorkspace(workspace);
 
     service.setServiceRegistry(serviceRegistry);
-    service.executor = (ThreadPoolExecutor)Executors.newFixedThreadPool(1);    
   }
 
   @After

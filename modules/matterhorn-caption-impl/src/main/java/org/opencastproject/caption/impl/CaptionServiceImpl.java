@@ -54,8 +54,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.activation.MimetypesFileTypeMap;
 
@@ -75,12 +73,6 @@ public class CaptionServiceImpl implements CaptionService {
     Convert, ConvertWithLanguage
   };
 
-  /** The configuration key for setting the number of worker threads */
-  public static final String CONFIG_THREADS = "org.opencastproject.captionconverter.threads";
-
-  /** The default worker thread pool size to use if no configuration is specified */
-  public static final int DEFAULT_THREADS = 1;
-
   /** The collection name */
   public static final String COLLECTION = "captions";
 
@@ -92,38 +84,6 @@ public class CaptionServiceImpl implements CaptionService {
 
   /** Component context needed for retrieving Converter Engines */
   protected ComponentContext componentContext = null;
-
-  /** A thread pool for job executions */
-  protected ExecutorService executor = null;
-
-  /**
-   * Activate this service implementation via the OSGI service component runtime
-   */
-  public void activate(ComponentContext componentContext) {
-    this.componentContext = componentContext;
-
-    // Set the number of concurrent threads
-    int threads = DEFAULT_THREADS;
-    String threadsConfig = StringUtils.trimToNull(componentContext.getBundleContext().getProperty(CONFIG_THREADS));
-    if (threadsConfig != null) {
-      try {
-        threads = Integer.parseInt(threadsConfig);
-      } catch (NumberFormatException e) {
-        logger.warn("Caption converter threads configuration is malformed: '{}'", threadsConfig);
-      }
-    }
-    executor = Executors.newFixedThreadPool(threads);
-  }
-
-  /** Setter for workspace via declarative activation */
-  public void setWorkspace(Workspace workspace) {
-    this.workspace = workspace;
-  }
-
-  /** Setter for remote service manager via declarative activation */
-  public void setRemoteServiceManager(ServiceRegistry manager) {
-    this.jobManager = manager;
-  }
 
   /**
    * {@inheritDoc}
@@ -538,6 +498,20 @@ public class CaptionServiceImpl implements CaptionService {
     } catch (ServiceRegistryException serviceRegException) {
       throw new CaptionConverterException("Unable to update job '" + job + "' in service registry", serviceRegException);
     }
+  }
+
+  /**
+   * Setter for workspace via declarative activation
+   */
+  void setWorkspace(Workspace workspace) {
+    this.workspace = workspace;
+  }
+
+  /**
+   * Setter for remote service manager via declarative activation
+   */
+  void setRemoteServiceManager(ServiceRegistry manager) {
+    this.jobManager = manager;
   }
 
 }

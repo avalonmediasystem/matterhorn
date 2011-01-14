@@ -38,7 +38,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.concurrent.Executors;
 
 public class DownloadDistributionServiceImplTest {
   
@@ -70,7 +69,6 @@ public class DownloadDistributionServiceImplTest {
     service.serviceUrl = UrlSupport.DEFAULT_BASE_URL;
     Workspace workspace = EasyMock.createNiceMock(Workspace.class);
     service.setWorkspace(workspace);
-    service.executor = Executors.newFixedThreadPool(1);
     
     EasyMock.expect(workspace.get((URI)EasyMock.anyObject())).andReturn(new File(mediaPackageRoot, "media.mov"));
     EasyMock.expect(workspace.get((URI)EasyMock.anyObject())).andReturn(new File(mediaPackageRoot, "dublincore.xml"));

@@ -64,8 +64,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Inspects media via the 3rd party MediaInfo tool by default, and can be configured to use other media analyzers.
@@ -79,32 +77,15 @@ public class MediaInspectionServiceImpl implements MediaInspectionService, JobPr
     Inspect, Enrich
   };
 
-  /** The configuration key for setting the number of worker threads */
-  public static final String CONFIG_THREADS = "concurrent.jobs";
-
-  /** The default worker thread pool size to use if no configuration is specified */
-  public static final int DEFAULT_THREADS = 1;
-
   /** The inspect job operation name */
   public static final String INSPECT_URL = "inspect";
 
   protected Workspace workspace;
   protected ServiceRegistry serviceRegistry;
-  protected ThreadPoolExecutor executor = null;
   protected Map<String, Object> analyzerConfig = new ConcurrentHashMap<String, Object>();
   protected MediaPackageElementBuilderFactory elementFactory = MediaPackageElementBuilderFactory.newInstance();
 
-  public void setWorkspace(Workspace workspace) {
-    logger.debug("setting " + workspace);
-    this.workspace = workspace;
-  }
-
-  public void setServiceRegistry(ServiceRegistry jobManager) {
-    this.serviceRegistry = jobManager;
-  }
-
   public void activate() {
-    executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(DEFAULT_THREADS);
     analyzerConfig.put(MediaInfoAnalyzer.MEDIAINFO_BINARY_CONFIG, MediaInfoAnalyzer.MEDIAINFO_BINARY_DEFAULT);
   }
 
@@ -122,18 +103,6 @@ public class MediaInspectionServiceImpl implements MediaInspectionService, JobPr
     if (path != null) {
       analyzerConfig.put(MediaInfoAnalyzer.MEDIAINFO_BINARY_CONFIG, path);
       logger.info("Setting the path to mediainfo to " + path);
-    }
-
-    // Set the number of concurrent threads
-    String threadsConfig = StringUtils.trimToNull((String) properties.get(CONFIG_THREADS));
-    if (threadsConfig != null) {
-      try {
-        int threads = Integer.parseInt(threadsConfig);
-        logger.info("Setting the maximum number of concurrent jobs to " + threads);
-        executor.setMaximumPoolSize(threads);
-      } catch (NumberFormatException e) {
-        logger.warn("Caption converter threads configuration is malformed: '{}'", threadsConfig);
-      }
     }
   }
 
@@ -676,6 +645,15 @@ public class MediaInspectionServiceImpl implements MediaInspectionService, JobPr
     } catch (ServiceRegistryException serviceRegException) {
       throw new MediaInspectionException("Unable to update job '" + job + "' in service registry", serviceRegException);
     }
+  }
+
+  void setWorkspace(Workspace workspace) {
+    logger.debug("setting " + workspace);
+    this.workspace = workspace;
+  }
+
+  void setServiceRegistry(ServiceRegistry jobManager) {
+    this.serviceRegistry = jobManager;
   }
 
 }

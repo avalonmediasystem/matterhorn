@@ -34,7 +34,6 @@ import org.opencastproject.workspace.api.Workspace;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +44,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Distributes media to the local media delivery directory.
@@ -79,9 +76,6 @@ public class DownloadDistributionService implements DistributionService, JobProd
   /** The workspace reference */
   protected Workspace workspace = null;
 
-  /** The executor service used to queue and run jobs */
-  protected ExecutorService executor = null;
-
   /**
    * Activate method for this OSGi service implementation.
    * 
@@ -89,19 +83,6 @@ public class DownloadDistributionService implements DistributionService, JobProd
    *          the OSGi component context
    */
   protected void activate(ComponentContext cc) {
-
-    int threads = 1;
-    String threadsConfig = StringUtils.trimToNull(cc.getBundleContext().getProperty(
-            "org.opencastproject.distribution.download.threads"));
-    if (threadsConfig != null) {
-      try {
-        threads = Integer.parseInt(threadsConfig);
-      } catch (NumberFormatException e) {
-        logger.warn("Download distribution threads configuration is malformed: '{}'", threadsConfig);
-      }
-    }
-    executor = Executors.newFixedThreadPool(threads);
-
     serviceUrl = cc.getBundleContext().getProperty("org.opencastproject.download.url");
     if (serviceUrl == null)
       throw new IllegalStateException("Download url must be set (org.opencastproject.download.url)");
@@ -111,16 +92,6 @@ public class DownloadDistributionService implements DistributionService, JobProd
       throw new IllegalStateException("Distribution directory must be set (org.opencastproject.download.directory)");
     this.distributionDirectory = new File(ccDistributionDirectory);
     logger.info("Download distribution directory is {}", distributionDirectory);
-  }
-
-  /**
-   * OSGi deactivation callback.
-   * 
-   * @param cc
-   *          the component context
-   */
-  protected void deactivate(ComponentContext cc) {
-    executor.shutdown();
   }
 
   /**

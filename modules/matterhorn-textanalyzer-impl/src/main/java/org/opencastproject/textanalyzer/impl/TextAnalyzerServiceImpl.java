@@ -60,8 +60,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Media analysis service that takes takes an image and returns text as extracted from that image.
@@ -79,12 +77,6 @@ public class TextAnalyzerServiceImpl implements TextAnalyzerService, JobProducer
   /** Resulting collection in the working file repository */
   public static final String COLLECTION_ID = "ocrtext";
 
-  /** The configuration key for setting the number of worker threads */
-  public static final String CONFIG_THREADS = "org.opencastproject.textanalyzer.threads";
-
-  /** The default worker thread pool size to use if no configuration is specified */
-  public static final int DEFAULT_THREADS = 1;
-
   /** Reference to the receipt service */
   private ServiceRegistry remoteServiceManager = null;
 
@@ -97,26 +89,10 @@ public class TextAnalyzerServiceImpl implements TextAnalyzerService, JobProducer
   /** The dictionary service */
   protected DictionaryService dictionaryService;
 
-  /** The executor service used to queue and run jobs */
-  protected ExecutorService executor = null;
-
   /** Path to the ocropus binary */
   private String ocropusbinary = OcropusTextAnalyzer.OCROPUS_BINARY_DEFAULT;
 
   protected void activate(ComponentContext cc) {
-
-    // Set the number of concurrent threads
-    int threads = DEFAULT_THREADS;
-    String threadsConfig = StringUtils.trimToNull(cc.getBundleContext().getProperty(CONFIG_THREADS));
-    if (threadsConfig != null) {
-      try {
-        threads = Integer.parseInt(threadsConfig);
-      } catch (NumberFormatException e) {
-        logger.warn("Download distribution threads configuration is malformed: '{}'", threadsConfig);
-      }
-    }
-    executor = Executors.newFixedThreadPool(threads);
-
     if (cc.getBundleContext().getProperty("org.opencastproject.textanalyzer.ocrocmd") != null)
       ocropusbinary = (String) cc.getBundleContext().getProperty("org.opencastproject.textanalyzer.ocrocmd");
   }
