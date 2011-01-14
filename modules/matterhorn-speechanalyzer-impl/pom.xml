@@ -1,0 +1,164 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.opencastproject</groupId>
+  <artifactId>matterhorn-speechanalyzer-impl</artifactId>
+  <packaging>bundle</packaging>
+  <name>matterhorn-speechanalyzer-impl</name>
+  <version>1.1-SNAPSHOT</version>
+  <parent>
+    <groupId>org.opencastproject</groupId>
+    <artifactId>base</artifactId>
+    <version>1.1-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <properties>
+    <matterhorn.basedir>${project.basedir}/../..</matterhorn.basedir>
+    <checkstyle.skip>false</checkstyle.skip>
+  </properties>
+  <dependencies>
+
+    <!-- Matterhorn dependencies -->
+
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-speechanalyzer-api</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-mpeg7</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-remote-api</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-composer-service-api</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-workspace-api</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-working-file-repository-service-api</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+
+    <!--  Thirdparty dependencies -->
+
+    <dependency>
+      <groupId>cmu.sphinx</groupId>
+      <artifactId>sphinx4</artifactId>
+      <version>4.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>cmu.sphinx</groupId>
+      <artifactId>jsapi</artifactId>
+      <version>4.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>cmu.sphinx</groupId>
+      <artifactId>HUB4_8gau_13dCep_16k_40mel_133Hz_6855Hz</artifactId>
+      <version>4.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.tritonus</groupId>
+      <artifactId>tritonus-share</artifactId>
+      <version>0.3.6</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>2.5.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.servicemix.specs</groupId>
+      <artifactId>org.apache.servicemix.specs.jaxb-api-2.1</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>osgi_R4_core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>osgi_R4_compendium</artifactId>
+    </dependency>
+
+    <!-- Testing -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.0.1</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <Export-Package>
+              org.opencastproject.speechanalyzer.impl
+              org.opencastproject.speechanalyzer.impl.endpoint
+            </Export-Package>
+            <Import-Package>
+              org.opencastproject.speechanalyzer.api,
+              *;resolution:=optional
+            </Import-Package>
+            <Embed-Dependency>
+              sphinx4,
+              jsapi,
+              TIDIGITS_8gau_13dCep_16k_40mel_130Hz_6800Hz,
+              tritonus-share
+            </Embed-Dependency>
+            <Service-Component>
+              OSGI-INF/speechanalyzer.xml
+            </Service-Component>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
