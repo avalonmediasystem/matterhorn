@@ -139,9 +139,9 @@ public class CountWorkflowsTest {
     WorkflowInstance workflow1 = null;
     synchronized (listener) {
       workflow1 = service.start(def, mp, initialProps);
-      listener.wait();
+      listener.wait(10000);
       service.start(def, mp, initialProps);
-      listener.wait();
+      listener.wait(10000);
     }
     service.removeWorkflowListener(listener);
 
@@ -159,7 +159,7 @@ public class CountWorkflowsTest {
     service.addWorkflowListener(listener);
     synchronized (listener) {
       service.resume(workflow1.getId());
-      listener.wait();
+      listener.wait(10000);
     }
     service.removeWorkflowListener(listener);
 

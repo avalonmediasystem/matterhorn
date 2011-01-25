@@ -132,7 +132,7 @@ public class PauseWorkflowTest {
     service.addWorkflowListener(pauseListener);
     synchronized (pauseListener) {
       workflow = service.start(def, mp, null);
-      pauseListener.wait();
+      pauseListener.wait(10000);
     }
 
     // Ensure that the first operation handler was called, but not the second
