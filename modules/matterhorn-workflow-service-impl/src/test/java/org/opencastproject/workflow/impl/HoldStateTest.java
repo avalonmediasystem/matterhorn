@@ -137,7 +137,7 @@ public class HoldStateTest {
     initialProps.put("testproperty", "foo");
     synchronized (pauseListener) {
       workflow = service.start(def, mp, initialProps);
-      pauseListener.wait(10000);
+      pauseListener.wait();
     }
     service.removeWorkflowListener(pauseListener);
 
@@ -155,7 +155,7 @@ public class HoldStateTest {
     service.addWorkflowListener(succeedListener);
     synchronized (succeedListener) {
       service.resume(workflow.getId(), resumeProps);
-      succeedListener.wait(10000);
+      succeedListener.wait();
     }
     service.removeWorkflowListener(succeedListener);
 
@@ -175,7 +175,7 @@ public class HoldStateTest {
     service.addWorkflowListener(pauseListener);
     synchronized (pauseListener) {
       workflow = service.start(def, mp);
-      pauseListener.wait(10000);
+      pauseListener.wait();
     }
 
     // Simulate a user resuming the workflow, but the handler still keeps the workflow in a hold state
@@ -184,7 +184,7 @@ public class HoldStateTest {
     // Resume the workflow again.  It should quickly reenter the paused state
     synchronized (pauseListener) {
       service.resume(workflow.getId());
-      pauseListener.wait(10000);
+      pauseListener.wait();
     }
 
     // remove the pause listener
@@ -200,7 +200,7 @@ public class HoldStateTest {
     service.addWorkflowListener(succeedListener);
     synchronized(succeedListener) {
       service.resume(workflow.getId());
-      succeedListener.wait(10000);
+      succeedListener.wait();
     }
     service.removeWorkflowListener(succeedListener);
     

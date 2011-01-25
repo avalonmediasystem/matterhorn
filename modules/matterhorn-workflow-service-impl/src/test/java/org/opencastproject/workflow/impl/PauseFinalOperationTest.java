@@ -126,7 +126,7 @@ public class PauseFinalOperationTest {
     service.addWorkflowListener(pauseListener);
     synchronized (pauseListener) {
       workflow = service.start(def, mp, null);
-      pauseListener.wait(10000);
+      pauseListener.wait();
     }
     service.removeWorkflowListener(pauseListener);
 
@@ -142,7 +142,7 @@ public class PauseFinalOperationTest {
     service.addWorkflowListener(succeedListener);
     synchronized (succeedListener) {
       service.resume(workflow.getId());
-      succeedListener.wait(10000);
+      succeedListener.wait();
     }
     service.removeWorkflowListener(succeedListener);
 

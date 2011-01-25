@@ -241,7 +241,7 @@ public class WorkflowStatisticsTest {
     // Wait for all the workflows to go into "paused" state
     synchronized (listener) {
       while (listener.countStateChanges() < WORKFLOW_DEFINITION_COUNT * OPERATION_COUNT) {
-        listener.wait(10000);
+        listener.wait();
       }
     }
     
@@ -255,7 +255,7 @@ public class WorkflowStatisticsTest {
       for (int k = 0; k <= (j % OPERATION_COUNT - 1); k++) {
         synchronized(instanceListener) {
           service.resume(instance.getId(), null);
-          instanceListener.wait(10000);
+          instanceListener.wait();
         }
       }
       j++;

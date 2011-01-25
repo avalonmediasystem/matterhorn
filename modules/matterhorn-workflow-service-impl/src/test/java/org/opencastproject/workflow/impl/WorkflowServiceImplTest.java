@@ -485,7 +485,7 @@ public class WorkflowServiceImplTest {
 
     while (stateListener.countStateChanges() < count) {
       synchronized (stateListener) {
-        stateListener.wait(10000);
+        stateListener.wait();
       }
     }
 
