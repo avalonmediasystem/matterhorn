@@ -75,6 +75,8 @@ public abstract class AbstractJobProducerEndpoint {
     } catch (InterruptedException e) {
       logger.info("Attempt to execute job {} interrupted", job);
     } catch (ExecutionException e) {
+      logger.warn("Service {} failed to accept job {}", new Object[] {service, job, e});
+      logger.warn("Initial cause", e);
       throw new WebApplicationException(Status.SERVICE_UNAVAILABLE);
     } catch (TimeoutException e) {
       logger.debug("Timed out waiting for a response.  This is expected.", job);

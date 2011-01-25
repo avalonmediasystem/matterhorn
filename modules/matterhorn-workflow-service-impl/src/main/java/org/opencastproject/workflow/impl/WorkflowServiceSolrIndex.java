@@ -233,14 +233,14 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
    *          the solr root directory
    */
   protected void setupSolr(File solrRoot) throws IOException, SolrServerException {
-    logger.info("Setting up solr search index at {}", solrRoot);
+    logger.debug("Setting up solr search index at {}", solrRoot);
     File solrConfigDir = new File(solrRoot, "conf");
 
     // Create the config directory
     if (solrConfigDir.exists()) {
-      logger.info("solr search index found at {}", solrConfigDir);
+      logger.debug("solr search index found at {}", solrConfigDir);
     } else {
-      logger.info("solr config directory doesn't exist.  Creating {}", solrConfigDir);
+      logger.debug("solr config directory doesn't exist.  Creating {}", solrConfigDir);
       FileUtils.forceMkdir(solrConfigDir);
     }
 
@@ -304,7 +304,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
         solrServer.commit();
       }
     } catch (Exception e) {
-      throw new WorkflowDatabaseException("unable to index workflow", e);
+      throw new WorkflowDatabaseException("Unable to index workflow", e);
     }
   }
 
@@ -331,7 +331,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     if (op == null) {
       doc.addField(OPERATION_KEY, NO_OPERATION_KEY);
     } else {
-      doc.addField(OPERATION_KEY, op.getId());
+      doc.addField(OPERATION_KEY, op.getTemplate());
     }
 
     MediaPackage mp = instance.getMediaPackage();
@@ -820,6 +820,20 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
   @Override
   public void update(WorkflowInstance instance) throws WorkflowDatabaseException {
     index(instance);
+  }
+
+  /**
+   * Clears the index of all workflow instances.
+   */
+  public void clear() throws WorkflowDatabaseException {
+    try {
+      synchronized (solrServer) {
+        solrServer.deleteByQuery("*:*");
+        solrServer.commit();
+      }
+    } catch (Exception e) {
+      throw new WorkflowDatabaseException(e);
+    }
   }
 
 }

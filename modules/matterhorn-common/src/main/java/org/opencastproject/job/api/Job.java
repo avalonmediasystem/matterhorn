@@ -84,6 +84,14 @@ public interface Job {
   List<String> getArguments();
 
   /**
+   * Sets the argument list.
+   * 
+   * @param arguments
+   *          the list of arguments
+   */
+  void setArguments(List<String> arguments);
+
+  /**
    * Gets the receipt's current {@link Status}
    * 
    * @return the current status
@@ -185,4 +193,5 @@ public interface Job {
    * @return the root job identifier
    */
   Long getRootJobId();
+
 }

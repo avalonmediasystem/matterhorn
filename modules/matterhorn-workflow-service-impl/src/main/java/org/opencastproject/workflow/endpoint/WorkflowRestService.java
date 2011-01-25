@@ -837,7 +837,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
     JSONArray jsonArray = new JSONArray();
     for (WorkflowOperationInstance op : operations) {
       JSONObject jsOp = new JSONObject();
-      jsOp.put("name", op.getId());
+      jsOp.put("name", op.getTemplate());
       jsOp.put("description", op.getDescription());
       jsOp.put("state", op.getState().name().toLowerCase());
       jsOp.put("configurations", getConfigsAsJson(op));

@@ -568,7 +568,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     if (!WorkflowInstance.WorkflowState.PAUSED.equals(workflow.getState())) {
       throw new SchedulerException("The workflow is not in the paused state, so it can not be updated");
     }
-    if (!SCHEDULE_OPERATION_ID.equals(scheduleOperation.getId())) {
+    if (!SCHEDULE_OPERATION_ID.equals(scheduleOperation.getTemplate())) {
       throw new SchedulerException("The workflow is not in the paused state, so it can not be updated");
     }
     MediaPackage mediapackage = workflow.getMediaPackage();

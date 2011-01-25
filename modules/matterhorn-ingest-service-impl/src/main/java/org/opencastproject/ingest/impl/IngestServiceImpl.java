@@ -376,7 +376,9 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
       throw new IngestException(e);
     } finally {
       try {
-        serviceRegistry.updateJob(job);
+        if (job != null) {
+          serviceRegistry.updateJob(job);
+        }
       } catch (Exception e) {
         throw new IngestException("Unable to update ingest job", e);
       }

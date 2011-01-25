@@ -260,12 +260,15 @@ public class ServiceRegistryEndpoint {
     String operation = request.getParameter("operation");
     String host = request.getParameter("host");
     String payload = request.getParameter("payload");
-    boolean start = StringUtils.isBlank(request.getParameter("start")) || Boolean.TRUE.toString().equalsIgnoreCase(request.getParameter("start"));
+    boolean start = StringUtils.isBlank(request.getParameter("start"))
+            || Boolean.TRUE.toString().equalsIgnoreCase(request.getParameter("start"));
     try {
       Job job = ((ServiceRegistryJpaImpl) serviceRegistry).createJob(host, jobType, operation, arguments, payload,
               start);
       URI uri = new URI(UrlSupport.concat(new String[] { serverUrl, servicePath, "job", job.getId() + ".xml" }));
       return Response.created(uri).entity(new JaxbJob(job)).build();
+    } catch (IllegalArgumentException e) {
+      throw new WebApplicationException(Status.BAD_REQUEST);
     } catch (Exception e) {
       throw new WebApplicationException(e);
     }
@@ -462,6 +465,8 @@ public class ServiceRegistryEndpoint {
             "Immediately start the job or simply queue it?"));
 
     createJobEndpoint.addStatus(org.opencastproject.util.doc.Status.created("Returns the new job."));
+    createJobEndpoint.addStatus(org.opencastproject.util.doc.Status
+            .badRequest("If any of the required parameters are missing."));
     createJobEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.WRITE, createJobEndpoint);
 

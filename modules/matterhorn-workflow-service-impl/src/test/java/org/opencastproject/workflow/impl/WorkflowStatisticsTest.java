@@ -21,6 +21,7 @@ import org.opencastproject.mediapackage.DefaultMediaPackageSerializerImpl;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilder;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
+import org.opencastproject.metadata.api.MediaPackageMetadataService;
 import org.opencastproject.serviceregistry.api.ServiceRegistryInMemoryImpl;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowDefinitionImpl;
@@ -115,11 +116,15 @@ public class WorkflowStatisticsTest {
       }
     };
 
+    MediaPackageMetadataService mds = EasyMock.createNiceMock(MediaPackageMetadataService.class);
+    EasyMock.replay(mds);
+    service.addMetadataService(mds);
+
     // Register the workflow definitions
     for (WorkflowDefinition workflowDefinition : workflowDefinitions) {
       service.registerWorkflowDefinition(workflowDefinition);
     }
-
+    
     // Mock the workspace
     workspace = EasyMock.createNiceMock(Workspace.class);
     EasyMock.expect(workspace.getCollectionContents((String) EasyMock.anyObject())).andReturn(new URI[0]);
@@ -156,7 +161,6 @@ public class WorkflowStatisticsTest {
 
   @After
   public void teardown() throws Exception {
-    System.out.println("All tests finished... tearing down...");
     dao.deactivate();
   }
 

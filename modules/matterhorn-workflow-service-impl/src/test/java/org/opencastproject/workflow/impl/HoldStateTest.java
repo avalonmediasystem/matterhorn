@@ -20,6 +20,7 @@ import org.opencastproject.mediapackage.DefaultMediaPackageSerializerImpl;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilder;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
+import org.opencastproject.metadata.api.MediaPackageMetadataService;
 import org.opencastproject.serviceregistry.api.ServiceRegistryInMemoryImpl;
 import org.opencastproject.workflow.api.AbstractWorkflowOperationHandler;
 import org.opencastproject.workflow.api.WorkflowDefinition;
@@ -36,6 +37,7 @@ import junit.framework.Assert;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -97,6 +99,10 @@ public class HoldStateTest {
         return handlerRegistrations;
       }
     };
+    MediaPackageMetadataService mds = EasyMock.createNiceMock(MediaPackageMetadataService.class);
+    EasyMock.replay(mds);
+    service.addMetadataService(mds);
+
 
     ServiceRegistryInMemoryImpl serviceRegistry = new ServiceRegistryInMemoryImpl();
     
@@ -118,7 +124,6 @@ public class HoldStateTest {
 
   @After
   public void teardown() throws Exception {
-    System.out.println("All tests finished... tearing down...");
     dao.deactivate();
   }
 

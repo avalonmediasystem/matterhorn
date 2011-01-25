@@ -15,20 +15,29 @@
  */
 package org.opencastproject.serviceregistry.api;
 
+import org.opencastproject.job.api.JaxbJob;
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.Job.Status;
-import org.opencastproject.job.api.JobImpl;
+import org.opencastproject.job.api.JobParser;
 import org.opencastproject.job.api.JobProducer;
 import org.opencastproject.util.NotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -51,11 +60,14 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
   /** The service registrations */
   protected Map<String, List<ServiceRegistrationInMemoryImpl>> services = new HashMap<String, List<ServiceRegistrationInMemoryImpl>>();
 
-  /** The jobs */
-  protected List<Job> jobs = new ArrayList<Job>();
+  /** The serialized jobs */
+  protected Map<Long, String> jobs = new HashMap<Long, String>();
 
-  /** The job dispatching thread */
-  protected JobDispatcher jobDispatcher = null;
+  /** The thread pool to use for dispatching queued jobs. */
+  protected ScheduledExecutorService dispatcher = Executors.newScheduledThreadPool(1);
+
+  /** The threads to execute the dispatching */
+  protected ThreadPoolExecutor dispatchWorker = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
   /** The job identifier */
   protected AtomicLong idCounter = new AtomicLong();
@@ -63,26 +75,23 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
   public ServiceRegistryInMemoryImpl(JobProducer service) throws ServiceRegistryException {
     if (service != null)
       registerService(service);
-    jobDispatcher = new JobDispatcher();
-    jobDispatcher.setTimeout(DEFAULT_DISPATCHER_TIMEOUT);
-    jobDispatcher.start();
+    // Schedule the job dispatching.
+    dispatcher.scheduleWithFixedDelay(new JobDispatcher(), 100, 100, TimeUnit.MILLISECONDS);
   }
 
   /**
    * Creates a new service registry in memory.
    */
   public ServiceRegistryInMemoryImpl() {
-    jobDispatcher = new JobDispatcher();
-    jobDispatcher.setTimeout(DEFAULT_DISPATCHER_TIMEOUT);
-    jobDispatcher.start();
+    // Schedule the job dispatching.
+    dispatcher.scheduleWithFixedDelay(new JobDispatcher(), 100, 100, TimeUnit.MILLISECONDS);
   }
 
   /**
    * This method shuts down the service registry.
    */
   public void dispose() {
-    jobDispatcher.stopRunning();
-    jobDispatcher.interrupt();
+    dispatcher.shutdownNow();
   }
 
   /**
@@ -127,6 +136,21 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
     ServiceRegistrationInMemoryImpl registration = new ServiceRegistrationInMemoryImpl(localService);
     servicesOnHost.add(registration);
     return registration;
+  }
+
+  /**
+   * Removes the job producer from the service registry.
+   * 
+   * @param localService
+   *          the service
+   * @throws ServiceRegistryException
+   *           if removing the service fails
+   */
+  public void unregisterService(JobProducer localService) throws ServiceRegistryException {
+    List<ServiceRegistrationInMemoryImpl> servicesOnHost = services.get(LOCALHOST);
+    if (servicesOnHost != null) {
+      servicesOnHost.remove(localService);
+    }
   }
 
   /**
@@ -241,9 +265,9 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
     if (getServiceRegistrationsByType(type).size() == 0)
       logger.warn("Service " + type + " not available");
 
-    JobImpl job = null;
+    JaxbJob job = null;
     synchronized (this) {
-      job = new JobImpl(idCounter.addAndGet(1));
+      job = new JaxbJob(idCounter.addAndGet(1));
       job.setJobType(type);
       job.setOperation(operation);
       job.setArguments(arguments);
@@ -255,11 +279,12 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
     }
 
     synchronized (jobs) {
-      jobs.add(job);
+      try {
+        jobs.put(job.getId(), JobParser.toXml(job));
+      } catch (IOException e) {
+        throw new IllegalStateException("Error serializing job " + job, e);
+      }
     }
-
-    jobDispatcher.interrupt();
-
     return job;
   }
 
@@ -298,7 +323,13 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
    */
   @Override
   public Job updateJob(Job job) throws NotFoundException, ServiceRegistryException {
-    // Nothing to do, everything is in memory only anyway
+    if (job == null)
+      throw new IllegalArgumentException("Job cannot be null");
+    try {
+      jobs.put(job.getId(), JobParser.toXml(job));
+    } catch (IOException e) {
+      throw new IllegalStateException("Error serializing job", e);
+    }
     return job;
   }
 
@@ -310,12 +341,15 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
   @Override
   public Job getJob(long id) throws NotFoundException, ServiceRegistryException {
     synchronized (jobs) {
-      for (Job job : jobs) {
-        if (id == job.getId())
-          return job;
+      String serializedJob = jobs.get(id);
+      if (serializedJob == null)
+        throw new NotFoundException(Long.toString(id));
+      try {
+        return JobParser.parseJob(serializedJob);
+      } catch (IOException e) {
+        throw new IllegalStateException("Error unmarshaling job", e);
       }
     }
-    throw new NotFoundException(Long.toString(id));
   }
 
   /**
@@ -328,7 +362,13 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
   public List<Job> getJobs(String serviceType, Status status) throws ServiceRegistryException {
     List<Job> result = new ArrayList<Job>();
     synchronized (jobs) {
-      for (Job job : jobs) {
+      for (String serializedJob : jobs.values()) {
+        Job job = null;
+        try {
+          job = JobParser.parseJob(serializedJob);
+        } catch (IOException e) {
+          throw new IllegalStateException("Error unmarshaling job", e);
+        }
         if (serviceType.equals(job.getJobType()) && status.equals(job.getStatus()))
           result.add(job);
       }
@@ -430,7 +470,13 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
   public long count(String serviceType, Status status) throws ServiceRegistryException {
     int count = 0;
     synchronized (jobs) {
-      for (Job job : jobs) {
+      for (String serializedJob : jobs.values()) {
+        Job job = null;
+        try {
+          job = JobParser.parseJob(serializedJob);
+        } catch (IOException e) {
+          throw new IllegalStateException("Error unmarshaling job", e);
+        }
         if (serviceType.equals(job.getJobType()) && status.equals(job.getStatus()))
           count++;
       }
@@ -448,7 +494,13 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
   public long count(String serviceType, Status status, String host) throws ServiceRegistryException {
     int count = 0;
     synchronized (jobs) {
-      for (Job job : jobs) {
+      for (String serializedJob : jobs.values()) {
+        Job job = null;
+        try {
+          job = JobParser.parseJob(serializedJob);
+        } catch (IOException e) {
+          throw new IllegalStateException("Error unmarshaling job", e);
+        }
         if (serviceType.equals(job.getJobType()) && status.equals(job.getStatus()))
           count++;
       }
@@ -470,13 +522,7 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
    * This dispatcher implementation will wake from time to time and check for new jobs. If new jobs are found, it will
    * dispatch them to the services as appropriate.
    */
-  class JobDispatcher extends Thread {
-
-    /** Running flag */
-    private boolean keepRunning = true;
-
-    /** Dispatcher timeout */
-    private long timeout = ServiceRegistryInMemoryImpl.DEFAULT_DISPATCHER_TIMEOUT;
+  class JobDispatcher implements Runnable {
 
     /**
      * {@inheritDoc}
@@ -485,52 +531,42 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
      */
     @Override
     public void run() {
-      while (keepRunning) {
-        try {
+      List<Future<?>> futures = new ArrayList<Future<?>>();
 
-          // Go through the jobs and find those that have not yet been dispatched
-          synchronized (jobs) {
-            for (Job job : jobs) {
-              if (Status.QUEUED.equals(job.getStatus())) {
-                job.setStatus(Status.RUNNING);
-                JobWorker worker = new JobWorker(job);
-                worker.start();
-              }
-            }
+      // Go through the jobs and find those that have not yet been dispatched
+      synchronized (jobs) {
+
+        for (String serializedJob : jobs.values()) {
+          Job job = null;
+          try {
+            job = JobParser.parseJob(serializedJob);
+          } catch (IOException e) {
+            throw new IllegalStateException("Error unmarshaling job", e);
           }
+          if (Status.QUEUED.equals(job.getStatus())) {
+            job.setStatus(Status.RUNNING);
+            JobWorker worker = new JobWorker(job);
+            futures.add(dispatchWorker.submit(worker));
+          }
+        }
+      }
 
-          Thread.sleep(timeout);
-        } catch (InterruptedException e) {
-          ServiceRegistryInMemoryImpl.logger.debug("Job dispatcher thread activated");
+      // Wait until all jobs that have been dispatched during this round are back
+      for (Future<?> future : futures) {
+        try {
+          future.get();
+        } catch (Exception e) {
+          // This indicates that an error is thrown during dispatch. Since that's already handled properly,
+          // there is nothing that needs to be done in this place.
         }
       }
     }
-
-    /**
-     * Tells the dispatcher thread to stop running.
-     */
-    public void stopRunning() {
-      keepRunning = false;
-      interrupt();
-    }
-
-    /**
-     * Sets the dispatcher timeout in miliseconds.
-     * 
-     * @param timeout
-     *          the timeout
-     */
-    public void setTimeout(long timeout) {
-      this.timeout = timeout;
-      interrupt();
-    }
-
   }
 
   /**
    * Thread that will try to execute a single job.
    */
-  class JobWorker extends Thread {
+  class JobWorker implements Runnable {
 
     /** The job to work on */
     private Job job = null;
@@ -565,6 +601,35 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
       }
     }
 
+  }
+
+  /**
+   * Shuts down this service registry, logging all jobs and their statuses.
+   */
+  public void deactivate() {
+    dispatchWorker.shutdownNow();
+    dispatcher.shutdownNow();
+    Map<Status, AtomicInteger> counts = new HashMap<Job.Status, AtomicInteger>();
+    synchronized (jobs) {
+      for (String serializedJob : jobs.values()) {
+        Job job = null;
+        try {
+          job = JobParser.parseJob(serializedJob);
+        } catch (IOException e) {
+          throw new IllegalStateException("Error unmarshaling job", e);
+        }
+        if (counts.containsKey(job.getStatus())) {
+          counts.get(job.getStatus()).incrementAndGet();
+        } else {
+          counts.put(job.getStatus(), new AtomicInteger(1));
+        }
+      }
+    }
+    StringBuilder sb = new StringBuilder("Abandoned:");
+    for (Entry<Status, AtomicInteger> entry : counts.entrySet()) {
+      sb.append(" " + entry.getValue() + " " + entry.getKey() + " jobs");
+    }
+    logger.info(sb.toString());
   }
 
 }

@@ -148,12 +148,11 @@ final class WorkflowOperationWorker {
       }
       service.handleOperationResult(workflow, result);
     } catch (Exception e) {
-      logger.error("Workflow operation '{}' failed with error: {}", handler, e.getMessage());
       Throwable t = e.getCause();
       if (t != null) {
-        logger.error("Original cause for the failure is: {}", t.getMessage(), t);
+        logger.error("Workflow operation '" + handler + "' failed", t);
       } else {
-        logger.error("Cause for the failure is", e);
+        logger.error("Workflow operation '" + handler + "' failed", e);
       }
       try {
         service.handleOperationException(workflow, e);
@@ -205,8 +204,8 @@ final class WorkflowOperationWorker {
       } else {
         if (handler == null) {
           // If there is no handler for the operation, yet we are supposed to run it, we must fail
-          logger.warn("No handler available to execute operation '{}'", operation.getId());
-          throw new IllegalStateException("Unable to find a workflow handler for '" + operation.getId() + "'");
+          logger.warn("No handler available to execute operation '{}'", operation.getTemplate());
+          throw new IllegalStateException("Unable to find a workflow handler for '" + operation.getTemplate() + "'");
         }
         result = handler.start(workflow, null);
       }
@@ -240,8 +239,8 @@ final class WorkflowOperationWorker {
     // Make sure we have a (suitable) handler
     if (handler == null) {
       // If there is no handler for the operation, yet we are supposed to run it, we must fail
-      logger.warn("No handler available to resume operation '{}'", operation.getId());
-      throw new IllegalStateException("Unable to find a workflow handler for '" + operation.getId() + "'");
+      logger.warn("No handler available to resume operation '{}'", operation.getTemplate());
+      throw new IllegalStateException("Unable to find a workflow handler for '" + operation.getTemplate() + "'");
     } else if (!(handler instanceof ResumableWorkflowOperationHandler)) {
       throw new IllegalStateException("An attempt was made to resume a non-resumable operation");
     }

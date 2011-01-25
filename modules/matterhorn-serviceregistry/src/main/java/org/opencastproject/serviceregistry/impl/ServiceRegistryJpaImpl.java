@@ -247,6 +247,13 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    */
   public Job createJob(String host, String serviceType, String operation, List<String> arguments, String payload,
           boolean enqueueImmediately) throws ServiceRegistryException {
+    if (StringUtils.isBlank(host))
+      throw new IllegalArgumentException("Host can't be null");
+    if (StringUtils.isBlank(serviceType))
+      throw new IllegalArgumentException("Service type can't be null");
+    if (StringUtils.isBlank(operation))
+      throw new IllegalArgumentException("Operation can't be null");
+
     EntityManager em = emf.createEntityManager();
     EntityTransaction tx = em.getTransaction();
     try {
@@ -987,6 +994,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     // Try the service registrations, after the first one finished, we quit
     JobJpaImpl jpaJob = ((JobJpaImpl) job);
     jpaJob.setStatus(Status.RUNNING);
+    boolean triedDispatching = false;
+    
     for (ServiceRegistration registration : registrations) {
       jpaJob.setProcessorServiceRegistration((ServiceRegistrationJpaImpl) registration);
       try {
@@ -995,6 +1004,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         logger.debug("Another service registry has already dispatched this job");
         return null;
       }
+
+      triedDispatching = true;
 
       String serviceUrl = UrlSupport
               .concat(new String[] { registration.getHost(), registration.getPath(), "dispatch" });
@@ -1021,21 +1032,34 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
                 jpaJob.getJobType(), registration.getHost() });
         response = client.execute(post);
         responseStatusCode = response.getStatusLine().getStatusCode();
-        if (responseStatusCode == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-          continue;
-        } else if (responseStatusCode == HttpStatus.SC_NO_CONTENT) {
+        if (responseStatusCode == HttpStatus.SC_NO_CONTENT) {
           return registration.getHost();
+        } else if (responseStatusCode == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+          logger.info("Service {} refused to accept {}", registration, job);
+          continue;
+        } else {
+          logger.warn("Service {} failed ({}) accepting {}", new Object[] {registration, responseStatusCode, job});
+          continue;
         }
+
       } catch (Exception e) {
         logger.warn("Unable to dispatch job {}", jpaJob.getId(), e);
       } finally {
         client.close(response);
       }
     }
+    
     // We've tried dispatching to every online service that can handle this type of job, with no luck.
-    jpaJob.setStatus(Status.QUEUED);
-    jpaJob.setProcessorServiceRegistration(null);
-    updateJob(jpaJob);
+    if (triedDispatching) {
+      try {
+        jpaJob.setStatus(Status.QUEUED);
+        jpaJob.setProcessorServiceRegistration(null);
+        updateJob(jpaJob);
+      } catch (Exception e) {
+        logger.error("Unable to put job back into queue", e);
+      }
+    }
+    
     return null;
   }
 

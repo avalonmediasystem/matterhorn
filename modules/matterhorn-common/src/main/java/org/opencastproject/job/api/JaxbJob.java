@@ -40,6 +40,17 @@ public class JaxbJob implements Job {
   }
 
   /**
+   * Constructs a JaxbJob with a specific identifier
+   * 
+   * @param id
+   *          the job id
+   */
+  public JaxbJob(Long id) {
+    this();
+    this.id = id;
+  }
+
+  /**
    * Constructs a JaxbJob from an existing job
    * 
    * @param job
