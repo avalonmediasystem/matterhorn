@@ -165,6 +165,8 @@ echo >> $LOG_FILE
 echo "# Installed packages" >> $LOG_FILE
 [[ -e $PKG_BACKUP ]] && echo "$(cat $PKG_BACKUP)" >> $LOG_FILE
 
+echo -n pwd
+
 # Setup felix
 echo -n "Downloading Felix... "
 while [[ true ]]; do 
@@ -174,7 +176,7 @@ while [[ true ]]; do
     # On success, uncompress the felix files in their location
     if [[ $? -eq 0 ]]; then
 	echo -n "Uncompressing... "
-	dir_name=$(tar tzf ${FELIX_FILENAME} | head -1 | grep -o '.*\/')
+	dir_name=$(tar tzf ${FELIX_FILENAME} | grep -o '[^/]*' | head -1)
 	tar xzf ${FELIX_FILENAME}
 	if [[ $? -eq 0 ]]; then
 	    rm -rf $FELIX_HOME
