@@ -111,7 +111,7 @@ export DEFAULT_QUEUE_SIZE=512
 export EPIPHAN_URL=http://www.epiphan.com/downloads/linux
 
 # Name of the file containing the felix files
-export FELIX_FILENAME=org.apache.felix.main.distribution-2.0.4.tar.gz
+export FELIX_FILENAME=org.apache.felix.main.distribution-3.0.7.tar.gz
 # URL where the previous file can be fetched
 export FELIX_URL=http://archive.apache.org/dist/felix/$FELIX_FILENAME
 # Subdir under the user home where FELIX_HOME is
