@@ -386,6 +386,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     fromDb.setStatus(job.getStatus());
     fromDb.setVersion(job.getVersion());
     fromDb.setOperation(job.getOperation());
+    fromDb.setArguments(job.getArguments());
     if (job.getDateCreated() == null) {
       job.setDateCreated(now);
       fromDb.setDateCreated(now);

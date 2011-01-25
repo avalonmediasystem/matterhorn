@@ -796,8 +796,8 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
     workflowInstance = updateConfiguration(workflowInstance, properties);
     update(workflowInstance);
 
-    Long currentOperationJob = workflowInstance.getCurrentOperation().getId();
-    if (currentOperationJob == null) {
+    Long operationJobId = workflowInstance.getCurrentOperation().getId();
+    if (operationJobId == null) {
       throw new IllegalStateException("Can not resume a workflow where the current operation has no associated id");
     }
 
@@ -809,18 +809,18 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       workflowJob.setPayload(WorkflowParser.toXml(workflowInstance));
       serviceRegistry.updateJob(workflowJob);
 
-      Job currentJob = serviceRegistry.getJob(currentOperationJob);
-      currentJob.setStatus(Status.QUEUED);
+      Job operationJob = serviceRegistry.getJob(operationJobId);
+      operationJob.setStatus(Status.QUEUED);
       if (properties != null) {
         Properties props = new Properties();
         props.putAll(properties);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         props.store(out, null);
-        List<String> newArguments = new ArrayList<String>(currentJob.getArguments());
+        List<String> newArguments = new ArrayList<String>(operationJob.getArguments());
         newArguments.add(new String(out.toByteArray(), "ISO-8859-1"));
-        currentJob.setArguments(newArguments);
+        operationJob.setArguments(newArguments);
       }
-      serviceRegistry.updateJob(currentJob);
+      serviceRegistry.updateJob(operationJob);
     } catch (ServiceRegistryException e) {
       throw new WorkflowDatabaseException(e);
     } catch (IOException e) {
