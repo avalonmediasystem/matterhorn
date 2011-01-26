@@ -850,7 +850,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
 
       // Take the least loaded one (first in line)
       ServiceRegistration ingestService = ingestServices.get(0);
-      url = new URL(UrlSupport.concat(ingestService.getHost(), ingestService.getPath()));
+      url = new URL(UrlSupport.concat(ingestService.getHost(), ingestService.getPath()+"/addZippedMediaPackage"));
     } catch (ServiceRegistryException e) {
       logger.warn("Unable to ingest media because communication with the remote service registry failed.", e);
       return -4;
