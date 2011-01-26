@@ -101,6 +101,7 @@ CREATE TABLE job (
     payload text,
     datestarted timestamp without time zone,
     runtime bigint,
+    properties bytea,
     instance_version bigint,
     datecompleted timestamp without time zone,
     operation character varying(255),
