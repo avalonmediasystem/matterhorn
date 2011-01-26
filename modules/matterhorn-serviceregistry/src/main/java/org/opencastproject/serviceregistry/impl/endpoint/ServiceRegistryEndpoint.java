@@ -327,8 +327,8 @@ public class ServiceRegistryEndpoint {
   @Produces(MediaType.TEXT_PLAIN)
   public long count(@QueryParam("serviceType") String serviceType, @QueryParam("status") Job.Status status,
           @QueryParam("host") String host) {
-    if (isBlank(serviceType) || status == null) {
-      throw new WebApplicationException(Response.serverError().entity("service type and status must not be null.")
+    if (isBlank(serviceType)) {
+      throw new WebApplicationException(Response.serverError().entity("Service type must not be null")
               .build());
     }
     try {
