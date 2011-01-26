@@ -34,6 +34,7 @@ import org.opencastproject.util.doc.Param.Type;
 import org.opencastproject.util.doc.RestEndpoint;
 import org.opencastproject.util.doc.RestTestForm;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -228,7 +229,7 @@ public class SchedulerRestService {
   public Response addEvent(@FormParam("event") EventImpl event) {
     logger.debug("addEvent(e): {}", event);
     try {
-      if (event.getRecurrencePattern() != null && !event.getRecurrencePattern().isEmpty()) {
+      if (StringUtils.isNotEmpty(event.getRecurrencePattern())) {
         // try to create event and it's recurrences
         service.addRecurringEvent(event);
         return Response.status(Status.CREATED).build();
@@ -407,8 +408,10 @@ public class SchedulerRestService {
   @POST
   @Produces(MediaType.TEXT_XML)
   @Path("conflict.xml")
-  public Response getConflictingEventsXml(@FormParam("event") EventImpl event) {
-    return getConflictingEvents(event);
+  public Response getConflictingEventsXml(@FormParam("device") String device, 
+      @FormParam("start") Long startDate, @FormParam("end") Long endDate,
+      @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
+    return getConflictingEvents(device, new Date(startDate), new Date(endDate), duration, rrule);
   }
 
   /**
@@ -421,14 +424,22 @@ public class SchedulerRestService {
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path("conflict.json")
-  public Response getConflictingEventsJson(@FormParam("event") EventImpl event) {
-    return getConflictingEvents(event);
+  public Response getConflictingEventsJson(@FormParam("device") String device, 
+      @FormParam("start") Long startDate, @FormParam("end") Long endDate,
+      @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
+    logger.info("Checking for conflicts");
+    return getConflictingEvents(device, new Date(startDate), new Date(endDate), duration, rrule);
   }
 
-  private Response getConflictingEvents(EventImpl event) {
-    if (event != null) {
+  private Response getConflictingEvents(String device, Date startDate, Date endDate, Long duration, String rrule) {
+    if (StringUtils.isNotEmpty(device) && startDate != null && endDate != null && duration > 0) {
       try {
-        List<Event> events = service.findConflictingEvents(event);
+        List<Event> events = null;
+        if (StringUtils.isNotEmpty(rrule)) {
+          events = service.findConflictingEvents(device, rrule, startDate, endDate, duration);
+        } else {
+          events = service.findConflictingEvents(device, startDate, endDate);
+        }
         if (!events.isEmpty()) {
           EventListImpl eventList = new EventListImpl(events);
           return Response.ok(eventList).build();
@@ -436,7 +447,10 @@ public class SchedulerRestService {
           return Response.noContent().type("").build();
         }
       } catch (Exception e) {
-        logger.error("Unable to find conflicting events for {}: {}", event, e);
+        logger.error("Unable to find conflicting events for " + device + ", " 
+            + startDate.toString() + ", " 
+            + endDate.toString() + ", " 
+            + String.valueOf(duration) + ":", e);
         return Response.serverError().build();
       }
     } else {

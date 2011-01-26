@@ -32,7 +32,12 @@ import org.opencastproject.workflow.api.WorkflowOperationInstance;
 import org.opencastproject.workflow.api.WorkflowParser;
 import org.opencastproject.workflow.api.WorkflowService;
 
+import net.fortuna.ical4j.model.DateList;
+import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.ValidationException;
+import net.fortuna.ical4j.model.parameter.Value;
+import net.fortuna.ical4j.model.property.RRule;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -60,14 +65,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-/*
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.EntityType;
-*/
 import javax.persistence.spi.PersistenceProvider;
 
 /**
@@ -404,12 +401,12 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       where.add("e.series LIKE :seriesParam");
     }
     
-    if (filter.getStart() != null && filter.getStop() != null) { // Events with dates between start and stop
-      where.add("e.startDate > :startParam AND e.endDate < :endParam");
+    if (filter.getStart() != null && filter.getStop() != null) { // Events intersecting start and stop
+      where.add("e.startDate < :stopParam AND e.endDate > :startParam");
     } else if (filter.getStart() != null && filter.getStop() == null) { // All events with dates after start
       where.add("e.startDate > :startParam");
     } else if (filter.getStart() == null && filter.getStop() != null) { // All events with dates before end
-      where.add("e.startDate < :endParam");
+      where.add("e.startDate < :stopParam");
     }
     
     queryBase.append(StringUtils.join(where, " AND "));
@@ -637,8 +634,35 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * @param e
    * @return A list of events that conflict with the start, or end dates of provided event.
    */
-  public List<Event> findConflictingEvents(Event e) {
-    return null;
+  public List<Event> findConflictingEvents(String device, Date startDate, Date endDate) {
+    SchedulerFilter filter = new SchedulerFilter();
+    filter.withDeviceFilter(device).withStart(startDate).withStop(endDate);
+    return getEvents(filter);
+  }
+  
+  public List<Event> findConflictingEvents(String device, String rrule, Date startDate, Date endDate, Long duration) 
+    throws ParseException, ValidationException {
+    RRule rule = new RRule(rrule);
+    rule.validate();
+    Recur recur = rule.getRecur();
+    DateTime start = new DateTime(startDate.getTime());
+    start.setUtc(true);
+    DateTime end = new DateTime(endDate.getTime());
+    end.setUtc(true);
+    DateList dates = recur.getDates(start, end, Value.DATE_TIME);
+    List<Event> events = new ArrayList<Event>();
+    
+    for (Object d : dates) {
+      Date filterStart = (Date) d;
+      SchedulerFilter filter = new SchedulerFilter()
+        .withDeviceFilter(device)
+        .withStart(filterStart)
+        .withStop(new Date(filterStart.getTime() + duration));
+      List<Event> filterEvents = getEvents(filter);
+      events.addAll(filterEvents);
+    }
+    
+    return events;
   }
 
   public void destroy() {

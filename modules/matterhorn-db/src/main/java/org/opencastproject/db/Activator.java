@@ -89,6 +89,7 @@ public class Activator implements BundleActivator {
       datasourceRegistration = bundleContext.registerService(DataSource.class.getName(), pooledDataSource, null);
     } catch (SQLException e) {
       logger.error("Connection attempt to {} failed", jdbcUrl);
+      logger.error("Exception: ", e);
       throw e;
     } finally {
       if (connection != null)

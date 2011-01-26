@@ -76,6 +76,7 @@ ocScheduler.init = function(){
   //Editing setup
   var eventId = ocUtils.getURLParam('eventId');
   if(eventId && ocUtils.getURLParam('edit')){
+    ocScheduler.mode = EDIT_MODE;
     document.title = i18n.window.edit + " " + i18n.window.prefix;
     $('#i18n_page_title').text(i18n.page.title.edit);
     $('#eventId').val(eventId);
@@ -481,61 +482,63 @@ ocScheduler.EventSubmitComplete = function(xhr, status){
 }
 
 ocScheduler.CheckForConflictingEvents = function(){
-  var event, endpoint, data;
+  var start, end;
+  var data = {
+    device: '',
+    start: 0,
+    end: 0,
+    duration: 0,
+    rrule: ''
+  };
   ocScheduler.conflictingEvents = false;
-  if($('#noticeConflict').siblings(':visible').length === 0){
-    $('#noticeContainer').hide();
-  }
-  $('#noticeConflict').hide();
+  $('#missingFieldsContainer').hide();
+  $('#missingFieldsContainer li').hide();
+  $('#errorConflict').hide();
   $('#conflictingEvents').empty();
   if(ocScheduler.components.device.validate()){
-    event = '<metadata><key>device</key><value>' + ocScheduler.components.device.getValue() + '</value></metadata>';
+    data.device = ocScheduler.components.device.getValue()
   }else{
     return false;
   }
   if(ocScheduler.type === SINGLE_EVENT){
     if(ocScheduler.components.startDate.validate() && ocScheduler.components.duration.validate()){
-      event = '<event><metadataList>' + event;
-      event += '<metadata><key>timeStart</key><value>' + ocScheduler.components.startDate.getValue() + '</value></metadata>';
-      event += '<metadata><key>timeEnd</key><value>' + ocScheduler.components.duration.getValue() + '</value></metadata></metadataList></event>';
-      endpoint = '/event/conflict.xml';
-      data = {event: event};
+      data.start = ocScheduler.components.startDate.getValue();
+      data.duration = ocScheduler.components.duration.getValue();
+      data.end = data.start + data.duration;
     }else{
       return false;
     }
   }else if(ocScheduler.type === MULTIPLE_EVENTS){
     if(ocScheduler.components.recurrenceStart.validate() && ocScheduler.components.recurrenceEnd.validate() &&
        ocScheduler.components.recurrence.validate() && ocScheduler.components.recurrenceDuration.validate()){
-      event = '<recurringEvent><recurrence>' + ocScheduler.components.recurrence.getValue() + '</recurrence><metadataList>' + event;
-      event += '<metadata><key>recurrenceStart</key><value>' + ocScheduler.components.recurrenceStart.getValue() + '</value></metadata>';
-      event += '<metadata><key>recurrenceEnd</key><value>' + ocScheduler.components.recurrenceEnd.getValue() + '</value></metadata>';
-      event += '<metadata><key>recurrenceDuration</key><value>' + (ocScheduler.components.recurrenceDuration.getValue()) + '</value></metadata>';
-      event += '</metadataList></recurringEvent>';
-      endpoint = '/recurring/conflict.xml';
-      data = {recurringEvent: event};
+      data.start = ocScheduler.components.recurrenceStart.getValue();
+      data.end = ocScheduler.components.recurrenceEnd.getValue();
+      data.duration = ocScheduler.components.recurrenceDuration.getValue();
+      data.rrule = ocScheduler.components.recurrence.getValue();
     }else{
       return false;
     }
   }
-  $.post(SCHEDULER_URL + endpoint, data, function(doc){
-    if($('event', doc).length > 0){
-      $.each($('event', doc), function(i,event){
-        var id, title;
-        id = $('eventId', event).text();
-        $.each($('completeMetadata > metadata', event), function(j,metadata){
-          if($('key', metadata).text() === 'title'){
-            title = $('value', metadata).text();
-            return true;
-          }
-        });
-        if(id !== $('#eventId').val()){
-          $('#conflictingEvents').append('<li><a href="scheduler.html?eventId=' + id + '&edit" target="_new">' + title + '</a></li>');
-          ocScheduler.conflictingEvents = true;
+  $.post(SCHEDULER_URL + "/conflict.json", data, function(data){
+    var events = [];
+    if(data != '') {
+      ocScheduler.conflictingEvents = true;
+      if(!$.isArray(data.events.event)){
+        events.push(data.events.event);
+        if(ocScheduler.mode === EDIT_MODE && $('#eventId').val() === events[0].id) {
+          return;
         }
-      });
+      } else {
+        events = data.events.event;
+      }
+      for(i in events) {
+        if(ocScheduler.mode === EDIT_MODE && $('#eventId').val() !== events[i].id) {
+          $('#conflictingEvents').append('<li><a href="scheduler.html?eventId=' + events[i].id + '&edit=true" target="_new">' + events[i].title + '</a></li>');
+        }
+      }
       if(ocScheduler.conflictingEvents){
-        $('#noticeContainer').show();
-        $('#noticeConflict').show();
+        $('#missingFieldsContainer').show();
+        $('#errorConflict').show();
       }
     }
   });

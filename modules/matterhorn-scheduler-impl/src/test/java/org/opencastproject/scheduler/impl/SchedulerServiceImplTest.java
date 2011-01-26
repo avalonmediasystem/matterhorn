@@ -232,15 +232,15 @@ public class SchedulerServiceImplTest {
     
     aEvent.setStartDate(new Date(System.currentTimeMillis() + 10000)); //start now + 10 seconds
     aEvent.setEndDate(new Date(System.currentTimeMillis() + 3610000)); //end hour and 10 seconds from now
-    bEvent.setStartDate(new Date(System.currentTimeMillis() + (12 * 60 * 60 * 1000))); //start 12 hours from now
-    bEvent.setEndDate(new Date(System.currentTimeMillis() + (13 * 60 * 60 * 1000))); //end 13 hours from now
+    bEvent.setStartDate(new Date(System.currentTimeMillis() + (24 * 60 * 60 * 1000))); //start 24 hours from now
+    bEvent.setEndDate(new Date(System.currentTimeMillis() + (25 * 60 * 60 * 1000))); //end 25 hours from now
     cEvent.setStartDate(new Date(System.currentTimeMillis() - (60 * 60 * 1000))); //start an hour ago
     cEvent.setEndDate(new Date(System.currentTimeMillis() - (10 * 60 * 1000))); //end 10 minutes ago
     dEvent.setStartDate(new Date(System.currentTimeMillis() + 10000)); //same as aEvent
     dEvent.setEndDate(new Date(System.currentTimeMillis() + 3610000)); //same as aEvent
     
     aEvent.setDevice("Device A");
-    bEvent.setDevice("device a");
+    bEvent.setDevice("Device A");
     cEvent.setDevice("Device C");
     dEvent.setDevice("Device D");
     
@@ -462,7 +462,6 @@ public class SchedulerServiceImplTest {
   
   @Test
   public void testSchedulerFilter() throws Exception {
-    
     service.addEvent(aEvent);
     service.addEvent(bEvent);
     service.addEvent(cEvent);
@@ -472,12 +471,29 @@ public class SchedulerServiceImplTest {
     Assert.assertEquals(4, events.size());
     
     events = service.getEvents(new SchedulerFilter().withDeviceFilter("Device A"));
-    Assert.assertEquals(1, events.size());
+    Assert.assertEquals(2, events.size());
     
     events = service.getEvents(new SchedulerFilter().withCreatorFilter("PERSON B"));
     Assert.assertEquals(1, events.size());
     
     events = service.getEvents(new SchedulerFilter().withSeriesFilter("series a"));
     Assert.assertEquals(1, events.size());
+  }
+  
+  @Test
+  public void testFindConflictingEvents() throws Exception {
+    Date start = new Date(System.currentTimeMillis());
+    Date end = new Date(System.currentTimeMillis() + (60 * 60 * 1000));
+    
+    List<Event> events = service.findConflictingEvents("Some Other Device", start, end);
+    Assert.assertEquals(0, events.size());
+    
+    events = service.findConflictingEvents("Device A", start, end);
+    Assert.assertEquals(1, events.size());
+    
+    events = service.findConflictingEvents("Device A", 
+        "FREQ=WEEKLY;BYDAY=SU,MO,TU,WE,TH,FR,SA", 
+        start, new Date(start.getTime() + (48 * 60 * 60 * 1000)), new Long(36000));
+    Assert.assertEquals(2, events.size());
   }
 }

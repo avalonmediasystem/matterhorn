@@ -15,9 +15,13 @@
  */
 package org.opencastproject.scheduler.api;
 
+import net.fortuna.ical4j.model.ValidationException;
+
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 
 public interface SchedulerService {
@@ -143,10 +147,21 @@ public interface SchedulerService {
   void updateEvents(List<Long> eventIdList, Event e) throws NotFoundException, SchedulerException;
 
   /**
-   * @param e
+   * @param device
+   * @param startDate
+   * @param endDate
    * @return A list of events that conflict with the start, or end dates of provided event.
    */
-  List<Event> findConflictingEvents(Event e);
+  List<Event> findConflictingEvents(String device, Date startDate, Date endDate);
+  
+  /**
+   * @param device
+   * @param rrule
+   * @param duration
+   * @return A list of events that conflict with the start, or end dates of provided event.
+   */
+  List<Event> findConflictingEvents(String device, String rrule, Date startDate, Date endDate, Long duration)
+    throws ParseException, ValidationException;
 
   /**
    * 
