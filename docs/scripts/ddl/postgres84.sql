@@ -110,7 +110,9 @@ CREATE TABLE job (
     creator_svc_type character varying(255),
     creator_host character varying(255),
     processor_svc_type character varying(255),
-    processor_host character varying(255)
+    processor_host character varying(255),
+    rootjob_id bigint,
+    parentjob_id bigint
 );
 
 CREATE TABLE job_arg (
@@ -177,6 +179,9 @@ ALTER TABLE ONLY job
 
 ALTER TABLE ONLY job
     ADD CONSTRAINT fk_job_processor_svc_type FOREIGN KEY (processor_svc_type, processor_host) REFERENCES service_registration(service_type, host);
+
+ALTER TABLE ONLY job
+    ADD CONSTRAINT fk_job_rootjob_id FOREIGN KEY (rootjob_id) REFERENCES job(id);
 
 ALTER TABLE ONLY service_registration
     ADD CONSTRAINT fk_service_registration_host FOREIGN KEY (host) REFERENCES host_registration(host);
