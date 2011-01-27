@@ -381,7 +381,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       logger.debug("returning all events");
       return getAllEvents();
     }
-    StringBuilder queryBase = new StringBuilder("SELECT e FROM Event e WHERE ");
+    StringBuilder queryBase = new StringBuilder("SELECT e FROM Event e");
     ArrayList<String> where = new ArrayList<String>();
     EntityManager em = emf.createEntityManager();
     
@@ -409,7 +409,9 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       where.add("e.startDate < :stopParam");
     }
     
-    queryBase.append(StringUtils.join(where, " AND "));
+    if(where.size() > 0) {
+      queryBase.append(" WHERE " + StringUtils.join(where, " AND "));
+    }
     
     if (filter.getOrder() != null) {
       if (filter.isOrderAscending()) {

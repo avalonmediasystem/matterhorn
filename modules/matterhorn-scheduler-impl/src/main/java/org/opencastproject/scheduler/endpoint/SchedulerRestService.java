@@ -390,12 +390,30 @@ public class SchedulerRestService {
 
   private Response filterEvents(String contributor, String creator, String device, String series, Long startDate,
           String title, boolean isAsc) {
-    /*
-     * if (filter != null) { try { logger.debug("Filter events with {}",filter); EventListImpl eventList = new
-     * EventListImpl(service.getEvents(filter)); return Response.ok(eventList).type("").build(); } catch (Exception e) {
-     * return Response.serverError().build(); } } else { return Response.status(Status.BAD_REQUEST).build(); }
-     */
-    return Response.status(Status.BAD_REQUEST).build();
+    SchedulerFilter filter = new SchedulerFilter().withCreatorFilter(creator)
+      .withDeviceFilter(device)
+      .withSeriesFilter(series);
+    
+      if(startDate != null) {
+        filter.withStart(new Date(startDate));
+      } else {
+        filter.withStart(new Date(System.currentTimeMillis()));
+      }
+
+      filter.withTitleFilter(title)
+      .withOrderAscending("title", isAsc);
+    try {
+      List<Event> events = service.getEvents(filter);
+      if (!events.isEmpty()) {
+        EventListImpl eventList = new EventListImpl(events);
+        return Response.ok(eventList).build();
+      } else {
+        return Response.noContent().type("").build();
+      }
+    } catch (Exception e) {
+      logger.error("Exception while filtering events: ", e);
+      return Response.serverError().build();
+    }
   }
 
   /**
@@ -646,7 +664,7 @@ public class SchedulerRestService {
             "filterEvents",
             RestEndpoint.Method.POST,
             "/filter/events",
-            "returns scheduled events, that pass the filter.\nfilter: an xml definition of the filter. Tags that are not included will noct be filtered. Possible values for order by are title,creator,series,time-asc,time-desc,contributor,channel,location,device");
+            "returns scheduled events, that pass the filter.\nfilter: an xml definition of the filter. Tags that are not included will noct be filtered. Possible values for order by are title,creator,series,startDate,contributor,device");
     filterEventsEndpoint.addFormat(Format
             .xml("XML representation of a list of the events conforming to the supplied filter."));
     filterEventsEndpoint.addFormat(Format

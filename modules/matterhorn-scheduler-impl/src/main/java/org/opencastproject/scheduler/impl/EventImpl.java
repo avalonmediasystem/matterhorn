@@ -660,7 +660,7 @@ public class EventImpl implements Event {
   }
 
   public List<Event> createEventsFromRecurrence() throws ParseException, IncompleteDataException {
-    if (StringUtils.isNotEmpty(getRecurrencePattern())) {
+    if (StringUtils.isEmpty(getRecurrencePattern())) {
       throw new IncompleteDataException("Event has no recurrence pattern.");
     }
     Recur recur = new RRule(getRecurrencePattern()).getRecur();
