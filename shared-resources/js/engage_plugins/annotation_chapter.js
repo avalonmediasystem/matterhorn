@@ -4,6 +4,9 @@ var Opencast = Opencast || {};
 
 /**
  * @namespace the global Opencast namespace annotation_chapter delegate. This file contains the rest endpoint and passes the data to the annotation_chapter plugin
+ * description AnnotationType can be defined according to your needs. The type can be specified as described in: ../..annotation/docs
+ * this plugin is an example for annotation handling in engage;
+ * it allows a user to attach chapters/segments in a video wich do not include segments from a previous media analysis
  */
 Opencast.Annotation_Chapter = (function ()
 {
@@ -11,7 +14,10 @@ Opencast.Annotation_Chapter = (function ()
     var annotationChapterDisplayed = false;
     var ANNOTATION_CHAPTER = "Annotation",
         ANNOTATION_CHAPTERHIDE = "Annotation off";
-    var annotationDataURL = '../../annotation/annotations.json'; // Test-Data at "js/engage_plugins/demodata/annotation_demo.json"
+    
+    
+    var annotationType = "chapter";
+    var annotationDataURL = '../../annotation/annotations.json'; // Test-Data can be found: "js/engage_plugins/demodata/annotation_demo.json"
     
     /**
      * @memberOf Opencast.Annotation_Chapter
@@ -24,7 +30,7 @@ Opencast.Annotation_Chapter = (function ()
         $.ajax(
         {
             url: annotationDataURL,
-            data: 'id=' + mediaPackageId,
+            data: 'episode=' + mediaPackageId + '&type=' + annotationType,
             dataType: 'json',
             jsonp: 'jsonp',
             success: function (data)
@@ -35,15 +41,15 @@ Opencast.Annotation_Chapter = (function ()
                     return;
                 }
                 // Don't display anything + make unavailable
-                $("#annotation").html("No Annotations available");
+                $("#annotation").html("No annotations available");
                 $('#oc_checkbox-annotations').removeAttr("checked");
-                $('#oc_checkbox-annotations').attr('disabled', true);
+                $('#oc_checkbox-annotations').attr('disabled', true); 
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
                 // Don't display anything
-                $("#annotation").html("No Annotations available");
+                $("#annotation").html("No annotations available");
                 $('#oc_checkbox-annotations').removeAttr("checked");
                 hideAnnotation_Chapter();
             }
