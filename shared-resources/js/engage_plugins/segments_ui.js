@@ -132,32 +132,23 @@ Opencast.segments_ui = (function ()
                         data['search-results'].result.segments.segment[i].durationIncludingSegment = completeDuration;
                     });
                 }
+                // Check if any Media.tracks are available
                 if((data['search-results'].result.mediapackage.media !== undefined) && (data['search-results'].result.mediapackage.media.track.length > 0))
                 {
+                    // Check if the File is a Video
+                    var isVideo = false;
                     $.each(data['search-results'].result.mediapackage.media.track, function (i, value)
                     {
-                        // Set preceding Sibling's Type and Mimetype
-                        if(i > 0)
+                        if(!isVideo && Opencast.Utils.startsWith(this.mimetype, 'video'))
                         {
-                            this.precedingSiblingType = data['search-results'].result.mediapackage.media.track[i - 1].type;
-                            this.precedingSiblingMimetypeIsVideo = Opencast.Utils.startsWith(data['search-results'].result.mediapackage.media.track[i - 1].mimetype, "video");
-                        } else
-                        {
-                            this.precedingSiblingType = 'none';
-                            this.precedingSiblingMimetypeIsVideo = false;
-                        }
-                        // Set following Sibling's Type and Mimetype
-                        if(i < (data['search-results'].result.mediapackage.media.track.length - 1))
-                        {
-                            this.followingSiblingType = data['search-results'].result.mediapackage.media.track[i + 1].type;
-                            this.followingSiblingMimetypeIsVideo = Opencast.Utils.startsWith(data['search-results'].result.mediapackage.media.track[i + 1].mimetype, "video");
-                        } else
-                        {
-                            this.followingSiblingType = 'none';
-                            this.followingSiblingMimetypeIsVideo = false;
+                            isVideo = true;
+                            // Jump out of $.each
+                            return false;
                         }
                     });
+                    data['search-results'].result.mediapackage.media.isVideo = isVideo;
                 }
+                
                 // Create Trimpath Template
                 Opencast.segments_ui_Plugin.addAsPlugin($('#segmentstable1'),
                                                         $('#segments_ui-media1'),

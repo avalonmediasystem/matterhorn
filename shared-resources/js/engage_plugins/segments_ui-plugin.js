@@ -45,25 +45,20 @@ Opencast.segments_ui_Plugin = (function ()
                                      '{/if}' +
                                   '{/if}' +
      
-                                  '{if (t.type == "presenter/delivery")}' +
-                                      '{if (' +
-                                              '!((t.precedingSiblingType == "presentation/delivery") && t.precedingSiblingMimetypeIsVideo) &&' +
-                                              '!((t.followingSiblingType == "presentation/delivery") && t.followingSiblingMimetypeIsVideo)' +
-                                            ')}' +
-                                          '{if t.mimetype == "audio/x-adpcm"}' +
-                                              '{if t.url.substring(0, 4) == "http"}' +
-                                                  '<div id="oc-video-presenter-delivery-x-flv-http" style="display: none">' +
-                                                      '${t.url}' +
-                                                  '</div>' +
-                                                  // '<div id="oc-resolution-presenter-delivery-x-flv-http" style="display: none">' +
-                                                  //     '${t.video.resolution}' +
-                                                  // '</div>' +
-                                                  '<div id="oc-mimetype-presenter-delivery-x-flv-http" style="display: none">' +
-                                                      '${t.mimetype}' +
-                                                  '</div>' +
-                                              '{/if}' +
-                                          '{/if}' +
+                                  '{if !isVideo && (t.type == "presenter/delivery") && (t.mimetype == "audio/x-adpcm") && (t.url.substring(0, 4) == "http")}' +
+                                      '<div id="oc-video-presenter-delivery-x-flv-http" style="display: none">' +
+                                          '${t.url}' +
+                                      '</div>' +
+                                      /*
+                                      '{if defined(t.video) && defined(t.video.resolution)}' +
+                                          '<div id="oc-resolution-presenter-delivery-x-flv-http" style="display: none">' +
+                                              '${t.video.resolution}' +
+                                          '</div>' +
                                       '{/if}' +
+                                      */
+                                      '<div id="oc-mimetype-presenter-delivery-x-flv-http" style="display: none">' +
+                                          '${t.mimetype}' +
+                                      '</div>' +
                                   '{/if}' +
                                   
                                  '{if t.type == "presentation/delivery"}' +
@@ -367,7 +362,7 @@ Opencast.segments_ui_Plugin = (function ()
         }
 
         // Process Element Data 1
-        if (elementData1 !== undefined) {
+        if ((elementData1 !== undefined) && (segments_ui_data !== undefined)) {
             processedTemplateData = templateData1.process(segments_ui_data);
             elementData1.html(processedTemplateData);
         }
