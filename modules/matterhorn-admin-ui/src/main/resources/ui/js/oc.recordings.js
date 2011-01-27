@@ -855,6 +855,7 @@ ocRecordings = new (function() {
     ocRecordings.bulkEditComponents = [];
     $('#bulkActionPanel :input[type=textarea], #bulkActionPanel :text').val('');
     ocRecordings.changedBulkEditFields = {};
+    ocRecordings.numSelectedRecordings = 0;
   }
 
   this.bulkActionHandler = function(action) {
@@ -865,6 +866,7 @@ ocRecordings = new (function() {
       $('#bulkActionApply').hide();
       $('#cancelBulkAction').show();
     } else {
+      ocRecordings.numSelectedRecordings = 0;
       if(action === 'edit'){
         $('#bulkActionApplyMessage').text(bulkEditApplyMessage());
         $('#bulkEditPanel').show();
@@ -873,7 +875,6 @@ ocRecordings = new (function() {
         $('#cancelBulkAction').hide();
         ocRecordings.registerBulkEditComponents();
         ocRecordings.Configuration.state = 'bulkedit'
-        refresh();
       } else if (action === 'delete') {
         $('#bulkActionApplyMessage').text(bulkDeleteApplyMessage());
         $('#bulkEditPanel').hide();
@@ -881,8 +882,8 @@ ocRecordings = new (function() {
         $('#bulkActionApply').show();
         $('#cancelBulkAction').hide();
         ocRecordings.Configuration.state = 'bulkdelete'
-        refresh();
       }
+      refresh();
     }
   }
   
