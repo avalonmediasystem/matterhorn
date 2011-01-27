@@ -43,7 +43,10 @@ Opencast.Annotation_Chapter = (function ()
                 // Don't display anything + make unavailable
                 $("#annotation").html("No annotations available");
                 $('#oc_checkbox-annotations').removeAttr("checked");
-                $('#oc_checkbox-annotations').attr('disabled', true); 
+                $('#oc_checkbox-annotations').attr('disabled', true);
+                // Hide as well
+                $('#oc_checkbox-annotations').hide();
+                $('#oc_label-annotations').hide(); 
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
