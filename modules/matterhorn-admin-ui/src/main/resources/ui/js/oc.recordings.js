@@ -825,6 +825,7 @@ ocRecordings = new (function() {
     ocRecordings.Configuration.lastState = ocRecordings.Configuration.state
     ocRecordings.Configuration.lastPageSize = ocRecordings.Configuration.pageSize;
     ocRecordings.Configuration.lastPage = ocRecordings.Configuration.page;
+    ocRecordings.disableRefresh();
   }
 
   this.cancelBulkAction = function() {
@@ -833,6 +834,7 @@ ocRecordings = new (function() {
     ocRecordings.Configuration.pageSize = ocRecordings.Configuration.lastPageSize;
     ocRecordings.Configuration.page = ocRecordings.Configuration.lastPage;
     refresh();
+    ocRecordings.updateRefreshInterval(true, ocRecordings.Configuration.refresh)
   }
 
   this.resetBulkActionPanel = function() {
