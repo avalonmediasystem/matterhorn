@@ -30,6 +30,10 @@ Opencast.Watch = (function ()
      */
     function onPlayerReady()
     {
+        // Hide Screen Settings until clicked 'play'
+        $("#oc_btn-dropdown").css("display", 'none');
+        $("#oc_player_video-dropdown").css("display", 'none');
+        
         var mediaPackageId = Opencast.engage.getMediaPackageId();
         var userId = Opencast.engage.getUserId();
         var restEndpoint = Opencast.engage.getSearchServiceEpisodeIdURL() + mediaPackageId;

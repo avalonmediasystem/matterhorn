@@ -92,6 +92,15 @@ Opencast.Player = (function () {
     displayMode            = "",
     optionClassName        = "",
     seekState              = PAUSING;
+    var displVidSizeControl  = false;
+    
+    /**
+     * true if video size control is visible
+     */
+    function displayVideoSizeControl()
+    {
+        return displVidSizeControl;
+    }
 
     /**
      * true if share layer is displayed, false if not
@@ -830,6 +839,12 @@ Opencast.Player = (function () {
     function doPlay()
     {
         FLASH_PLAYERSTATE = Videodisplay.play();
+        if(displVidSizeControl)
+        {
+            // Hide Screen Settings until clicked 'play'
+            $("#oc_btn-dropdown").css("display", 'block');
+            $("#oc_player_video-dropdown").css("display", 'block');
+        }
     }
 
     /**
@@ -1505,6 +1520,7 @@ Opencast.Player = (function () {
             $('#oc_player_video-dropdown').append(content);
             $("#oc_btn-dropdown").attr("className", "oc_btn-centerDisplay");
 
+            displVidSizeControl = true;
             setDisplayMode(displayMode);
         }
         else if (displayMode === SINGLEPLAYER)
@@ -1525,6 +1541,7 @@ Opencast.Player = (function () {
             setDisplayMode(displayMode);
             setCurrentVideoSize(VIDEOSIZESINGLE);
             
+            displVidSizeControl = false;
             displayMonitorControls = false;
         }
         else if (displayMode === SINGLEPLAYERWITHSLIDES)
@@ -1538,6 +1555,7 @@ Opencast.Player = (function () {
             $("#oc_btn-dropdown").css("display", 'block');
             setDisplayMode(displayMode);
             
+            displVidSizeControl = false;
             displayMonitorControls = false;
         }
         else if (displayMode === AUDIOPLAYER)
@@ -1547,6 +1565,7 @@ Opencast.Player = (function () {
             setDisplayMode(displayMode);
             setCurrentVideoSize(VIDEOSIZEAUDIO);
             
+            displVidSizeControl = false;
             displayMonitorControls = false;
         }
         
