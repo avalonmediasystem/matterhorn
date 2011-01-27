@@ -31,6 +31,7 @@ ocRecordings = new (function() {
 
   this.totalRecordings = 0;
   this.numSelectedRecordings = 0;
+  this.changedBulkEditFields = {};
 
   // components
   this.searchbox = null;
@@ -826,15 +827,25 @@ ocRecordings = new (function() {
     ocRecordings.Configuration.lastPageSize = ocRecordings.Configuration.pageSize;
     ocRecordings.Configuration.lastPage = ocRecordings.Configuration.page;
     ocRecordings.disableRefresh();
+    $('#bulkActionPanel :input[type=textarea], #bulkActionPanel :text').keyup(ocRecordings.bulkEditFieldHandler);
   }
 
+  this.bulkEditFieldHandler = function(e) {
+    if(e.target.value !== '') {
+      ocRecordings.changedBulkEditFields[e.target.id] = e.target;
+    } else {
+      delete ocRecordings.changedBulkEditFields[e.target.id];
+    }
+    $('#bulkActionApplyMessage').text(bulkEditApplyMessage());
+  }
+  
   this.cancelBulkAction = function() {
     ocRecordings.resetBulkActionPanel();
     ocRecordings.Configuration.state = ocRecordings.Configuration.lastState;
     ocRecordings.Configuration.pageSize = ocRecordings.Configuration.lastPageSize;
     ocRecordings.Configuration.page = ocRecordings.Configuration.lastPage;
     refresh();
-    ocRecordings.updateRefreshInterval(true, ocRecordings.Configuration.refresh)
+    ocRecordings.updateRefreshInterval(true, ocRecordings.Configuration.refresh);
   }
 
   this.resetBulkActionPanel = function() {
@@ -842,6 +853,8 @@ ocRecordings = new (function() {
     $('#bulkActionSelect').change();
     $('#bulkActionPanel').hide();
     ocRecordings.bulkEditComponents = [];
+    $('#bulkActionPanel :input[type=textarea], #bulkActionPanel :text').val('');
+    ocRecordings.changedBulkEditFields = {};
   }
 
   this.bulkActionHandler = function(action) {
@@ -874,7 +887,8 @@ ocRecordings = new (function() {
   }
   
   function bulkEditApplyMessage() {
-    return "Changes will be made in 0 field(s) for all " + ocRecordings.numSelectedRecordings + " selected recoding(s).";
+    return "Changes will be made in " + ocUtils.sizeOf(ocRecordings.changedBulkEditFields) + 
+      " field(s) for all " + ocRecordings.numSelectedRecordings + " selected recoding(s).";
   }
   
   function bulkDeleteApplyMessage() {

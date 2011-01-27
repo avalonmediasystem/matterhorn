@@ -150,3 +150,18 @@ ocUtils.ensureArray = function(obj) {
     return [obj];
   }
 }
+
+ocUtils.sizeOf = function(obj) {
+  var length = 0;
+  if (obj === undefined) {
+    return 0;
+  }
+  if ($.isArray(obj) || typeof obj == 'string') {
+    return obj.length;
+  } else if (typeof obj == 'object') {
+    for (i in obj) {
+      length++;
+    }
+  }
+  return length;
+}
