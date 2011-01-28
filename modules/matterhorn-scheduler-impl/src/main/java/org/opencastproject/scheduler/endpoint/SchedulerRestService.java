@@ -344,6 +344,14 @@ public class SchedulerRestService {
     }
   }
 
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("filter")
+  public Response filterEventsDefault(@QueryParam("contributor") String contributor, @QueryParam("creator") String creator,
+          @QueryParam("device") String device, @QueryParam("series") String series, @QueryParam("start") Long startDate,
+          @QueryParam("end") Long endDate, @QueryParam("title") String title, @QueryParam("order") boolean isAsc) {
+    return filterEvents(contributor, creator, device, series, startDate, endDate, title, isAsc);
+  }
   /**
    * returns scheduled events, that pass the filter. filter: an xml definition of the filter. Tags that are not included
    * will not be filtered. Possible values for order by are
@@ -360,10 +368,10 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.TEXT_XML)
   @Path("filter.xml")
-  public Response filterEventsXml(@QueryParam("co") String contributor, @QueryParam("cr") String creator,
-          @QueryParam("de") String device, @QueryParam("se") String series, @QueryParam("st") Long startDate,
-          @QueryParam("ti") String title, @QueryParam("so") boolean isAsc) {
-    return filterEvents(contributor, creator, device, series, startDate, title, isAsc);
+  public Response filterEventsXml(@QueryParam("contributor") String contributor, @QueryParam("creator") String creator,
+          @QueryParam("device") String device, @QueryParam("series") String series, @QueryParam("start") Long startDate,
+          @QueryParam("end") Long endDate, @QueryParam("title") String title, @QueryParam("order") boolean isAsc) {
+    return filterEvents(contributor, creator, device, series, startDate, endDate, title, isAsc);
   }
 
   /**
@@ -382,34 +390,33 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("filter.json")
-  public Response filterEventsJson(@QueryParam("co") String contributor, @QueryParam("cr") String creator,
-          @QueryParam("de") String device, @QueryParam("se") String series, @QueryParam("st") Long startDate,
-          @QueryParam("ti") String title, @QueryParam("so") boolean isAsc) {
-    return filterEvents(contributor, creator, device, series, startDate, title, isAsc);
+  public Response filterEventsJson(@QueryParam("contributor") String contributor, @QueryParam("creator") String creator,
+          @QueryParam("device") String device, @QueryParam("series") String series, @QueryParam("start") Long startDate,
+          @QueryParam("end") Long endDate, @QueryParam("title") String title, @QueryParam("order") boolean isAsc) {
+    return filterEvents(contributor, creator, device, series, startDate, endDate, title, isAsc);
   }
 
   private Response filterEvents(String contributor, String creator, String device, String series, Long startDate,
-          String title, boolean isAsc) {
+          Long endDate, String title, boolean isAsc) {
     SchedulerFilter filter = new SchedulerFilter().withCreatorFilter(creator)
       .withDeviceFilter(device)
-      .withSeriesFilter(series);
-    
-      if(startDate != null) {
-        filter.withStart(new Date(startDate));
-      } else {
-        filter.withStart(new Date(System.currentTimeMillis()));
-      }
-
-      filter.withTitleFilter(title)
+      .withSeriesFilter(series)
+      .withTitleFilter(title)
+      .withContributorFilter(contributor)
       .withOrderAscending("title", isAsc);
+    
+      if (startDate != null && endDate != null) {
+        filter.between(new Date(startDate), new Date(endDate));
+      } else if (startDate != null) {
+        filter.withStart(new Date(startDate));
+      } else if (endDate != null) {
+        filter.withStop(new Date(endDate));
+      }
+      
     try {
       List<Event> events = service.getEvents(filter);
-      if (!events.isEmpty()) {
-        EventListImpl eventList = new EventListImpl(events);
-        return Response.ok(eventList).build();
-      } else {
-        return Response.noContent().type("").build();
-      }
+      EventListImpl eventList = new EventListImpl(events);
+      return Response.ok(eventList).build();
     } catch (Exception e) {
       logger.error("Exception while filtering events: ", e);
       return Response.serverError().build();
@@ -660,22 +667,27 @@ public class SchedulerRestService {
     data.addEndpoint(RestEndpoint.Type.READ, getEventEndpoint);
 
     // Scheduler filterEventsEndpoint
-    RestEndpoint filterEventsEndpoint = new RestEndpoint(
-            "filterEvents",
-            RestEndpoint.Method.POST,
-            "/filter/events",
-            "returns scheduled events, that pass the filter.\nfilter: an xml definition of the filter. Tags that are not included will noct be filtered. Possible values for order by are title,creator,series,startDate,contributor,device");
-    filterEventsEndpoint.addFormat(Format
-            .xml("XML representation of a list of the events conforming to the supplied filter."));
-    filterEventsEndpoint.addFormat(Format
-            .json("JSON representation of a list of the event conforming to the supplied filter."));
+    RestEndpoint filterEventsEndpoint = new RestEndpoint("filterEvents", RestEndpoint.Method.GET, 
+            "/filter",
+            "returns scheduled events, that pass the filter. All string fields are case-sensative.");
+    filterEventsEndpoint.addFormat(
+            Format.xml("XML representation of a list of the events conforming to the supplied filter."));
+    filterEventsEndpoint.addFormat(
+            Format.json("JSON representation of a list of the event conforming to the supplied filter."));
     filterEventsEndpoint.setAutoPathFormat(true);
     filterEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .ok("XML or JSON representation of a list of events belonging to a recurring event."));
     filterEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .badRequest("Supplied filter is incorrect or missing."));
-    filterEventsEndpoint.addOptionalParam(new Param("filter", Type.TEXT, generateSchedulerFilter(),
-            "The SchedulerFilter that should be applied."));
+    //contributor, creator, device, series, startDate, endDate, title, isAsc
+    filterEventsEndpoint.addOptionalParam(new Param("contributor", Type.STRING, "Joe Shmoe", "Pattern to search for in contributor"));
+    filterEventsEndpoint.addOptionalParam(new Param("creator", Type.STRING, "Joe Shmoe", "Pattern to search for in creator"));
+    filterEventsEndpoint.addOptionalParam(new Param("device", Type.STRING, "demo_capture_agent", "Pattern to search for in the device name"));
+    filterEventsEndpoint.addOptionalParam(new Param("series", Type.STRING, "A Series", "Pattern to search for in the series"));
+    filterEventsEndpoint.addOptionalParam(new Param("title", Type.STRING, "Katsudon", "Pattern to search for in the title"));
+    filterEventsEndpoint.addOptionalParam(new Param("start", Type.STRING, String.valueOf(System.currentTimeMillis()), "Start date prior to which events will be filtered"));
+    filterEventsEndpoint.addOptionalParam(new Param("end", Type.STRING, String.valueOf(System.currentTimeMillis() + 60 * 60 * 1000), "End date after which events will be filtered"));
+    filterEventsEndpoint.addOptionalParam(new Param("order", Type.STRING, "true", "Sort events by title ascending (true) or decending (false)"));
     filterEventsEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, filterEventsEndpoint);
 

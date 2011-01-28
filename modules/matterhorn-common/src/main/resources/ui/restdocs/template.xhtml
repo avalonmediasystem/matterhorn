@@ -221,7 +221,9 @@
     <tr class="method testform">
       <th scope="row">Testing:</th>
       <td>
-        <div class="spaced"><strong>Sample:</strong> <tt class="sample_url">${endpoint.path}${endpoint.queryString!}</tt></div>
+        <div class="spaced"><strong>Sample:</strong>
+        <tt class="sample_url">${endpoint.path}${endpoint.pathFormat}${endpoint.queryString!}</tt>
+        </div>
         <#if endpoint.form??>
         <#if endpoint.form.html??><#-- just dump the html value -->
         ${endpoint.form.html}
