@@ -15,6 +15,15 @@
       .hidden {display:none;}
       input.pointInput{width: 60px; border: 0px solid white;}
       #actions{margin: 0 auto; text-align:center; width:100%;}
+      a.secondaryButton, a.secondaryButton:link, a.secondaryButton:visited{
+          margin-right: 16px;
+          cursor: pointer;
+          color: #2d8f8b;
+      }
+      a.secondaryButton:hover, a.secondaryButton:focus{
+          color: #2d8f8b;
+          text-decoration: underline;
+      }
     </style>
     <script type="text/javascript" src="/admin/jquery/jquery-1.4.2.min.js"></script>
     <script type="text/javascript" src="/admin/jquery/jquery-ui-1.8.5.custom.min.js"></script>
@@ -485,8 +494,8 @@
                 type="button"
                 class="ui-button ui-corner-all"
                 value="Continue processing" />
-         <a id="edit-link" style="margin-right: 16px; cursor: pointer;">Edit before continuing</a>
-         <a onclick="cancel()" title="Cancel" style="margin-right: 16px; cursor: pointer;">Cancel</a>
+         <a id="edit-link" class="secondaryButton">Edit before continuing</a>
+         <a onclick="cancel()" title="Cancel"  class="secondaryButton">Cancel</a>
      </div>
   </body>
 </html>
