@@ -79,11 +79,13 @@ sed -i "s#^${CORE_URL_KEY//./\\.}=.*\$#${CORE_URL_KEY}=$core#" "$CAPTURE_PROPS"
 
 # Prompt for the time between two updates of the recording schedule
 default_poll=$(grep "${SCHEDULE_POLL_KEY}" "$CAPTURE_PROPS" | cut -d '=' -f 2) #<-- This reads the default value from the config file
-# The value in the file is in seconds, but the user is asked for a value in minutes --that's why the value after -d is adjusted
-ask -d "$((default_poll/60))" -f '^0*[1-9][0-9]*$' -h '? - more info' -e "Invalid value"\
+[[ $default_poll -lt 1 ]] && default_poll=1
+
+# The value in the file is no longer in seconds, but in minutes, so no conversion needs to be done
+ask -d "$default_poll" -f '^0*[1-9][0-9]*$' -h '? - more info' -e "Invalid value"\
     "Please enter the time (in minutes) between two updates of the agent's recording schedule" poll
 # Write the value to the file, adjusting the value from minutes to seconds
-sed -i "s/${SCHEDULE_POLL_KEY//./\\.}=.*$/${SCHEDULE_POLL_KEY}=$((poll*60))/" "$CAPTURE_PROPS"
+sed -i "s/${SCHEDULE_POLL_KEY//./\\.}=.*$/${SCHEDULE_POLL_KEY}=$poll/" "$CAPTURE_PROPS"
 
 # Set up maven and felix enviroment variables in the user session
 echo -n "Setting up maven and felix enviroment for $USERNAME... "
