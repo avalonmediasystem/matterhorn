@@ -85,7 +85,7 @@ public class WorkflowServiceSolrIndexTest {
   public void testBuildSimpleQuery() throws Exception {
     WorkflowQuery q = new WorkflowQuery().withMediaPackage("123").withSeriesId("series1");
     String solrQuery = dao.buildSolrQueryString(q);
-    String expected = "mp:123 AND seriesid:series1";
+    String expected = "mediapackageid:123 AND seriesid:series1";
     assertEquals(expected, solrQuery);
   }
 

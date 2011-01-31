@@ -333,6 +333,19 @@ public class WorkflowServiceImplTest {
   }
 
   @Test
+  public void testGetWorkflowByWildcardMatching() throws Exception {
+    String searchTerm = "another";
+    String title = "just" + searchTerm + "rev129";
+
+    // Ensure that the database doesn't have any workflow instances
+    Assert.assertEquals(0, service.countWorkflowInstances());
+    mediapackage1.setTitle(title);
+    startAndWait(workingDefinition, mediapackage1, WorkflowState.SUCCEEDED);
+    WorkflowSet workflowsWithTitle = service.getWorkflowInstances(new WorkflowQuery().withTitle(searchTerm));
+    Assert.assertEquals(1, workflowsWithTitle.getTotalCount());
+  }
+
+  @Test
   public void testNegativeWorkflowQuery() throws Exception {
     // Ensure that the database doesn't have any workflow instances
     Assert.assertEquals(0, service.countWorkflowInstances());

@@ -126,7 +126,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
   private static final String TITLE_KEY = "title";
 
   /** The key in solr documents representing the workflow's mediapackage identifier */
-  private static final String MEDIAPACKAGE_KEY = "mp";
+  private static final String MEDIAPACKAGE_KEY = "mediapackageid";
 
   /** The key in solr documents representing the workflow's mediapackage creators */
   private static final String CREATOR_KEY = "creator";
@@ -598,6 +598,33 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
   }
 
   /**
+   * Appends query parameters to a solr query in a way that they are found even though they are not treated as a full
+   * word in solr.
+   * 
+   * @param sb
+   *          The {@link StringBuilder} containing the query
+   * @param key
+   *          the key for this search parameter
+   * @param value
+   *          the value for this search parameter
+   * @return the appended {@link StringBuilder}
+   */
+  private StringBuilder appendFuzzy(StringBuilder sb, String key, String value) {
+    if (StringUtils.isBlank(key) || StringUtils.isBlank(value)) {
+      return sb;
+    }
+    if (sb.length() > 0) {
+      sb.append(" AND ");
+    }
+    sb.append("(");
+    sb.append(key).append(":").append(ClientUtils.escapeQueryChars(value));
+    sb.append(" OR ");
+    sb.append(key).append(":*").append(ClientUtils.escapeQueryChars(value)).append("*");
+    sb.append(")");
+    return sb;
+  }
+
+  /**
    * Appends query parameters to a solr query
    * 
    * @param sb
@@ -636,16 +663,16 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     StringBuilder sb = new StringBuilder();
     append(sb, MEDIAPACKAGE_KEY, query.getMediaPackageId());
     append(sb, SERIES_ID_KEY, query.getSeriesId());
-    append(sb, SERIES_TITLE_KEY, query.getSeriesTitle());
-    append(sb, FULLTEXT_KEY, query.getText());
+    appendFuzzy(sb, SERIES_TITLE_KEY, query.getSeriesTitle());
+    appendFuzzy(sb, FULLTEXT_KEY, query.getText());
     append(sb, WORKFLOW_DEFINITION_KEY, query.getWorkflowDefinitionId());
     append(sb, CREATED_KEY, query.getFromDate(), query.getToDate());
-    append(sb, CREATOR_KEY, query.getCreator());
-    append(sb, CONTRIBUTOR_KEY, query.getContributor());
+    appendFuzzy(sb, CREATOR_KEY, query.getCreator());
+    appendFuzzy(sb, CONTRIBUTOR_KEY, query.getContributor());
     append(sb, LANGUAGE_KEY, query.getLanguage());
     append(sb, LICENSE_KEY, query.getLicense());
-    append(sb, TITLE_KEY, query.getTitle());
-    append(sb, SUBJECT_KEY, query.getSubject());
+    appendFuzzy(sb, TITLE_KEY, query.getTitle());
+    appendFuzzy(sb, SUBJECT_KEY, query.getSubject());
     appendMap(sb, OPERATION_KEY, query.getCurrentOperations());
     appendMap(sb, STATE_KEY, query.getStates());
 
@@ -754,6 +781,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setRows(count);
     solrQuery.setStart(startPage * count);
+    solrQuery.setParam("allowLeadingWildcard", true);
 
     String solrQueryString = buildSolrQueryString(query);
     solrQuery.setQuery(solrQueryString);
