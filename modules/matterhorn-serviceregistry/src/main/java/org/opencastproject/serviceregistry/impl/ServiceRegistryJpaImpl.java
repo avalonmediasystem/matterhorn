@@ -566,6 +566,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         }
         em.persist(registration);
       } else {
+        if (StringUtils.isNotBlank(path))
+          registration.setPath(path);
         registration.setOnline(online);
         if (jobProducer != null) { // if we are not provided a value, don't update the persistent value
           registration.setJobProducer(jobProducer);
@@ -996,7 +998,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     JobJpaImpl jpaJob = ((JobJpaImpl) job);
     jpaJob.setStatus(Status.RUNNING);
     boolean triedDispatching = false;
-    
+
     for (ServiceRegistration registration : registrations) {
       jpaJob.setProcessorServiceRegistration((ServiceRegistrationJpaImpl) registration);
       try {
@@ -1018,7 +1020,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params);
         post.setEntity(entity);
       } catch (IOException e) {
-      	logger.warn("Job parsing error on job {}", job, e);
+        logger.warn("Job parsing error on job {}", job, e);
         jpaJob.setStatus(Status.FAILED);
         jpaJob.setProcessorServiceRegistration(null);
         updateJob(jpaJob);
@@ -1039,7 +1041,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
           logger.info("Service {} refused to accept {}", registration, job);
           continue;
         } else {
-          logger.warn("Service {} failed ({}) accepting {}", new Object[] {registration, responseStatusCode, job});
+          logger.warn("Service {} failed ({}) accepting {}", new Object[] { registration, responseStatusCode, job });
           continue;
         }
 
@@ -1049,7 +1051,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         client.close(response);
       }
     }
-    
+
     // We've tried dispatching to every online service that can handle this type of job, with no luck.
     if (triedDispatching) {
       try {
@@ -1060,7 +1062,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         logger.error("Unable to put job back into queue", e);
       }
     }
-    
+
     return null;
   }
 
@@ -1083,7 +1085,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
           try {
             String hostAcceptingJob = dispatchJob(job);
             if (hostAcceptingJob == null) {
-              ServiceRegistryJpaImpl.logger.debug("Job {} could not be dispatched and is put back into queue", job.getId());
+              ServiceRegistryJpaImpl.logger.debug("Job {} could not be dispatched and is put back into queue",
+                      job.getId());
             } else {
               ServiceRegistryJpaImpl.logger.debug("Job {} dispatched to {}", job.getId(), hostAcceptingJob);
             }
