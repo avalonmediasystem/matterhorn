@@ -156,6 +156,11 @@ public class OcropusTextAnalyzer {
    *          @throws TextAnalyzerException if the exit code indicates a problem with execution of the binary
    */
   protected void onFinished(int exitCode) throws TextAnalyzerException {
+    // MH-6246: could not extract text from image
+    if (exitCode == 134) {
+      logger.warn(ocrocmdOutput.toString());
+      return;
+    }
     // Windows binary will return -1 when queried for options
     if (exitCode != -1 && exitCode != 0 && exitCode != 255) {
       logger.error(ocrocmdOutput.toString());
