@@ -53,6 +53,12 @@
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-distribution-service-download</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-workspace-api</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -70,17 +76,17 @@
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-caption-api</artifactId>
       <version>1.1-SNAPSHOT</version>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-dublincore</artifactId>
       <version>${project.version}</version>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-mpeg7</artifactId>
       <version>${project.version}</version>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>jsr311-api</artifactId>
@@ -153,10 +159,7 @@
               OSGI-INF/operations/segmentpreviews.xml,
               OSGI-INF/operations/trim.xml,
               OSGI-INF/operations/zip.xml
-              <!--
-              OSGI-INF/operations/distribute-itunesu.xml,
-              OSGI-INF/operations/distribute-youtube.xml,
-              -->
+              <!-- OSGI-INF/operations/distribute-itunesu.xml, OSGI-INF/operations/distribute-youtube.xml, -->
             </Service-Component>
           </instructions>
         </configuration>

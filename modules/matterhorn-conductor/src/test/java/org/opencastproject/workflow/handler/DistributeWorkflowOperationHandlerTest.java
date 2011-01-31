@@ -15,33 +15,36 @@
  */
 package org.opencastproject.workflow.handler;
 
-import org.opencastproject.distribution.api.DistributionService;
-import org.opencastproject.job.api.Job;
+import org.opencastproject.distribution.download.DownloadDistributionService;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilder;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
-import org.opencastproject.mediapackage.MediaPackageElement;
-import org.opencastproject.mediapackage.MediaPackageElementParser;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
+import org.opencastproject.serviceregistry.api.ServiceRegistryInMemoryImpl;
+import org.opencastproject.util.UrlSupport;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowInstance.WorkflowState;
-import org.opencastproject.workflow.api.WorkflowOperationInstance.OperationState;
 import org.opencastproject.workflow.api.WorkflowInstanceImpl;
 import org.opencastproject.workflow.api.WorkflowOperationInstance;
+import org.opencastproject.workflow.api.WorkflowOperationInstance.OperationState;
 import org.opencastproject.workflow.api.WorkflowOperationInstanceImpl;
+import org.opencastproject.workflow.api.WorkflowOperationResult;
+import org.opencastproject.workspace.api.Workspace;
 
-import org.easymock.EasyMock;
+import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DistributeWorkflowOperationHandlerTest {
   private DistributeWorkflowOperationHandler operationHandler;
-  private DistributionService service = null;
+  private ServiceRegistry serviceRegistry;
+  private TestDownloadDistributionService service = null;
 
   private URI uriMP;
   private MediaPackage mp;
@@ -51,123 +54,29 @@ public class DistributeWorkflowOperationHandlerTest {
     MediaPackageBuilder builder = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder();
     uriMP = InspectWorkflowOperationHandler.class.getResource("/distribute_mediapackage.xml").toURI();
     mp = builder.loadFromXml(uriMP.toURL().openStream());
+    service = new TestDownloadDistributionService();
+    serviceRegistry = new ServiceRegistryInMemoryImpl(service);
+
+    Workspace workspace = EasyMock.createNiceMock(Workspace.class);
+    EasyMock.expect(workspace.get((URI)EasyMock.anyObject())).andReturn(File.createTempFile("test", null)).anyTimes();
+    EasyMock.replay(workspace);
+    service.init(serviceRegistry, workspace);
 
     // set up the handler
     operationHandler = new DistributeWorkflowOperationHandler();
+    operationHandler.setDistributionService(service);
+    operationHandler.setServiceRegistry(serviceRegistry);
 
   }
 
   @Test
-  public void testSourceTags() throws Exception {
-    MediaPackageElement track2 = (MediaPackageElement) mp.getElementById("track-2");
-    MediaPackageElement catalog1 = (MediaPackageElement) mp.getElementById("catalog-1");
-    MediaPackageElement catalog2 = (MediaPackageElement) mp.getElementById("catalog-2");
-    MediaPackageElement attachment1 = (MediaPackageElement) mp.getElementById("notes");
-
-    Assert.assertNotNull(track2);
-
-    // Mock up a job
-    Job job = EasyMock.createNiceMock(Job.class);
-    EasyMock.expect(job.getStatus()).andReturn(Job.Status.FINISHED).anyTimes();
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(track2));
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(catalog1));
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(catalog2));
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(attachment1));
-    EasyMock.replay(job);
-
-    // set up mock service registry
-    ServiceRegistry serviceRegistry = EasyMock.createNiceMock(ServiceRegistry.class);
-    EasyMock.expect(serviceRegistry.getJob(EasyMock.anyLong())).andReturn(job).anyTimes();
-    EasyMock.replay(serviceRegistry);
-
-    service = EasyMock.createNiceMock(DistributionService.class);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), track2)).andReturn(job);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), catalog1)).andReturn(job);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), catalog2)).andReturn(job);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), attachment1)).andReturn(job);
-    EasyMock.replay(service);
-    operationHandler.setDistributionService(service);
-    operationHandler.setServiceRegistry(serviceRegistry);
-
-    // Source tags get tested by our mock
+  public void testDistribute() throws Exception {
     String sourceTags = "engage,atom,rss";
     String targetTags = "engage,publish";
     WorkflowInstance workflowInstance = getWorkflowInstance(sourceTags, targetTags);
-    operationHandler.start(workflowInstance, null);
-    EasyMock.verify(service);
-  }
-
-  @Test
-  public void testRssTag() throws Exception {
-    MediaPackageElement track2 = (MediaPackageElement) mp.getElementById("track-2");
-    MediaPackageElement catalog1 = (MediaPackageElement) mp.getElementById("catalog-1");
-    MediaPackageElement catalog2 = (MediaPackageElement) mp.getElementById("catalog-2");
-    MediaPackageElement attachment1 = (MediaPackageElement) mp.getElementById("notes");
-
-    Assert.assertNotNull(track2);
-
-    // Mock up a job
-    Job job = EasyMock.createNiceMock(Job.class);
-    EasyMock.expect(job.getStatus()).andReturn(Job.Status.FINISHED).anyTimes();
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(catalog1)).times(2);
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(catalog2)).times(2);
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(attachment1)).times(2);
-    EasyMock.replay(job);
-
-    // set up mock service registry
-    ServiceRegistry serviceRegistry = EasyMock.createNiceMock(ServiceRegistry.class);
-    EasyMock.expect(serviceRegistry.getJob(EasyMock.anyLong())).andReturn(job).anyTimes();
-    EasyMock.replay(serviceRegistry);
-
-    service = EasyMock.createNiceMock(DistributionService.class);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), catalog1)).andReturn(job);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), catalog2)).andReturn(job);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), attachment1)).andReturn(job);
-    EasyMock.replay(service);
-    operationHandler.setDistributionService(service);
-    operationHandler.setServiceRegistry(serviceRegistry);
-
-    // Source tags get tested by our mock
-    String sourceTags = "rss";
-    String targetTags = "engage,publish";
-    WorkflowInstance workflowInstance = getWorkflowInstance(sourceTags, targetTags);
-    operationHandler.start(workflowInstance, null);
-    EasyMock.verify(service);
-
-  }
-
-  @Test
-  public void testNoSuchTag() throws Exception {
-    MediaPackageElement catalog1 = (MediaPackageElement) mp.getElementById("catalog-1");
-    MediaPackageElement catalog2 = (MediaPackageElement) mp.getElementById("catalog-2");
-    MediaPackageElement attachment1 = (MediaPackageElement) mp.getElementById("notes");
-
-    // Mock up a job
-    Job job = EasyMock.createNiceMock(Job.class);
-    EasyMock.expect(job.getStatus()).andReturn(Job.Status.FINISHED).anyTimes();
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(catalog1)).times(2);
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(catalog2)).times(2);
-    EasyMock.expect(job.getPayload()).andReturn(MediaPackageElementParser.getAsXml(attachment1)).times(2);
-    EasyMock.replay(job);
-
-    // set up mock service registry
-    ServiceRegistry serviceRegistry = EasyMock.createNiceMock(ServiceRegistry.class);
-    EasyMock.expect(serviceRegistry.getJob(EasyMock.anyLong())).andReturn(job).anyTimes();
-    EasyMock.replay(serviceRegistry);
-
-    service = EasyMock.createNiceMock(DistributionService.class);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), catalog1)).andReturn(job);
-    EasyMock.expect(service.distribute(mp.getIdentifier().compact(), catalog2)).andReturn(job);
-    EasyMock.replay(service);
-    operationHandler.setDistributionService(service);
-    operationHandler.setServiceRegistry(serviceRegistry);
-
-    // Source tags get tested by our mock
-    String sourceTags = "nosuchtag";
-    String targetTags = "engage,publish";
-    WorkflowInstance workflowInstance = getWorkflowInstance(sourceTags, targetTags);
-    operationHandler.start(workflowInstance, null);
-    EasyMock.verify(service);
+    WorkflowOperationResult result = operationHandler.start(workflowInstance, null);
+    Assert.assertEquals("Resulting mediapackage has the wrong number of tracks", 3, result.getMediaPackage()
+            .getTracks().length);
   }
 
   private WorkflowInstance getWorkflowInstance(String sourceTags, String targetTags) {
@@ -186,6 +95,17 @@ public class DistributeWorkflowOperationHandlerTest {
     workflowInstance.setOperations(operationsList);
 
     return workflowInstance;
+  }
+
+  class TestDownloadDistributionService extends DownloadDistributionService {
+    protected void init(ServiceRegistry serviceRegistry, Workspace workspace) {
+      setServiceRegistry(serviceRegistry);
+      setWorkspace(workspace);
+      this.distributionDirectory = new File(System.getProperty("java.io.tmpdir"), this.getClass().getName()
+              + System.currentTimeMillis());
+      this.serviceUrl = UrlSupport.DEFAULT_BASE_URL;
+    }
+
   }
 
 }
