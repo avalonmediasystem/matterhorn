@@ -598,6 +598,10 @@ Opencast.Initialize = (function ()
                 Opencast.Player.showEditTime();
             }
         });
+	$('#oc_current-time').focus(function (event)
+        {
+	    Opencast.Player.showEditTime();
+        });
         $('#oc_edit-time').keypress(function (event)
         {
             if (event.keyCode === 13)
