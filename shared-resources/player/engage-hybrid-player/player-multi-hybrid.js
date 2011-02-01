@@ -936,6 +936,7 @@ Opencast.Player = (function () {
     function doToggleMute()
     {
         FLASH_MUTE = Videodisplay.mute();
+        Opencast.ariaSpinbutton.toggleMute();
     }
 
     /**
