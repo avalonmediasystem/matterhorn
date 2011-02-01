@@ -27,6 +27,9 @@ Opencast.segments_ui = (function ()
             ($("#segment" + segmentId).width() != null) &&
             ($("#segment-tooltip").width() != null))
         {
+            var eps = 4;
+            var segment0Left = $("#segment0").offset().left + eps;
+            var segmentLastRight = $("#segment" + (Opencast.segments.getNumberOfSegments() - 1)).offset().left + $("#segment" + (Opencast.segments.getNumberOfSegments() - 1)).width() - eps;
             var segmentLeft = $("#segment" + segmentId).offset().left;
             var segmentTop = $("#segment" + segmentId).offset().top;
             var segmentWidth = $("#segment" + segmentId).width();
@@ -35,9 +38,18 @@ Opencast.segments_ui = (function ()
             {
                 tooltipWidth = 160;
             }
-            var midSegment = segmentLeft + segmentWidth / 2;
-            
-            $("#segment-tooltip").css("left", (midSegment - tooltipWidth / 2) + "px");
+            var pos = segmentLeft + segmentWidth / 2 - tooltipWidth / 2;
+            // Check overflow on left Side
+            if(pos < segment0Left)
+            {
+                pos = segment0Left;
+            }
+            // Check overflow on right Side
+            if((pos + tooltipWidth) > segmentLastRight)
+            {
+                pos -= (pos + tooltipWidth) - segmentLastRight;
+            }
+            $("#segment-tooltip").css("left", pos + "px");
             $("#segment-tooltip").css("top", segmentTop - (imageHeight + 7) + "px");
             $("#segment-tooltip").show();
         }
