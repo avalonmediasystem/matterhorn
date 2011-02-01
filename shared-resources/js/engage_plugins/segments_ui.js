@@ -31,7 +31,13 @@ Opencast.segments_ui = (function ()
             var segmentTop = $("#segment" + segmentId).offset().top;
             var segmentWidth = $("#segment" + segmentId).width();
             var tooltipWidth = $("#segment-tooltip").width();
-            $("#segment-tooltip").css("left", (segmentLeft + segmentWidth / 2 - tooltipWidth / 2) + "px");
+            if(tooltipWidth == 0)
+            {
+                tooltipWidth = 160;
+            }
+            var midSegment = segmentLeft + segmentWidth / 2;
+            
+            $("#segment-tooltip").css("left", (midSegment - tooltipWidth / 2) + "px");
             $("#segment-tooltip").css("top", segmentTop - (imageHeight + 7) + "px");
             $("#segment-tooltip").show();
         }
