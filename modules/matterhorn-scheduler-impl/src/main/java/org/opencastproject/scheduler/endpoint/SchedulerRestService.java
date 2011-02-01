@@ -652,7 +652,7 @@ public class SchedulerRestService {
             "Get a specific scheduled event.");
     getEventEndpoint.addFormat(Format.xml("XML representation of the event."));
     getEventEndpoint.addFormat(Format.json("JSON representation of the event."));
-    getEventEndpoint.setAutoPathFormat(true);
+    //getEventEndpoint.setAutoPathFormat(true);
     getEventEndpoint.addStatus(org.opencastproject.util.doc.Status.ok("XML or JSON representation of the Event."));
     getEventEndpoint.addStatus(org.opencastproject.util.doc.Status
             .badRequest("Supplied eventId is incorrect or missing."));
@@ -668,18 +668,19 @@ public class SchedulerRestService {
 
     // Scheduler filterEventsEndpoint
     RestEndpoint filterEventsEndpoint = new RestEndpoint("filterEvents", RestEndpoint.Method.GET, 
-            "/filter",
+            "/filter.{format}",
             "returns scheduled events, that pass the filter. All string fields are case-sensative.");
     filterEventsEndpoint.addFormat(
             Format.xml("XML representation of a list of the events conforming to the supplied filter."));
     filterEventsEndpoint.addFormat(
             Format.json("JSON representation of a list of the event conforming to the supplied filter."));
-    filterEventsEndpoint.setAutoPathFormat(true);
+    //filterEventsEndpoint.setAutoPathFormat(true);
     filterEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .ok("XML or JSON representation of a list of events belonging to a recurring event."));
     filterEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .badRequest("Supplied filter is incorrect or missing."));
     //contributor, creator, device, series, startDate, endDate, title, isAsc
+    filterEventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml", "The data format of the response, xml or json."));
     filterEventsEndpoint.addOptionalParam(new Param("contributor", Type.STRING, "Joe Shmoe", "Pattern to search for in contributor"));
     filterEventsEndpoint.addOptionalParam(new Param("creator", Type.STRING, "Joe Shmoe", "Pattern to search for in creator"));
     filterEventsEndpoint.addOptionalParam(new Param("device", Type.STRING, "demo_capture_agent", "Pattern to search for in the device name"));
@@ -716,46 +717,52 @@ public class SchedulerRestService {
     data.addEndpoint(RestEndpoint.Type.READ, getUpcomingEventsEndpoint);
 
     // Scheduler findConflictingEvents
-    RestEndpoint findConflictingEventsEndpoint = new RestEndpoint("findConflictingEvents", RestEndpoint.Method.POST,
-            "/event/conflict",
-            "Looks for events that are conflicting with the given event, because they use the same recorder at the same time ");
-    findConflictingEventsEndpoint.addFormat(Format
-            .xml("XML representation of a list of all events that conflict with supplied event."));
-    findConflictingEventsEndpoint.addFormat(Format
-            .json("JSON representation of a list of all events that conflict with supplied event."));
-    findConflictingEventsEndpoint.setAutoPathFormat(true);
-    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
-            .ok("XML or JSON representation of a list of all upcoming events."));
-    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
-            .badRequest("Supplied Event is invalid or missing."));
-    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status.error("A server error occured."));
-    findConflictingEventsEndpoint.addRequiredParam(new Param("event", Type.TEXT, generateEvent(),
-            "The Event that should be checked for conflicts."));
-    findConflictingEventsEndpoint.setTestForm(RestTestForm.auto());
-    data.addEndpoint(RestEndpoint.Type.READ, findConflictingEventsEndpoint);
+//    RestEndpoint findConflictingEventsEndpoint = new RestEndpoint("findConflictingEvents", RestEndpoint.Method.POST,
+//            "/conflict.{format}",
+//            "Looks for events that are conflicting with the given event, because they use the same recorder at the same time ");
+//    findConflictingEventsEndpoint.addFormat(Format
+//            .xml("XML representation of a list of all events that conflict with supplied event."));
+//    findConflictingEventsEndpoint.addFormat(Format
+//            .json("JSON representation of a list of all events that conflict with supplied event."));
+//    //findConflictingEventsEndpoint.setAutoPathFormat(true);
+//    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
+//            .ok("XML or JSON representation of a list of all upcoming events."));
+//    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
+//            .badRequest("Supplied Event is invalid or missing."));
+//    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status.error("A server error occured."));
+//    findConflictingEventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml", "The data format of the response, xml or json."));
+//    findConflictingEventsEndpoint.addRequiredParam(new Param("event", Type.TEXT, generateEvent(),
+//            "The Event that should be checked for conflicts."));
+//    findConflictingEventsEndpoint.setTestForm(RestTestForm.auto());
+//    data.addEndpoint(RestEndpoint.Type.READ, findConflictingEventsEndpoint);
 
     // Scheduler findConflictingREvents
     RestEndpoint findConflictingREventsEndpoint = new RestEndpoint("findConflictingRecurringEvents",
-            RestEndpoint.Method.POST, "/recurring/conflict",
+            RestEndpoint.Method.POST, "/conflict.{format}",
             "Looks for events that are conflicting with the given event, because they use the same recorder at the same time ");
     findConflictingREventsEndpoint.addFormat(Format
             .xml("XML representation of a list of all events that conflict with supplied recurring event."));
     findConflictingREventsEndpoint.addFormat(Format
             .json("JSON representation of a list of all events that conflict with supplied recurring event."));
-    findConflictingREventsEndpoint.setAutoPathFormat(true);
+    //findConflictingREventsEndpoint.setAutoPathFormat(true);
     findConflictingREventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .ok("XML or JSON representation of a list of all upcoming events."));
     findConflictingREventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .badRequest("Supplied RecurringEvent is invalid or missing."));
     findConflictingREventsEndpoint.addStatus(org.opencastproject.util.doc.Status.error("A server error occured."));
-    findConflictingREventsEndpoint.addRequiredParam(new Param("recurringEvent", Type.TEXT, generateEvent(),
-            "The RecurringEvent that should be checked for conflicts. "));
+    findConflictingREventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml", "The data format of the response, xml or json."));
+    //findConflictingREventsEndpoint.addRequiredParam(new Param("recurringEvent", Type.TEXT, generateEvent(), "The RecurringEvent that should be checked for conflicts. "));
+    findConflictingREventsEndpoint.addRequiredParam(new Param("device", Type.STRING, "" ,  "The device that is scheduled"));
+    findConflictingREventsEndpoint.addRequiredParam(new Param("start", Type.STRING, "" ,"The start of the recurrence period"));
+    findConflictingREventsEndpoint.addRequiredParam(new Param("end", Type.STRING, "", "The end of the recurrence period"));
+    findConflictingREventsEndpoint.addRequiredParam(new Param("duration", Type.STRING, "", "The duration of the single event"));
+    findConflictingREventsEndpoint.addRequiredParam(new Param("rrule", Type.STRING, "", "The recurrence rule"));
     findConflictingREventsEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, findConflictingREventsEndpoint);
 
     // Scheduler getDublinCoreMetadata
     RestEndpoint getDublinCoreMetadataEndpoint = new RestEndpoint("getDublinCoreMetadata", RestEndpoint.Method.GET,
-            "/event/{eventId}/dublincore", "Gets a XML with the Dublin Core metadata for the specified event. ");
+            "/{eventId}/dublincore", "Gets a XML with the Dublin Core metadata for the specified event. ");
     getDublinCoreMetadataEndpoint.addFormat(Format.xml("Dublincore metadata for the supplied eventId."));
     getDublinCoreMetadataEndpoint.addStatus(org.opencastproject.util.doc.Status
             .ok("Dublinecore XML document containing the event's metadata."));
@@ -771,7 +778,7 @@ public class SchedulerRestService {
 
     // Scheduler getCaptureAgentMetadata
     RestEndpoint getCaptureAgentMetadataEndpoint = new RestEndpoint("getCaptureAgentMetadata", RestEndpoint.Method.GET,
-            "/event/{eventId}/captureAgentMetadata",
+            "/{eventId}/captureAgentMetadata",
             "Gets java Properties file with technical metadata for the specified event. ");
     getCaptureAgentMetadataEndpoint.addFormat(new Format("properties",
             "Java Properties files that is needed by the capture agent.", null));
