@@ -215,7 +215,7 @@ public class CaptionServiceRestEndpoint extends AbstractJobProducerEndpoint {
             "Convert captions from one format to another");
     convertEndpoint.addFormat(Format.xml());
     convertEndpoint.addStatus(Status.ok("Conversion successfully completed."));
-    convertEndpoint.addRequiredParam(new Param("captions", Param.Type.STRING, generateCatalog(),
+    convertEndpoint.addRequiredParam(new Param("captions", Param.Type.TEXT, generateCatalog(),
             "Captions to be converted."));
     convertEndpoint.addRequiredParam(new Param("input", Param.Type.STRING, "dfxp",
             "Caption input format (for example: dfxp, subrip,...)."));
@@ -231,7 +231,7 @@ public class CaptionServiceRestEndpoint extends AbstractJobProducerEndpoint {
             "Get information about languages in caption catalog (if such information is available).");
     languageEndpoint.addFormat(Format.xml());
     languageEndpoint.addStatus(Status.ok("Returned information about languages present in captions"));
-    languageEndpoint.addRequiredParam(new Param("captions", Param.Type.STRING, generateCatalog(),
+    languageEndpoint.addRequiredParam(new Param("captions", Param.Type.TEXT, generateCatalog(),
             "Captions to be examined."));
     languageEndpoint.addRequiredParam(new Param("input", Param.Type.STRING, "dfxp",
             "Captions format (for example: dfxp, subrip,...)."));
