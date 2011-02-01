@@ -334,14 +334,16 @@ preinstall_scons() {
 check_prereq() {
   case `os` in
     CentOS | RHEL )
-      chkprog wget  || install_prog wget  || return 1
-      chkprog xz    || install_prog xz    || return 1
-      chkprog yacc  || install_prog yacc  || return 1
-      chkprog git   || install_prog git   || return 1
+      chkprog wget    || install_prog wget     || return 1
+      chkprog xz      || install_prog xz       || return 1
+      chkprog yacc    || install_prog yacc     || return 1
+      # this was reported as missing on some systems and is needed by git
+      chkprog dbiprof || install_prog perl-dbi || return 1
+      chkprog git     || install_prog git      || return 1
       # These are needed for Windows compile
-      chkprog jam   || install_prog jam   || return 1
-      chkprog yasm  || install_prog yasm  || return 1
-      chkprog scons || preinstall_scons   || return 1
+      chkprog jam     || install_prog jam      || return 1
+      chkprog yasm    || install_prog yasm     || return 1
+      chkprog scons   || preinstall_scons      || return 1
       #fix_scons || return 1
       #
       # convert (part of ImageMagick) is needed by ocropus_libs/iulib
@@ -349,27 +351,26 @@ check_prereq() {
       #
       # gsl-devel is needed by ocropus
       chkprog gsl-config || install_prog gsl-devel || return 1
-      #
-      # this was reported as missing
-      chkprog dbiprof || install_prog perl-dbi || return 1
       #
       if [ ! -f /usr/include/zlib.h ]; then
         install_prog zlib-devel || return 1
       fi
       ;;
     Ubuntu )
-      apt-get update || return 1
+      sudox apt-get update || return 1
       #
-      chkprog wget  || install_prog wget  || return 1
-      chkprog alien || install_prog alien || return 1
-      chkprog g++   || install_prog g++   || return 1
-      chkprog yacc  || install_prog yacc  || return 1
-      chkprog patch || install_prog patch || return 1
-      chkprog git   || install_prog git   || return 1
+      chkprog wget    || install_prog wget     || return 1
+      chkprog alien   || install_prog alien    || return 1
+      chkprog g++     || install_prog g++      || return 1
+      chkprog yacc    || install_prog yacc     || return 1
+      chkprog patch   || install_prog patch    || return 1
+      # this was reported as missing on some systems and is needed by git
+      chkprog dbiprof || install_prog perl-dbi || return 1
+      chkprog git     || install_prog git      || return 1
       # These are needed for Windows compile
-      chkprog jam   || install_prog jam   || return 1
-      chkprog yasm  || install_prog yasm  || return 1
-      chkprog scons || preinstall_scons   || return 1
+      chkprog jam     || install_prog jam      || return 1
+      chkprog yasm    || install_prog yasm     || return 1
+      chkprog scons   || preinstall_scons      || return 1
       #fix_scons || return 1
       #
       # convert (part of ImageMagick) is needed by ocropus_libs/iulib
@@ -377,9 +378,6 @@ check_prereq() {
       #
       # gsl-devel is needed by ocropus
       chkprog gsl-config || install_prog gsl-devel || return 1
-      #
-      # this was reported as missing
-      chkprog dbiprof || install_prog perl-dbi || return 1
       #
       if [ ! -f /usr/include/zlib.h ]; then
         install_prog zlib-devel || return 1
