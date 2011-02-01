@@ -113,7 +113,7 @@ public class PreProcessingWorkflowTest {
     workflowId = scheduleEvent(start, end);
     while(WorkflowUtils.isWorkflowInState(workflowId, "INSTANTIATED")) {
       logger.info("Waiting for workflow {} to be dispatched", workflowId);
-      Thread.sleep(1000);
+      Thread.sleep(5000);
     }
     if (!WorkflowUtils.isWorkflowInState(workflowId, "PAUSED") ) {
       fail("Workflow " + workflowId + " should be on hold in 'schedule', or ");
