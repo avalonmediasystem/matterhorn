@@ -174,12 +174,27 @@ shasumx() {
 }
 #
 # copypkg
+#   $1 = package name
 #
 copypkg() {
   [ -z "$HOME3P" ] && HOME3P=`cd "${0%/*}" 2>/dev/null; echo $PWD`
   [ ! -f "${HOME3P}/tarballs/$1" ] && return 1
   cp "${HOME3P}/tarballs/$1" .
   [ $? -ne 0 ] && return 1
+  return 0
+}
+#
+# chkpkg
+#   $1 = package name
+#
+chkpkg() {
+  set +x
+  if [ ! -s "$1" ]; then
+    echo "File $1 is missing - download it first!"
+    set -x
+    return 1
+  fi
+  set -x
   return 0
 }
 #
