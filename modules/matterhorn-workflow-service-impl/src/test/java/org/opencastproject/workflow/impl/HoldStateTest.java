@@ -200,7 +200,7 @@ public class HoldStateTest {
     service.addWorkflowListener(succeedListener);
     synchronized(succeedListener) {
       service.resume(workflow.getId());
-      succeedListener.wait(10000);
+      succeedListener.wait();
     }
     service.removeWorkflowListener(succeedListener);
     

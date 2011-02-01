@@ -255,7 +255,7 @@ public class WorkflowStatisticsTest {
       for (int k = 0; k <= (j % OPERATION_COUNT - 1); k++) {
         synchronized(instanceListener) {
           service.resume(instance.getId(), null);
-          instanceListener.wait(10000);
+          instanceListener.wait();
         }
       }
       j++;

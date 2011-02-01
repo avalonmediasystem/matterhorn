@@ -386,7 +386,7 @@ public class WorkflowServiceImplTest {
       } else {
         instance = service.start(definition, mp, parentId, null);
       }
-      stateListener.wait(10000);
+      stateListener.wait();
     }
     service.removeWorkflowListener(stateListener);
 
@@ -498,7 +498,7 @@ public class WorkflowServiceImplTest {
 
     while (stateListener.countStateChanges() < count) {
       synchronized (stateListener) {
-        stateListener.wait(10000);
+        stateListener.wait();
       }
     }
 
