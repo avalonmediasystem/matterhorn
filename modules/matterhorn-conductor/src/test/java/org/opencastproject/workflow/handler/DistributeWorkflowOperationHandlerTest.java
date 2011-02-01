@@ -15,13 +15,21 @@
  */
 package org.opencastproject.workflow.handler;
 
-import org.opencastproject.distribution.download.DownloadDistributionService;
+import org.opencastproject.distribution.api.DistributionException;
+import org.opencastproject.distribution.api.DistributionService;
+import org.opencastproject.job.api.Job;
+import org.opencastproject.job.api.Job.Status;
+import org.opencastproject.job.api.JobProducer;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilder;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
+import org.opencastproject.mediapackage.MediaPackageElement;
+import org.opencastproject.mediapackage.MediaPackageElementParser;
+import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
+import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.serviceregistry.api.ServiceRegistryInMemoryImpl;
-import org.opencastproject.util.UrlSupport;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowInstance.WorkflowState;
 import org.opencastproject.workflow.api.WorkflowInstanceImpl;
@@ -29,22 +37,20 @@ import org.opencastproject.workflow.api.WorkflowOperationInstance;
 import org.opencastproject.workflow.api.WorkflowOperationInstance.OperationState;
 import org.opencastproject.workflow.api.WorkflowOperationInstanceImpl;
 import org.opencastproject.workflow.api.WorkflowOperationResult;
-import org.opencastproject.workspace.api.Workspace;
 
-import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DistributeWorkflowOperationHandlerTest {
   private DistributeWorkflowOperationHandler operationHandler;
   private ServiceRegistry serviceRegistry;
-  private TestDownloadDistributionService service = null;
+  private TestDistributionService service = null;
 
   private URI uriMP;
   private MediaPackage mp;
@@ -54,13 +60,9 @@ public class DistributeWorkflowOperationHandlerTest {
     MediaPackageBuilder builder = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder();
     uriMP = InspectWorkflowOperationHandler.class.getResource("/distribute_mediapackage.xml").toURI();
     mp = builder.loadFromXml(uriMP.toURL().openStream());
-    service = new TestDownloadDistributionService();
+    service = new TestDistributionService();
     serviceRegistry = new ServiceRegistryInMemoryImpl(service);
-
-    Workspace workspace = EasyMock.createNiceMock(Workspace.class);
-    EasyMock.expect(workspace.get((URI)EasyMock.anyObject())).andReturn(File.createTempFile("test", null)).anyTimes();
-    EasyMock.replay(workspace);
-    service.init(serviceRegistry, workspace);
+    service.serviceRegistry = serviceRegistry;
 
     // set up the handler
     operationHandler = new DistributeWorkflowOperationHandler();
@@ -97,15 +99,51 @@ public class DistributeWorkflowOperationHandlerTest {
     return workflowInstance;
   }
 
-  class TestDownloadDistributionService extends DownloadDistributionService {
-    protected void init(ServiceRegistry serviceRegistry, Workspace workspace) {
-      setServiceRegistry(serviceRegistry);
-      setWorkspace(workspace);
-      this.distributionDirectory = new File(System.getProperty("java.io.tmpdir"), this.getClass().getName()
-              + System.currentTimeMillis());
-      this.serviceUrl = UrlSupport.DEFAULT_BASE_URL;
+  class TestDistributionService implements DistributionService, JobProducer {
+    public static final String JOB_TYPE = "distribute";
+    
+    ServiceRegistry serviceRegistry = null;
+
+    @Override
+    public Job distribute(String mediaPackageId, MediaPackageElement element) throws DistributionException,
+            MediaPackageException {
+      try {
+        return serviceRegistry.createJob("distribute", "distribute", Arrays.asList(new String[] {MediaPackageElementParser.getAsXml(element)}));
+      } catch (ServiceRegistryException e) {
+        throw new DistributionException(e);
+      }
     }
 
+    @Override
+    public Job retract(String mediaPackageId) throws DistributionException {
+      try {
+        return serviceRegistry.createJob(JOB_TYPE, "retract");
+      } catch (ServiceRegistryException e) {
+        throw new DistributionException(e);
+      }
+    }
+
+    @Override
+    public String getJobType() {
+      return JOB_TYPE;
+    }
+
+    @Override
+    public long countJobs(Status status) throws ServiceRegistryException {
+      return serviceRegistry.getJobs(JOB_TYPE, status).size();
+    }
+
+    @Override
+    public void acceptJob(Job job, String operation, List<String> arguments) throws ServiceRegistryException {
+      job.setPayload(arguments.get(0));
+      job.setStatus(Status.FINISHED);
+      try {
+        serviceRegistry.updateJob(job);
+      } catch (NotFoundException e) {
+        // not possible
+      }
+    }
+    
   }
 
 }
