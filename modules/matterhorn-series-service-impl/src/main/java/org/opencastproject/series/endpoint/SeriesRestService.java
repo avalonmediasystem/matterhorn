@@ -13,13 +13,17 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.series.impl;
+package org.opencastproject.series.endpoint;
 
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.series.api.Series;
 import org.opencastproject.series.api.SeriesMetadata;
 import org.opencastproject.series.api.SeriesService;
+import org.opencastproject.series.impl.SeriesBuilder;
+import org.opencastproject.series.impl.SeriesImpl;
+import org.opencastproject.series.impl.SeriesListImpl;
+import org.opencastproject.series.impl.SeriesMetadataImpl;
 import org.opencastproject.util.DocUtil;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.UrlSupport;
