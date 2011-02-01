@@ -587,7 +587,7 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
   @Override
   public WorkflowInstance ingest(MediaPackage mp) throws IngestException {
     try {
-      return ingest(mp, null);
+      return ingest(mp, null, null, null);
     } catch (NotFoundException e) {
       throw new IngestException(e);
     }
@@ -601,7 +601,7 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
    */
   @Override
   public WorkflowInstance ingest(MediaPackage mp, String wd) throws IngestException, NotFoundException {
-    return ingest(mp, wd, null);
+    return ingest(mp, wd, null, null);
   }
 
   /**
@@ -665,21 +665,31 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
         // if we are not in the last operation of the preprocessing workflow (due to the capture agent not reporting
         // on its recording status), we need to advance the workflow.
         WorkflowOperationInstance currentOperation = workflow.getCurrentOperation();
-        List<WorkflowOperationInstance> preProcessingOperations = workflow.getOperations();
-        while (preProcessingOperations.indexOf(currentOperation) < preProcessingOperations.size() - 1) {
-          logger.debug("Advancing workflow (skipping {})", currentOperation);
-          currentOperation.setState(OperationState.SKIPPED);
-          currentOperation = workflow.next();
-        }
-        // Ingest succeeded
-        currentOperation.setState(OperationState.SUCCEEDED);
+        int currentPosition = workflow.getOperations().indexOf(currentOperation);
+        int preProcessingOperations = workflow.getOperations().size();
 
         // Replace the current mediapackage with the new one
         workflow.setMediaPackage(mp);
+
+        // Extend the workflow operations
         workflow.extend(workflowDef);
+
+        // Advance the workflow
+        while (currentPosition < preProcessingOperations - 1) {
+          currentOperation = workflow.getCurrentOperation();
+          logger.debug("Advancing workflow (skipping {})", currentOperation);
+          currentOperation.setState(OperationState.SKIPPED);
+          currentOperation = workflow.next();
+          currentPosition++;
+        }
+
+        // Ingest succeeded
+        currentOperation.setState(OperationState.SUCCEEDED);
+
+        // Update
         workflowService.update(workflow);
 
-        // Extend the workflow by the operations found in the workflow definition
+        // resume the workflow
         workflowService.resume(workflowId.longValue(), properties);
 
         // Return the updated workflow instance

@@ -793,8 +793,36 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
           throws WorkflowDatabaseException, WorkflowParsingException, NotFoundException {
 
     WorkflowInstance workflowInstance = getWorkflowById(workflowInstanceId);
-    workflowInstance = updateConfiguration(workflowInstance, properties);
-    update(workflowInstance);
+    if (properties != null && !properties.isEmpty()) {
+      workflowInstance = updateConfiguration(workflowInstance, properties);
+      update(workflowInstance);
+    }
+
+    WorkflowOperationInstance currentOperation = workflowInstance.getCurrentOperation();
+
+    // We can resume workflows when they are in either the paused state, or they are being advanced manually passed
+    // certain operations. In the latter case, there is no current paused operation.
+    if (OperationState.INSTANTIATED.equals(currentOperation.getState())) {
+      try {
+        // the operation has its own job.  Update that too.
+        Job operationJob = serviceRegistry.createJob(JOB_TYPE, Operation.START_OPERATION.toString(),
+                Arrays.asList(Long.toString(workflowInstanceId)), null, false);
+        operationJob.setStatus(Status.QUEUED);
+        serviceRegistry.updateJob(operationJob);
+
+        // this method call is publicly visible, so it doesn't necessarily go through the accept method. Set the
+        // workflow state manually.
+        workflowInstance.setState(RUNNING);
+        currentOperation.setId(operationJob.getId());
+
+        // update the workflow and its associated job
+        update(workflowInstance);
+
+        return workflowInstance;
+      } catch (ServiceRegistryException e) {
+        throw new WorkflowDatabaseException(e);
+      }
+    }
 
     Long operationJobId = workflowInstance.getCurrentOperation().getId();
     if (operationJobId == null) {
