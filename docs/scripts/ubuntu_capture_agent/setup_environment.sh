@@ -130,7 +130,7 @@ chmod -R 770 "$OC_DIR"
 chown -R $USERNAME:$USERNAME "$OC_DIR"
 
 # Add a link to the capture agent folder in the user home folder
-[[ -e "${HOME}/${OC_DIR##*/}" ]] || (ln -s $OC_DIR "$HOME" && chown $USERNAME:$USERNAME "$HOME"/"${OC_DIR##*/}*")
+[[ -e "${HOME}/${OC_DIR##*/}" ]] || (ln -s $OC_DIR "$HOME" && chown -h $USERNAME:$USERNAME "$HOME"/"${OC_DIR##*/}")
 
 echo "Done"
 
