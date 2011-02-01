@@ -678,6 +678,15 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
         while (currentPosition < preProcessingOperations - 1) {
           currentOperation = workflow.getCurrentOperation();
           logger.debug("Advancing workflow (skipping {})", currentOperation);
+          if (currentOperation.getId() != null) {
+            try {
+              Job job = serviceRegistry.getJob(currentOperation.getId());
+              job.setStatus(Status.FINISHED);
+              serviceRegistry.updateJob(job);
+            } catch (ServiceRegistryException e) {
+              throw new IllegalStateException("Error updating job associated with skipped operation " + currentOperation, e);
+            }
+          }
           currentOperation.setState(OperationState.SKIPPED);
           currentOperation = workflow.next();
           currentPosition++;
