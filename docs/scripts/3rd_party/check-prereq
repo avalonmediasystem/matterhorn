@@ -94,6 +94,18 @@ install_prog() {
               ;;
           esac
           ;;
+        perl-dbi )
+          case `arch` in
+            i386 )
+              URL=http://mirror.centos.org/centos/5/os/i386/CentOS
+              rpms="perl-DBI-1.52-2.el5.i386.rpm"
+              ;;
+            x86_64 )
+              URL=http://mirror.centos.org/centos/5/os/x86_64/CentOS
+              rpms="perl-DBI-1.52-2.el5.x86_64.rpm"
+              ;;
+          esac
+          ;;
         git ) 
           case `arch` in
             i386 )
@@ -110,11 +122,11 @@ install_prog() {
           case `arch` in
             i386 )
               URL=ftp://mirror.switch.ch/pool/1/mirror/epel/5/i386
-              rpms=jam-2.5-4.el5.i386.rpm
+              rpms="jam-2.5-4.el5.i386.rpm"
               ;;
             x86_64 )
               URL=ftp://mirror.switch.ch/pool/1/mirror/epel/5/x86_64
-              rpms=jam-2.5-4.el5.x86_64.rpm
+              rpms="jam-2.5-4.el5.x86_64.rpm"
               ;;
           esac
           ;;
@@ -122,11 +134,11 @@ install_prog() {
           case `arch` in
             i386 )
               URL=http://packages.sw.be/yasm
-              rpms=yasm-1.0.1-1.el5.rf.i386.rpm
+              rpms="yasm-1.0.1-1.el5.rf.i386.rpm"
               ;;
             x86_64 )
               URL=http://packages.sw.be/yasm
-              rpms=yasm-1.0.1-1.el5.rf.x86_64.rpm
+              rpms="yasm-1.0.1-1.el5.rf.x86_64.rpm"
               ;;
           esac
           ;;
@@ -142,6 +154,18 @@ install_prog() {
               ;;
           esac
           ;;
+        automake )
+          case `arch` in
+            i386 )
+              URL=http://mirror.centos.org/centos/5/os/i386/CentOS
+              rpms="automake-1.9.6-2.3.el5.noarch.rpm"
+              ;;
+            x86_64 )
+              URL=http://mirror.centos.org/centos/5/os/x86_64/CentOS
+              rpms="automake-1.9.6-2.3.el5.noarch.rpm"
+              ;;
+          esac
+          ;;
         gsl-devel )
           case `arch` in
             i386 )
@@ -154,15 +178,27 @@ install_prog() {
               ;;
           esac
           ;;
-        perl-dbi )
+        desktop-file-utils )
           case `arch` in
             i386 )
               URL=http://mirror.centos.org/centos/5/os/i386/CentOS
-              rpms="perl-DBI-1.52-2.el5.i386.rpm"
+              rpms="desktop-file-utils-0.10-7.i386.rpm"
               ;;
             x86_64 )
               URL=http://mirror.centos.org/centos/5/os/x86_64/CentOS
-              rpms="perl-DBI-1.52-2.el5.x86_64.rpm"
+              rpms="desktop-file-utils-0.10-7.x86_64.rpm"
+              ;;
+          esac
+          ;;
+        gmp )
+          case `arch` in
+            i386 )
+              URL=http://mirror.centos.org/centos/5/os/i386/CentOS
+              rpms="gmp-4.1.4-10.el5.i386.rpm"
+              ;;
+            x86_64 )
+              URL=http://mirror.centos.org/centos/5/os/x86_64/CentOS
+              rpms="gmp-4.1.4-10.el5.x86_64.rpm"
               ;;
           esac
           ;;
@@ -203,10 +239,11 @@ install_prog() {
         xz ) prog=xz-utils ;;
       # yacc ) prog="flex bison" ;;
         yacc ) prog=byacc ;;
+        perl-dbi ) prog=libdbi-perl ;;
         git ) prog=git-core ;;
         ImageMagick ) prog=imagemagick ;;
         gsl-devel ) prog=libgsl0-dev ;;
-        perl-dbi ) prog=libdbi-perl ;;
+        gmp ) prog=libgmp3c2 ;;
         zlib-devel ) prog=zlib1g-dev ;;
         * ) prog="$1" ;;
       esac
@@ -349,8 +386,16 @@ check_prereq() {
       # convert (part of ImageMagick) is needed by ocropus_libs/iulib
       #chkprog convert || install_prog ImageMagick  || return 1
       #
+      # automake is missing on some systems and is needed by gsl-devel
+      chkprog automake   || install_prog automake  || return 1
       # gsl-devel is needed by ocropus
       chkprog gsl-config || install_prog gsl-devel || return 1
+      #
+      # desktop-file-utils is needed by some versions of rpmlint
+      chkprog desktop-file-install || install_prog desktop-file-utils || return 1
+      #
+      # libgmp is missing on some systems and is needed by mingw32-gcc
+      chklib gmp || install_prog gmp || return 1
       #
       if [ ! -f /usr/include/zlib.h ]; then
         install_prog zlib-devel || return 1
@@ -376,8 +421,16 @@ check_prereq() {
       # convert (part of ImageMagick) is needed by ocropus_libs/iulib
       #chkprog convert || install_prog ImageMagick  || return 1
       #
+      # automake is missing on some systems and is needed by gsl-devel
+      chkprog automake   || install_prog automake  || return 1
       # gsl-devel is needed by ocropus
       chkprog gsl-config || install_prog gsl-devel || return 1
+      #
+      # desktop-file-utils is needed by some versions of rpmlint
+      chkprog desktop-file-install || install_prog desktop-file-utils || return 1
+      #
+      # libgmp is missing on some systems and is needed by mingw32-gcc
+      chklib gmp || install_prog gmp || return 1
       #
       if [ ! -f /usr/include/zlib.h ]; then
         install_prog zlib-devel || return 1
@@ -456,11 +509,11 @@ install_mingw32() {
       case `arch` in
         i386 )
           URL=ftp://mirror.switch.ch/pool/1/mirror/epel/5/i386
-          rpms=mingw32-gcc-c++-4.3.2-12.el5.i386.rpm
+          rpms="mingw32-gcc-c++-4.3.2-12.el5.i386.rpm"
           ;;
         x86_64 )
           URL=ftp://mirror.switch.ch/pool/1/mirror/epel/5/x86_64
-          rpms=mingw32-gcc-c++-4.3.2-12.el5.x86_64.rpm
+          rpms="mingw32-gcc-c++-4.3.2-12.el5.x86_64.rpm"
           ;;
       esac
       for rpm in $rpms; do
