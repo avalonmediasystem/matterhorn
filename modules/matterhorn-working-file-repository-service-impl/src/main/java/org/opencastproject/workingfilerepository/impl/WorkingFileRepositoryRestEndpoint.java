@@ -198,7 +198,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
 
     // URI
     endpoint = new RestEndpoint("collectionUriWithFilename", RestEndpoint.Method.GET,
-            "/collectionuri/{collectionID}/{{fileName}", "Retrieve the URI for this collectionID and filename");
+            "/collectionuri/{collectionID}/{fileName}", "Retrieve the URI for this collectionID and filename");
     endpoint.addPathParam(new Param("collectionID", Param.Type.STRING, null, "ID of the collection"));
     endpoint.addPathParam(new Param("fileName", Param.Type.STRING, null, "The filename"));
     endpoint.setTestForm(RestTestForm.auto());
