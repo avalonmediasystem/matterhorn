@@ -149,7 +149,7 @@ export JV4LINFO_PATH=/usr/lib
 export JV4LINFO_DIR=$CA_DIR/jv4linfo
 
 # Service registry URL suffix                                                                                                                                
-export SERV_REG_SUFFIX=/services
+export SERV_REG_SUFFIX=services
                                                                          
 ## Help messages
 # Help for the driver list choice
