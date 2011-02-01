@@ -85,6 +85,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -136,8 +137,8 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /** The list of workflow listeners */
   private List<WorkflowListener> listeners = new CopyOnWriteArrayList<WorkflowListener>();
 
-  /** The thread pool to use for firing listeners */
-  protected ThreadPoolExecutor listenerExecutorService;
+  /** The thread pool to use for firing listeners and handling dispatched jobs */
+  protected ThreadPoolExecutor executorService;
 
   /** The service registry */
   protected ServiceRegistry serviceRegistry = null;
@@ -162,7 +163,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    */
   public void activate(ComponentContext componentContext) {
     this.componentContext = componentContext;
-    listenerExecutorService = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+    executorService = (ThreadPoolExecutor) Executors.newCachedThreadPool();
   }
 
   /**
@@ -198,7 +199,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
             listener.stateChanged(newWorkflowInstance);
           }
         };
-        listenerExecutorService.execute(runnable);
+        executorService.execute(runnable);
       } else {
         logger.debug("Not notifying {} because the workflow state has not changed", listener);
       }
@@ -212,7 +213,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
               listener.operationChanged(newWorkflowInstance);
             }
           };
-          listenerExecutorService.execute(runnable);
+          executorService.execute(runnable);
         }
       } else {
         logger.debug("Not notifying {} because the workflow operation has not changed", listener);
@@ -804,7 +805,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
     // certain operations. In the latter case, there is no current paused operation.
     if (OperationState.INSTANTIATED.equals(currentOperation.getState())) {
       try {
-        // the operation has its own job.  Update that too.
+        // the operation has its own job. Update that too.
         Job operationJob = serviceRegistry.createJob(JOB_TYPE, Operation.START_OPERATION.toString(),
                 Arrays.asList(Long.toString(workflowInstanceId)), null, false);
         operationJob.setStatus(Status.QUEUED);
@@ -1171,40 +1172,64 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.job.api.JobProducer#getJobType()
-   */
-  @Override
-  public String getJobType() {
-    return JOB_TYPE;
-  }
-
-  /**
-   * {@inheritDoc}
+   * If we are already running the maximum number of workflows, don't accept another START_WORKFLOW job
    * 
-   * @see org.opencastproject.job.api.JobProducer#acceptJob(org.opencastproject.job.api.Job, java.lang.String,
-   *      java.util.List)
+   * @see org.opencastproject.job.api.AbstractJobProducer#isReadyToAccept(org.opencastproject.job.api.Job)
    */
   @Override
-  public void acceptJob(Job job, String operation, List<String> arguments) throws ServiceRegistryException {
-
-    // If we are already running the maximum number of workflows, don't accept another START_WORKFLOW job
+  public boolean isReadyToAccept(Job job) throws ServiceRegistryException {
+    String operation = job.getOperation();
     if (Operation.START_WORKFLOW.toString().equals(operation) && maxConcurrentWorkflows > 0) {
       long runningWorkflows;
       try {
         runningWorkflows = this.countWorkflowInstances(RUNNING, null);
       } catch (WorkflowDatabaseException e) {
-        throw new ServiceRegistryException("Unable to determine the number of running workflows", e);
+        logger.warn("Unable to determine the number of running workflows", e);
+        return false;
       }
-
       if (runningWorkflows >= maxConcurrentWorkflows) {
-        throw new ServiceRegistryException("Refused to accept dispatched job '" + job
-                + "'. This server is already running '" + runningWorkflows + "' workflows.");
+        logger.info("Refused to accept dispatched job '{}'. This server is already running {} workflows.", job,
+                runningWorkflows);
+        return false;
       }
     }
+    return true;
+  }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.job.api.AbstractJobProducer#acceptJob(org.opencastproject.job.api.Job)
+   */
+  @Override
+  public boolean acceptJob(Job job) throws ServiceRegistryException {
+    if (!isReadyToAccept(job))
+      return false;
+    try {
+      executorService.submit(new JobRunner(job));
+      return true;
+    } catch (Exception e) {
+      if (e instanceof ServiceRegistryException)
+        throw (ServiceRegistryException) e;
+      throw new ServiceRegistryException(e);
+    }
+  }
+
+  /**
+   * Processes the workflow job.
+   * 
+   * @param job
+   *          the job
+   * @return the job payload
+   * @throws Exception
+   *           if job processing fails
+   */
+  protected String process(Job job) throws Exception {
+    List<String> arguments = job.getArguments();
     Operation op = null;
     WorkflowInstance workflowInstance = null;
     WorkflowOperationInstance wfo = null;
+    String operation = job.getOperation();
     try {
       try {
         op = Operation.valueOf(operation);
@@ -1247,6 +1272,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
         throw new ServiceRegistryException("This argument list for operation '" + op + "' does not meet expectations",
                 e);
       }
+      return null;
     } catch (Exception e) {
       logger.warn("Exception while accepting job " + job, e);
       try {
@@ -1334,7 +1360,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @param registry
    *          the service registry
    */
-  void setServiceRegistry(ServiceRegistry registry) {
+  protected void setServiceRegistry(ServiceRegistry registry) {
     this.serviceRegistry = registry;
   }
 
@@ -1344,7 +1370,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @param dao
    *          The dao to use for persistence
    */
-  void setDao(WorkflowServiceIndex dao) {
+  protected void setDao(WorkflowServiceIndex dao) {
     this.index = dao;
   }
 
@@ -1354,7 +1380,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @param service
    *          the metadata service
    */
-  void addMetadataService(MediaPackageMetadataService service) {
+  protected void addMetadataService(MediaPackageMetadataService service) {
     metadataServices.add(service);
   }
 
@@ -1364,8 +1390,18 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @param service
    *          the mediapackage metadata service to remove
    */
-  void removeMetadataService(MediaPackageMetadataService service) {
+  protected void removeMetadataService(MediaPackageMetadataService service) {
     metadataServices.remove(service);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.job.api.JobProducer#getJobType()
+   */
+  @Override
+  public String getJobType() {
+    return JOB_TYPE;
   }
 
   /**
@@ -1441,6 +1477,36 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       if (!operationName.equals(other.operationName))
         return false;
       return true;
+    }
+  }
+
+  /**
+   * A utility class to run jobs
+   */
+  class JobRunner implements Callable<Void> {
+
+    /** The job */
+    private Job job = null;
+
+    /**
+     * Constructs a new job runner
+     * 
+     * @param job
+     *          the job to run
+     */
+    JobRunner(Job job) {
+      this.job = job;
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see java.util.concurrent.Callable#call()
+     */
+    @Override
+    public Void call() throws Exception {
+      process(job);
+      return null;
     }
   }
 

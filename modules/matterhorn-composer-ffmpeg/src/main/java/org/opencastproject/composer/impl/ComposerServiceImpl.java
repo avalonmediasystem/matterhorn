@@ -762,12 +762,13 @@ public class ComposerServiceImpl extends AbstractJobProducer implements Composer
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.job.api.AbstractJobProducer#process(org.opencastproject.job.api.Job, java.lang.String,
-   *      java.util.List)
+   * @see org.opencastproject.job.api.AbstractJobProducer#process(org.opencastproject.job.api.Job)
    */
   @Override
-  protected String process(Job job, String operation, List<String> arguments) throws Exception {
+  protected String process(Job job) throws Exception {
     Operation op = null;
+    String operation = job.getOperation();
+    List<String> arguments = job.getArguments(); 
     try {
       op = Operation.valueOf(operation);
       Track firstTrack = null;

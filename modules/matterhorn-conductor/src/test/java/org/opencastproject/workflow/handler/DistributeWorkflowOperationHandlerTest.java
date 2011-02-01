@@ -101,14 +101,15 @@ public class DistributeWorkflowOperationHandlerTest {
 
   class TestDistributionService implements DistributionService, JobProducer {
     public static final String JOB_TYPE = "distribute";
-    
+
     ServiceRegistry serviceRegistry = null;
 
     @Override
     public Job distribute(String mediaPackageId, MediaPackageElement element) throws DistributionException,
             MediaPackageException {
       try {
-        return serviceRegistry.createJob("distribute", "distribute", Arrays.asList(new String[] {MediaPackageElementParser.getAsXml(element)}));
+        return serviceRegistry.createJob("distribute", "distribute",
+                Arrays.asList(new String[] { MediaPackageElementParser.getAsXml(element) }));
       } catch (ServiceRegistryException e) {
         throw new DistributionException(e);
       }
@@ -134,16 +135,28 @@ public class DistributeWorkflowOperationHandlerTest {
     }
 
     @Override
-    public void acceptJob(Job job, String operation, List<String> arguments) throws ServiceRegistryException {
-      job.setPayload(arguments.get(0));
+    public boolean acceptJob(Job job) throws ServiceRegistryException {
+      job.setPayload(job.getArguments().get(0));
       job.setStatus(Status.FINISHED);
       try {
         serviceRegistry.updateJob(job);
+        return true;
       } catch (NotFoundException e) {
         // not possible
       }
+      return false;
     }
-    
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see org.opencastproject.job.api.JobProducer#isReadyToAccept(org.opencastproject.job.api.Job)
+     */
+    @Override
+    public boolean isReadyToAccept(Job job) throws ServiceRegistryException {
+      return true;
+    }
+
   }
 
 }

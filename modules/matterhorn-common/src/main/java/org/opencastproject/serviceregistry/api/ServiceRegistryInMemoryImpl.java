@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +48,7 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
   private static final Logger logger = LoggerFactory.getLogger(ServiceRegistryInMemoryImpl.class);
 
   /** Default dispatcher timeout (1 second) */
-  public static final long DEFAULT_DISPATCHER_TIMEOUT = 1000;
+  public static final long DEFAULT_DISPATCHER_TIMEOUT = 100;
 
   /** Hostname for localhost */
   private static final String LOCALHOST = "localhost";
@@ -76,7 +75,8 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
     if (service != null)
       registerService(service);
     // Schedule the job dispatching.
-    dispatcher.scheduleWithFixedDelay(new JobDispatcher(), 100, 100, TimeUnit.MILLISECONDS);
+    dispatcher.scheduleWithFixedDelay(new JobDispatcher(), DEFAULT_DISPATCHER_TIMEOUT, DEFAULT_DISPATCHER_TIMEOUT,
+            TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -84,7 +84,8 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
    */
   public ServiceRegistryInMemoryImpl() {
     // Schedule the job dispatching.
-    dispatcher.scheduleWithFixedDelay(new JobDispatcher(), 100, 100, TimeUnit.MILLISECONDS);
+    dispatcher.scheduleWithFixedDelay(new JobDispatcher(), DEFAULT_DISPATCHER_TIMEOUT, DEFAULT_DISPATCHER_TIMEOUT,
+            TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -294,12 +295,13 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
    * 
    * @param job
    *          the job to dispatch
+   * @return whether the job was dispatched
    * @throws ServiceUnavailableException
    *           if no service is available to dispatch the job
    * @throws ServiceRegistryException
    *           if the service registrations are unavailable or dispatching of the job fails
    */
-  protected void dispatchJob(Job job) throws ServiceUnavailableException, ServiceRegistryException {
+  protected boolean dispatchJob(Job job) throws ServiceUnavailableException, ServiceRegistryException {
     List<ServiceRegistration> registrations = getServiceRegistrationsByLoad(job.getJobType());
     if (registrations.size() == 0)
       throw new ServiceUnavailableException("No service is available to handle jobs of type '" + job.getJobType() + "'");
@@ -307,13 +309,19 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
       if (registration.isJobProducer()) {
         ServiceRegistrationInMemoryImpl inMemoryRegistration = (ServiceRegistrationInMemoryImpl) registration;
         JobProducer service = inMemoryRegistration.getService();
-        service.acceptJob(job, job.getOperation(), job.getArguments());
-        break;
+        if (!service.isReadyToAccept(job))
+          continue;
+        else if (service.acceptJob(job)) {
+          return true;
+        } else {
+          continue;
+        }
       } else {
         logger.warn("This implementation of the service registry doesn't support dispatching to remote services");
         // TODO: Add remote dispatching
       }
     }
+    return false;
   }
 
   /**
@@ -325,10 +333,12 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
   public Job updateJob(Job job) throws NotFoundException, ServiceRegistryException {
     if (job == null)
       throw new IllegalArgumentException("Job cannot be null");
-    try {
-      jobs.put(job.getId(), JobParser.toXml(job));
-    } catch (IOException e) {
-      throw new IllegalStateException("Error serializing job", e);
+    synchronized (jobs) {
+      try {
+        jobs.put(job.getId(), JobParser.toXml(job));
+      } catch (IOException e) {
+        throw new IllegalStateException("Error serializing job", e);
+      }
     }
     return job;
   }
@@ -531,76 +541,39 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
      */
     @Override
     public void run() {
-      List<Future<?>> futures = new ArrayList<Future<?>>();
 
       // Go through the jobs and find those that have not yet been dispatched
       synchronized (jobs) {
-
         for (String serializedJob : jobs.values()) {
           Job job = null;
           try {
             job = JobParser.parseJob(serializedJob);
+            if (Status.QUEUED.equals(job.getStatus())) {
+              job.setStatus(Status.RUNNING);
+              if (!dispatchJob(job)) {
+                job.setStatus(Status.QUEUED);
+              }
+            }
+          } catch (ServiceUnavailableException e) {
+            job.setStatus(Status.FAILED);
+            Throwable cause = (e.getCause() != null) ? e.getCause() : e;
+            logger.error("Unable to find a service for job " + job, cause);
+          } catch (ServiceRegistryException e) {
+            job.setStatus(Status.FAILED);
+            Throwable cause = (e.getCause() != null) ? e.getCause() : e;
+            logger.error("Error dispatching job " + job, cause);
           } catch (IOException e) {
             throw new IllegalStateException("Error unmarshaling job", e);
-          }
-          if (Status.QUEUED.equals(job.getStatus())) {
-            job.setStatus(Status.RUNNING);
-            JobWorker worker = new JobWorker(job);
-            futures.add(dispatchWorker.submit(worker));
+          } finally {
+            try {
+              jobs.put(job.getId(), JobParser.toXml(job));
+            } catch (IOException e) {
+              throw new IllegalStateException("Error unmarshaling job", e);
+            }
           }
         }
       }
-
-      // Wait until all jobs that have been dispatched during this round are back
-      for (Future<?> future : futures) {
-        try {
-          future.get();
-        } catch (Exception e) {
-          // This indicates that an error is thrown during dispatch. Since that's already handled properly,
-          // there is nothing that needs to be done in this place.
-        }
-      }
     }
-  }
-
-  /**
-   * Thread that will try to execute a single job.
-   */
-  class JobWorker implements Runnable {
-
-    /** The job to work on */
-    private Job job = null;
-
-    /**
-     * Creates a new worker that will try to get the job <code>job</code> done.
-     * 
-     * @param job
-     *          the job to execute
-     */
-    public JobWorker(Job job) {
-      this.job = job;
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see java.lang.Thread#run()
-     */
-    @Override
-    public void run() {
-      try {
-        dispatchJob(job);
-      } catch (ServiceUnavailableException e) {
-        job.setStatus(Status.FAILED);
-        Throwable cause = (e.getCause() != null) ? e.getCause() : e;
-        logger.error("Unable to find a service for job " + job, cause);
-      } catch (ServiceRegistryException e) {
-        job.setStatus(Status.FAILED);
-        Throwable cause = (e.getCause() != null) ? e.getCause() : e;
-        logger.error("Error dispatching job " + job, cause);
-      }
-    }
-
   }
 
   /**
