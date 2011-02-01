@@ -165,8 +165,6 @@ echo >> $LOG_FILE
 echo "# Installed packages" >> $LOG_FILE
 [[ -e $PKG_BACKUP ]] && echo "$(cat $PKG_BACKUP)" >> $LOG_FILE
 
-echo -n pwd
-
 # Setup felix
 echo -n "Downloading Felix... "
 while [[ true ]]; do 

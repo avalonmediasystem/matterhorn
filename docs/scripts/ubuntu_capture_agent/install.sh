@@ -147,6 +147,9 @@ export JV4LINFO_LIB=libjv4linfo.so
 export JV4LINFO_PATH=/usr/lib
 # Directory where the jv4linfo-related files are stored
 export JV4LINFO_DIR=$CA_DIR/jv4linfo
+
+# Service registry URL suffix                                                                                                                                
+export SERV_REG_SUFFIX=/services
                                                                          
 ## Help messages
 # Help for the driver list choice
@@ -178,6 +181,8 @@ export STORAGE_KEY="org.opencastproject.storage.dir"
 export SERVER_URL_KEY="org.opencastproject.server.url"
 # Port where felix is running in the felix config file (config.properties)
 export FELIX_PORT_KEY="org.osgi.service.http.port"
+# Machine where the remote service registry is, in the felix config file (config.properties)                                                                 
+export SERV_REG_KEY="org.opencastproject.serviceregistry.url"
 # Agent name in the capture properties file
 export AGENT_NAME_KEY="capture.agent.name"
 # URL of the core machine inthe capture properties file
