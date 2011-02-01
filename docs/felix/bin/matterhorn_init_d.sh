@@ -29,7 +29,6 @@ IS_CA=false
 
 LOGDIR=$FELIX/logs
 
-NAME=matterhorn
 PATH=$PATH:$FELIX
 
 ##
@@ -136,7 +135,7 @@ case "$1" in
     fi   
     ;;
   *)
-    echo "Usage: /etc/init.d/$NAME {start|stop|restart|status}"
+    echo "Usage: $0 {start|stop|restart|status}"
     exit 1
     ;;
 esac
