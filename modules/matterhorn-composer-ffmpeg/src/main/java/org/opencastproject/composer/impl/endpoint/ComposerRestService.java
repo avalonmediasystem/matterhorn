@@ -388,18 +388,6 @@ public class ComposerRestService extends AbstractJobProducerEndpoint {
     profileEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, profileEndpoint);
 
-    // count
-    RestEndpoint countEndpoint = new RestEndpoint("count", RestEndpoint.Method.GET, "/count",
-            "Count the number of jobs");
-    countEndpoint.addStatus(org.opencastproject.util.doc.Status
-            .ok("Result body contains the number of jobs matching the query parameters"));
-    countEndpoint.addOptionalParam(new Param("status", Param.Type.STRING, "FINISHED",
-            "the job status (QUEUED, RUNNING, FINISHED, FAILED)"));
-    countEndpoint.addOptionalParam(new Param("host", Param.Type.STRING, serverUrl,
-            "the host responsible for this encoding job"));
-    countEndpoint.setTestForm(RestTestForm.auto());
-    data.addEndpoint(RestEndpoint.Type.READ, countEndpoint);
-
     // encode
     RestEndpoint encodeEndpoint = new RestEndpoint("encode", RestEndpoint.Method.POST, "/encode",
             "Starts an encoding process, based on the specified encoding profile ID and the track");
