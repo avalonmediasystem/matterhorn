@@ -238,19 +238,21 @@ public class WorkspaceImpl implements Workspace {
   @Override
   public void delete(URI uri) throws NotFoundException, IOException {
     String uriPath = uri.toString();
-    if (uriPath.indexOf(WorkingFileRepository.COLLECTION_PATH_PREFIX) > 0) {
-      String[] uriElements = uriPath.split("/");
-      if (uriElements.length > 2) {
-        String collectionId = uriElements[uriElements.length - 2];
-        String filename = uriElements[uriElements.length - 1];
-        wfr.deleteFromCollection(collectionId, filename);
-      }
-    } else if (uriPath.indexOf(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX) > 0) {
-      String[] uriElements = uriPath.split("/");
-      if (uriElements.length >= 3) {
-        String mediaPackageId = uriElements[uriElements.length - 3];
-        String elementId = uriElements[uriElements.length - 2];
-        wfr.delete(mediaPackageId, elementId);
+    if(uriPath.startsWith(wfr.getBaseUri().toString())) {
+      if (uriPath.indexOf(WorkingFileRepository.COLLECTION_PATH_PREFIX) > 0) {
+        String[] uriElements = uriPath.split("/");
+        if (uriElements.length > 2) {
+          String collectionId = uriElements[uriElements.length - 2];
+          String filename = uriElements[uriElements.length - 1];
+          wfr.deleteFromCollection(collectionId, filename);
+        }
+      } else if (uriPath.indexOf(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX) > 0) {
+        String[] uriElements = uriPath.split("/");
+        if (uriElements.length >= 3) {
+          String mediaPackageId = uriElements[uriElements.length - 3];
+          String elementId = uriElements[uriElements.length - 2];
+          wfr.delete(mediaPackageId, elementId);
+        }
       }
     }
 
