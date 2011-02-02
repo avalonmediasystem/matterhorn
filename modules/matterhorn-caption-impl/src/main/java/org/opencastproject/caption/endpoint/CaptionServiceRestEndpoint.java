@@ -29,6 +29,7 @@ import org.opencastproject.mediapackage.MediaPackageSerializer;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.util.DocUtil;
+import org.opencastproject.util.UrlSupport;
 import org.opencastproject.util.doc.DocRestData;
 import org.opencastproject.util.doc.Format;
 import org.opencastproject.util.doc.Param;
@@ -76,6 +77,12 @@ public class CaptionServiceRestEndpoint extends AbstractJobProducerEndpoint {
 
   /** The rest documentation */
   protected String docs;
+  
+  /** The default server URL */
+  protected String serverUrl = UrlSupport.DEFAULT_BASE_URL;
+
+  /** The default sample location URL */
+  protected String sampleLocation = serverUrl + "/workflow";
 
   /** The service registry */
   protected ServiceRegistry serviceRegistry = null;
@@ -221,7 +228,7 @@ public class CaptionServiceRestEndpoint extends AbstractJobProducerEndpoint {
             "Caption input format (for example: dfxp, subrip,...)."));
     convertEndpoint.addRequiredParam(new Param("output", Param.Type.STRING, "subrip",
             "Caption output format (for example: dfxp, subrip,...)."));
-    convertEndpoint.addRequiredParam(new Param("language", Param.Type.STRING, null,
+    convertEndpoint.addRequiredParam(new Param("language", Param.Type.STRING, "en",
             "Caption language (for those formats that store such information)"));
     convertEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.WRITE, convertEndpoint);
@@ -270,7 +277,7 @@ public class CaptionServiceRestEndpoint extends AbstractJobProducerEndpoint {
 
   protected String generateCatalog() {
     return "<catalog id=\"catalog-1\" type=\"captions/dfxp\">" + "  <mimetype>text/xml</mimetype>"
-            + "  <url>serverUrl/workflow/samples/captions.dfxp.xml</url>"
+            + "  <url>" + sampleLocation + "/samples/captions.dfxp.xml</url>"
             + "  <checksum type=\"md5\">08b58d152be05a85f877cf160ee6608c</checksum>" + "</catalog>";
   }
 
