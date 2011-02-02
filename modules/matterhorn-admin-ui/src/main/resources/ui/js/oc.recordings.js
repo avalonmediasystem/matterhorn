@@ -109,8 +109,9 @@ ocRecordings = new (function() {
         params.push('op=schedule');
       }
       else if (state == 'capturing') {
-        params.push('state=running');
+        params.push('state=paused');
         params.push('op=capture');
+        params.push('op=ingest');
       }
       else if (state == 'processing') {
         params.push('state=running');
@@ -126,9 +127,11 @@ ocRecordings = new (function() {
         params.push('state=paused');
         params.push('op=-schedule');
         params.push('op=-capture');
+        params.push('op=-ingest');
       }
       else if (state == 'failed') {
         params.push('state=failed');
+        params.push('state=failing');
       }
       else if (state === 'bulkedit' || state === 'bulkdelete') {
         ocRecordings.Configuration.pageSize = 100;
@@ -229,9 +232,15 @@ ocRecordings = new (function() {
    */
   function addStatistics(definition, stats) {
     if (definition.id == 'scheduling') {
-      stats.upcoming = parseInt(definition.running) + parseInt(definition.paused) + parseInt(definition.instantiated);
-    } else if (definition.id == 'capture') {
-      stats.capturing = parseInt(definition.running);
+      stats.failed += parseInt(definition.failed) + parseInt(definition.failing);
+      definition.operations.operation = ocUtils.ensureArray(definition.operations.operation);
+      $.each(definition.operations.operation, function(index, op) {
+        if (op.id == 'schedule') {
+          stats.upcoming = parseInt(op.instantiated) + parseInt(op.running) + parseInt(op.paused);
+        } else if (op.id == 'capture' || op.id == 'ingest') {
+          stats.capturing += parseInt(op.running) + parseInt(op.paused);
+        }
+      });
     } else {
       stats.processing += parseInt(definition.running);
       stats.finished += parseInt(definition.finished);
@@ -260,6 +269,7 @@ ocRecordings = new (function() {
     this.end='';
     this.actions=[];
     this.holdAction=false;
+    this.error = false;
 
     if (wf.mediapackage && wf.mediapackage.title) {
       this.title = wf.mediapackage.title;
@@ -287,11 +297,24 @@ ocRecordings = new (function() {
       this.state = 'Finished';
     } else if (wf.state == 'FAILING' || wf.state == 'FAILED') {
       this.state = 'Failed';
-      this.error = ocUtils.ensureArray(wf.errors.error).join(', ');
+      if (wf.errors === '') {
+        if (op) {
+          this.error = 'Failed in operation ' + op.description;
+        } else {
+          this.error = 'No error message available';
+        }
+      } else {
+        this.error = ocUtils.ensureArray(wf.errors.error).join(', ');
+      }
     } else if (wf.state == 'PAUSED') {
       if (op) {
         if (op.id == 'schedule') {
           this.state = 'Upcoming';
+        } else if (op.id == 'capture')  {
+          this.state = 'Capturing';
+        } else if (op.id == 'ingest') {
+          this.state = 'Captured';
+          this.operation = 'Sending recording to processing';
         } else if (op.holdurl) {
           this.state = 'On Hold';
           this.operation = op.description;
@@ -306,15 +329,11 @@ ocRecordings = new (function() {
       }
     } else if (wf.state == 'RUNNING') {
       if (op) {
-        if (op.id == 'capture') {
-          this.state = 'Capturing';
-        } else {
           this.state = 'Processing';
           this.operation = op.description;
-        }
       } else {
         op = ocRecordings.findFirstOperation(wf, "INSTANTIATED");    // MH-6426: it can happen that for running workflow there is no operation in state RUNNING
-        if (op) {                                               //          in this case we search for the next INSTANTIATED operation and display is as QUEUED
+        if (op) {                                                    //     in this case we search for the next INSTANTIATED operation and display is as QUEUED
           this.operation = op.description;
         } else {
           ocUtils.log('Warning could not find current operation (neither RUNNING nor INSTANTIATED) for worklfow ' + wf.id);
@@ -326,11 +345,25 @@ ocRecordings = new (function() {
     }
 
     // Actions
-    if(this.state == 'Upcoming') {
-      this.actions = ['view', 'edit', 'delete'];
-    }else{
-      this.actions = ['view', 'delete'];
+    this.actions = ['view'];
+    if (this.state == 'Upcoming') {
+      this.actions.push('edit');
+      this.actions.push('delete');
+    } else if (this.state == 'Finished') {
+      this.actions.push('play');
+      this.actions.push('delete');
+    } else if (this.state == 'Failed') {
+      this.actions.push('delete');
     }
+
+    /*
+    if (this.state == 'Upcoming') {
+      this.actions = ['view', 'edit', 'delete'];
+    } else if (this.state == 'Processing' || this.state == 'Queued') {
+      this.actions = ['view'];
+    } else {
+      this.actions = ['view', 'delete'];
+    }*/
 
     return this;
   }
@@ -660,7 +693,7 @@ ocRecordings = new (function() {
     // search box
     this.searchbox = $( '#searchBox' ).searchbox({
       search : function(text, field) {
-        if (text.trim() != '') {
+        if ($.trim(text) != '') {
           ocRecordings.Configuration.filterField = field;
           ocRecordings.Configuration.filterText = text;
           ocRecordings.Configuration.page = 0;
@@ -740,6 +773,7 @@ ocRecordings = new (function() {
     
     $('#pageSize').change(function(){
       ocRecordings.Configuration.pageSize = $(this).val();
+      ocRecordings.Configuration.page = 0;
       ocRecordings.reload();
     });
     
@@ -1076,13 +1110,19 @@ ocRecordings = new (function() {
   $(document).ready(this.init);
 
   this.makeActions = function(recording, actions) {
-    id = recording.id
-    links = [];
+    var id = recording.id
+    var links = [];
     for(i in actions){
       if(actions[i] === 'view') {
         links.push('<a href="viewinfo.html?id=' + id + '">View Info</a>');
       } else if(actions[i] === 'edit') {
         links.push('<a href="scheduler.html?eventId=' + id + '&edit=true">Edit</a>');
+      } else if(actions[i] === 'play') {
+        var workflow = ocRecordings.getWorkflow(id);
+        if (workflow) {
+          var mpId = workflow.mediapackage.id;
+          links.push('<a href="../engage/ui/watch.html?id=' + mpId + '">Play</a>');
+        }
       } else if(actions[i] === 'delete') {
         links.push('<a href="javascript:ocRecordings.removeRecording(\'' + id + '\',\'' + recording.title + '\')">Delete</a>');
       }
