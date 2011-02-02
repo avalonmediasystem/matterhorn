@@ -24,13 +24,16 @@ table
 {
   border-spacing:           0;
 }
-a, a:hover, a:link, a:visited, a:active, a:focus {
-color: #A42424;
-size: 1.3em;
-text-decoration: none;
+
+a, a:link, a:visited{
+  margin-right: 16px;
+  cursor: pointer;
+  color: #2d8f8b; /* #A42424 */
+  text-decoration: none;
 }
-a:hover {
-text-decoration: underline;
+a:hover, a:focus{
+  color: #2d8f8b;
+  text-decoration: underline;
 }
 
 

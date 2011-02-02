@@ -16,9 +16,9 @@ Opencast.Description_Plugin = (function ()
                     '</div>' +
                     '<div style="float: right; margin-right: 300px;">' +
                         'See related Videos: <span style="color:grey;"></span><br />' +
-                        'Series: <span style="color:grey;">${result.dcSeriesTitle}</span><br />' +
-                        'Presenter: <span style="color:grey;"><a href="../../engage/ui/index.html?q=${result.dcCreator}">${result.dcCreator}</a></span><br />' +
-                        'Contents: <span style="color:grey;"></span><br />' +
+                        'Series: ${result.dcSeriesTitle}<br />' +
+                        'Presenter: <a href="../../engage/ui/index.html?q=${result.dcCreator}">${result.dcCreator}</a></span><br />' +
+                        // 'Contents: <br />' +
                     '</div>' +
                     '<div style="clear: both">' + 
                     '</div>';
