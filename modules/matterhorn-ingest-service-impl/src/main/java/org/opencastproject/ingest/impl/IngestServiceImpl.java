@@ -460,7 +460,7 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
    * @param uri
    *          the URI to the dublin core document containing series metadata.
    */
-  protected void updateSeries(URI uri) throws IOException {
+  protected void updateSeries(URI uri) throws IOException, IngestException {
     HttpResponse response = null;
     InputStream in = null;
     try {
@@ -468,7 +468,11 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
       response = httpClient.execute(getDc);
       in = response.getEntity().getContent();
       DublinCoreCatalog dc = dublinCoreService.load(in);
+      try {
       seriesService.addOrUpdate(dc);
+      } catch (Exception e) {
+        throw new IngestException(e);
+      }
     } finally {
       IOUtils.closeQuietly(in);
       httpClient.close(response);
