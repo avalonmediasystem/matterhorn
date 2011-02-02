@@ -54,7 +54,7 @@ public interface SeriesService {
    * @throws NotFoundException
    *           if the series doesn't exist
    */
-  void updateSeries(Series s) throws NotFoundException;
+  void updateSeries(Series s) throws NotFoundException, SeriesException;
 
   /**
    * returns the series with the provided ID
@@ -88,7 +88,7 @@ public interface SeriesService {
    *          The dublin core metadata catalog
    * @return The updated series
    */
-  Series addOrUpdate(DublinCoreCatalog dcCatalog);
+  Series addOrUpdate(DublinCoreCatalog dcCatalog) throws SeriesException;
 
   /**
    * Searches for all series' that fit into a certain pattern

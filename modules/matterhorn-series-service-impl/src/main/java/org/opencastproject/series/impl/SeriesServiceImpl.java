@@ -25,6 +25,7 @@ import org.opencastproject.series.api.SeriesMetadata;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.NotFoundException;
 
+import org.apache.commons.lang.StringUtils;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
@@ -130,7 +131,7 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
    * @see org.opencastproject.series.api.SeriesService#addOrUpdate(org.opencastproject.metadata.dublincore.DublinCoreCatalog)
    */
   @Override
-  public Series addOrUpdate(DublinCoreCatalog dcCatalog) {
+  public Series addOrUpdate(DublinCoreCatalog dcCatalog) throws SeriesException{
     String id = dcCatalog.get(DublinCoreCatalog.PROPERTY_IDENTIFIER).get(0).getValue();
     SeriesImpl existingSeries;
     try {
@@ -143,6 +144,8 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
         // this should not happen, since we explicitly check for the series above
         logger.warn("Unable to find series {}: {}", existingSeries, e);
         throw new IllegalStateException(e);
+      } catch (Exception ex) {
+        throw new SeriesException(ex);
       }
     } catch (NotFoundException e1) {
       Series series = SeriesImpl.buildSeries(dcCatalog);
@@ -213,13 +216,25 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
    * @see org.opencastproject.series.api.SeriesService#updateSeries(org.opencastproject.series.api.Series)
    */
   @Override
-  public void updateSeries(Series s) throws NotFoundException {
+  public void updateSeries(Series s) throws NotFoundException, SeriesException {
     EntityManager em = emf.createEntityManager();
     try {
       em.getTransaction().begin();
       SeriesImpl storedSeries = em.find(SeriesImpl.class, s.getSeriesId());
-      if (storedSeries == null)
+      if (storedSeries == null) {
         throw new NotFoundException("Series " + s + " does not exist");
+      }
+      if(!StringUtils.equals(s.getFromMetadata("title"), storedSeries.getFromMetadata("title"))) {
+        SchedulerFilter filter = new SchedulerFilter();
+        for (Event e : schedulerService.getEvents(filter.isPartOf(s.getSeriesId()))) {
+          e.setSeries(s.getFromMetadata("title"));
+          try {
+            schedulerService.updateEvent(e, true, false);
+          } catch (Exception ex) {
+            throw new SeriesException(ex);
+          }
+        }
+      }
       storedSeries.setDescription(s.getDescription());
       storedSeries.setMetadata(s.getMetadata());
       em.merge(storedSeries);

@@ -250,6 +250,8 @@ public class SeriesRestService {
       return Response.noContent().type("").build(); // get rid of content-type
     } catch (NotFoundException e) {
       return Response.status(Status.NOT_FOUND).build();
+    } catch (SeriesException se) {
+      return Response.serverError().build();
     }
   }
 
