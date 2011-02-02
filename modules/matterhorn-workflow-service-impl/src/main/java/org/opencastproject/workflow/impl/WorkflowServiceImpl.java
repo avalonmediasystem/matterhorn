@@ -112,6 +112,12 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /** The pattern used by workfow operation configuration keys **/
   public static final Pattern PROPERTY_PATTERN = Pattern.compile("\\$\\{.+?\\}");
 
+  /** The set of yes values */
+  public static final Set<String> YES;
+  
+  /** The set of 'no' values */
+  public static final Set<String> NO;
+
   /** The configuration key for setting {@link #maxConcurrentWorkflows} */
   public static final String MAX_CONCURRENT_CONFIG_KEY = "max.concurrent";
 
@@ -143,6 +149,12 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /** The service registry */
   protected ServiceRegistry serviceRegistry = null;
 
+  
+  static {
+    YES = new HashSet<String>(Arrays.asList(new String[] {"yes", "true", "on"}));
+    NO = new HashSet<String>(Arrays.asList(new String[] {"no", "false", "off"}));
+  }
+  
   /**
    * Constructs a new workflow service impl, with a priority-sorted map of metadata services
    */

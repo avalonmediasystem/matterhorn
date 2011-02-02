@@ -15,6 +15,12 @@
  */
 package org.opencastproject.workflow.impl;
 
+import static org.opencastproject.workflow.impl.WorkflowServiceImpl.YES;
+
+import static org.opencastproject.workflow.impl.WorkflowServiceImpl.PROPERTY_PATTERN;
+
+import static org.opencastproject.workflow.impl.WorkflowServiceImpl.NO;
+
 import org.opencastproject.workflow.api.ResumableWorkflowOperationHandler;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowInstance;
@@ -94,8 +100,7 @@ final class WorkflowOperationWorker {
    * @param service
    *          the workflow service.
    */
-  public WorkflowOperationWorker(WorkflowInstance workflow, Map<String, String> properties,
-          WorkflowServiceImpl service) {
+  public WorkflowOperationWorker(WorkflowInstance workflow, Map<String, String> properties, WorkflowServiceImpl service) {
     this(null, workflow, service);
     this.properties = properties;
   }
@@ -183,11 +188,11 @@ final class WorkflowOperationWorker {
     String executeCondition = operation.getExecutionCondition(); // if
     String skipCondition = operation.getSkipCondition(); // unless
 
-    if (StringUtils.isNotBlank(executeCondition)
-            && WorkflowServiceImpl.PROPERTY_PATTERN.matcher(executeCondition).matches()) {
+    if (StringUtils.isNotBlank(executeCondition) && (PROPERTY_PATTERN.matcher(executeCondition).matches()
+            || NO.contains(executeCondition.toLowerCase()))) {
       operation.setState(OperationState.SKIPPED);
     } else if (StringUtils.isNotBlank(skipCondition)
-            && !WorkflowServiceImpl.PROPERTY_PATTERN.matcher(skipCondition).matches()) {
+            && (!PROPERTY_PATTERN.matcher(skipCondition).matches() || YES.contains(skipCondition.toLowerCase()))) {
       operation.setState(OperationState.SKIPPED);
     } else {
       operation.setState(OperationState.RUNNING);
@@ -244,7 +249,7 @@ final class WorkflowOperationWorker {
     } else if (!(handler instanceof ResumableWorkflowOperationHandler)) {
       throw new IllegalStateException("An attempt was made to resume a non-resumable operation");
     }
-    
+
     ResumableWorkflowOperationHandler resumableHandler = (ResumableWorkflowOperationHandler) handler;
     operation.setState(OperationState.RUNNING);
     service.update(workflow);
