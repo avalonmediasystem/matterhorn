@@ -16,6 +16,7 @@
 package org.opencastproject.series.api;
 
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
+import org.opencastproject.scheduler.api.SchedulerService;
 import org.opencastproject.util.NotFoundException;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public interface SeriesService {
    * @throws NotFoundException
    *           if the series doesn't exist
    */
-  void removeSeries(String seriesID) throws NotFoundException;
+  void removeSeries(String seriesID) throws NotFoundException, SeriesException;
 
   /**
    * updates an series in the database
@@ -97,5 +98,7 @@ public interface SeriesService {
    * @return a List of all series that match that pattern
    */
   List<Series> searchSeries(String pattern) throws NotFoundException;
+  
+  void setSchedulerService(SchedulerService service);
 
 }

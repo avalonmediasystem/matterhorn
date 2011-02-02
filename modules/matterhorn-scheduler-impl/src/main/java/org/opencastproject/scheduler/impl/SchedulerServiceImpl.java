@@ -132,7 +132,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    */
   public void activate(ComponentContext componentContext) {
     emf = persistenceProvider.createEntityManagerFactory("org.opencastproject.scheduler.impl", persistenceProperties);
-    logger.debug("SchedulerService activating.");
+    logger.info("SchedulerService activating.");
 
     if (componentContext == null) {
       logger.warn("Could not activate because of missing ComponentContext");
@@ -401,6 +401,10 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       where.add("e.series LIKE :seriesParam");
     }
     
+    if (filter.getSeriesId() != null) {
+      where.add("e.seriesId = :seriesIdParam");
+    }
+    
     if (filter.getStart() != null && filter.getStop() != null) { // Events intersecting start and stop
       where.add("e.startDate < :stopParam AND e.endDate > :startParam");
     } else if (filter.getStart() != null && filter.getStop() == null) { // All events with dates after start
@@ -434,6 +438,9 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     }
     if (StringUtils.isNotEmpty(filter.getSeriesFilter())) {
       eventQuery.setParameter("seriesParam", "%" + filter.getSeriesFilter() + "%");
+    }
+    if (filter.getSeriesId() != null) {
+      eventQuery.setParameter("seriesIdParam", filter.getSeriesId());
     }
     if (filter.getStart() != null) {
       eventQuery.setParameter("startParam", filter.getStart());
@@ -539,6 +546,24 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    *           if this event hasn't previously been saved
    */
   public void updateEvent(Event e, boolean updateWorkflow) throws NotFoundException, SchedulerException {
+    updateEvent(e, updateWorkflow, false);
+  }
+  
+  /**
+   * Updates an event.
+   * 
+   * @param e
+   *          The event
+   * @param updateWorkflow
+   *          Whether to also update the associated workflow for this event
+   * @param updateWithEmptyValues
+   *          Overwrite stored event's fields with null if provided event's fields are null
+   * @throws SchedulerException
+   *           if the scheduled event can not be persisted
+   * @throws NotFoundException
+   *           if this event hasn't previously been saved
+   */
+  public void updateEvent(Event e, boolean updateWorkflow, boolean updateWithEmptyValues) throws NotFoundException, SchedulerException {
     EntityManager em = null;
     EntityTransaction tx = null;
     Event storedEvent = getEvent(e.getEventId());
@@ -546,7 +571,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       em = emf.createEntityManager();
       tx = em.getTransaction();
       tx.begin();
-      storedEvent.update(e);
+      storedEvent.update(e, updateWithEmptyValues);
       em.merge(storedEvent);
       tx.commit();
       if (updateWorkflow) {
@@ -606,29 +631,17 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    *          Event containing metadata to be updated.
    */
   public void updateEvents(List<Long> eventIdList, Event e) throws NotFoundException, SchedulerException {
-    EntityManager em = emf.createEntityManager();
-    em.getTransaction().begin();
-    try {
-      for (Long eventId : eventIdList) {
-        e.setEventId(eventId);
-        Event storedEvent = getEvent(e.getEventId());
-        logger.debug("Found stored event. {} -", storedEvent);
-        if (storedEvent == null) {
-          em.getTransaction().rollback();
-          em.close();
-          throw new NotFoundException("Couldn't find event" + eventId.toString());
-        }
-        storedEvent.update(e,false);
-        em.merge(storedEvent);
-        updateWorkflow(storedEvent);
-      }
-      em.getTransaction().commit();
-    } catch (Exception ex) {
-      logger.warn("Unable to update events: {}", ex);
-      em.getTransaction().rollback();
-      throw new SchedulerException(ex);
-    } finally {
-      em.close();
+    List<Event> eventList = new LinkedList<Event>();
+    for(Long id : eventIdList) {
+      eventList.add(getEvent(id));
+    }
+    updateEvents(eventList, e, false);
+  }
+  
+  public void updateEvents(List<Event> eventList, Event e, boolean updateWithEmptyValues) throws NotFoundException, SchedulerException{
+    for (Event event : eventList) {
+      e.setEventId(event.getEventId());
+      updateEvent(e, true, updateWithEmptyValues);
     }
   }
 
@@ -741,6 +754,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    */
   public void setSeriesService(SeriesService s) {
     seriesService = s;
+    s.setSchedulerService(this);
   }
 
   /**

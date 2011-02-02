@@ -137,6 +137,22 @@ public interface SchedulerService {
   void updateEvent(Event e, boolean updateWorkflow) throws NotFoundException, SchedulerException;
 
   /**
+   * Updates an event.
+   * 
+   * @param e
+   *          The event
+   * @param updateWorkflow
+   *          Whether to also update the associated workflow for this event
+   * @param updateWithEmptyValues
+   *          Overwrite stored event's fields with null if provided event's fields are null
+   * @throws SchedulerException
+   *           if the scheduled event can not be persisted
+   * @throws NotFoundException
+   *           if this event hasn't previously been saved
+   */
+  void updateEvent(Event e, boolean updateWorkflow, boolean updateWithEmptyValues) throws NotFoundException, SchedulerException;
+  
+  /**
    * Updates each event with an id in the list with the passed event.
    * 
    * @param eventIdList
@@ -145,6 +161,18 @@ public interface SchedulerService {
    *          Event containing metadata to be updated.
    */
   void updateEvents(List<Long> eventIdList, Event e) throws NotFoundException, SchedulerException;
+  
+  /**
+   * Updates each event in the list with the passed event.
+   * 
+   * @param eventList
+   *          List of event ids.
+   * @param e
+   *          Event containing metadata to be updated.
+   * @param updateWithEmptyValues
+   *          if the passed event contains empty values, overwrite the existing event with them.
+   */
+  void updateEvents(List<Event> eventList, Event e, boolean updateWithEmptyValues) throws NotFoundException, SchedulerException;
 
   /**
    * @param device

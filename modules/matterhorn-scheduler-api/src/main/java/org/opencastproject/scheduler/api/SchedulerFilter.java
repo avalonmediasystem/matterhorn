@@ -27,6 +27,7 @@ public class SchedulerFilter {
   protected String contributorPattern;
   protected String devicePattern;
   protected String seriesPattern;
+  protected String seriesId;
   protected String titlePattern;
   protected String order;
   protected boolean betweenStartAndStop = false;
@@ -118,6 +119,15 @@ public class SchedulerFilter {
   public SchedulerFilter withSeriesFilter(String seriesPattern) {
     this.seriesPattern = seriesPattern;
     return this;
+  }
+  
+  public SchedulerFilter isPartOf(String seriesId) {
+    this.seriesId = seriesId;
+    return this;
+  }
+  
+  public String getSeriesId() {
+    return this.seriesId;
   }
 
   /**

@@ -18,6 +18,7 @@ package org.opencastproject.series.endpoint;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.series.api.Series;
+import org.opencastproject.series.api.SeriesException;
 import org.opencastproject.series.api.SeriesMetadata;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.series.impl.SeriesBuilder;
@@ -117,11 +118,6 @@ public class SeriesRestService {
       return null;
       // TODO: What do I do here?
     }
-    /*
-     * try { Series s = service.getSeries(seriesID); if (s == null) { return
-     * Response.status(Status.BAD_REQUEST).build(); } return Response.ok(s).build(); } catch (Exception e) {
-     * logger.warn("Series Lookup failed: {}", seriesID); return Response.status(Status.SERVICE_UNAVAILABLE).build(); }
-     */
   }
 
   /**
@@ -143,11 +139,6 @@ public class SeriesRestService {
       return null;
       // TODO: What do I do here?
     }
-    /*
-     * try { Series s = service.getSeries(seriesID); if (s == null) { return
-     * Response.status(Status.BAD_REQUEST).build(); } return Response.ok(s).build(); } catch (Exception e) {
-     * logger.warn("Series Lookup failed: {}", seriesID); return Response.status(Status.SERVICE_UNAVAILABLE).build(); }
-     */
   }
 
   @SuppressWarnings("unchecked")
@@ -232,6 +223,8 @@ public class SeriesRestService {
       return Response.noContent().type("").build(); // get rid of content type
     } catch (NotFoundException e) {
       return Response.status(Status.NOT_FOUND).build();
+    } catch (SeriesException se) {
+      return Response.serverError().build();
     }
   }
 

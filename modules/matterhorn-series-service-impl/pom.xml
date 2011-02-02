@@ -17,6 +17,11 @@
   <dependencies>
     <dependency>
       <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-scheduler-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-series-service-api</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -151,6 +156,7 @@
             <Import-Package>
               org.opencastproject.kernel.http;version=${project.version},
               org.opencastproject.metadata.dublincore;version=${project.version},
+              org.opencastproject.scheduler.api;version=${project.version},
               *;resolution:=optional
             </Import-Package>
             <Private-Package>

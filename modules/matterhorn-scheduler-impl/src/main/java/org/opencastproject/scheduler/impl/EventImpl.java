@@ -533,7 +533,7 @@ public class EventImpl implements Event {
     if (StringUtils.isNotEmpty(e.getSeries()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getSeries()))) {
       this.setSeries(e.getSeries());
     }
-    if (e.getSeriesId() != null) {
+    if (StringUtils.isNotEmpty(e.getSeriesId()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getSeriesId()))) {
       this.setSeriesId(e.getSeriesId());
     }
     if (e.getStartDate() != null) {

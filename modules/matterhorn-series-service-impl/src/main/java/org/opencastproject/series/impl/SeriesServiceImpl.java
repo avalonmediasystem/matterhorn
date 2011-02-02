@@ -16,7 +16,11 @@
 package org.opencastproject.series.impl;
 
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
+import org.opencastproject.scheduler.api.Event;
+import org.opencastproject.scheduler.api.SchedulerFilter;
+import org.opencastproject.scheduler.api.SchedulerService;
 import org.opencastproject.series.api.Series;
+import org.opencastproject.series.api.SeriesException;
 import org.opencastproject.series.api.SeriesMetadata;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.NotFoundException;
@@ -62,6 +66,8 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   protected PersistenceProvider persistenceProvider;
   protected Map<String, Object> persistenceProperties;
   protected EntityManagerFactory emf = null;
+  
+  protected SchedulerService schedulerService;
 
   public SeriesServiceImpl() {
     logger.info("Series Service instantiated");
@@ -174,7 +180,7 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
    * @see org.opencastproject.series.api.SeriesService#removeSeries(java.lang.String)
    */
   @Override
-  public void removeSeries(String seriesId) throws NotFoundException {
+  public void removeSeries(String seriesId) throws NotFoundException, SeriesException {
     logger.debug("Removing series with the ID {}", seriesId);
     Series s;
     EntityManager em = emf.createEntityManager();
@@ -185,6 +191,16 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
         throw new NotFoundException("Series " + seriesId + " does not exist");
       }
       em.remove(s);
+      SchedulerFilter filter = new SchedulerFilter();
+      for (Event e : schedulerService.getEvents(filter.isPartOf(seriesId))) {
+        e.setSeries(null);
+        e.setSeriesId(null);
+        try {
+          schedulerService.updateEvent(e, true, true);
+        } catch (Exception ex) {
+          throw new SeriesException(ex);
+        }
+      }
       em.getTransaction().commit();
     } finally {
       em.close();
@@ -247,6 +263,11 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   @Override
   public void updated(Dictionary properties) throws ConfigurationException {
     this.properties = properties;
+  }
+  
+  public void setSchedulerService(SchedulerService service) {
+    logger.debug("set scheduler service: " + service);
+    this.schedulerService = service;
   }
 
   @SuppressWarnings("unchecked")
