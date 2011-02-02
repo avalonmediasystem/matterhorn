@@ -495,6 +495,7 @@ ocScheduler.CheckForConflictingEvents = function(){
   $('#missingFieldsContainer li').hide();
   $('#errorConflict').hide();
   $('#conflictingEvents').empty();
+  $('#submitButton').attr('disabled', 'disabled');
   if(ocScheduler.components.device.validate()){
     data.device = ocScheduler.components.device.getValue()
   }else{
@@ -532,7 +533,7 @@ ocScheduler.CheckForConflictingEvents = function(){
         events = data.events.event;
       }
       for(i in events) {
-        if(ocScheduler.mode === EDIT_MODE && $('#eventId').val() !== events[i].id) {
+        if($('#eventId').val() !== events[i].id) {
           $('#conflictingEvents').append('<li><a href="scheduler.html?eventId=' + events[i].id + '&edit=true" target="_new">' + events[i].title + '</a></li>');
         }
       }
@@ -540,6 +541,8 @@ ocScheduler.CheckForConflictingEvents = function(){
         $('#missingFieldsContainer').show();
         $('#errorConflict').show();
       }
+    } else {
+      $('#submitButton').attr('disabled', '');
     }
   });
 }
