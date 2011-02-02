@@ -446,7 +446,11 @@ ocScheduler.LoadEvent = function(doc){
     $.get(SERIES_URL + '/' + event['seriesId'] + '.json', function(data){
       var series = {id: data.series.id};
       if(data.series.additionalMetadata){
-        md = data.series.additionalMetadata;
+        if(!$.isArray(data.series.additionalMetadata.metadata)){
+          md = [data.series.additionalMetadata.metadata];
+        } else {
+          md = data.series.additionalMetadata.metadata;
+        }
         for(var i in md){
           if(typeof md[i].key != 'undefined' && md[i].key === 'title') {
             series.label = md[i].value;
@@ -525,15 +529,20 @@ ocScheduler.CheckForConflictingEvents = function(){
     if(data != '') {
       ocScheduler.conflictingEvents = true;
       if(!$.isArray(data.events.event)){
-        events.push(data.events.event);
-        if(ocScheduler.mode === EDIT_MODE && $('#eventId').val() === events[0].id) {
+        if(ocScheduler.mode === CREATE_MODE || (ocScheduler.mode === EDIT_MODE && $('#eventId').val() !== data.events.event.id)) {
+          events.push(data.events.event);
+        }
+        if(events.length == 0) {
+          $('#submitButton').attr('disabled', '');
           return;
         }
       } else {
         events = data.events.event;
       }
       for(i in events) {
-        if($('#eventId').val() !== events[i].id) {
+        curId = $('#eventId').val();
+        eid = events[i].id;
+        if(ocScheduler.mode === CREATE_MODE || (ocScheduler.mode === EDIT_MODE && curId !== eid)) {
           $('#conflictingEvents').append('<li><a href="scheduler.html?eventId=' + events[i].id + '&edit=true" target="_new">' + events[i].title + '</a></li>');
         }
       }

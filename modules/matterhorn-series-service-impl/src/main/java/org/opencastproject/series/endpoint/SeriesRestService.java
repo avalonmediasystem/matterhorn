@@ -157,7 +157,7 @@ public class SeriesRestService {
         JSONObject j = new JSONObject();
         j.put("id", s.getSeriesId());
         j.put("label", s.getBriefDescription());
-        j.put("value", s.getBriefDescription());
+        j.put("value", s.getFromMetadata("title"));
         a.add(j);
       }
       return Response.ok(a.toJSONString()).build();
