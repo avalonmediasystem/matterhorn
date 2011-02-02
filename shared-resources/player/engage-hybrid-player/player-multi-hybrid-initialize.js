@@ -677,6 +677,15 @@ Opencast.Initialize = (function ()
             }
         });
         $("#oc_ui_tabs .ui-tabs-nav li").last().css('float', 'right');
+        
+        $(window).resize(function() {
+	  	$( "#oc_share-layer" ).position({
+			of: $( "#oc_share-button" ),
+			my: "center top",
+			at: "center bottom"
+	      });
+		});
+        
         //bind click functions
         $('#oc_share-button').click(function (e)
         {

@@ -96,7 +96,17 @@ Opencast.Series = (function ()
                         at: "left bottom"
                     });
                     position_set = true;
+                    $(window).resize(function() {
+	                    $("#oc_series").position(
+                        {
+                            of: $("#oc_see-more-button"),
+                            my: "left top",
+                            at: "left bottom"
+                        });
+	                });
+	
                 }
+                                
                 $('#oc_series').show();
                 $('#oc_series').attr(
                 {
