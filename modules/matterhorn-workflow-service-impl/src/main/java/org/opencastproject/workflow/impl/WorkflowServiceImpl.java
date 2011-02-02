@@ -808,8 +808,6 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
         // the operation has its own job. Update that too.
         Job operationJob = serviceRegistry.createJob(JOB_TYPE, Operation.START_OPERATION.toString(),
                 Arrays.asList(Long.toString(workflowInstanceId)), null, false);
-        operationJob.setStatus(Status.QUEUED);
-        serviceRegistry.updateJob(operationJob);
 
         // this method call is publicly visible, so it doesn't necessarily go through the accept method. Set the
         // workflow state manually.
@@ -818,6 +816,10 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
 
         // update the workflow and its associated job
         update(workflowInstance);
+
+        // Now set this job to be queued so it can be dispatched
+        operationJob.setStatus(Status.QUEUED);
+        serviceRegistry.updateJob(operationJob);
 
         return workflowInstance;
       } catch (ServiceRegistryException e) {
