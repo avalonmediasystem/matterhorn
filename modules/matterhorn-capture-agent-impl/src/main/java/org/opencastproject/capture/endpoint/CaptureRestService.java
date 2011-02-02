@@ -16,8 +16,6 @@
 package org.opencastproject.capture.endpoint;
 
 import org.opencastproject.capture.api.CaptureAgent;
-import org.opencastproject.capture.api.ScheduledEvent;
-import org.opencastproject.capture.api.ScheduledEventImpl;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.util.DocUtil;
 import org.opencastproject.util.doc.DocRestData;
@@ -33,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.LinkedList;
 import java.util.Properties;
 
 import javax.ws.rs.FormParam;
@@ -323,12 +320,8 @@ public class CaptureRestService {
     }
 
     try {
-      // FIXME: This is incredibly lame, but JAXB breaks without this extra copy+cast
-      LinkedList<ScheduledEventImpl> list = new LinkedList<ScheduledEventImpl>();
-      for (ScheduledEvent event : service.getAgentSchedule()) {
-        list.add((ScheduledEventImpl) event);
-      }
-      return Response.ok(list).build();
+      ScheduledEventList eventList = new ScheduledEventList(service.getAgentSchedule());
+      return Response.ok(eventList).build();
     } catch (Exception e) {
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
