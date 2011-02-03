@@ -663,6 +663,12 @@ public class EventImpl implements Event {
     if (StringUtils.isEmpty(getRecurrencePattern())) {
       throw new IncompleteDataException("Event has no recurrence pattern.");
     }
+    TimeZone tz = null; // Create timezone based on CA's reported TZ.
+    if (StringUtils.isNotEmpty(this.getMetadataValueByKey("agentTimeZone"))) {
+      tz = TimeZone.getTimeZone(this.getMetadataValueByKey("agentTimeZone"));
+    } else { // No timezone was present, assume the serve's local timezone.
+      tz = TimeZone.getDefault();
+    }
     Recur recur = new RRule(getRecurrencePattern()).getRecur();
     Date start = getStartDate();
     if (start == null) {
@@ -672,10 +678,18 @@ public class EventImpl implements Event {
     if (end == null) {
       throw new IncompleteDataException("Event has no end date.");
     }
-    DateTime seed = new DateTime(start.getTime());
-    seed.setUtc(true);
-    DateTime period = new DateTime(end.getTime());
-    period.setUtc(true);
+    DateTime seed = new DateTime(true);
+    DateTime period = new DateTime(true);
+    if(tz.inDaylightTime(start) && !tz.inDaylightTime(end)) {
+      seed.setTime(start.getTime() + 3600000);
+      period.setTime(end.getTime());
+    } else if(!tz.inDaylightTime(start) && tz.inDaylightTime(end)) {
+      seed.setTime(start.getTime());
+      period.setTime(end.getTime() + 3600000);
+    } else {
+      seed.setTime(start.getTime());
+      period.setTime(end.getTime());
+    }
     DateList dates = recur.getDates(seed, period, Value.DATE_TIME);
     logger.debug("DateList: {}", dates);
     List<Event> events = new LinkedList<Event>();
@@ -683,14 +697,6 @@ public class EventImpl implements Event {
     for (Object date : dates) {
       Date d = (Date) date;
       // Adjust for DST, if start of event
-      // Create timezone based on CA's reported TZ.
-      TimeZone tz = null;
-      if (!this.getMetadataValueByKey("agentTimeZone").isEmpty()) {
-        tz = TimeZone.getTimeZone(this.getMetadataValueByKey("agentTimeZone"));
-      }
-      if (tz == null) { // No timezone was present, assume the serve's local timezone.
-        tz = TimeZone.getDefault();
-      }
       if (tz.inDaylightTime(seed)) { // Event starts in DST
         if (!tz.inDaylightTime(d)) { // Date not in DST?
           d.setTime(d.getTime() + tz.getDSTSavings()); // Ajust for Fall back one hour
