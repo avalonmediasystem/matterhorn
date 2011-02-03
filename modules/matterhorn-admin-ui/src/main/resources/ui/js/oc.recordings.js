@@ -258,12 +258,15 @@ ocRecordings = new (function() {
   
   this.startStatisticsUpdate = function() {
     refreshStatistics();
-    ocRecordings.statsInterval = window.setInterval(refreshStatistics, STATISTICS_DELAY);
+    if(ocRecordings.statsInterval == null) {
+      ocRecordings.statsInterval = window.setInterval(refreshStatistics, STATISTICS_DELAY);
+    }
   }
   
   this.stopStatisticsUpdate = function() {
     if(ocRecordings.statsInterval != null) {
       window.clearInterval(ocRecordings.statsInterval);
+      ocRecordings.statsInterval = null;
     }
   }
 
@@ -989,7 +992,7 @@ ocRecordings = new (function() {
         },
         ocRecordings.bulkActionComplete);
       } else if(ocRecordings.Configuration.state === 'bulkdelete') {
-        progressChunk = 100 / eventIdList.length;
+        progressChunk = (100 / eventIdList.length)
         $('#deleteProgress').progressbar({
           value: 0,
           complete: function(){
@@ -1005,6 +1008,7 @@ ocRecordings = new (function() {
           var id = eventIdList.pop();
           if(typeof id === 'undefined'){
             clearInterval(toid);
+            $('#deleteProgress').progressbar('value', progress++);
             return;
           }
           $.ajax({
