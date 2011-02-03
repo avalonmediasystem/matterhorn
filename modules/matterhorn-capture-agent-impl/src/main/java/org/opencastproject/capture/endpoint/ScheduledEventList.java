@@ -37,7 +37,12 @@ public class ScheduledEventList {
     this.events = new LinkedList<ScheduledEventImpl>();
   }
 
-  /** Pass in a list of the api ScheduledEvent objects**/
+  /**
+   * Pass in a list of the api ScheduledEvent objects
+   * 
+   * @param eventLists
+   *          A list of the interface class ScheduledEvent that we will change each instance to ScheduledEventImpl.
+   * **/
   public ScheduledEventList(List<ScheduledEvent> eventList) {
     this.events = new LinkedList<ScheduledEventImpl>();
     this.setEvents(eventList);
@@ -45,6 +50,9 @@ public class ScheduledEventList {
 
   /** Take a list of api ScheduledEvents and turn them into ScheduledEventImpls**/
   public void setEvents(List<ScheduledEvent> eventList) {
+    if(eventList == null){
+      return;
+    }
     if (!this.events.isEmpty()) {
       this.events.clear();
     }
