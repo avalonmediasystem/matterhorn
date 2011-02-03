@@ -1263,6 +1263,17 @@
       </roles>
       <timezone>-6</timezone>
     </developer>
+    <developer>
+      <id>denmeyer</id>
+      <name>Denis Meyer</name>
+      <email>denmeyer@uni-osnabrueck.de</email>
+      <organization>University of Osnabrueck</organization>
+      <organizationUrl>http://www.uni-osnabrueck.de/</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
   </developers>
 
   <contributors><!-- TODO? -->
