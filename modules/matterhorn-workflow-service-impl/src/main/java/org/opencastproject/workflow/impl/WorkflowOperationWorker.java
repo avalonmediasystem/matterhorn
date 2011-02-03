@@ -15,11 +15,9 @@
  */
 package org.opencastproject.workflow.impl;
 
-import static org.opencastproject.workflow.impl.WorkflowServiceImpl.YES;
-
-import static org.opencastproject.workflow.impl.WorkflowServiceImpl.PROPERTY_PATTERN;
-
 import static org.opencastproject.workflow.impl.WorkflowServiceImpl.NO;
+import static org.opencastproject.workflow.impl.WorkflowServiceImpl.PROPERTY_PATTERN;
+import static org.opencastproject.workflow.impl.WorkflowServiceImpl.YES;
 
 import org.opencastproject.workflow.api.ResumableWorkflowOperationHandler;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
@@ -131,7 +129,7 @@ final class WorkflowOperationWorker {
   /**
    * Executes the workflow operation logic.
    */
-  public void execute() {
+  public WorkflowInstance execute() {
     WorkflowOperationInstance operation = workflow.getCurrentOperation();
     try {
       WorkflowOperationResult result = null;
@@ -151,7 +149,7 @@ final class WorkflowOperationWorker {
           handler.destroy(workflow, null);
         }
       }
-      service.handleOperationResult(workflow, result);
+      workflow = service.handleOperationResult(workflow, result);
     } catch (Exception e) {
       Throwable t = e.getCause();
       if (t != null) {
@@ -160,13 +158,14 @@ final class WorkflowOperationWorker {
         logger.error("Workflow operation '" + handler + "' failed", e);
       }
       try {
-        service.handleOperationException(workflow, e);
+        workflow = service.handleOperationException(workflow, new WorkflowOperationException(e, operation));
       } catch (Exception e2) {
         logger.error("Error handling workflow operation '{}' failure: {}",
                 new Object[] { handler, e2.getMessage(), e2 });
         e.printStackTrace();
       }
     }
+    return workflow;
   }
 
   /**
@@ -188,23 +187,25 @@ final class WorkflowOperationWorker {
     String executeCondition = operation.getExecutionCondition(); // if
     String skipCondition = operation.getSkipCondition(); // unless
 
+    boolean skip = false;
     if (StringUtils.isNotBlank(executeCondition) && (PROPERTY_PATTERN.matcher(executeCondition).matches()
             || NO.contains(executeCondition.toLowerCase()))) {
-      operation.setState(OperationState.SKIPPED);
+      skip = true;
     } else if (StringUtils.isNotBlank(skipCondition)
             && (!PROPERTY_PATTERN.matcher(skipCondition).matches() || YES.contains(skipCondition.toLowerCase()))) {
-      operation.setState(OperationState.SKIPPED);
-    } else {
-      operation.setState(OperationState.RUNNING);
+      skip = true;
     }
+
+    operation.setState(OperationState.RUNNING);
     service.update(workflow);
 
     try {
       WorkflowOperationResult result = null;
-      if (OperationState.SKIPPED.equals(operation.getState())) {
+      if (skip) {
         // Allow for null handlers when we are skipping an operation
         if (handler != null) {
           result = handler.skip(workflow, null);
+          result.setAction(Action.SKIP);
         }
       } else {
         if (handler == null) {

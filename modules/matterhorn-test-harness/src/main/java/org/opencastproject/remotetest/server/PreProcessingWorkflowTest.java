@@ -111,19 +111,22 @@ public class PreProcessingWorkflowTest {
 
     // Schedule an event and make sure that, once the workflow is dispatched, it's on hold in the "schedule" operation
     workflowId = scheduleEvent(start, end);
-    while(WorkflowUtils.isWorkflowInState(workflowId, "INSTANTIATED")) {
-      logger.info("Waiting for workflow {} to be dispatched", workflowId);
+    while (WorkflowUtils.isWorkflowInState(workflowId, "INSTANTIATED")) {
+      logger.info("Waiting for scheduled recording workflow {} to be dispatched", workflowId);
       Thread.sleep(5000);
     }
-    if (!WorkflowUtils.isWorkflowInState(workflowId, "PAUSED") ) {
+    if (!WorkflowUtils.isWorkflowInState(workflowId, "PAUSED")) {
       fail("Workflow " + workflowId + " should be on hold in 'schedule', or ");
     }
+
+    logger.info("Scheduled recording {} is now paused, waiting for capture", workflowId);
 
     // Wait for the capture agent to start the recording and make sure the workflow enters the "capture" operation
     waiting = 120 * 1000L + GRACE_PERIOD; // 2 min +
     boolean agentIsCapturing = false;
     boolean inCaptureOperation = false;
     while (waiting > 0) {
+      logger.info("Waiting for capture agent to start capture");
       String workflowXml = WorkflowUtils.getWorkflowById(workflowId);
       if (CaptureUtils.recordingExists(workflowId)) {
         agentIsCapturing |= CaptureUtils.isInState(workflowId, "capturing");
@@ -140,10 +143,13 @@ public class PreProcessingWorkflowTest {
 
     // Are we already past the grace period?
     if (waiting <= 0) {
-      if (!agentIsCapturing)
+      if (!agentIsCapturing) {
+        logger.info("Capture agent failed to start capture");
         fail("Agent '" + CAPTURE_AGENT_ID + "' did not start recording '" + workflowId + "'");
-      else if (!inCaptureOperation)
+      } else if (!inCaptureOperation) {
+        logger.info("Workflow is not in the capturing state");
         fail("Workflow '" + workflowId + "' never entered the 'capture' hold state");
+      }
     }
 
     // Wait for capture agent to stop capturing
