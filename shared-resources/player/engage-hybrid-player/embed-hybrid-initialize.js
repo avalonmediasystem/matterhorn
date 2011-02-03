@@ -167,7 +167,12 @@ Opencast.Initialize = (function ()
     {
         if (getDivId() === VIDEOSIZE)
         {
-            $('#oc_player_video-dropdown').css('left', $('#oc_video-size-dropdown').offset().left - $('#oc_body').offset().left);
+            $('#oc_player_video-dropdown').position(
+            {
+                of: $( "#oc_btn-dropdown" ),
+                my: "left bottom",
+                at: "left top"
+            });
             $('#oc_player_video-dropdown').css('visibility', 'visible');
             $('#oc_volume-menue').css('visibility', 'hidden');
             ddmenuitem = $('#oc_player_video-dropdown');
@@ -303,6 +308,11 @@ Opencast.Initialize = (function ()
         $('#oc_player_video-dropdown').bind('mouseout', dropdown_timer);
         // Handler focus
         $('#oc_btn-dropdown').focus(function ()
+        {
+            setDivId(VIDEOSIZE);
+            dropdown_open();
+        });
+         $('#oc_btn-dropdown').click(function ()
         {
             setDivId(VIDEOSIZE);
             dropdown_open();
