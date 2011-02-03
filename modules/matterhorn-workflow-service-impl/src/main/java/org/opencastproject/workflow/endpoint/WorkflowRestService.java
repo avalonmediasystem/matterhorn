@@ -471,7 +471,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
       def = service.getWorkflowDefinitionById(workflowDefinitionId);
       return Response.ok(def).build();
     } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
+      throw new WebApplicationException(Status.NOT_FOUND);
     }
   }
 
@@ -492,17 +492,15 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
   @Produces(MediaType.TEXT_HTML)
   @Path("configurationPanel")
   public Response getConfigurationPanel(@QueryParam("definitionId") String definitionId) {
+    WorkflowDefinition def = null;
     try {
-      WorkflowDefinition def = service.getWorkflowDefinitionById(definitionId);
-      if (def != null) {
-        String out = def.getConfigurationPanel();
-        return Response.ok(out).build();
-      } else {
-        return Response.serverError().status(Status.NOT_FOUND).build();
-      }
-    } catch (Exception e) {
-      logger.error(e.getMessage());
-      return Response.serverError().status(Status.INTERNAL_SERVER_ERROR).build();
+      def = service.getWorkflowDefinitionById(definitionId);
+      String out = def.getConfigurationPanel();
+      return Response.ok(out).build();
+    } catch (NotFoundException e) {
+      throw new WebApplicationException(Status.NOT_FOUND);
+    } catch (WorkflowDatabaseException e) {
+      throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -646,7 +644,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
     } catch (WorkflowDatabaseException e) {
       throw new WebApplicationException(e);
     } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).entity("Workflow instance " + id + " does not exist").build();
+      throw new WebApplicationException(Status.NOT_FOUND);
     }
     return Response.ok(instance).build();
   }
@@ -696,7 +694,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
       WorkflowInstance workflow = service.stop(workflowInstanceId);
       return Response.ok(workflow).build();
     } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
+      throw new WebApplicationException(Status.NOT_FOUND);
     } catch (WorkflowException e) {
       throw new WebApplicationException(e);
     }
@@ -710,7 +708,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
       WorkflowInstance workflow = service.suspend(workflowInstanceId);
       return Response.ok(workflow).build();
     } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
+      throw new WebApplicationException(Status.NOT_FOUND);
     } catch (WorkflowException e) {
       throw new WebApplicationException(e);
     }
@@ -730,7 +728,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
       WorkflowInstance workflow = service.resume(workflowInstanceId, map);
       return Response.ok(workflow).build();
     } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
+      throw new WebApplicationException(Status.NOT_FOUND);
     } catch (WorkflowException e) {
       throw new WebApplicationException(e);
     }
@@ -758,7 +756,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
     } catch (WorkflowException e) {
       throw new WebApplicationException(e);
     } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
+      throw new WebApplicationException(Status.NOT_FOUND);
     }
   }
 
@@ -826,7 +824,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
       service.unregisterWorkflowDefinition(workflowDefinitionId);
       return Response.status(Status.NO_CONTENT).build();
     } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
+      throw new WebApplicationException(Status.NOT_FOUND);
     } catch (WorkflowDatabaseException e) {
       return Response.status(Status.INTERNAL_SERVER_ERROR).build();
     }

@@ -392,7 +392,11 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       Job job = serviceRegistry.getJob(id);
       if (Status.DELETED.equals(job.getStatus()))
         throw new NotFoundException("Workflow '" + id + "' has been deleted");
-      return WorkflowParser.parseWorkflowInstance(job.getPayload());
+      if (JOB_TYPE.equals(job.getJobType()) && Operation.START_WORKFLOW.toString().equals(job.getOperation())) {
+        return WorkflowParser.parseWorkflowInstance(job.getPayload());
+      } else {
+        throw new NotFoundException("'" + id + "' is a job identifier, but it is not a workflow identifier");
+      }
     } catch (WorkflowParsingException e) {
       throw new IllegalStateException("The workflow job payload is malformed");
     } catch (ServiceRegistryException e) {

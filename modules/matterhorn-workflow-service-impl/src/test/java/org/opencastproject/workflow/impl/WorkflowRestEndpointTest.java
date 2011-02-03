@@ -29,8 +29,10 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 public class WorkflowRestEndpointTest {
   WorkflowRestService restService;
@@ -69,11 +71,19 @@ public class WorkflowRestEndpointTest {
 
   @Test
   public void testGetWorkflowInstance() throws Exception {
-    Response json404Response = restService.getWorkflowAsJson(-1);
-    Assert.assertEquals(404, json404Response.getStatus());
+    try {
+      restService.getWorkflowAsJson(-1);
+      Assert.fail("This should have thrown a not found exception");
+    } catch(WebApplicationException e) {
+      Assert.assertEquals(Status.NOT_FOUND.getStatusCode(), e.getResponse().getStatus());
+    }
 
-    Response xml404Response = restService.getWorkflowAsXml(-1);
-    Assert.assertEquals(404, xml404Response.getStatus());
+    try {
+      restService.getWorkflowAsXml(-1);
+      Assert.fail("This should have thrown a not found exception");
+    } catch(WebApplicationException e) {
+      Assert.assertEquals(Status.NOT_FOUND.getStatusCode(), e.getResponse().getStatus());
+    }
 
     Response xmlResponse = restService.getWorkflowAsXml(1);
     Assert.assertEquals(200, xmlResponse.getStatus());
