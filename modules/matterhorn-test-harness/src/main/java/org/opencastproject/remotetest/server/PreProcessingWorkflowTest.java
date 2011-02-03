@@ -224,7 +224,7 @@ public class PreProcessingWorkflowTest {
     String eventXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><event>"
             + "<contributor>demo contributor</contributor><creator>demo creator</creator>"
             + "<startDate>{start}</startDate><endDate>{stop}</endDate><device>{device}</device>"
-            + "<language>en</language><license>creative commons</license><resources>vga, audio</resources>"
+            + "<language>en</language><license>creative commons</license>"
             + "<title>demo title</title><additionalMetadata><metadata id=\"0\"><key>location</key>"
             + "<value>demo location</value></metadata><metadata id=\"0\"><key>org.opencastproject.workflow.definition</key>"
             + "<value>" + WORKFLOW_DEFINITION_ID + "</value></metadata></additionalMetadata></event>";
