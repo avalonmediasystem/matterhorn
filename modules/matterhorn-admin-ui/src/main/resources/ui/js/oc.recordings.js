@@ -43,6 +43,7 @@ ocRecordings = new (function() {
   var refreshing = false;      // indicates if JSONP requesting recording data is in progress
   this.refreshingStats = false; // indicates if JSONP requesting statistics data is in progress
   this.refreshInterval = null;
+  this.statsInterval = null;
   
   this.bulkEditComponents = {};
 
@@ -253,6 +254,17 @@ ocRecordings = new (function() {
     $.each(ocRecordings.statistics, function(key, value) {
       $('#stats-' + key).text(' (' + value + ')');
     });
+  }
+  
+  this.startStatisticsUpdate = function() {
+    refreshStatistics();
+    ocRecordings.statsInterval = window.setInterval(refreshStatistics, STATISTICS_DELAY);
+  }
+  
+  this.stopStatisticsUpdate = function() {
+    if(ocRecordings.statsInterval != null) {
+      window.clearInterval(ocRecordings.statsInterval);
+    }
   }
 
   /** Construct an object representing a row in the recording table from a
@@ -791,8 +803,8 @@ ocRecordings = new (function() {
     });
 
     // set up statistics update
-    refreshStatistics();
-    window.setInterval(refreshStatistics, STATISTICS_DELAY);
+    ocRecordings.startStatisticsUpdate();
+    
     if (ocRecordings.Configuration.state === 'bulkedit') {
       ocRecordings.bulkActionHandler('edit');
     } else if (ocRecordings.Configuration.state === 'bulkdelete') {
@@ -802,18 +814,15 @@ ocRecordings = new (function() {
     }
   };
   
-  this.removeRecording = function(id, title) { //TODO Delete the scheduled event too. Don't just stop the workflow.
+  this.removeRecording = function(id, title) {
     if(confirm('Are you sure you wish to delete ' + title + '?')){
       $.ajax({
-        url        : '../workflow/stop',
-        data       : {
-          id: id
+        url: '/scheduler/'+id,
+        type: 'DELETE',
+        error: function(XHR,status,e){
+          alert('Could not remove Recording ' + title);
         },
-        type       : 'POST',
-        error      : function(XHR,status,e){
-          alert('Could not remove Workflow ' + title);
-        },
-        success    : function(data) {
+        success: function(){
           ocRecordings.reload();
         }
       });
@@ -861,6 +870,7 @@ ocRecordings = new (function() {
     ocRecordings.Configuration.lastPageSize = ocRecordings.Configuration.pageSize;
     ocRecordings.Configuration.lastPage = ocRecordings.Configuration.page;
     ocRecordings.disableRefresh();
+    ocRecordings.stopStatisticsUpdate();
     $('#bulkActionPanel :input[type=textarea], #bulkActionPanel :text').keyup(ocRecordings.bulkEditFieldHandler);
   }
 
@@ -880,6 +890,7 @@ ocRecordings = new (function() {
     ocRecordings.Configuration.page = ocRecordings.Configuration.lastPage;
     refresh();
     ocRecordings.updateRefreshInterval(true, ocRecordings.Configuration.refresh);
+    ocRecordings.startStatisticsUpdate();
   }
 
   this.resetBulkActionPanel = function() {

@@ -284,7 +284,7 @@ ocScheduler.HandleAgentChange = function(elm){
   var time;
   var agent = elm.target.value;
   $(ocScheduler.inputList).empty();
-  ocScheduler.additionalMetadataComponents.agentTimeZone.setValue('');
+  ocScheduler.additionalMetadataComponents.agentTimeZone = new ocAdmin.Component(['agentTimeZone']);
   if(agent){
     $.get('/capture-admin/agents/' + agent + '/capabilities',
       function(doc){
@@ -310,11 +310,12 @@ ocScheduler.HandleAgentChange = function(elm){
         }else{
           Agent.tzDiff = 0; //No agent timezone could be found, assume local time.
           $('#inputList').replaceWith('Agent defaults will be used.');
+          delete ocScheduler.additionalMetadataComponents.agentTimeZone;
         }
       });
   }else{
     // no valid agent, change time to local form what ever it was before.
-    ocScheduler.additionalMetadataComponents.agentTimeZone.setValue(''); //Being empty will end up defaulting to the server's Timezone.
+    delete ocScheduler.additionalMetadataComponents.agentTimeZone; //Being empty will end up defaulting to the server's Timezone.
     if(ocScheduler.type === SINGLE_EVENT){
       time = ocScheduler.components.startDate.getValue();
     }else if(ocScheduler.type === MULTIPLE_EVENTS){
@@ -670,7 +671,6 @@ ocScheduler.RegisterComponents = function(){
       }
     });
   ocScheduler.additionalMetadataComponents.workflowDefinition = new ocAdmin.Component(['workflowSelector'], {nodeKey: 'org.opencastproject.workflow.definition'});
-  ocScheduler.additionalMetadataComponents.agentTimeZone = new ocAdmin.Component(['agentTimeZone']);
   
   if(ocScheduler.type === MULTIPLE_EVENTS){
     //Series validation override for recurring events.
