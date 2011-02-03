@@ -325,15 +325,44 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * @return The recurring event that has been persisted
    */
   public void addRecurringEvent(Event recurrence) throws SchedulerException {
+    EntityManager em = emf.createEntityManager();
+    EntityTransaction tx = em.getTransaction();
     try {
-      for (Event e : recurrence.createEventsFromRecurrence()) {
-        logger.debug("Adding recurring event {}", e.getEventId());
-        addEvent(e);
+      tx.begin();
+      for (Event event : recurrence.createEventsFromRecurrence()) {
+        logger.debug("Adding recurring event {}", event.getEventId());
+
+        // Start a workflow so we have an event id that we can associate the event with
+        WorkflowInstance workflow = null;
+        try {
+          workflow = startWorkflowInstance(event);
+        } catch (WorkflowException workflowException) {
+          throw new SchedulerException(workflowException);
+        } catch (MediaPackageException mediaPackageException) {
+          throw new SchedulerException(mediaPackageException);
+        }
+
+        try {
+          event.setEventId(workflow.getId());
+          event.setMetadataList(event.getMetadataList());
+          event = (EventImpl) event;
+          em.persist(event);
+        } catch (Exception ex) {
+          if (tx.isActive()) {
+            tx.rollback();
+          }
+          throw new SchedulerException("Unable to add event: {}", ex);
+        }
       }
+      tx.commit();
     } catch (ParseException pEx) {
       throw new SchedulerException("Unable to parse recurrence rule: {}", pEx);
     } catch (IncompleteDataException iDEx) {
       throw new SchedulerException("Recurring event is missing data: {}", iDEx);
+    } finally {
+      if (em != null) {
+        em.close();
+      }
     }
   }
 
