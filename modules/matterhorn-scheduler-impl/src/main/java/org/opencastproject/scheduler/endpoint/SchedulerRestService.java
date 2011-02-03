@@ -122,7 +122,7 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.TEXT_XML)
   @Path("{eventID}.xml")
-  public Response getEventXml(@PathParam("eventID") Long eventId) {
+  public Response getEventXml(@PathParam("eventID") Long eventId) throws NotFoundException {
     return getEvent(eventId);
   }
 
@@ -136,26 +136,15 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{eventID}.json")
-  public Response getEventJson(@PathParam("eventID") Long eventId) {
+  public Response getEventJson(@PathParam("eventID") Long eventId) throws NotFoundException {
     return getEvent(eventId);
   }
 
-  private Response getEvent(Long eventId) {
-    if (eventId == null) {
+  private Response getEvent(Long eventId) throws NotFoundException {
+    if (eventId == null)
       return Response.status(Status.BAD_REQUEST).build();
-    } else {
-      try {
-        Event e = service.getEvent(eventId);
-        if (e != null) {
-          return Response.ok(e).build();
-        } else {
-          return Response.status(Status.NOT_FOUND).build();
-        }
-      } catch (Exception e) {
-        logger.warn("Error occured while looking for event '{}': {}", eventId, e);
-        return Response.serverError().build();
-      }
-    }
+    Event e = service.getEvent(eventId);
+    return Response.ok(e).build();
   }
 
   /**
@@ -168,22 +157,11 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.TEXT_XML)
   @Path("{eventId}/dublincore")
-  public Response getDublinCoreMetadata(@PathParam("eventId") Long eventId) {
-    if (eventId == null) {
+  public Response getDublinCoreMetadata(@PathParam("eventId") Long eventId) throws NotFoundException {
+    if (eventId == null)
       return Response.status(Status.BAD_REQUEST).build();
-    } else {
-      try {
-        String result = service.getDublinCoreMetadata(eventId);
-        if (result != null) {
-          return Response.ok(result).build();
-        } else {
-          return Response.status(Status.NOT_FOUND).build();
-        }
-      } catch (Exception e) {
-        logger.warn("Unable to get dublincore Metadata for id '{}': {}", eventId, e);
-        return Response.serverError().build();
-      }
-    }
+    String result = service.getDublinCoreMetadata(eventId);
+    return Response.ok(result).build();
   }
 
   /**
@@ -196,22 +174,11 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.TEXT_PLAIN)
   @Path("{eventId}/captureAgentMetadata")
-  public Response getCaptureAgentMetadata(@PathParam("eventId") Long eventId) {
-    if (eventId == null) {
+  public Response getCaptureAgentMetadata(@PathParam("eventId") Long eventId) throws NotFoundException {
+    if (eventId == null)
       return Response.status(Status.BAD_REQUEST).build();
-    } else {
-      try {
-        String result = service.getCaptureAgentMetadata(eventId);
-        if (result != null) {
-          return Response.ok(result).build();
-        } else {
-          return Response.status(Status.NOT_FOUND).build();
-        }
-      } catch (Exception e) {
-        logger.warn("Unable to get capture agent metadata for id '{}': {}", eventId, e);
-        return Response.serverError().build();
-      }
-    }
+    String result = service.getCaptureAgentMetadata(eventId);
+    return Response.ok(result).build();
   }
 
   /**
@@ -226,7 +193,7 @@ public class SchedulerRestService {
   @PUT
   @Path("/")
   @Produces(MediaType.TEXT_XML)
-  public Response addEvent(@FormParam("event") EventImpl event) {
+  public Response addEvent(@FormParam("event") EventImpl event) throws NotFoundException {
     logger.debug("addEvent(e): {}", event);
     try {
       if (StringUtils.isNotEmpty(event.getRecurrencePattern())) {
@@ -263,15 +230,13 @@ public class SchedulerRestService {
    */
   @DELETE
   @Path("{eventId}")
-  public Response deleteEvent(@PathParam("eventId") Long eventId) {
+  public Response deleteEvent(@PathParam("eventId") Long eventId) throws NotFoundException {
     if (eventId == null) {
       return Response.status(Status.BAD_REQUEST).build();
     } else {
       try {
         service.removeEvent(eventId);
         return Response.noContent().type("").build(); // remove content-type, no message-body.
-      } catch (NotFoundException e) {
-        return Response.status(Status.NOT_FOUND).build();
       } catch (Exception e) {
         logger.warn("Unable to delete event with id '{}': {}", eventId, e);
         return Response.serverError().build();
@@ -289,14 +254,13 @@ public class SchedulerRestService {
    */
   @POST
   @Path("{eventId}")
-  public Response updateEvent(@PathParam("eventId") String eventId, @FormParam("event") EventImpl event) {
+  public Response updateEvent(@PathParam("eventId") String eventId, @FormParam("event") EventImpl event)
+          throws NotFoundException {
     if (!eventId.isEmpty() && event != null) {
       try {
         event.setEventId(Long.parseLong(eventId));
         service.updateEvent(event);
         return Response.noContent().type("").build(); // remove content-type, no message-body.
-      } catch (NotFoundException e) {
-        return Response.status(Status.NOT_FOUND).build();
       } catch (Exception e) {
         logger.warn("Unable to update event with id '{}': {}", eventId, e);
         return Response.serverError().build();
@@ -318,7 +282,8 @@ public class SchedulerRestService {
   @SuppressWarnings("unchecked")
   @POST
   @Path("")
-  public Response updateEvent(@FormParam("event") EventImpl event, @FormParam("idList") String idList) {
+  public Response updateEvent(@FormParam("event") EventImpl event, @FormParam("idList") String idList)
+          throws NotFoundException {
     JSONParser parser = new JSONParser();
     JSONArray ids = new JSONArray();
     try {
@@ -333,8 +298,6 @@ public class SchedulerRestService {
       try {
         service.updateEvents(ids, event);
         return Response.noContent().type("").build(); // remove content-type, no message-body.
-      } catch (NotFoundException nFEx) {
-        return Response.status(Status.NOT_FOUND).build();
       } catch (Exception e) {
         logger.warn("Unable to update event with id '{}': {}", ids, e);
         return Response.serverError().build();
@@ -347,11 +310,13 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("filter")
-  public Response filterEventsDefault(@QueryParam("contributor") String contributor, @QueryParam("creator") String creator,
-          @QueryParam("device") String device, @QueryParam("series") String series, @QueryParam("start") Long startDate,
-          @QueryParam("end") Long endDate, @QueryParam("title") String title, @QueryParam("order") boolean isAsc) {
+  public Response filterEventsDefault(@QueryParam("contributor") String contributor,
+          @QueryParam("creator") String creator, @QueryParam("device") String device,
+          @QueryParam("series") String series, @QueryParam("start") Long startDate, @QueryParam("end") Long endDate,
+          @QueryParam("title") String title, @QueryParam("order") boolean isAsc) {
     return filterEvents(contributor, creator, device, series, startDate, endDate, title, isAsc);
   }
+
   /**
    * returns scheduled events, that pass the filter. filter: an xml definition of the filter. Tags that are not included
    * will not be filtered. Possible values for order by are
@@ -369,8 +334,9 @@ public class SchedulerRestService {
   @Produces(MediaType.TEXT_XML)
   @Path("filter.xml")
   public Response filterEventsXml(@QueryParam("contributor") String contributor, @QueryParam("creator") String creator,
-          @QueryParam("device") String device, @QueryParam("series") String series, @QueryParam("start") Long startDate,
-          @QueryParam("end") Long endDate, @QueryParam("title") String title, @QueryParam("order") boolean isAsc) {
+          @QueryParam("device") String device, @QueryParam("series") String series,
+          @QueryParam("start") Long startDate, @QueryParam("end") Long endDate, @QueryParam("title") String title,
+          @QueryParam("order") boolean isAsc) {
     return filterEvents(contributor, creator, device, series, startDate, endDate, title, isAsc);
   }
 
@@ -390,29 +356,27 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("filter.json")
-  public Response filterEventsJson(@QueryParam("contributor") String contributor, @QueryParam("creator") String creator,
-          @QueryParam("device") String device, @QueryParam("series") String series, @QueryParam("start") Long startDate,
-          @QueryParam("end") Long endDate, @QueryParam("title") String title, @QueryParam("order") boolean isAsc) {
+  public Response filterEventsJson(@QueryParam("contributor") String contributor,
+          @QueryParam("creator") String creator, @QueryParam("device") String device,
+          @QueryParam("series") String series, @QueryParam("start") Long startDate, @QueryParam("end") Long endDate,
+          @QueryParam("title") String title, @QueryParam("order") boolean isAsc) {
     return filterEvents(contributor, creator, device, series, startDate, endDate, title, isAsc);
   }
 
   private Response filterEvents(String contributor, String creator, String device, String series, Long startDate,
           Long endDate, String title, boolean isAsc) {
-    SchedulerFilter filter = new SchedulerFilter().withCreatorFilter(creator)
-      .withDeviceFilter(device)
-      .withSeriesFilter(series)
-      .withTitleFilter(title)
-      .withContributorFilter(contributor)
-      .withOrderAscending("title", isAsc);
-    
-      if (startDate != null && endDate != null) {
-        filter.between(new Date(startDate), new Date(endDate));
-      } else if (startDate != null) {
-        filter.withStart(new Date(startDate));
-      } else if (endDate != null) {
-        filter.withStop(new Date(endDate));
-      }
-      
+    SchedulerFilter filter = new SchedulerFilter().withCreatorFilter(creator).withDeviceFilter(device)
+            .withSeriesFilter(series).withTitleFilter(title).withContributorFilter(contributor)
+            .withOrderAscending("title", isAsc);
+
+    if (startDate != null && endDate != null) {
+      filter.between(new Date(startDate), new Date(endDate));
+    } else if (startDate != null) {
+      filter.withStart(new Date(startDate));
+    } else if (endDate != null) {
+      filter.withStop(new Date(endDate));
+    }
+
     try {
       List<Event> events = service.getEvents(filter);
       EventListImpl eventList = new EventListImpl(events);
@@ -433,9 +397,8 @@ public class SchedulerRestService {
   @POST
   @Produces(MediaType.TEXT_XML)
   @Path("conflict.xml")
-  public Response getConflictingEventsXml(@FormParam("device") String device, 
-      @FormParam("start") Long startDate, @FormParam("end") Long endDate,
-      @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
+  public Response getConflictingEventsXml(@FormParam("device") String device, @FormParam("start") Long startDate,
+          @FormParam("end") Long endDate, @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
     return getConflictingEvents(device, new Date(startDate), new Date(endDate), duration, rrule);
   }
 
@@ -449,9 +412,8 @@ public class SchedulerRestService {
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path("conflict.json")
-  public Response getConflictingEventsJson(@FormParam("device") String device, 
-      @FormParam("start") Long startDate, @FormParam("end") Long endDate,
-      @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
+  public Response getConflictingEventsJson(@FormParam("device") String device, @FormParam("start") Long startDate,
+          @FormParam("end") Long endDate, @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
     logger.info("Checking for conflicts");
     return getConflictingEvents(device, new Date(startDate), new Date(endDate), duration, rrule);
   }
@@ -472,10 +434,9 @@ public class SchedulerRestService {
           return Response.noContent().type("").build();
         }
       } catch (Exception e) {
-        logger.error("Unable to find conflicting events for " + device + ", " 
-            + startDate.toString() + ", " 
-            + endDate.toString() + ", " 
-            + String.valueOf(duration) + ":", e);
+        logger.error(
+                "Unable to find conflicting events for " + device + ", " + startDate.toString() + ", "
+                        + endDate.toString() + ", " + String.valueOf(duration) + ":", e);
         return Response.serverError().build();
       }
     } else {
@@ -563,14 +524,14 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.TEXT_PLAIN)
   @Path("{captureAgentID}/calendar")
-  public Response getCalendarForCaptureAgent(@PathParam("captureAgentID") String captureAgentId) {
+  public Response getCalendarForCaptureAgent(@PathParam("captureAgentID") String captureAgentId) throws NotFoundException {
     if (!captureAgentId.isEmpty()) {
       try {
         String result = service.getCalendarForCaptureAgent(captureAgentId);
         if (!result.isEmpty()) {
           return Response.ok(result).build();
         } else {
-          return Response.status(Status.NOT_FOUND).build();
+          throw new NotFoundException();
         }
       } catch (Exception e) {
         logger.error("Unable to get calendar for capture agent '{}': {}", captureAgentId, e);
@@ -652,7 +613,7 @@ public class SchedulerRestService {
             "Get a specific scheduled event.");
     getEventEndpoint.addFormat(Format.xml("XML representation of the event."));
     getEventEndpoint.addFormat(Format.json("JSON representation of the event."));
-    //getEventEndpoint.setAutoPathFormat(true);
+    // getEventEndpoint.setAutoPathFormat(true);
     getEventEndpoint.addStatus(org.opencastproject.util.doc.Status.ok("XML or JSON representation of the Event."));
     getEventEndpoint.addStatus(org.opencastproject.util.doc.Status
             .badRequest("Supplied eventId is incorrect or missing."));
@@ -667,28 +628,38 @@ public class SchedulerRestService {
     data.addEndpoint(RestEndpoint.Type.READ, getEventEndpoint);
 
     // Scheduler filterEventsEndpoint
-    RestEndpoint filterEventsEndpoint = new RestEndpoint("filterEvents", RestEndpoint.Method.GET, 
-            "/filter.{format}",
+    RestEndpoint filterEventsEndpoint = new RestEndpoint("filterEvents", RestEndpoint.Method.GET, "/filter.{format}",
             "returns scheduled events, that pass the filter. All string fields are case-sensative.");
-    filterEventsEndpoint.addFormat(
-            Format.xml("XML representation of a list of the events conforming to the supplied filter."));
-    filterEventsEndpoint.addFormat(
-            Format.json("JSON representation of a list of the event conforming to the supplied filter."));
-    //filterEventsEndpoint.setAutoPathFormat(true);
+    filterEventsEndpoint.addFormat(Format
+            .xml("XML representation of a list of the events conforming to the supplied filter."));
+    filterEventsEndpoint.addFormat(Format
+            .json("JSON representation of a list of the event conforming to the supplied filter."));
+    // filterEventsEndpoint.setAutoPathFormat(true);
     filterEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .ok("XML or JSON representation of a list of events belonging to a recurring event."));
     filterEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .badRequest("Supplied filter is incorrect or missing."));
-    //contributor, creator, device, series, startDate, endDate, title, isAsc
-    filterEventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml", "The data format of the response, xml or json."));
-    filterEventsEndpoint.addOptionalParam(new Param("contributor", Type.STRING, "Joe Shmoe", "Pattern to search for in contributor"));
-    filterEventsEndpoint.addOptionalParam(new Param("creator", Type.STRING, "Joe Shmoe", "Pattern to search for in creator"));
-    filterEventsEndpoint.addOptionalParam(new Param("device", Type.STRING, "demo_capture_agent", "Pattern to search for in the device name"));
-    filterEventsEndpoint.addOptionalParam(new Param("series", Type.STRING, "A Series", "Pattern to search for in the series"));
-    filterEventsEndpoint.addOptionalParam(new Param("title", Type.STRING, "Katsudon", "Pattern to search for in the title"));
-    filterEventsEndpoint.addOptionalParam(new Param("start", Type.STRING, String.valueOf(System.currentTimeMillis()), "Start date prior to which events will be filtered"));
-    filterEventsEndpoint.addOptionalParam(new Param("end", Type.STRING, String.valueOf(System.currentTimeMillis() + 60 * 60 * 1000), "End date after which events will be filtered"));
-    filterEventsEndpoint.addOptionalParam(new Param("order", Type.STRING, "true", "Sort events by title ascending (true) or decending (false)"));
+    // contributor, creator, device, series, startDate, endDate, title, isAsc
+    filterEventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml",
+            "The data format of the response, xml or json."));
+    filterEventsEndpoint.addOptionalParam(new Param("contributor", Type.STRING, "Joe Shmoe",
+            "Pattern to search for in contributor"));
+    filterEventsEndpoint.addOptionalParam(new Param("creator", Type.STRING, "Joe Shmoe",
+            "Pattern to search for in creator"));
+    filterEventsEndpoint.addOptionalParam(new Param("device", Type.STRING, "demo_capture_agent",
+            "Pattern to search for in the device name"));
+    filterEventsEndpoint.addOptionalParam(new Param("series", Type.STRING, "A Series",
+            "Pattern to search for in the series"));
+    filterEventsEndpoint.addOptionalParam(new Param("title", Type.STRING, "Katsudon",
+            "Pattern to search for in the title"));
+    filterEventsEndpoint.addOptionalParam(new Param("start", Type.STRING, String.valueOf(System.currentTimeMillis()),
+            "Start date prior to which events will be filtered"));
+    filterEventsEndpoint
+            .addOptionalParam(new Param("end", Type.STRING,
+                    String.valueOf(System.currentTimeMillis() + 60 * 60 * 1000),
+                    "End date after which events will be filtered"));
+    filterEventsEndpoint.addOptionalParam(new Param("order", Type.STRING, "true",
+            "Sort events by title ascending (true) or decending (false)"));
     filterEventsEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, filterEventsEndpoint);
 
@@ -717,24 +688,25 @@ public class SchedulerRestService {
     data.addEndpoint(RestEndpoint.Type.READ, getUpcomingEventsEndpoint);
 
     // Scheduler findConflictingEvents
-//    RestEndpoint findConflictingEventsEndpoint = new RestEndpoint("findConflictingEvents", RestEndpoint.Method.POST,
-//            "/conflict.{format}",
-//            "Looks for events that are conflicting with the given event, because they use the same recorder at the same time ");
-//    findConflictingEventsEndpoint.addFormat(Format
-//            .xml("XML representation of a list of all events that conflict with supplied event."));
-//    findConflictingEventsEndpoint.addFormat(Format
-//            .json("JSON representation of a list of all events that conflict with supplied event."));
-//    //findConflictingEventsEndpoint.setAutoPathFormat(true);
-//    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
-//            .ok("XML or JSON representation of a list of all upcoming events."));
-//    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
-//            .badRequest("Supplied Event is invalid or missing."));
-//    findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status.error("A server error occured."));
-//    findConflictingEventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml", "The data format of the response, xml or json."));
-//    findConflictingEventsEndpoint.addRequiredParam(new Param("event", Type.TEXT, generateEvent(),
-//            "The Event that should be checked for conflicts."));
-//    findConflictingEventsEndpoint.setTestForm(RestTestForm.auto());
-//    data.addEndpoint(RestEndpoint.Type.READ, findConflictingEventsEndpoint);
+    // RestEndpoint findConflictingEventsEndpoint = new RestEndpoint("findConflictingEvents", RestEndpoint.Method.POST,
+    // "/conflict.{format}",
+    // "Looks for events that are conflicting with the given event, because they use the same recorder at the same time ");
+    // findConflictingEventsEndpoint.addFormat(Format
+    // .xml("XML representation of a list of all events that conflict with supplied event."));
+    // findConflictingEventsEndpoint.addFormat(Format
+    // .json("JSON representation of a list of all events that conflict with supplied event."));
+    // //findConflictingEventsEndpoint.setAutoPathFormat(true);
+    // findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
+    // .ok("XML or JSON representation of a list of all upcoming events."));
+    // findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status
+    // .badRequest("Supplied Event is invalid or missing."));
+    // findConflictingEventsEndpoint.addStatus(org.opencastproject.util.doc.Status.error("A server error occured."));
+    // findConflictingEventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml",
+    // "The data format of the response, xml or json."));
+    // findConflictingEventsEndpoint.addRequiredParam(new Param("event", Type.TEXT, generateEvent(),
+    // "The Event that should be checked for conflicts."));
+    // findConflictingEventsEndpoint.setTestForm(RestTestForm.auto());
+    // data.addEndpoint(RestEndpoint.Type.READ, findConflictingEventsEndpoint);
 
     // Scheduler findConflictingREvents
     RestEndpoint findConflictingREventsEndpoint = new RestEndpoint("findConflictingRecurringEvents",
@@ -744,18 +716,24 @@ public class SchedulerRestService {
             .xml("XML representation of a list of all events that conflict with supplied recurring event."));
     findConflictingREventsEndpoint.addFormat(Format
             .json("JSON representation of a list of all events that conflict with supplied recurring event."));
-    //findConflictingREventsEndpoint.setAutoPathFormat(true);
+    // findConflictingREventsEndpoint.setAutoPathFormat(true);
     findConflictingREventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .ok("XML or JSON representation of a list of all upcoming events."));
     findConflictingREventsEndpoint.addStatus(org.opencastproject.util.doc.Status
             .badRequest("Supplied RecurringEvent is invalid or missing."));
     findConflictingREventsEndpoint.addStatus(org.opencastproject.util.doc.Status.error("A server error occured."));
-    findConflictingREventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml", "The data format of the response, xml or json."));
-    //findConflictingREventsEndpoint.addRequiredParam(new Param("recurringEvent", Type.TEXT, generateEvent(), "The RecurringEvent that should be checked for conflicts. "));
-    findConflictingREventsEndpoint.addRequiredParam(new Param("device", Type.STRING, "" ,  "The device that is scheduled"));
-    findConflictingREventsEndpoint.addRequiredParam(new Param("start", Type.STRING, "" ,"The start of the recurrence period"));
-    findConflictingREventsEndpoint.addRequiredParam(new Param("end", Type.STRING, "", "The end of the recurrence period"));
-    findConflictingREventsEndpoint.addRequiredParam(new Param("duration", Type.STRING, "", "The duration of the single event"));
+    findConflictingREventsEndpoint.addPathParam(new Param("format", Type.STRING, "xml",
+            "The data format of the response, xml or json."));
+    // findConflictingREventsEndpoint.addRequiredParam(new Param("recurringEvent", Type.TEXT, generateEvent(),
+    // "The RecurringEvent that should be checked for conflicts. "));
+    findConflictingREventsEndpoint
+            .addRequiredParam(new Param("device", Type.STRING, "", "The device that is scheduled"));
+    findConflictingREventsEndpoint.addRequiredParam(new Param("start", Type.STRING, "",
+            "The start of the recurrence period"));
+    findConflictingREventsEndpoint.addRequiredParam(new Param("end", Type.STRING, "",
+            "The end of the recurrence period"));
+    findConflictingREventsEndpoint.addRequiredParam(new Param("duration", Type.STRING, "",
+            "The duration of the single event"));
     findConflictingREventsEndpoint.addRequiredParam(new Param("rrule", Type.STRING, "", "The recurrence rule"));
     findConflictingREventsEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, findConflictingREventsEndpoint);

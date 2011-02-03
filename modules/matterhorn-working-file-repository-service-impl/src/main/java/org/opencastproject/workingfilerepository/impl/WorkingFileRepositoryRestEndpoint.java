@@ -297,7 +297,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
   @Path(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX + "{mediaPackageID}/{mediaPackageElementID}")
   public Response restGet(@PathParam("mediaPackageID") String mediaPackageID,
           @PathParam("mediaPackageElementID") String mediaPackageElementID,
-          @HeaderParam("If-None-Match") String ifNoneMatch) {
+          @HeaderParam("If-None-Match") String ifNoneMatch) throws NotFoundException {
     String contentType = null;
     InputStream in = null;
     try {
@@ -311,13 +311,10 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
       return Response.ok(this.get(mediaPackageID, mediaPackageElementID)).header("Content-Type", contentType).build();
     } catch (IllegalStateException e) {
       IOUtils.closeQuietly(in);
-      return Response.status(Response.Status.NOT_FOUND).build();
+      throw new NotFoundException();
     } catch (IOException e) {
       IOUtils.closeQuietly(in);
-      return Response.status(500).build();
-    } catch (NotFoundException e) {
-      IOUtils.closeQuietly(in);
-      return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+      return Response.status(javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR).build();
     } finally {
       IOUtils.closeQuietly(in);
     }
@@ -350,7 +347,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
   @Path(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX + "{mediaPackageID}/{mediaPackageElementID}/{fileName}")
   public Response restGet(@PathParam("mediaPackageID") String mediaPackageID,
           @PathParam("mediaPackageElementID") String mediaPackageElementID, @PathParam("fileName") String fileName,
-          @HeaderParam("If-None-Match") String ifNoneMatch) {
+          @HeaderParam("If-None-Match") String ifNoneMatch) throws NotFoundException {
     InputStream in = null;
     try {
       in = get(mediaPackageID, mediaPackageElementID);
@@ -366,10 +363,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
               contentType).header("Content-length", contentLength).entity(in).build();
     } catch (IllegalStateException e) {
       IOUtils.closeQuietly(in);
-      return Response.status(Response.Status.NOT_FOUND).build();
-    } catch (NotFoundException e) {
-      IOUtils.closeQuietly(in);
-      return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+      throw new NotFoundException();
     } catch (IOException e) {
       IOUtils.closeQuietly(in);
       logger.info("unable to get the content length for {}/{}/{}", new Object[] { mediaPackageElementID,
@@ -381,14 +375,8 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
   @GET
   @Path(WorkingFileRepository.COLLECTION_PATH_PREFIX + "{collectionId}/{fileName}")
   public Response restGetFromCollection(@PathParam("collectionId") String collectionId,
-          @PathParam("fileName") String fileName) {
-    InputStream in = null;
-    try {
-      in = super.getFromCollection(collectionId, fileName);
-    } catch (NotFoundException e) {
-      IOUtils.closeQuietly(in);
-      return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
-    }
+          @PathParam("fileName") String fileName) throws NotFoundException {
+    InputStream in = super.getFromCollection(collectionId, fileName);
     String contentType = mimeMap.getContentType(fileName);
     int contentLength = 0;
     try {

@@ -16,6 +16,7 @@
 package org.opencastproject.kernel.rest;
 
 import org.opencastproject.rest.RestConstants;
+import org.opencastproject.util.NotFoundException;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
@@ -37,13 +38,18 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.Servlet;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -51,7 +57,7 @@ import javax.xml.stream.XMLStreamWriter;
  * Listens for JAX-RS annotated services and publishes them to the global URL space using a single shared HttpContext.
  */
 public class RestPublisher implements RestConstants {
-  
+
   /** The logger **/
   private static final Logger logger = LoggerFactory.getLogger(RestPublisher.class);
 
@@ -61,6 +67,12 @@ public class RestPublisher implements RestConstants {
 
   /** A map that sets default xml namespaces in {@link XMLStreamWriter}s */
   protected static final ConcurrentHashMap<String, String> NAMESPACE_MAP;
+
+  /** The 404 Error page */
+  protected String fourOhFour = null;
+  
+  @SuppressWarnings("rawtypes")
+  protected List providers = null;
 
   static {
     NAMESPACE_MAP = new ConcurrentHashMap<String, String>();
@@ -80,11 +92,26 @@ public class RestPublisher implements RestConstants {
   protected Map<String, ServiceRegistration> servletRegistrationMap;
 
   /** Activates this rest publisher */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   protected void activate(ComponentContext componentContext) {
     logger.debug("activate()");
     this.baseServerUri = componentContext.getBundleContext().getProperty("org.opencastproject.server.url");
     this.componentContext = componentContext;
+    this.fourOhFour = "The resource you requested does not exist."; // TODO: Replace this with something a little nicer
     this.servletRegistrationMap = new ConcurrentHashMap<String, ServiceRegistration>();
+    this.providers = new ArrayList();
+    
+    JSONProvider jsonProvider = new MatterhornJSONProvider();
+    jsonProvider.setIgnoreNamespaces(true);
+    jsonProvider.setNamespaceMap(NAMESPACE_MAP);
+
+    providers.add(jsonProvider);
+    providers.add(new ExceptionMapper<NotFoundException>() {
+      public Response toResponse(NotFoundException e) {
+        return Response.status(404).entity(fourOhFour).type(MediaType.TEXT_PLAIN).build();
+      }
+    });
+
     try {
       tracker = new JaxRsServiceTracker();
     } catch (InvalidSyntaxException e) {
@@ -109,6 +136,7 @@ public class RestPublisher implements RestConstants {
    * @param service
    *          The service itself
    */
+  @SuppressWarnings("unchecked")
   protected void createEndpoint(ServiceReference ref, Object service) {
     CXFNonSpringServlet cxf = new CXFNonSpringServlet();
     ServiceRegistration reg = null;
@@ -133,11 +161,7 @@ public class RestPublisher implements RestConstants {
     Bus bus = cxf.getBus();
     JAXRSServerFactoryBean factory = new JAXRSServerFactoryBean();
     factory.setBus(bus);
-
-    JSONProvider jsonProvider = new MatterhornJSONProvider();
-    jsonProvider.setIgnoreNamespaces(true);
-    jsonProvider.setNamespaceMap(NAMESPACE_MAP);
-    factory.setProvider(jsonProvider);
+    factory.setProviders(providers);
 
     // Set the service class
     factory.setServiceClass(service.getClass());

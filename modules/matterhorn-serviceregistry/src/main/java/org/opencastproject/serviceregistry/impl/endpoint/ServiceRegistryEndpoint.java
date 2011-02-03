@@ -206,14 +206,14 @@ public class ServiceRegistryEndpoint {
   @Path("/services.xml")
   @Produces(MediaType.TEXT_XML)
   public JaxbServiceRegistrationList getRegistrationsAsXml(@QueryParam("serviceType") String serviceType,
-          @QueryParam("host") String host) {
+          @QueryParam("host") String host) throws NotFoundException {
     JaxbServiceRegistrationList registrations = new JaxbServiceRegistrationList();
     try {
       if (isNotBlank(serviceType) && isNotBlank(host)) {
         // This is a request for one specific service. Return it, or 404 if not found
         ServiceRegistration reg = serviceRegistry.getServiceRegistration(serviceType, host);
         if (reg == null) {
-          throw new WebApplicationException(Status.NOT_FOUND);
+          throw new NotFoundException();
         } else {
           return new JaxbServiceRegistrationList(new JaxbServiceRegistration(reg));
         }
@@ -243,7 +243,7 @@ public class ServiceRegistryEndpoint {
   @Path("/services.json")
   @Produces(MediaType.APPLICATION_JSON)
   public JaxbServiceRegistrationList getRegistrationsAsJson(@QueryParam("serviceType") String serviceType,
-          @QueryParam("host") String host) {
+          @QueryParam("host") String host) throws NotFoundException {
     return getRegistrationsAsXml(serviceType, host);
   }
 
@@ -277,13 +277,11 @@ public class ServiceRegistryEndpoint {
   @PUT
   @Path("/job/{id}.xml")
   @Produces(MediaType.TEXT_XML)
-  public Response updateJob(@PathParam("id") String id, @FormParam("jobType") String jobXml) {
+  public Response updateJob(@PathParam("id") String id, @FormParam("jobType") String jobXml) throws NotFoundException {
     try {
       Job job = JobParser.parseJob(jobXml);
       serviceRegistry.updateJob(job);
       return Response.status(Status.NO_CONTENT).build();
-    } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
     } catch (Exception e) {
       throw new WebApplicationException(e);
     }
@@ -292,18 +290,16 @@ public class ServiceRegistryEndpoint {
   @GET
   @Path("/job/{id}.xml")
   @Produces(MediaType.TEXT_XML)
-  public JaxbJob getJobAsXml(@PathParam("id") long id) {
+  public JaxbJob getJobAsXml(@PathParam("id") long id) throws NotFoundException {
     return getJobAsJson(id);
   }
 
   @GET
   @Path("/job/{id}.json")
   @Produces(MediaType.APPLICATION_JSON)
-  public JaxbJob getJobAsJson(@PathParam("id") long id) {
+  public JaxbJob getJobAsJson(@PathParam("id") long id) throws NotFoundException {
     try {
       return new JaxbJob(serviceRegistry.getJob(id));
-    } catch (NotFoundException e) {
-      throw new WebApplicationException(Status.NOT_FOUND);
     } catch (Exception e) {
       throw new WebApplicationException(e);
     }
@@ -328,8 +324,7 @@ public class ServiceRegistryEndpoint {
   public long count(@QueryParam("serviceType") String serviceType, @QueryParam("status") Job.Status status,
           @QueryParam("host") String host) {
     if (isBlank(serviceType)) {
-      throw new WebApplicationException(Response.serverError().entity("Service type must not be null")
-              .build());
+      throw new WebApplicationException(Response.serverError().entity("Service type must not be null").build());
     }
     try {
       if (isBlank(host)) {

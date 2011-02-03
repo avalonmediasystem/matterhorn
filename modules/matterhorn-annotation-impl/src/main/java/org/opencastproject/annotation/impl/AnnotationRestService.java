@@ -159,7 +159,8 @@ public class AnnotationRestService {
     a = annotationService.addAnnotation(a);
     URI uri;
     try {
-      uri = new URI(UrlSupport.concat(new String[] {serverUrl, serviceUrl, Long.toString(a.getAnnotationId()), ".xml"}));
+      uri = new URI(
+              UrlSupport.concat(new String[] { serverUrl, serviceUrl, Long.toString(a.getAnnotationId()), ".xml" }));
     } catch (URISyntaxException e) {
       throw new WebApplicationException(e);
     }
@@ -169,24 +170,20 @@ public class AnnotationRestService {
   @GET
   @Produces(MediaType.TEXT_XML)
   @Path("/{id}.xml")
-  public AnnotationImpl getAnnotationAsXml(@PathParam("id") String idAsString) {
+  public AnnotationImpl getAnnotationAsXml(@PathParam("id") String idAsString) throws NotFoundException {
     Long id = null;
     try {
       id = Long.parseLong(idAsString);
     } catch (NumberFormatException e) {
       throw new WebApplicationException(e, Status.BAD_REQUEST);
     }
-    try {
-      return (AnnotationImpl) annotationService.getAnnotation(id);
-    } catch (NotFoundException e) {
-      throw new WebApplicationException(Status.NOT_FOUND);
-    }
+    return (AnnotationImpl) annotationService.getAnnotation(id);
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/{id}.xml")
-  public AnnotationImpl getAnnotationAsJson(@PathParam("id") String idAsString) {
+  public AnnotationImpl getAnnotationAsJson(@PathParam("id") String idAsString) throws NotFoundException {
     return getAnnotationAsXml(idAsString);
   }
 
@@ -236,7 +233,8 @@ public class AnnotationRestService {
     annotationEndpoint.addFormat(new Format("JSON", null, null));
     annotationEndpoint.addStatus(org.opencastproject.util.doc.Status.ok("The annotations, expressed as xml or json"));
     annotationEndpoint.addPathParam(new Param("format", Type.STRING, "json", "The output format, xml or json"));
-    annotationEndpoint.addOptionalParam(new Param("episode", Type.STRING, null, "The mediapackage (episode) identifier"));
+    annotationEndpoint
+            .addOptionalParam(new Param("episode", Type.STRING, null, "The mediapackage (episode) identifier"));
     annotationEndpoint.addOptionalParam(new Param("type", Type.STRING, null, "The type of annotation"));
     annotationEndpoint.addOptionalParam(new Param("day", Type.STRING, null, "The day of creation (format: YYYYMMDD)"));
     annotationEndpoint.addOptionalParam(new Param("limit", Type.STRING, "0",

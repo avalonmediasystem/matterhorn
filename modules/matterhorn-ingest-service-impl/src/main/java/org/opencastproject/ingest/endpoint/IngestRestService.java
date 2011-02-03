@@ -28,6 +28,7 @@ import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.util.DocUtil;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.doc.DocRestData;
 import org.opencastproject.util.doc.Format;
 import org.opencastproject.util.doc.Param;
@@ -273,17 +274,17 @@ public class IngestRestService {
           }
         }
         switch (type) {
-        case Attachment:
-          mp = ingestService.addAttachment(in, fileName, flavor, mp);
-          break;
-        case Catalog:
-          mp = ingestService.addCatalog(in, fileName, flavor, mp);
-          break;
-        case Track:
-          mp = ingestService.addTrack(in, fileName, flavor, mp);
-          break;
-        default:
-          throw new IllegalStateException("Type must be one of track, catalog, or attachment");
+          case Attachment:
+            mp = ingestService.addAttachment(in, fileName, flavor, mp);
+            break;
+          case Catalog:
+            mp = ingestService.addCatalog(in, fileName, flavor, mp);
+            break;
+          case Track:
+            mp = ingestService.addTrack(in, fileName, flavor, mp);
+            break;
+          default:
+            throw new IllegalStateException("Type must be one of track, catalog, or attachment");
         }
         // ingestService.ingest(mp);
         return Response.ok(MediaPackageParser.getAsXml(mp)).build();
@@ -687,37 +688,22 @@ public class IngestRestService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("getProgress/{jobId}")
-  public Response getProgress(@PathParam("jobId") String jobId) {
-    EntityManager em = emf.createEntityManager();
-    try {
-      UploadJob job = null;
-      try { // try to get UploadJob, responde 404 if not successful
-        // Query q = em.createNamedQuery("UploadJob.getByID");
-        // q.setParameter("id", jobId);
-        // job = (UploadJob) q.getSingleResult();
-        if (jobs.containsKey(jobId)) {
-          job = jobs.get(jobId);
-        } else {
-          throw new NoResultException("Job not found");
-        }
-      } catch (NoResultException e) {
-        logger.warn("UploadJob not found for Id: " + jobId);
-        return Response.status(Status.NOT_FOUND).build();
-      }
-      /*
-       * String json = "{total:" + Long.toString(job.getBytesTotal()) + ", received:" +
-       * Long.toString(job.getBytesReceived()) + "}"; return Response.ok(json).build();
-       */
-      JSONObject out = new JSONObject();
-      out.put("total", Long.toString(job.getBytesTotal()));
-      out.put("received", Long.toString(job.getBytesReceived()));
-      return Response.ok(out.toJSONString()).header("Content-Type", MediaType.APPLICATION_JSON).build();
-    } catch (Exception ex) {
-      logger.error(ex.getMessage());
-      return Response.serverError().status(Status.INTERNAL_SERVER_ERROR).build();
-    } finally {
-      em.close();
+  public Response getProgress(@PathParam("jobId") String jobId) throws NotFoundException {
+    // try to get UploadJob, responde 404 if not successful
+    UploadJob job = null;
+    if (jobs.containsKey(jobId)) {
+      job = jobs.get(jobId);
+    } else {
+      throw new NotFoundException("Job not found");
     }
+    /*
+     * String json = "{total:" + Long.toString(job.getBytesTotal()) + ", received:" +
+     * Long.toString(job.getBytesReceived()) + "}"; return Response.ok(json).build();
+     */
+    JSONObject out = new JSONObject();
+    out.put("total", Long.toString(job.getBytesTotal()));
+    out.put("received", Long.toString(job.getBytesReceived()));
+    return Response.ok(out.toJSONString()).header("Content-Type", MediaType.APPLICATION_JSON).build();
   }
 
   @GET
@@ -980,16 +966,14 @@ public class IngestRestService {
 
     // createUploadJobHtml
     /* having '.html' in the URL yields Exception in Rest Docs Utility */
-    /*endpoint = new RestEndpoint(
-            "createUploadJobHtml",
-            RestEndpoint.Method.GET,
-            "/filechooser-local.html",
-            "Creates an upload job and returns an html form ready to submit the selected file to /addTrackMonitored with the newly created upload job Id.");
-    endpoint.addFormat(new Format("HTML", "HTML form for submitting the file with the newly created upload job", null));
-    endpoint.addStatus(org.opencastproject.util.doc.Status.ok(null));
-    endpoint.addStatus(org.opencastproject.util.doc.Status.error(null));
-    endpoint.setTestForm(RestTestForm.auto());
-    data.addEndpoint(RestEndpoint.Type.READ, endpoint);*/
+    /*
+     * endpoint = new RestEndpoint( "createUploadJobHtml", RestEndpoint.Method.GET, "/filechooser-local.html",
+     * "Creates an upload job and returns an html form ready to submit the selected file to /addTrackMonitored with the newly created upload job Id."
+     * ); endpoint.addFormat(new Format("HTML", "HTML form for submitting the file with the newly created upload job",
+     * null)); endpoint.addStatus(org.opencastproject.util.doc.Status.ok(null));
+     * endpoint.addStatus(org.opencastproject.util.doc.Status.error(null)); endpoint.setTestForm(RestTestForm.auto());
+     * data.addEndpoint(RestEndpoint.Type.READ, endpoint);
+     */
 
     // addTrackMonitored
     endpoint = new RestEndpoint(

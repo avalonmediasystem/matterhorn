@@ -36,6 +36,7 @@ import org.opencastproject.mediapackage.Track;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.util.DocUtil;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.UrlSupport;
 import org.opencastproject.util.doc.DocRestData;
 import org.opencastproject.util.doc.Param;
@@ -356,10 +357,10 @@ public class ComposerRestService extends AbstractJobProducerEndpoint {
   @GET
   @Path("profile/{id}.xml")
   @Produces(MediaType.TEXT_XML)
-  public Response getProfile(@PathParam("id") String profileId) {
+  public Response getProfile(@PathParam("id") String profileId) throws NotFoundException {
     EncodingProfileImpl profile = (EncodingProfileImpl) composerService.getProfile(profileId);
     if (profile == null)
-      return Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
+      throw new NotFoundException();
     return Response.ok(profile).build();
   }
 

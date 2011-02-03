@@ -217,12 +217,10 @@ public class SeriesRestService {
    */
   @DELETE
   @Path("{seriesID}")
-  public Response deleteSeries(@PathParam("seriesID") String seriesID) {
+  public Response deleteSeries(@PathParam("seriesID") String seriesID) throws NotFoundException {
     try {
       service.removeSeries(seriesID);
       return Response.noContent().type("").build(); // get rid of content type
-    } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
     } catch (SeriesException se) {
       return Response.serverError().build();
     }
@@ -238,7 +236,8 @@ public class SeriesRestService {
    */
   @POST
   @Path("{seriesId}")
-  public Response updateSeries(@PathParam("seriesId") String seriesId, @FormParam("series") SeriesImpl series) {
+  public Response updateSeries(@PathParam("seriesId") String seriesId, @FormParam("series") SeriesImpl series)
+          throws NotFoundException {
     if (series == null) {
       logger.error("series that should be updated is null");
       return Response.status(Status.BAD_REQUEST).build();
@@ -248,8 +247,6 @@ public class SeriesRestService {
     try {
       service.updateSeries(series);
       return Response.noContent().type("").build(); // get rid of content-type
-    } catch (NotFoundException e) {
-      return Response.status(Status.NOT_FOUND).build();
     } catch (SeriesException se) {
       return Response.serverError().build();
     }
