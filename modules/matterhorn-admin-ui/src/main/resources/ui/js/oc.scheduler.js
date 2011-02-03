@@ -233,6 +233,12 @@ ocScheduler.ChangeRecordingType = function(recType){
 ocScheduler.SubmitForm = function(){
   var eventXML = null;
   eventXML = ocScheduler.FormManager.serialize();
+  if(ocScheduler.conflictingEvents) {
+    $('#missingFieldsContainer').show();
+    $('#errorConflict').show();
+    $('#errorConflict li').show();
+    return;
+  }
   if(eventXML){
     $('#submitButton').attr('disabled', 'disabled');
     $('#submitModal').dialog({height: 100, modal: true});
@@ -499,7 +505,6 @@ ocScheduler.CheckForConflictingEvents = function(){
   $('#missingFieldsContainer li').hide();
   $('#errorConflict').hide();
   $('#conflictingEvents').empty();
-  $('#submitButton').attr('disabled', 'disabled');
   if(ocScheduler.components.device.validate()){
     data.device = ocScheduler.components.device.getValue()
   }else{
@@ -533,7 +538,6 @@ ocScheduler.CheckForConflictingEvents = function(){
           events.push(data.events.event);
         }
         if(events.length == 0) {
-          $('#submitButton').attr('disabled', '');
           return;
         }
       } else {
@@ -550,8 +554,6 @@ ocScheduler.CheckForConflictingEvents = function(){
         $('#missingFieldsContainer').show();
         $('#errorConflict').show();
       }
-    } else {
-      $('#submitButton').attr('disabled', '');
     }
   });
 }
