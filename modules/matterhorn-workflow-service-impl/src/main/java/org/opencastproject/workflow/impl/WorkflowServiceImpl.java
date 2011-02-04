@@ -461,10 +461,6 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
     workflowInstance = updateConfiguration(workflowInstance, properties);
 
     try {
-
-      // Before we persist this, extract the metadata
-      populateMediaPackageMetadata(workflowInstance.getMediaPackage());
-
       // Create a new job for this workflow instance
       String workflowDefinitionXml = WorkflowParser.toXml(workflowDefinition);
       String workflowInstanceXml = WorkflowParser.toXml(workflowInstance);
@@ -885,6 +881,9 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
     } catch (NotFoundException e) {
       // That's fine, it's a new workflow instance
     }
+
+    // Before we persist this, extract the metadata
+    populateMediaPackageMetadata(workflowInstance.getMediaPackage());
 
     // Synchronize the job status with the workflow
     WorkflowState workflowState = workflowInstance.getState();
