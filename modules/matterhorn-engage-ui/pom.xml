@@ -81,8 +81,8 @@
                 <resource>
                   <directory>../../shared-resources/player/</directory>
                   <includes>
-                    <include>engage-hybrid-player/</include>
-                    <include>style/</include>
+                    <include>engage-hybrid-player/**</include>
+                    <include>style/**</include>
                     <include>embed.html</include>
                     <include>preview.xml</include>
                     <include>Videodisplay.swf/</include>
@@ -105,9 +105,9 @@
                 <resource>
                   <directory>../../shared-resources/</directory>
                   <includes>
-                     <include>jquery/</include>
-                     <include>trimpath/</include>
-                     <include>infusion-1.1.2/</include>
+                     <include>jquery/**</include>
+                     <include>trimpath/**</include>
+                     <include>infusion-1.1.2/**</include>
                   </includes>                  
                   <filtering>false</filtering>
                 </resource>
@@ -126,7 +126,7 @@
                 <resource>
                   <directory>../../shared-resources/img/</directory>
                   <includes>
-                    <include> **/* </include>
+                    <include> **/** </include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -145,7 +145,7 @@
                 <resource>
                   <directory>../../shared-resources/css/</directory>
                   <includes>
-                    <include> **/* </include>
+                    <include> **/** </include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -164,7 +164,7 @@
                 <resource>
                   <directory>../../shared-resources/js/</directory>
                   <includes>
-                    <include> **/* </include>
+                    <include> **/** </include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -183,7 +183,7 @@
                 <resource>
                   <directory>../../shared-resources/xsl/</directory>
                   <includes>
-                    <include> **/* </include>
+                    <include> **/** </include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
