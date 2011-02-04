@@ -781,7 +781,6 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setRows(count);
     solrQuery.setStart(startPage * count);
-    solrQuery.setParam("allowLeadingWildcard", true);
 
     String solrQueryString = buildSolrQueryString(query);
     solrQuery.setQuery(solrQueryString);
@@ -789,9 +788,11 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     if (query.getSort() != null) {
       ORDER order = query.isSortAscending() ? ORDER.asc : ORDER.desc;
       solrQuery.addSortField(getSortField(query.getSort()) + "_sort", order);
-      solrQuery.addSortField(getSortField(query.getSort()) + "_sort", order);
     }
-    solrQuery.addSortField(getSortField(Sort.DATE_CREATED) + "_sort", ORDER.asc);
+    
+    if (!Sort.DATE_CREATED.equals(query.getSort())) {
+      solrQuery.addSortField(getSortField(Sort.DATE_CREATED) + "_sort", ORDER.desc);
+    }
 
     long totalHits;
     long time = System.currentTimeMillis();

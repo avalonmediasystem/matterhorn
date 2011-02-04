@@ -76,7 +76,7 @@
     
     <!-- Fields used for sorting (can't be multivalued or tokenized (i. e. must not have an analyzer) -->
     
-    <field name="created_sort" type="string" indexed="true" stored="false" multiValued="false" />
+    <field name="created_sort" type="date" indexed="true" stored="false" multiValued="false" />
     <field name="title_sort" type="string" indexed="true" stored="false" multiValued="false" />
     <field name="seriestitle_sort" type="string" indexed="true" stored="false" multiValued="false" />
     <field name="seriesid_sort" type="string" indexed="true" stored="false" multiValued="false" />
