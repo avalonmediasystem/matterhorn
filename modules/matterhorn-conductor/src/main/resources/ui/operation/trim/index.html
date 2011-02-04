@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href="css/pages/oc.recordings.css" />
 
     <style type="text/css">
-      #player-container {clear:both; border:none; width:90%; height:300;}
+      #player-container {clear:both; border:none; width:90%; height:300px;}
       .hidden {display:none;}
       input.pointInput{width: 60px; border: 0px solid white;}
       #actions{margin: 0 auto; text-align:center; width:100%;}
@@ -469,17 +469,17 @@
          <!-- control buttons -->
 
          <label for="inPoint" style="padding-left: 10px">In point</label>
-          <input type="text" id="inPoint" readonly="readonly" class="pointInput"></input> 
-          <input type="button" style="width: 160px;" id="set-trimin" title="Set to current time" value="Set to current time" class="ui-button" />
-          <input type="button" id="play-from-in" style="width: 160px;"  title="Start playing at current In point" value="&gt; Play from In point" class="ui-button" /> 
-          <input type="button" id="step-in-forward" title="Increase In point by one second" value="&gt;&gt;" class="ui-button" />
-          <input type="button" id="step-in-backward" title="Decrease In point by one second" value="&lt;&lt;" class="ui-button" /><br />
+          <input type="text" id="inPoint" readonly="readonly" class="pointInput"/>
+          <input type="button" style="width: 160px; background-color: #C7D7D7;" id="set-trimin" title="Set to current time" value="Set to current time" class="ui-button" />
+          <input type="button" id="play-from-in" style="width: 160px; background-color: #C7D7D7;"  title="Start playing at current In point" value="&gt; Play from In point" class="ui-button" />
+          <input type="button" id="step-in-forward" style="background-color: #C7D7D7;" title="Increase In point by one second" value="&gt;&gt;" class="ui-button" />
+          <input type="button" id="step-in-backward" style="background-color: #C7D7D7;" title="Decrease In point by one second" value="&lt;&lt;" class="ui-button" /><br />
          <label for="outPoint" class="label">Out point</label> 
-          <input type="text" id="outPoint" readonly="readonly" class="pointInput"></input> 
-          <input type="button" style="width: 160px;" id="set-trimout" title="Set to current time" value="Set to current time" class="ui-button" /> 
-          <input type="button" id="play-to-out" style="width: 160px;" title="Play last 10 seconds to Out point" value="&gt; Play to Out point" class="ui-button" />
-          <input type="button" id="step-out-forward" title="Increase Out point by one second" value="&gt;&gt;" class="ui-button" />
-          <input type="button" id="step-out-backward" title="Decrease Out point by one second" value="&lt;&lt;" class="ui-button" /><br />
+          <input type="text" id="outPoint" readonly="readonly" class="pointInput"/>
+          <input type="button" style="width: 160px; background-color: #C7D7D7;" id="set-trimout" title="Set to current time" value="Set to current time" class="ui-button" />
+          <input type="button" id="play-to-out" style="width: 160px; background-color: #C7D7D7;" title="Play last 10 seconds to Out point" value="&gt; Play to Out point" class="ui-button" />
+          <input type="button" id="step-out-forward" style="background-color: #C7D7D7;" title="Increase Out point by one second" value="&gt;&gt;" class="ui-button" />
+          <input type="button" id="step-out-backward" style="background-color: #C7D7D7;" title="Decrease Out point by one second" value="&lt;&lt;" class="ui-button" /><br />
           <br />
          <div id="errorMessage" class="error">
          </div>
