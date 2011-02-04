@@ -250,7 +250,8 @@ select { font-size:1.15em; }
 #agentsTable th,
 #seriesTable th {
   padding-right:20px;
-  background-color:#98BBBA;
+  background-color: #2C8F8C;
+  border: 1px solid #C4C4C4;
 }
 
 #agentsTable {
