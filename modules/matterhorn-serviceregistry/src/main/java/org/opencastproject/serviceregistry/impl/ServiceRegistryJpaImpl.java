@@ -391,6 +391,11 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       job.setDateCreated(now);
       fromDb.setDateCreated(now);
     }
+    if (job.getProcessingHost() != null) {
+      ServiceRegistrationJpaImpl processingService = (ServiceRegistrationJpaImpl) getServiceRegistration(
+              job.getJobType(), job.getProcessingHost());
+      fromDb.setProcessorServiceRegistration(processingService);
+    }
     if (Status.RUNNING.equals(status)) {
       job.setDateStarted(now);
       job.setQueueTime(now.getTime() - job.getDateCreated().getTime());

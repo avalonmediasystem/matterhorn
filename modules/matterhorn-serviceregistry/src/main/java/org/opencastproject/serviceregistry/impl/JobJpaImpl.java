@@ -343,6 +343,11 @@ public class JobJpaImpl extends JaxbJob {
    */
   public void setCreatorServiceRegistration(ServiceRegistrationJpaImpl serviceRegistration) {
     this.creatorServiceRegistration = serviceRegistration;
+    if (creatorServiceRegistration == null) {
+      super.setCreatedHost(null);
+    } else {
+      super.setCreatedHost(creatorServiceRegistration.getHost());
+    }
   }
 
   /**
@@ -361,13 +366,18 @@ public class JobJpaImpl extends JaxbJob {
    */
   public void setProcessorServiceRegistration(ServiceRegistrationJpaImpl processorServiceRegistration) {
     this.processorServiceRegistration = processorServiceRegistration;
+    if (processorServiceRegistration == null) {
+      super.setProcessingHost(null);
+    } else {
+      super.setProcessingHost(processorServiceRegistration.getHost());
+    }
   }
 
   @PreUpdate
   public void preUpdate() {
     if (properties != null)
       properties.clear();
-    else 
+    else
       properties = new ArrayList<JobPropertyJpaImpl>();
     for (Map.Entry<String, String> entry : context.getProperties().entrySet()) {
       properties.add(new JobPropertyJpaImpl(rootJob, entry.getKey(), entry.getValue()));
