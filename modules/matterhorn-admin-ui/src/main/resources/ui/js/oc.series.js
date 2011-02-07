@@ -30,7 +30,8 @@ ocSeries.mode = CREATE_MODE;
 /*    UI FUNCTIONS    */
 ocSeries.init = function(){
   //Load i18n strings and replace default english
-  ocSeries.Internationalize();
+  // disabled temporarily - see MH-6510
+  //ocSeries.Internationalize();
   
   //Add folding action for hidden sections.
   $('.oc-ui-collapsible-widget .ui-widget-header').click(
