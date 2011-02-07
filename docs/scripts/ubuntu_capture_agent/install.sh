@@ -252,8 +252,7 @@ virtual="$(cat /proc/cpuinfo | grep -m 1 'siblings' | cut -d ':' -f 2)"
 echo "$model_name ($physical physical core(s), $virtual virtual cores)" >> $LOG_FILE
 
 # If wget isn't installed, get it from the ubuntu software repo
-wget foo &> /dev/null
-if [ $? -eq 127 ]; then
+if [[ -z "$(dpkg -l | grep " wget ")" ]]; then
     apt-get -y --force-yes install wget &>/dev/null
     if [ $? -ne 0 ]; then
 	echo "Couldn't install the necessary command 'wget'. Please try to install it manually and re-run this script"
