@@ -203,16 +203,21 @@ public final class PipelineFactory {
     }
     String outputLoc = outputFile.getAbsolutePath();
 
-    if (srcLoc == null) {
-      throw new CannotFindSourceFileOrDeviceException("Unable to create pipeline for " + name
-              + " because its source file/device does not exist!");
-    }
+    
 
     if (type != null) {
       devName = ProducerType.valueOf(type);
       logger.debug("Device {} has been confirmed to be type {}", name, devName.toString());
+      /** For certain devices we need to check to make sure that the src is specified, others are exempt. **/
+      if (devName == ProducerType.V4LSRC || devName == ProducerType.V4L2SRC || devName == ProducerType.FILE_DEVICE
+              || devName == ProducerType.EPIPHAN_VGA2USB || devName == ProducerType.HAUPPAUGE_WINTV
+              || devName == ProducerType.BLUECHERRY_PROVIDEO || devName == ProducerType.FILE
+              || devName == ProducerType.DV_1394) {  
+        checkSrcLocationExists(name, srcLoc);
+      }
     } else {
       logger.debug("Device {} has no type so we will determine it's type.", name);
+      checkSrcLocationExists(name, srcLoc);
       if (new File(srcLoc).isFile()) {
         // Non-V4L file. If it exists, assume it is ingestable
         // TODO: Fix security risk. Any file on CaptureAgent filesytem could be ingested
@@ -228,6 +233,13 @@ public final class PipelineFactory {
       logger.error("Unable to add device: {}.", capdev);
     }
     return name;
+  }
+
+  private static void checkSrcLocationExists(String name, String srcLoc) throws CannotFindSourceFileOrDeviceException {
+    if (srcLoc == null) {
+      throw new CannotFindSourceFileOrDeviceException("Unable to create pipeline for " + name
+              + " because its source file/device does not exist!");
+    }
   }
 
   private static ProducerType determineSourceFromJ4VLInfo(String srcLoc) throws UnrecognizedDeviceException {
@@ -299,7 +311,11 @@ public final class PipelineFactory {
     return pipeline;
   }
 
-  // TODO: Document me!
+  /** Creates a CaptureDevice used mostly for testing purposes from its important components. 
+   * @param srcLoc Where the capture device will capture from e.g. /dev/video0.
+   * @param devName The ProducerType of the capture device such as V4L2SRC.
+   * @param name The unique name of the capture device.
+   * @param outputLoc The output name of the capture media. **/
   public static CaptureDevice createCaptureDevice(String srcLoc, ProducerType devName, String name, String outputLoc) {
     CaptureDevice capdev = new CaptureDevice(srcLoc, devName, name, outputLoc);
     String codecProperty = CaptureParameters.CAPTURE_DEVICE_PREFIX + name + CaptureParameters.CAPTURE_DEVICE_CODEC;

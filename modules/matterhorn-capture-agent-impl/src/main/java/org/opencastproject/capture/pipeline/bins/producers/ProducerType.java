@@ -32,6 +32,5 @@ public enum ProducerType {
   ALSASRC, /* Linux sound capture */
   PULSESRC, /* Linux sound capture */
   FILE, /* A media file on the filesystem or a file device that requires no decoding */
-  DV_1394
-  /* A DV camera that runs over firewire */
+  DV_1394 /* A DV camera that runs over firewire */
 }
