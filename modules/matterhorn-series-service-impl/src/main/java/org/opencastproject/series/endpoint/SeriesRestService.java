@@ -88,7 +88,7 @@ public class SeriesRestService {
       serverUrl = UrlSupport.DEFAULT_BASE_URL;
     } else {
       String ccServerUrl = cc.getBundleContext().getProperty("org.opencastproject.server.url");
-      logger.info("configured server url is {}", ccServerUrl);
+      logger.debug("configured server url is {}", ccServerUrl);
       if (ccServerUrl == null) {
         serverUrl = UrlSupport.DEFAULT_BASE_URL;
       } else {
@@ -194,10 +194,10 @@ public class SeriesRestService {
   @Path("/")
   public Response addSeries(@FormParam("series") SeriesImpl series) {
     if (series == null) {
-      logger.error("series that should be added is null");
+      logger.warn("series that should be added is null");
       return Response.status(Status.BAD_REQUEST).build();
     }
-    logger.info("Series metadata = {}", series.getMetadata());
+    logger.debug("Series metadata = {}", series.getMetadata());
     try {
       service.addSeries(series);
       logger.debug("Added series {} ", series.getSeriesId());
@@ -239,7 +239,7 @@ public class SeriesRestService {
   public Response updateSeries(@PathParam("seriesId") String seriesId, @FormParam("series") SeriesImpl series)
           throws NotFoundException {
     if (series == null) {
-      logger.error("series that should be updated is null");
+      logger.warn("series that should be updated is null");
       return Response.status(Status.BAD_REQUEST).build();
     }
     series.setSeriesId(seriesId);
