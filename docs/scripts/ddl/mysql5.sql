@@ -127,7 +127,6 @@ CREATE TABLE `JOB` (
   `PAYLOAD` text collate utf8_unicode_ci,
   `DATESTARTED` datetime default NULL,
   `RUNTIME` bigint(20) default NULL,
-  `PROPERTIES` tinyblob,
   `INSTANCE_VERSION` bigint(20) default NULL,
   `DATECOMPLETED` datetime default NULL,
   `OPERATION` varchar(255) collate utf8_unicode_ci default NULL,

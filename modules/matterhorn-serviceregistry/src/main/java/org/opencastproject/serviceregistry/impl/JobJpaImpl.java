@@ -38,7 +38,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -99,7 +98,7 @@ public class JobJpaImpl extends JaxbJob {
   /** The service that is processing, or processed, this job */
   protected ServiceRegistrationJpaImpl processorServiceRegistration;
 
-  @ManyToMany(mappedBy = "root_id", fetch = FetchType.EAGER)
+//  @ManyToMany(mappedBy = "root_id", fetch = FetchType.EAGER)
   protected List<JobPropertyJpaImpl> properties;
 
   /** The job context, to be created after loading by JPA */
@@ -426,6 +425,7 @@ public class JobJpaImpl extends JaxbJob {
   /**
    * @return the properties
    */
+  @Transient // TODO: remove to re-enable job context properties
   public List<JobPropertyJpaImpl> getProperties() {
     return properties;
   }
