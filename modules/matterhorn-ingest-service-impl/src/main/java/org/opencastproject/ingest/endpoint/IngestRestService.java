@@ -965,7 +965,7 @@ public class IngestRestService {
     data.addEndpoint(RestEndpoint.Type.WRITE, endpoint);
 
     // createUploadJobHtml
-    /* having '.html' in the URL yields Exception in Rest Docs Utility */
+    /* having '.html' in the URL yields Exception in Rest Docs Utility, MH-6634 */
     /*
      * endpoint = new RestEndpoint( "createUploadJobHtml", RestEndpoint.Method.GET, "/filechooser-local.html",
      * "Creates an upload job and returns an html form ready to submit the selected file to /addTrackMonitored with the newly created upload job Id."
@@ -976,6 +976,7 @@ public class IngestRestService {
      */
 
     // addTrackMonitored
+    /* doc deactivated, MH-6634
     endpoint = new RestEndpoint(
             "addTrackMonitored",
             RestEndpoint.Method.POST,
@@ -997,8 +998,10 @@ public class IngestRestService {
     endpoint.addStatus(org.opencastproject.util.doc.Status.error(null));
     endpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.WRITE, endpoint);
+     */
 
     // getUploadProgress
+    /* doc deactivated, MH-6634
     endpoint = new RestEndpoint("getUploadProgress", RestEndpoint.Method.GET, "/getUploadProgress/{jobId}",
             "Returns a JSON object reporting the status of the upload with the provided upload job id.");
     endpoint.addFormat(new Format("JSON",
@@ -1009,6 +1012,7 @@ public class IngestRestService {
     endpoint.addStatus(org.opencastproject.util.doc.Status.error(null));
     endpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, endpoint);
+     */
 
     // TODO: v v v --- check the documentation and implementation of the existing methods --- v v v
 
