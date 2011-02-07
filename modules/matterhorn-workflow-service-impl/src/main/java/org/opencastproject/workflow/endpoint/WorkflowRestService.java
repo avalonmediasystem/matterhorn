@@ -219,9 +219,9 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
     instancesEndpoint.addOptionalParam(new Param("language", Type.STRING, null, "Filter results by language"));
     instancesEndpoint.addOptionalParam(new Param("license", Type.STRING, null, "Filter results by license"));
     instancesEndpoint.addOptionalParam(new Param("subject", Type.STRING, null, "Filter results by subject"));
-    instancesEndpoint.addOptionalParam(new Param("fromDate", Type.STRING, null,
+    instancesEndpoint.addOptionalParam(new Param("fromdate", Type.STRING, null,
             "Filter results by start date (yyyy-MM-dd'T'HH:mm:ss'Z')"));
-    instancesEndpoint.addOptionalParam(new Param("toDate", Type.STRING, null,
+    instancesEndpoint.addOptionalParam(new Param("todate", Type.STRING, null,
             "Filter results by end date (yyyy-MM-dd'T'HH:mm:ss'Z')"));
     instancesEndpoint.addOptionalParam(new Param("count", Type.STRING, "20", "Results per page (max 100)"));
     instancesEndpoint.addOptionalParam(new Param("startPage", Type.STRING, "0", "Page offset"));
