@@ -108,6 +108,12 @@ ocRecordings = new (function() {
         params.push('state=paused');
         params.push('state=running');
         params.push('op=schedule');
+
+        // create date to filter out recordings from the past via workflow query
+        var now = new Date();
+        now = now.getFullYear() + '-' + ocUtils.padString((now.getMonth()+1) ,'0' , 2) + '-' + ocUtils.padString(now.getDate() ,'0' , 2) + 'T' +
+              ocUtils.padString(now.getHours() ,'0' , 2) + ':' + ocUtils.padString(now.getMinutes() ,'0' , 2) + ':' + ocUtils.padString(now.getSeconds() ,'0' , 2) + 'Z';
+        params.push('fromdate=' + now);
       }
       else if (state == 'capturing') {
         params.push('state=paused');
