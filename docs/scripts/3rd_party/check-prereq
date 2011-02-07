@@ -27,6 +27,8 @@ install_rpms() {
       ;;
     openSUSE )
       ;;
+    Amazon )
+      ;;
     MacOS )
       ;;
   esac
@@ -254,6 +256,8 @@ install_prog() {
       ;;
     openSUSE )
       ;;
+    Amazon )
+      ;;
     MacOS )
       case "$1" in
         * ) prog="$1" ;;
@@ -356,7 +360,7 @@ preinstall_scons() {
   [ $? -ne 0 ] && return 1
   #
   case `os` in
-    CentOS | RHEL | Ubuntu | Debian | openSUSE )
+    CentOS | RHEL | Ubuntu | Debian | openSUSE | Amazon )
       download .
       [ $? -ne 0 ] && return 1
       ./linux-compile
@@ -439,6 +443,8 @@ check_prereq() {
     Debian )
       ;;
     openSUSE )
+      ;;
+    Amazon )
       ;;
     MacOS )
       chkprog port  || install_macports   || return 1
@@ -556,6 +562,8 @@ install_mingw32() {
       ;;
     openSUSE )
       ;;
+    Amazon )
+      ;;
     MacOS )
       ;;
   esac
@@ -571,7 +579,7 @@ fix_libs() {
   [ $? -ne 0 ] && return 1
   #
   case `os` in
-    CentOS | RHEL | Ubuntu | Debian | openSUSE )
+    CentOS | RHEL | Ubuntu | Debian | openSUSE | Amazon )
       #
       # Install patchelf 0.5
       #
@@ -699,6 +707,8 @@ EOF
       ;;
     openSUSE )
       ;;
+    Amazon )
+      ;;
     MacOS )
       ;;
   esac
@@ -706,11 +716,11 @@ EOF
 }
 #
 case `os` in
-  CentOS | RHEL | Ubuntu | Debian | openSUSE | MacOS )
+  CentOS | RHEL | Ubuntu | Debian | openSUSE | Amazon | MacOS )
     ;;
   * )
     echo "Unsupported operating system: `os`"
-    return 1
+    exit 1
     ;;
 esac
 #
@@ -719,7 +729,7 @@ case `arch` in
     ;;
   * )
     echo "Unsupported architecture: `arch`"
-    return 1
+    exit 1
     ;;
 esac
 #

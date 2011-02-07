@@ -45,13 +45,13 @@ arch() {
 }
 #
 # os
-#  CentOS, RHEL, Ubuntu, Debian, openSUSE, MacOS, <unknown>
+#  CentOS, RHEL, Ubuntu, Debian, openSUSE, Amazon, MacOS, <unknown>
 #
 os() {
   set +x
   case `uname` in
     Linux )
-      # CentOS, RHEL, Ubuntu, Debian, openSUSE
+      # CentOS, RHEL, Ubuntu, Debian, openSUSE, Amazon
       awk '{
   sub("Welcome to",""); # Appears in openSUSE
   if (match($0, "Red Hat Enterprise Linux")) { print "RHEL"; }
