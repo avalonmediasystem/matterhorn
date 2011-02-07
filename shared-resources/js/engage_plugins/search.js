@@ -168,7 +168,7 @@ Opencast.search = (function ()
         $('#search-loading').show();
         $('#oc-search-result').hide();
         $('.oc-segments-preview').css('display', 'block');
-        var mediaPackageId = Opencast.engage.getMediaPackageId();
+        var mediaPackageId = Opencast.Utils.getURLParameter('id');
         // Request JSONP data
         $.ajax(
         {

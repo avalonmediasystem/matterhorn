@@ -47,6 +47,35 @@ Opencast.Utils = (function ()
     
     /**
      * @memberOf Opencast.Utils
+     * @description Returns formatted Seconds
+     * @param seconds Seconds to format
+     * @return formatted Seconds
+     */
+    function formatSeconds(seconds)
+    {
+        var result = "";
+        if (parseInt(seconds / 3600) < 10)
+        {
+            result += "0";
+        }
+        result += parseInt(seconds / 3600);
+        result += ":";
+        if ((parseInt(seconds / 60) - parseInt(seconds / 3600) * 60) < 10)
+        {
+            result += "0";
+        }
+        result += parseInt(seconds / 60) - parseInt(seconds / 3600) * 60;
+        result += ":";
+        if (seconds % 60 < 10)
+        {
+            result += "0";
+        }
+        result += seconds % 60;
+        return result;
+    }
+    
+    /**
+     * @memberOf Opencast.Utils
      * @description Returns an Array of URL Arguments
      * @return an Array of URL Arguments
      */
@@ -67,11 +96,30 @@ Opencast.Utils = (function ()
     /**
      * @memberOf Opencast.Utils
      * @description Returns the value of URL-Parameter 'name'
-     * @return the value of URL-Parameter 'name'
+     *              Current used URL Parameters:
+     *                  - id:           the current media package id
+     *                  - user:         the user id
+     *                  - play:         autoplay, true or false
+     *                  - videoUrl:     the current url for video (1)
+     *                  - videoUrl2:    the current url for video 2
+     *                  - coverUrl:     the current url for cover (preview image)
+     *                  - t:            jump to given time
+     *                                  Valid Parameter Formats (as seen at Opencast.Utils.parseSeconds):
+     *                                      - Minutes and seconds:  XmYs    or    YsXm    or    XmY
+     *                                      - Minutes only:         Xm
+     *                                      - Seconds only:         Ys      or    Y
+     *                  - page
+     *                  - q
+     * @return the value of URL-Parameter 'name' or null if not defined
      */
     function getURLParameter(name)
     {
-        return parseURL()[name];
+        var urlParam = parseURL()[name];
+        if(urlParam === undefined)
+        {
+            return null;
+        }
+        return urlParam;
     }
     
     /**
@@ -212,6 +260,8 @@ Opencast.Utils = (function ()
     
     return {
         getTimeInMilliseconds: getTimeInMilliseconds,
+        formatSeconds: formatSeconds,
+        parseURL: parseURL,
         getURLParameter: getURLParameter,
         parseSeconds: parseSeconds,
         getLocaleDate: getLocaleDate,

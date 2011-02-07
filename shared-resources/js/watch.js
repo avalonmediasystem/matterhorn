@@ -34,8 +34,8 @@ Opencast.Watch = (function ()
         $("#oc_btn-dropdown").css("display", 'none');
         $("#oc_player_video-dropdown").css("display", 'none');
         
-        var mediaPackageId = Opencast.engage.getMediaPackageId();
-        var userId = Opencast.engage.getUserId();
+        var mediaPackageId = Opencast.Utils.getURLParameter('id');
+        var userId = Opencast.Utils.getURLParameter('user');
         var restEndpoint = Opencast.engage.getSearchServiceEpisodeIdURL() + mediaPackageId;
         Opencast.Player.setSessionId(Opencast.engage.getCookie("JSESSIONID"));
         Opencast.Player.setUserId(userId);
@@ -201,16 +201,24 @@ Opencast.Watch = (function ()
         $('.segments-time').each(function ()
         {
             var seconds = $(this).html();
-            $(this).html(Opencast.engage.formatSeconds(seconds));
+            $(this).html(Opencast.Utils.formatSeconds(seconds));
         });
         // Set the Controls visible
         $('#oc_video-player-controls').show();
+        
         // Parse URL Parameters (time 't') and jump to the given Seconds
         time = Opencast.Utils.parseSeconds(Opencast.Utils.getURLParameter('t'));
         if (!intervalOn)
         {
             interval = setInterval(forwardSeconds, 250);
             intervalOn = true;
+        }
+        
+        var startPlaying = Opencast.Utils.getURLParameter('play');
+        if((startPlaying != null) && (startPlaying.toLowerCase() === 'true'))
+        {
+            // Start playing the Video
+            Videodisplay.play();
         }
     }
     
@@ -222,8 +230,6 @@ Opencast.Watch = (function ()
     {
         if (($('#oc_duration').text() != "NaN:NaN:NaN") && ($('#oc_duration').text() != ""))
         {
-            // Start playing the Video
-            // Videodisplay.play();
             Videodisplay.seek(parseInt(time));
             if (intervalOn)
             {

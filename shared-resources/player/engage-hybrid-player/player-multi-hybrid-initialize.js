@@ -744,7 +744,7 @@ Opencast.Initialize = (function ()
         });
         $('#oc_video-player-controls').hide();
         onPlayerReadyListener();
-        var mediaPackageId = Opencast.engage.getMediaPackageId();
+        var mediaPackageId = Opencast.Utils.getURLParameter('id');
         $.ajax(
         {
             url: '../../search/episode.json',

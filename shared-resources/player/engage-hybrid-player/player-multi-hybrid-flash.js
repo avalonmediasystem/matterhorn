@@ -247,7 +247,7 @@ Opencast.FlashVersion = (function ()
         var playerType = Opencast.engage.getPlayerType();
 
         if (playerType === "/engage/ui/embed.html") {
-            var play = Opencast.engage.getPlay(); 
+            var play = Opencast.Utils.getURLParameter('play'); 
             if(play!== "true") {
                 str = '<input id="oc_image" type="image" src="" alt="Matterhorn Player" title="Click to start" />'
             }

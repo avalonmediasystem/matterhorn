@@ -745,7 +745,7 @@ Opencast.Initialize = (function ()
         $("#oc_image").css('height', newPreviewImageHeight + 'px');
         $("#oc_image").css('width', newPreviewImageWidth + 'px');
         $("#oc_image").css('margin-top', previewImageMarginTop + 'px');
-        var coverUrl = Opencast.engage.getCoverUrl();
+        var coverUrl = Opencast.Utils.getURLParameter('coverUrl');
         if (coverUrl === null)
         {
             var coverType;
@@ -755,7 +755,7 @@ Opencast.Initialize = (function ()
                 type: 'GET',
                 contentType: 'text/xml',
                 url: "../../search/episode.xml",
-                data: "id=" + Opencast.engage.getMediaPackageId(),
+                data: "id=" + Opencast.Utils.getURLParameter('id'),
                 dataType: 'xml',
                 success: function (xml)
                 {

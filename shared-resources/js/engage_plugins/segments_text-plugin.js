@@ -19,7 +19,7 @@ Opencast.segments_text_Plugin = (function ()
                                     '<td width="85%" align="left" onclick="Opencast.Watch.seekSegment(${Math.floor(parseInt(s.time) / 1000)})" style="cursor:pointer;cursor:hand;">' +
                                         '&nbsp;<a class="segments-time"' +
                                             'onclick="Opencast.Watch.seekSegment(${Math.floor(parseInt(s.time) / 1000)})">' +
-                                            '${Opencast.engage.formatSeconds(Math.floor(parseInt(s.time) / 1000))}' +
+                                            '${Opencast.Utils.formatSeconds(Math.floor(parseInt(s.time) / 1000))}' +
                                         '</a>' +
                                         '&nbsp;<a onclick="Opencast.Watch.seekSegment(${Math.floor(parseInt(s.time) / 1000)})">${s.text}</a>' +
                                     '</td>' +

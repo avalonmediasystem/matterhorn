@@ -31,14 +31,14 @@ Opencast.Watch = (function ()
      */
     function onPlayerReady()
     {
-        var mediaPackageId = Opencast.engage.getMediaPackageId();
-        var userId = Opencast.engage.getUserId();
+        var mediaPackageId = Opencast.Utils.getURLParameter('id');
+        var userId = Opencast.Utils.getURLParameter('user');
         if (mediaPackageId === null)
         {
             mediaPackageIdAvailable = false;
         }
         var restEndpoint = Opencast.engage.getSearchServiceEpisodeIdURL() + mediaPackageId;
-        restEndpoint = Opencast.engage.getVideoUrl() !== null ? "preview.xml" : restEndpoint;
+        restEndpoint = Opencast.Utils.getURLParameter('videoUrl') !== null ? "preview.xml" : restEndpoint;
         Opencast.Player.setSessionId(Opencast.engage.getCookie("JSESSIONID"));
         Opencast.Player.setUserId(userId);
         if (mediaPackageIdAvailable)
@@ -70,8 +70,8 @@ Opencast.Watch = (function ()
         mimetypeOne = "video/x-flv";
         mimetypeTwo = "video/x-flv";
         // set the media URLs
-        mediaUrlOne = Opencast.engage.getVideoUrl();
-        mediaUrlTwo = Opencast.engage.getVideoUrl2();
+        mediaUrlOne = Opencast.Utils.getURLParameter('videoUrl');
+        mediaUrlTwo = Opencast.Utils.getURLParameter('videoUrl2');
         coverUrlOne = $('#oc-cover-presenter').html();
         coverUrlTwo = $('#oc-cover-presentation').html();
         if (coverUrlOne === null)
@@ -199,13 +199,20 @@ Opencast.Watch = (function ()
             Opencast.Player.stopFastForward();
         });
         getClientShortcuts();
-        // Opencast.search.initialize();
+        
         // Parse URL Parameters (time 't') and jump to the given Seconds
         time = Opencast.Utils.parseSeconds(Opencast.Utils.getURLParameter('t'));
         if (!intervalOn)
         {
             interval = setInterval(forwardSeconds, 250);
             intervalOn = true;
+        }
+        
+        var startPlaying = Opencast.Utils.getURLParameter('play');
+        if((startPlaying != null) && (startPlaying.toLowerCase() === 'true'))
+        {
+            // Start playing the Video
+            Videodisplay.play();
         }
     }
     
@@ -217,7 +224,6 @@ Opencast.Watch = (function ()
     {
         if (($('#oc_duration').text() != "NaN:NaN:NaN") && ($('#oc_duration').text() != ""))
         {
-            // Videodisplay.play();
             Videodisplay.seek(parseInt(time));
             if (intervalOn)
             {
