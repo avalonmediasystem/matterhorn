@@ -107,7 +107,6 @@
                   <includes>
                      <include>jquery/**</include>
                      <include>trimpath/**</include>
-                     <include>infusion-1.1.2/**</include>
                   </includes>                  
                   <filtering>false</filtering>
                 </resource>
