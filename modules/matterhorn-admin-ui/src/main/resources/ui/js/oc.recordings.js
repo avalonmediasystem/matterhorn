@@ -99,8 +99,6 @@ ocRecordings = new (function() {
     if (!refreshing) {
       refreshing = true;
       var params = [];
-      //params.push('count=' + ocRecordings.Configuration.pageSize);
-      //params.push('startPage=' + ocRecordings.Configuration.page);
       // 'state' to display
       var state = ocRecordings.Configuration.state;
       params.push('state=-stopped');
@@ -109,10 +107,8 @@ ocRecordings = new (function() {
         params.push('state=running');
         params.push('op=schedule');
 
-        // create date to filter out recordings from the past via workflow query
-        var now = new Date();
-        now = now.getFullYear() + '-' + ocUtils.padString((now.getMonth()+1) ,'0' , 2) + '-' + ocUtils.padString(now.getDate() ,'0' , 2) + 'T' +
-              ocUtils.padString(now.getHours() ,'0' , 2) + ':' + ocUtils.padString(now.getMinutes() ,'0' , 2) + ':' + ocUtils.padString(now.getSeconds() ,'0' , 2) + 'Z';
+        // filter out events that are in the past
+        var now = ocUtils.toISODate(new Date());
         params.push('fromdate=' + now);
       }
       else if (state == 'capturing') {

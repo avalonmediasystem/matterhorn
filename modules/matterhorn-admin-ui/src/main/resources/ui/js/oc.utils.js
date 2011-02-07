@@ -97,6 +97,15 @@ ocUtils.fromUTCDateString = function(UTCDate) {
   return date;
 }
 
+/* Convert Date object to yyyy-MM-dd'T'HH:mm:ss'Z' string.
+ *
+ */
+ocUtils.toISODate = function(date) {
+  var out = date.getFullYear() + '-' + ocUtils.padString((date.getMonth()+1) ,'0' , 2) + '-' + ocUtils.padString(date.getDate() ,'0' , 2) + 'T' +
+            ocUtils.padString(date.getHours() ,'0' , 2) + ':' + ocUtils.padString(date.getMinutes() ,'0' , 2) + ':' + ocUtils.padString(date.getSeconds() ,'0' , 2) + 'Z';
+   return out;
+}
+
 ocUtils.padString = function(str, pad, padlen){
   if(typeof str !== 'string'){ 
     str = str.toString();
