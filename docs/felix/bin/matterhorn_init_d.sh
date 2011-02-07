@@ -51,6 +51,18 @@ UTIL_LOGGING_OPTS="-Djava.util.logging.config.file=$FELIX/conf/services/java.uti
 GRAPHICS_OPTS="-Djava.awt.headless=true -Dawt.toolkit=sun.awt.HeadlessToolkit"
 JAVA_OPTS="-Xms256m -Xmx256m -XX:MaxPermSize=128m"
 
+# If this computer is OS X and $DYLD_FALLBACK_LIBRARY_PATH environment variable
+# is not defined, then set it to /opt/local/lib. This is required for the demo
+# capture agent.  
+unameResult=`uname`
+if [ $unameResult = 'Darwin' ];
+then 
+ 	if [ "$DYLD_FALLBACK_LIBRARY_PATH" = "" ];
+	then
+		export DYLD_FALLBACK_LIBRARY_PATH="/opt/local/lib";
+	fi
+fi
+
 FELIX_CACHE="$FELIX/felix-cache"
 
 
