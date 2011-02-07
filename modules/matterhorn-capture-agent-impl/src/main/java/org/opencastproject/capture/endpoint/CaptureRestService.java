@@ -127,15 +127,6 @@ public class CaptureRestService {
     stopIDEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, stopIDEndpoint);
 
-    // // ingest(recordingID)
-    RestEndpoint ingestEndpoint = new RestEndpoint("ingest", RestEndpoint.Method.POST, "/ingest",
-            "Ingests the specified capture");
-    ingestEndpoint.addRequiredParam(new Param("recordingID", Type.STRING, null, "The ID for the recording to ingest"));
-    ingestEndpoint.addStatus(org.opencastproject.util.doc.Status.ok("capture ingested succesfully"));
-    ingestEndpoint.addStatus(org.opencastproject.util.doc.Status.error("ingest failed"));
-    ingestEndpoint.setTestForm(RestTestForm.auto());
-    data.addEndpoint(RestEndpoint.Type.READ, ingestEndpoint);
-
     // // configuration()
     RestEndpoint configEndpoint = new RestEndpoint(
             "config",
