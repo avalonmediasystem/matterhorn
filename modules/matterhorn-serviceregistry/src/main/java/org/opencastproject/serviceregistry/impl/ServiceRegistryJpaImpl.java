@@ -63,6 +63,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.persistence.OptimisticLockException;
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.persistence.RollbackException;
 import javax.persistence.spi.PersistenceProvider;
@@ -346,25 +347,41 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    */
   @Override
   public Job updateJob(Job job) throws ServiceRegistryException {
+    try {
+      return updateInternal(job);
+    } catch (PersistenceException e) {
+      throw new ServiceRegistryException(e);
+    }
+  }
+
+  /**
+   * Internal method to update a job, throwing unwrapped JPA exceptions.
+   * 
+   * @param job
+   *          the job to update
+   * @return the updated job
+   * @throws PersistenceException
+   *           if there is an exception thrown while persisting the job via JPA
+   */
+  protected Job updateInternal(Job job) throws PersistenceException {
     EntityManager em = emf.createEntityManager();
     EntityTransaction tx = em.getTransaction();
     try {
       tx.begin();
       JobJpaImpl fromDb;
-      try {
-        fromDb = (JobJpaImpl) getJob(job.getId()); // do not use the direct em.find(), since it depends on the em cache
-      } catch (NoResultException e) {
-        throw new NotFoundException("job " + job + " is not a persistent object.", e);
-      }
+      fromDb = em.find(JobJpaImpl.class, job.getId());
+      if (fromDb == null)
+        throw new NoResultException();
+      em.refresh(fromDb);
       update(fromDb, (JaxbJob) job);
       em.merge(fromDb);
       tx.commit();
-      ((JaxbJob) job).setVersion(getJob(job.getId()).getVersion());
+      ((JaxbJob) job).setVersion(fromDb.getVersion());
       return job;
-    } catch (Exception e) {
+    } catch (PersistenceException e) {
       if (tx.isActive())
         tx.rollback();
-      throw new ServiceRegistryException(e);
+      throw e;
     } finally {
       em.close();
     }
@@ -1007,7 +1024,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     for (ServiceRegistration registration : registrations) {
       jpaJob.setProcessorServiceRegistration((ServiceRegistrationJpaImpl) registration);
       try {
-        updateJob(jpaJob);
+        updateInternal(jpaJob);
       } catch (OptimisticLockException e) {
         logger.debug("Another service registry has already dispatched this job");
         return null;
