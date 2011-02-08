@@ -22,13 +22,17 @@
     <style type="text/css">
       /*html {overflow-y:scroll;}*/
       #stage {font-family:"Arial","Helvetica","Verdana","sans-serif"; font-size:10px; margin:20px; min-height:100%; padding:0 0 20px;}
-      #controlsTop {padding: 10px 5px 5px 5px;}
+      .oc-light-background {background-color: #98bbba;}
+      #controlsTop {clear:both; padding: 10px 5px 0px 5px;}
+      #addButtonsContainer {float:right; padding-right: 5px;}
+      #scheduleButton {margin-left:8px;}
       .state-filter-container {float:left;margin-right:30px;}
       #searchBox {width:240px;float:right;}
       #controlsFoot {padding: 5px 5px 10px 5px;}
       #configButton {float:left;}
       #pagerBottom {float:right;}
-      #tableContainer {padding: 0px 5px 0px 5px;}
+      #tableContainer {padding: 0px 5px 0px 5px;margin-top:1px;}
+      #recordingsTable {margin-top: 0px;}
       #recordingsTable th {margin-left:0px; margin-right: 0px;}
       #recordingsTable .sortable {cursor:pointer;}
       #recordingsTable th .sort-icon {float:right;}
@@ -87,7 +91,7 @@
       </ul>
     </div>
     <div id="stage" class="ui-widget">
-      <div>
+      <div id="addButtonsContainer">
         <button id="uploadButton" type="button">Upload Recording</button>
         <button id="scheduleButton" type="button">Schedule Recording</button>
       </div>
@@ -196,9 +200,8 @@
       </div>
       <div id="tableContainer" class="ui-widget ui-helper-clearfix"></div>
 
-      <!-- div id="controlsFoot" class="ui-widget-header ui-corner-bottom ui-helper-clearfix" -->
       <div id="controlsFoot" class="ui-helper-clearfix">
-        <div id="refreshControlsContainer" class="layout-float-left ui-widget ui-state-default ui-corner-all ui-helper-clearfix">
+        <div id="refreshControlsContainer" class="layout-float-left ui-widget oc-light-background ui-corner-all ui-helper-clearfix">
           <input type="checkbox" id="refreshEnabled"><label for="refreshEnabled"></label>
             <span class="refresh-text">Update table every&nbsp;</span>
             <select id="refreshInterval">
@@ -208,7 +211,7 @@
             </select>
             <span class="refresh-text">&nbsp;seconds.</span>
         </div>
-        <div class="ui-widget ui-state-default ui-corner-all ui-helper-clearfix layout-float-left">
+        <div class="ui-widget oc-light-background ui-corner-all ui-helper-clearfix layout-float-left">
           Show
           <select id="pageSize">
             <option>5</option>
@@ -248,12 +251,12 @@
       <th class="recordings-table-head ui-helper-hidden" id="bulkActionButton"><a href="javascript:ocRecordings.displayBulkAction()">Bulk Action</a></th>
     </tr>
     <tr>
-      <th id="sortTitle" width="25%" class="ui-state-default sortable">Title<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
-      <th id="sortPresenter" width="15%" class="ui-state-default sortable">Presenter<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
-      <th id="sortSeries" width="15%" class="ui-state-default sortable">Course/Series<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
-      <th id="sortDate" width="18%" class="ui-state-default sortable">Recording Date&amp;Time<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
-      <th width="17%" class="ui-state-default">Status</th>
-      <th width="10%" class="ui-state-default">Action</th>
+      <th id="sortTitle" width="25%" class="oc-light-background sortable">Title<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
+      <th id="sortPresenter" width="15%" class="oc-light-background sortable">Presenter<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
+      <th id="sortSeries" width="15%" class="oc-light-background sortable">Course/Series<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
+      <th id="sortDate" width="18%" class="oc-light-background sortable">Recording Date&amp;Time<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
+      <th width="17%" class="oc-light-background">Status</th>
+      <th width="10%" class="oc-light-background">Action</th>
     </tr>
   </thead>
   <tbody>

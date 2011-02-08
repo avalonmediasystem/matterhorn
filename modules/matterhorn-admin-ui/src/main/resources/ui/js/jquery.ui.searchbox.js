@@ -10,7 +10,8 @@
       searchIcon : 'ui-icon-search',
       clearIcon : 'ui-icon-close',
       options : null,
-      selectedOption : null
+      selectedOption : null,
+      bgcolor : false
     },
 
     _version : 'searchbox v0.1',
@@ -59,7 +60,12 @@
       if (width < 140) {
         width = 140;
       }
-      this.element.addClass('ui-searchbox ui-widget ui-state-default ui-corner-all ui-helper-clearfix');
+      this.element.addClass('ui-searchbox ui-widget ui-corner-all ui-helper-clearfix');
+      if (this.options.bgclass) {
+        this.element.addClass(this.options.bgclass);
+      } else {
+        this.element.addClass('ui-state-default');
+      }
       if (this.options.border) {
         this.element.css('border', this.options.border);
       }

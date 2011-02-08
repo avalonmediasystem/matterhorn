@@ -725,7 +725,8 @@ ocRecordings = new (function() {
       },
       searchText : ocRecordings.Configuration.filterText,
       options : FILTER_FIELDS,
-      selectedOption : ocRecordings.Configuration.filterField
+      selectedOption : ocRecordings.Configuration.filterField,
+      bgclass : 'oc-light-background'
     });
 
     // set refresh
@@ -736,21 +737,21 @@ ocRecordings = new (function() {
     if (ocRecordings.Configuration.doRefresh === 'true') {
       $('#refreshEnabled').attr('checked', 'checked');
       $('#refreshInterval').removeAttr('disabled');
-      $('#refreshControlsContainer span').css('color', 'white');
+      $('#refreshControlsContainer span').css('color', 'black');
     } else {
       $('#refreshEnabled').removeAttr('checked');
       $('#refreshInterval').attr('disabled', 'true');
-      $('#refreshControlsContainer span').css('color', 'silver');
+      $('#refreshControlsContainer span').css('color', 'gray');
     }
     $('#refreshInterval').val(ocRecordings.Configuration.refresh);
-    // attatch event handlers
+    
     $('#refreshEnabled').change(function() {
       if ($(this).is(':checked')) {
         $('#refreshInterval').removeAttr('disabled');
-        $('#refreshControlsContainer span').css('color', 'white');
+        $('#refreshControlsContainer span').css('color', 'black');
       } else {
         $('#refreshInterval').attr('disabled', 'true');
-        $('#refreshControlsContainer span').css('color', 'silver');
+        $('#refreshControlsContainer span').css('color', 'gray');
       }
       ocRecordings.updateRefreshInterval($(this).is(':checked'), $('#refreshInterval').val());
     });
