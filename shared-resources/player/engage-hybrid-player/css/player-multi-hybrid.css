@@ -36,6 +36,9 @@ a:hover, a:focus{
   text-decoration: underline;
 }
 
+label{
+	cursor:pointer;
+}
 
 #oc_title-bar
 {
