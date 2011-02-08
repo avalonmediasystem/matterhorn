@@ -394,12 +394,12 @@ public class SeriesRestService {
     data.addEndpoint(RestEndpoint.Type.READ, dcEndpoint);
 
     // search Series
-    RestEndpoint searchEndpoint = new RestEndpoint("getSeries", RestEndpoint.Method.GET, "/search/{pattern}",
+    RestEndpoint searchEndpoint = new RestEndpoint("getSeries", RestEndpoint.Method.GET, "/search",
             "Get all Series that match this pattern in their Metadata.");
     searchEndpoint.addFormat(Format.json("A JSON list of Series matching the search pattern."));
     searchEndpoint.addStatus(org.opencastproject.util.doc.Status
             .ok("JSON Object with UUID of the series and a String describing the series"));
-    searchEndpoint.addPathParam(new Param("pattern", Type.STRING, "lecturer", "a part of a metadat value"));
+    searchEndpoint.addOptionalParam(new Param("term", Type.STRING, "lecturer", "a part of a metadat value"));
     searchEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, searchEndpoint);
 
