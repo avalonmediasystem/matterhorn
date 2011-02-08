@@ -62,7 +62,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
-import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.persistence.RollbackException;
@@ -1025,8 +1024,12 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       jpaJob.setProcessorServiceRegistration((ServiceRegistrationJpaImpl) registration);
       try {
         updateInternal(jpaJob);
-      } catch (OptimisticLockException e) {
-        logger.debug("Another service registry has already dispatched this job");
+      } catch (Exception e) {
+        // In theory, we should catch javax.persistence.OptimisticLockException. Unfortunately, eclipselink throws
+        // org.eclipse.persistence.exceptions.OptimisticLockException.  In order to avoid importing the implementation
+        // specific APIs, we just catch Exception.
+        logger.info("Unable to dispatch {}.  This is likely caused by another service registry dispatching the job",
+                job);
         return null;
       }
 
