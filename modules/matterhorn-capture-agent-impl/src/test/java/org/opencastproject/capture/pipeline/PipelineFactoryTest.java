@@ -298,7 +298,7 @@ public class PipelineFactoryTest {
       return;
     CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
     String deviceNames = "";
-    
+    logger.info("A lot of \"Can't find source file or device\" exceptions should follow, this is normal. ");
     // Devices that don't need a source
     deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.CUSTOM_VIDEO_SRC) + ",";
     deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.CUSTOM_AUDIO_SRC) + ",";
@@ -325,6 +325,7 @@ public class PipelineFactoryTest {
     }
     Assert.assertTrue("There are 6 elements that should be created with or without a source location. ", pipeline
             .getElements().size() == 6);
+    logger.info("This should be the end of the \"Can't find source file or device\" exceptions.");
   }
   
   /*
