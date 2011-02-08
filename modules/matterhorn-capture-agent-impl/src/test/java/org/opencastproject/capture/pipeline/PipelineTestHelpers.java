@@ -13,24 +13,29 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.capture.pipeline.bins;
+package org.opencastproject.capture.pipeline;
 
 import org.opencastproject.capture.api.CaptureParameters;
-import org.opencastproject.capture.pipeline.bins.producers.ProducerType;
+import org.opencastproject.capture.pipeline.bins.CaptureDevice;
+import org.opencastproject.capture.pipeline.bins.producers.ProducerFactory.ProducerType;
 
 import java.util.Properties;
 
 /**
- * TODO: Comment me!
+ * PipelineTestHelpers is a collection of handy helper functions for setting up tests that are common to many of the
+ * tests.
  */
-public class BinTestHelpers {
+public class PipelineTestHelpers {
   
+  /** TODO Remove this in favor of test parameters. **/
   public static final String V4L_LOCATION = "/dev/vga";
   public static final String V4L2_LOCATION = "/dev/video2";
   public static final String HAUPPAGE_LOCATION = "/dev/video0";
 
+  /** The cached name of the operating system. **/
   private static String operatingSystemName = null;
 
+  /** Returns a string of the operating system. **/
   public static String getOsName() {
     if (operatingSystemName == null) {
       operatingSystemName = System.getProperty("os.name");
@@ -38,19 +43,36 @@ public class BinTestHelpers {
     return operatingSystemName;
   }
 
+  /** Returns true if the platform is Windows. **/
   public static boolean isWindows() {
     return getOsName().startsWith("Windows");
   }
 
+  /** Returns true if the platform is Linux. **/
   public static boolean isLinux() {
     return getOsName().startsWith("Linux");
   }
 
+  /**
+   * Creates a new Properties file with all of the properties required to adequately test Bins.
+   * 
+   * @param captureDevice
+   *          The capture device specific properties such as location of the source to capture from, the friendly name
+   *          of the capture device etc.
+   * @param customProducer The optional custom pipeline that specifies a device to capture from. 
+   * @param codec The codec to encode the output media to. 
+   * @param bitrate The bitrate to capture from the source. 
+   * @param quantizer If the codec is x264, what level to set the quantizer to. 
+   * @param container The container to dump the codec to. 
+   * @param bufferCount The number of buffers that the queue will have. 
+   * @param bufferBytes The number of bytes that each queue will have. 
+   * @param bufferTime The maxiumum amount of time that the media can be inside the queue. 
+   * @param framerate The framerate of the video. 
+   * @return A Properties file with all of the properties needed to test the agent. 
+   */
   public static Properties createCaptureDeviceProperties(CaptureDevice captureDevice, String customProducer,
-          String codec, String bitrate, String quantizer, String container, String bufferCount, String bufferBytes,
-          String bufferTime, String framerate) {
+          String codec, String bitrate, String quantizer, String container, String framerate) {
     Properties properties = new Properties();
-
     if (customProducer != null)
       properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + captureDevice.getFriendlyName()
               + CaptureParameters.CAPTURE_DEVICE_CUSTOM_PRODUCER, customProducer);
@@ -62,17 +84,31 @@ public class BinTestHelpers {
       properties.setProperty("quantizer", quantizer);
     if (container != null)
       properties.setProperty("container", container);
+    if (framerate != null)
+      properties.setProperty("framerate", framerate);
+    return properties;
+  }
+
+  public static Properties createQueueProperties(String bufferCount, String bufferBytes, String bufferTime){
+    Properties properties = new Properties();
     if (bufferCount != null)
       properties.setProperty("bufferCount", bufferCount);
     if (bufferBytes != null)
       properties.setProperty("bufferBytes", bufferBytes);
     if (bufferTime != null)
       properties.setProperty("bufferTime", bufferTime);
-    if (framerate != null)
-      properties.setProperty("framerate", framerate);
     return properties;
   }
-
+  
+  /**
+   * Creates a CaptureDevice object along with its properties. 
+   * @param sourceLocation
+   * @param sourceDeviceName
+   * @param friendlyName
+   * @param outputLocation
+   * @param captureDeviceProperties
+   * @return
+   */
   public static CaptureDevice createCaptureDevice(String sourceLocation, ProducerType sourceDeviceName,
           String friendlyName, String outputLocation, Properties captureDeviceProperties) {
     CaptureDevice captureDevice = new CaptureDevice(sourceLocation, sourceDeviceName, friendlyName, outputLocation);

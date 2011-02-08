@@ -21,7 +21,8 @@ import org.opencastproject.capture.pipeline.bins.CaptureDevice;
 import org.opencastproject.capture.pipeline.bins.CaptureDeviceBin;
 import org.opencastproject.capture.pipeline.bins.consumers.AudioMonitoring;
 import org.opencastproject.capture.pipeline.bins.consumers.VideoMonitoring;
-import org.opencastproject.capture.pipeline.bins.producers.ProducerType;
+import org.opencastproject.capture.pipeline.bins.producers.ProducerFactory;
+import org.opencastproject.capture.pipeline.bins.producers.ProducerFactory.ProducerType;
 
 import net.luniks.linux.jv4linfo.JV4LInfo;
 import net.luniks.linux.jv4linfo.JV4LInfoException;
@@ -209,10 +210,7 @@ public final class PipelineFactory {
       devName = ProducerType.valueOf(type);
       logger.debug("Device {} has been confirmed to be type {}", name, devName.toString());
       /** For certain devices we need to check to make sure that the src is specified, others are exempt. **/
-      if (devName == ProducerType.V4LSRC || devName == ProducerType.V4L2SRC || devName == ProducerType.FILE_DEVICE
-              || devName == ProducerType.EPIPHAN_VGA2USB || devName == ProducerType.HAUPPAUGE_WINTV
-              || devName == ProducerType.BLUECHERRY_PROVIDEO || devName == ProducerType.FILE
-              || devName == ProducerType.DV_1394) {  
+      if (ProducerFactory.getInstance().requiresSrc(devName)) {  
         checkSrcLocationExists(name, srcLoc);
       }
     } else {
@@ -235,14 +233,22 @@ public final class PipelineFactory {
     return name;
   }
 
+  
+  /**
+   * Double checks that the source location for capture is set, otherwise throws an exception. 
+   * @param name Friendly name of the capture device. 
+   * @param srcLoc The source location that should be set to something. 
+   * @throws CannotFindSourceFileOrDeviceException Thrown if the source location is null or the empty string. 
+   */
   private static void checkSrcLocationExists(String name, String srcLoc) throws CannotFindSourceFileOrDeviceException {
-    if (srcLoc == null) {
+    if (srcLoc == null || ("").equals(srcLoc)) {
       throw new CannotFindSourceFileOrDeviceException("Unable to create pipeline for " + name
               + " because its source file/device does not exist!");
     }
   }
 
-  private static ProducerType determineSourceFromJ4VLInfo(String srcLoc) throws UnrecognizedDeviceException {
+  private static ProducerType determineSourceFromJ4VLInfo(String srcLoc)
+          throws UnrecognizedDeviceException {
     // ALSA source
     if (srcLoc.contains("hw:")) {
       return ProducerType.ALSASRC;

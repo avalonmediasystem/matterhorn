@@ -23,12 +23,36 @@ import org.opencastproject.capture.pipeline.bins.UnableToCreateGhostPadsForBinEx
 import org.opencastproject.capture.pipeline.bins.UnableToLinkGStreamerElementsException;
 import org.opencastproject.capture.pipeline.bins.UnableToSetElementPropertyBecauseElementWasNullException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public final class ProducerFactory {
   /** The actual singleton factory **/
   private static ProducerFactory factory;
 
+  /**
+   * The gstreamer sources that are currently supported and tested with this code
+   */
+  public enum ProducerType {
+    CUSTOM_VIDEO_SRC, /* Allows the user to specify their producer with gstreamer command line syntax */
+    CUSTOM_AUDIO_SRC, /* Allows the user to specify their producer with gstreamer command line syntax */
+    VIDEOTESTSRC, /* Built in gstreamer video test src */
+    AUDIOTESTSRC, /* Built in gstreamer audio test src */
+    V4LSRC, /* Generic v4l source */
+    V4L2SRC, /* Generic v4l2 source */
+    FILE_DEVICE, /* Generic file device source (such as a Hauppauge card that produces an MPEG file) */
+    EPIPHAN_VGA2USB, /* Epiphan VGA2USB frame grabber */
+    HAUPPAUGE_WINTV, /* Hauppauge devices */
+    BLUECHERRY_PROVIDEO, /* Bluecherry ProVideo-143 */
+    ALSASRC, /* Linux sound capture */
+    PULSESRC, /* Linux sound capture */
+    FILE, /* A media file on the filesystem or a file device that requires no decoding */
+    DV_1394 /* A DV camera that runs over firewire */
+  }
+  
+  private HashMap<ProducerType, Boolean> producersThatRequireSource = new HashMap<ProducerType, Boolean>();
+  
   /** Singleton factory pattern ensuring only one instance of the factory is created even with multiple threads. **/
   public static synchronized ProducerFactory getInstance() {
     if (factory == null) {
@@ -39,7 +63,23 @@ public final class ProducerFactory {
 
   /** Constructor made private so that the number of Factories can be kept to one. **/
   private ProducerFactory() {
-
+    // Producers that don't require a source. 
+    producersThatRequireSource.put(ProducerType.ALSASRC, false);
+    producersThatRequireSource.put(ProducerType.CUSTOM_VIDEO_SRC, false);
+    producersThatRequireSource.put(ProducerType.CUSTOM_AUDIO_SRC, false);
+    producersThatRequireSource.put(ProducerType.VIDEOTESTSRC, false);
+    producersThatRequireSource.put(ProducerType.AUDIOTESTSRC, false);
+    producersThatRequireSource.put(ProducerType.ALSASRC, false);
+    producersThatRequireSource.put(ProducerType.PULSESRC, false);
+    // Producers that do require a source. 
+    producersThatRequireSource.put(ProducerType.V4LSRC, true);
+    producersThatRequireSource.put(ProducerType.V4L2SRC, true);
+    producersThatRequireSource.put(ProducerType.FILE_DEVICE, true);
+    producersThatRequireSource.put(ProducerType.EPIPHAN_VGA2USB, true);
+    producersThatRequireSource.put(ProducerType.HAUPPAUGE_WINTV, true);
+    producersThatRequireSource.put(ProducerType.BLUECHERRY_PROVIDEO, true);
+    producersThatRequireSource.put(ProducerType.FILE, true);
+    producersThatRequireSource.put(ProducerType.DV_1394, true);
   }
 
   /**
@@ -99,5 +139,30 @@ public final class ProducerFactory {
     else {
       throw new NoProducerFoundException("No valid Producer found for device " + captureDevice.getName());
     }
+  }
+  
+  /**
+   * Returns true if the ProducerType does require a source to create, returns false if ProducerType is null, doesn't
+   * exist or doesn't require the source location.
+   * 
+   * @param type The type of Producer that needs to be checked whether it requires a source. 
+   * @return Returns true if it requires a source, false otherwise. 
+   */
+  public boolean requiresSrc(ProducerType type) {
+    if (type == null) {
+      return false;
+    }
+    return producersThatRequireSource.get(type);
+  }
+
+  /**
+   * Returns the Map for each ProducerType whether it requires the source location.
+   * 
+   * @return Returns a Map going from ProducerType to a boolean of true if it requires a source or false if it doesn't.
+   */
+  public Map<ProducerType, Boolean> getMapOfProducerTypesThatRequireSourceLocation() {
+    HashMap<ProducerType, Boolean> srcCollection = new HashMap<ProducerType, Boolean>();
+    srcCollection.putAll(producersThatRequireSource);
+    return srcCollection;
   }
 }

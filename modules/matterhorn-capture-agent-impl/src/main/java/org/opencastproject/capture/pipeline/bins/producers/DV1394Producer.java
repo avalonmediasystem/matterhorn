@@ -140,7 +140,7 @@ public class DV1394Producer extends VideoProducer {
       throw new UnableToLinkGStreamerElementsException(captureDevice, queue, demux);
     } else if (!decoder.link(ffmpegcolorspace)) {
       throw new UnableToLinkGStreamerElementsException(captureDevice, decoder, ffmpegcolorspace);
-    }else if(!ffmpegcolorspace.link(videorate)){
+    } else if (!ffmpegcolorspace.link(videorate)) {
       throw new UnableToLinkGStreamerElementsException(captureDevice, ffmpegcolorspace, videorate);
     } else if (!videorate.link(fpsfilter)) {
       throw new UnableToLinkGStreamerElementsException(captureDevice, videorate, fpsfilter);

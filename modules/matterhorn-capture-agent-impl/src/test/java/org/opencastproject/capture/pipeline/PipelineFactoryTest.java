@@ -21,7 +21,7 @@ import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.impl.ConfigurationManager;
 import org.opencastproject.capture.impl.XProperties;
-import org.opencastproject.capture.pipeline.bins.producers.ProducerType;
+import org.opencastproject.capture.pipeline.bins.producers.ProducerFactory.ProducerType;
 
 import org.apache.commons.io.FileUtils;
 import org.gstreamer.Bin;
@@ -120,8 +120,10 @@ public class PipelineFactoryTest {
     properties = new Properties();
     File testCaptureDirectory = new File(System.getProperty("java.io.tmpdir"), "pipeline-factory-test");
     FileUtils.forceMkdir(testCaptureDirectory);
-    Assert.assertTrue("Can't read from test directory " + testCaptureDirectory.getAbsolutePath(), testCaptureDirectory.canRead());
-    Assert.assertTrue("Can't write to test directory " + testCaptureDirectory.getAbsolutePath(), testCaptureDirectory.canWrite());
+    Assert.assertTrue("Can't read from test directory " + testCaptureDirectory.getAbsolutePath(), testCaptureDirectory
+            .canRead());
+    Assert.assertTrue("Can't write to test directory " + testCaptureDirectory.getAbsolutePath(), testCaptureDirectory
+            .canWrite());
     properties.put("org.opencastproject.storage.dir", testCaptureDirectory.getAbsolutePath());
     properties.setProperty(CaptureParameters.RECORDING_ROOT_URL, testCaptureDirectory.getAbsolutePath());
     
@@ -214,10 +216,10 @@ public class PipelineFactoryTest {
       CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
       String deviceNames = setupCaptureDevices();
       String extraDevice = "Extra Device";
-      properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + extraDevice + CaptureParameters.CAPTURE_DEVICE_SOURCE,
-              "/bad/path");
-      properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + extraDevice + CaptureParameters.CAPTURE_DEVICE_DEST, extraDevice
-              + ".out");
+      properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + extraDevice
+              + CaptureParameters.CAPTURE_DEVICE_SOURCE, "/bad/path");
+      properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + extraDevice
+              + CaptureParameters.CAPTURE_DEVICE_DEST, extraDevice + ".out");
       deviceNames += "Not A Device" + ",";
       properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, deviceNames);
       testPipeline = PipelineFactory.create(properties, false, null);
@@ -263,7 +265,7 @@ public class PipelineFactoryTest {
 
   @Test
   public void pipelineFactoryWillIgnoreSrcPropertiesOnAllRelevantProducerTypes(){
-    if(!gstreamerInstalled)
+    if(!gstreamerInstalled || !PipelineTestHelpers.isLinux())
       return;
     CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
     String deviceNames = "";
@@ -292,7 +294,7 @@ public class PipelineFactoryTest {
   
   @Test
   public void pipelineFactoryWillCrashWhenMissingSrcLocations(){
-    if(!gstreamerInstalled)
+    if(!gstreamerInstalled || !PipelineTestHelpers.isLinux())
       return;
     CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
     String deviceNames = "";

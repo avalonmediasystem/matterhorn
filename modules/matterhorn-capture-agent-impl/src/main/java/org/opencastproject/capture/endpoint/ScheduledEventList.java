@@ -50,7 +50,7 @@ public class ScheduledEventList {
 
   /** Take a list of api ScheduledEvents and turn them into ScheduledEventImpls**/
   public void setEvents(List<ScheduledEvent> eventList) {
-    if(eventList == null){
+    if (eventList == null) {
       return;
     }
     if (!this.events.isEmpty()) {
