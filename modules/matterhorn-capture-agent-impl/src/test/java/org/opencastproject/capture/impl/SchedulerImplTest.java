@@ -61,7 +61,6 @@ public class SchedulerImplTest {
     setupSchedulerProperties();
     setupSchedulerImpl();
     setupWaiter();
-    //Assert.assertNull(schedulerImpl.getCaptureSchedule());
   }
 
   private Properties setupCaptureProperties() {
@@ -499,6 +498,15 @@ public class SchedulerImplTest {
     Assert.assertEquals(0, schedule.length);
   }
 
+  @Test
+  public void testIncompleteLocalCalendar() throws ConfigurationException {
+    String garbage = this.getClass().getClassLoader().getResource("calendars/Incomplete.ics").getFile();
+    configurationManager.setItem(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_ENDPOINT_URL, null);
+    configurationManager.setItem(CaptureParameters.CAPTURE_SCHEDULE_CACHE_URL, garbage);
+    String[] schedule = schedulerImpl.getCaptureSchedule();
+    Assert.assertEquals(0, schedule.length);
+  }
+  
   @Test
   public void testValidRemoteDuplicateCalendar() throws IOException, ConfigurationException {
     String[] times = setupValidTimes(new Date(System.currentTimeMillis() + 2 * CaptureParameters.HOURS
