@@ -195,7 +195,11 @@
           </div>
         </div>
         <div id="deleteModal" title="Delete Progress">
-          <div id="deleteProgress"> </div>
+          <div id="deleteProgress"></div>
+          <div id="deleteError" class="ui-helper-hidden">
+          	<div id="deleteErrorMessage"></div>
+          	<button id="closeDelete" onclick="ocRecordings.closeDeleteDialog()">Close</button>
+          </div>
         </div>
       </div>
       <div id="tableContainer" class="ui-widget ui-helper-clearfix"></div>

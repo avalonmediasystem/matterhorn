@@ -979,6 +979,7 @@ ocRecordings = new (function() {
     var progress = 0;
     var progressChunk = 0;
     var eventIdList = [];
+    var failed = 0;
     $.each($('.selectRecording'), function(i,v){
       if(v.checked === true) {
         eventIdList.push(v.value);
@@ -1011,15 +1012,24 @@ ocRecordings = new (function() {
           var id = eventIdList.pop();
           if(typeof id === 'undefined'){
             clearInterval(toid);
-            $('#deleteProgress').progressbar('value', progress++);
+            ocUtils.log(progress);
+            $('#deleteProgress').progressbar('value', ++progress);
+            if(failed > 0) {
+              $('#deleteError').show();
+            }
             return;
           }
           $.ajax({
             url: '/scheduler/'+id,
             type: 'DELETE',
-            success: function(){
-              progress = progress + progressChunk;
-              $('#deleteProgress').progressbar('value', progress);
+            complete: function(xhr, status) {
+              if(xhr.status == 500) {
+                failed++;
+                $('#deleteErrorMessage').text('Failed to delete ' + failed + ' recordings.');
+              } else {
+                progress = progress + progressChunk;
+                $('#deleteProgress').progressbar('value', progress);
+              }
             }
           });
         }, 250);
@@ -1123,6 +1133,11 @@ ocRecordings = new (function() {
     ocRecordings.bulkEditComponents.description = new ocAdmin.Component(['description'], {
       label: 'descriptionLabel'
     });
+  }
+  
+  this.closeDeleteDialog = function() {
+    $('#deleteModal').dialog('close');
+    refresh();
   }
   
   $(document).ready(this.init);
