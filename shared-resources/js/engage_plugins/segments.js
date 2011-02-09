@@ -244,7 +244,7 @@ Opencast.segments = (function ()
             $("#oc_video-cc").css('width', '0%');
             $('#simpleEdit').css('font-size', '0.8em');
             $('#simpleEdit').css('margin-left', '1px');
-            $('#oc_current-time').css('width', '45px');
+            $('#oc_current-time').css('width', '50px');
             $('#oc_edit-time').css('width', '45px');
             $('#oc_duration').css('width', '45px');
             $('#oc_edit-time-error').css('width', '45px');
