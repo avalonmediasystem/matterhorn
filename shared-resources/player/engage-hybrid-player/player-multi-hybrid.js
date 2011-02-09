@@ -230,10 +230,11 @@ Opencast.Player = (function ()
     /**
      @memberOf Opencast.Player
      @description Get the duration.
+     @return the duration if initialized, -1 else
      */
     function getDuration()
     {
-        return duration;
+        return (isNaN(duration) ? -1 : duration);
     }
     
     /**
@@ -1261,6 +1262,10 @@ Opencast.Player = (function ()
      */
     function setTotalTime(text)
     {
+        if(text.indexOf('NaN') != -1)
+        {
+            text = "Initializing";
+        }
         $("#oc_duration").text(text);
         $("#scrubber").attr("aria-valuemin", "00:00:00");
         $("#scrubber").attr("aria-valuemax", text);

@@ -222,7 +222,7 @@ Opencast.Watch = (function ()
      */
     function forwardSeconds()
     {
-        if (($('#oc_duration').text() != "NaN:NaN:NaN") && ($('#oc_duration').text() != ""))
+        if (($('#oc_duration').text() != "Initializing") && ($('#oc_duration').text() != ""))
         {
             Videodisplay.seek(parseInt(time));
             if (intervalOn)
