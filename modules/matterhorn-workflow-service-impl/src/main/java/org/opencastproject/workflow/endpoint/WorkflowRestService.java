@@ -619,7 +619,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("instances.json")
   public Response getWorkflowsAsJson(@QueryParam("state") List<String> states, @QueryParam("q") String text,
-          @QueryParam("seriesId") String seriesId, @QueryParam("seriesTitle") String seriesTitle,
+          @QueryParam("seriesid") String seriesId, @QueryParam("seriestitle") String seriesTitle,
           @QueryParam("creator") String creator, @QueryParam("contributor") String contributor,
           @QueryParam("fromdate") String fromDate, @QueryParam("todate") String toDate,
           @QueryParam("language") String language, @QueryParam("license") String license,

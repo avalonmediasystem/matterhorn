@@ -715,13 +715,13 @@ ocRecordings = new (function() {
           ocRecordings.Configuration.filterText = text;
           ocRecordings.Configuration.page = 0;
         }
-        ocRecordings.reload();
+        refresh();
       },
       clear : function() {
         ocRecordings.Configuration.filterField = '';
         ocRecordings.Configuration.filterText = '';
         ocRecordings.Configuration.page = 0;
-        ocRecordings.reload();
+        refresh();
       },
       searchText : ocRecordings.Configuration.filterText,
       options : FILTER_FIELDS,
