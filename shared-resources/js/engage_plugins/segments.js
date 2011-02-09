@@ -225,6 +225,8 @@ Opencast.segments = (function ()
         {
             $(".oc_btn-skip-backward").css('display', 'none');
             $(".oc_btn-skip-forward").css('display', 'none');
+            $(".oc_btn-rewind").css('display', 'none');
+            $(".oc_btn-fast-forward").css('display', 'none');
             $('#oc_video-controls').css('width', '20%');
             $('#oc_video-cc').css('width', '12%');
             $('#oc_video-time').css('width', '40%');
