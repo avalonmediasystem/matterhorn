@@ -262,7 +262,7 @@ input:hover
 
 .oc_btn-singleDisplay-presenter
 {
-  background:               url("../img/oc_icons_2.png") no-repeat -240px -305px transparent;
+  background:               url("../img/oc_icons_2.png") no-repeat -300px -305px transparent;
   width:                   60px;
   height:                 19px;
   margin-top: 5px;
@@ -270,7 +270,7 @@ input:hover
 }
 .oc_btn-singleDisplay-presentation
 {
-  background:               url("../img/oc_icons_2.png") no-repeat -300px -305px transparent;
+  background:               url("../img/oc_icons_2.png") no-repeat -240px -305px transparent;
   width:                   60px;
   height:					19px;
   margin-top: 5px;
