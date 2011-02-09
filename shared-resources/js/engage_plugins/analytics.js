@@ -13,6 +13,9 @@ Opencast.Analytics = (function ()
     var analyticsDisplayed = false;
     var ANALYTICS = "Analytics",
         ANALYTICSHIDE = "Analytics off";
+    var dateIn,
+        resizeEndTimeoutRunning,
+        waitForMove = 150;
 
     /**
      * @memberOf Opencast.Analytics
@@ -100,6 +103,42 @@ Opencast.Analytics = (function ()
     
     /**
      * @memberOf Opencast.Analytics
+     * @description Binds the Window-Resize-Event
+     */
+    function initResizeEnd()
+    {
+        resizeEndTimeoutRunning = false;
+        $(window).resize(function()
+        {
+            dateIn = new Date();
+            if (resizeEndTimeoutRunning === false)
+            {
+                resizeEndTimeoutRunning = true;
+                resizeEndTimeoutRunning = setTimeout(resizeEnd, waitForMove);
+            }
+        });
+    }
+    
+    /**
+     * @memberOf Opencast.Analytics
+     * @description Checks if resize is over
+     */
+    function resizeEnd()
+    {
+        var dateOut = new Date();
+        // if the Resize-Event is not over yet: set new timeout
+        if ((dateOut - dateIn) < waitForMove)
+        {
+            setTimeout(resizeEnd, waitForMove);
+        } else {
+            // else: repaint Statistics div
+            resizeEndTimeoutRunning = false;
+            showAnalytics();
+        }
+    }
+    
+    /**
+     * @memberOf Opencast.Analytics
      * @description Hide the notes
      */
     function hideAnalytics()
@@ -126,6 +165,7 @@ Opencast.Analytics = (function ()
     {
         if (!analyticsDisplayed)
         {
+            initResizeEnd();
             showAnalytics();
         }
         else
