@@ -16,16 +16,12 @@
 package org.opencastproject.series.impl;
 
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
-import org.opencastproject.scheduler.api.Event;
-import org.opencastproject.scheduler.api.SchedulerFilter;
-import org.opencastproject.scheduler.api.SchedulerService;
 import org.opencastproject.series.api.Series;
 import org.opencastproject.series.api.SeriesException;
 import org.opencastproject.series.api.SeriesMetadata;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.NotFoundException;
 
-import org.apache.commons.lang.StringUtils;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
@@ -68,8 +64,6 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   protected Map<String, Object> persistenceProperties;
   protected EntityManagerFactory emf = null;
   
-  protected SchedulerService schedulerService;
-
   public SeriesServiceImpl() {
     logger.info("Series Service instantiated");
   }
@@ -194,16 +188,6 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
         throw new NotFoundException("Series " + seriesId + " does not exist");
       }
       em.remove(s);
-      SchedulerFilter filter = new SchedulerFilter();
-      for (Event e : schedulerService.getEvents(filter.isPartOf(seriesId))) {
-        e.setSeries(null);
-        e.setSeriesId(null);
-        try {
-          schedulerService.updateEvent(e, true, true);
-        } catch (Exception ex) {
-          throw new SeriesException(ex);
-        }
-      }
       em.getTransaction().commit();
     } finally {
       em.close();
@@ -223,17 +207,6 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
       SeriesImpl storedSeries = em.find(SeriesImpl.class, s.getSeriesId());
       if (storedSeries == null) {
         throw new NotFoundException("Series " + s + " does not exist");
-      }
-      if(!StringUtils.equals(s.getFromMetadata("title"), storedSeries.getFromMetadata("title"))) {
-        SchedulerFilter filter = new SchedulerFilter();
-        for (Event e : schedulerService.getEvents(filter.isPartOf(s.getSeriesId()))) {
-          e.setSeries(s.getFromMetadata("title"));
-          try {
-            schedulerService.updateEvent(e, true, false);
-          } catch (Exception ex) {
-            throw new SeriesException(ex);
-          }
-        }
       }
       storedSeries.setDescription(s.getDescription());
       storedSeries.setMetadata(s.getMetadata());
@@ -280,11 +253,6 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
     this.properties = properties;
   }
   
-  public void setSchedulerService(SchedulerService service) {
-    logger.debug("set scheduler service: " + service);
-    this.schedulerService = service;
-  }
-
   @SuppressWarnings("unchecked")
   @Override
   public List<Series> searchSeries(String pattern) throws NotFoundException {

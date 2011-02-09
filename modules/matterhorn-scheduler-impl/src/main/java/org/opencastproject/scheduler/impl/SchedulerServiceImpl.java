@@ -783,7 +783,6 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    */
   public void setSeriesService(SeriesService s) {
     seriesService = s;
-    s.setSchedulerService(this);
   }
 
   /**

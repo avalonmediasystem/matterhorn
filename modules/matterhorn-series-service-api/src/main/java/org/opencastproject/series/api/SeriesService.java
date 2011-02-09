@@ -16,7 +16,6 @@
 package org.opencastproject.series.api;
 
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
-import org.opencastproject.scheduler.api.SchedulerService;
 import org.opencastproject.util.NotFoundException;
 
 import java.util.List;
@@ -99,6 +98,4 @@ public interface SeriesService {
    */
   List<Series> searchSeries(String pattern) throws NotFoundException;
   
-  void setSchedulerService(SchedulerService service);
-
 }
