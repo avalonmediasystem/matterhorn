@@ -437,7 +437,7 @@ ocScheduler.LoadEvent = function(doc){
   if(typeof event.additionalMetadata.metadata != 'undefined') {
    additionalMetadata = event.additionalMetadata.metadata;
     for(var i in additionalMetadata){
-      item = additionalMetadata[i];
+      var item = additionalMetadata[i];
       if(item.key.indexOf('org.opencastproject.workflow') > -1){
         workflowProperties[item.key] = item.value
       }else{ //flatten additional metadata into event
