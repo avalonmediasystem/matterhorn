@@ -78,8 +78,13 @@ ocSeries.Internationalize = function(){
 ocSeries.loadSeries = function(data) {
   $("#id").val(data.series.id);
   ocSeries.components['description'].setValue(data.series.description);
-  for(m in data.series.additionalMetadata){
-    var metadata = data.series.additionalMetadata[m];
+  if($.isArray(data.series.additionalMetadata.metadata)) {
+    mdlist = data.series.additionalMetadata.metadata;
+  } else {
+    mdlist = [data.series.additionalMetadata.metadata];
+  }
+  for(m in mdlist){
+    var metadata = mdlist[m];
     if(ocSeries.additionalComponents[metadata.key]){
       ocSeries.additionalComponents[metadata.key].setValue(metadata.value);
     }
