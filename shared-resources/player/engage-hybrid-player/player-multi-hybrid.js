@@ -67,7 +67,7 @@ Opencast.Player = (function ()
         currentPlayPauseState = PAUSING,
         backupPlayPauseState = '',
         currentVideoSize = '',
-        currentTimeString = '',
+        currentTimeString = '00:00:00',
         showSections = true,
         mouseOverBool = false,
         captionsBool = false,
@@ -1235,6 +1235,10 @@ Opencast.Player = (function ()
      */
     function setCurrentTime(text)
     {
+        if(text.indexOf('NaN') != -1)
+        {
+            text = '00:00:00';
+        }
         if (getDragging() === false)
         {
             $("#oc_current-time").attr("value", text);

@@ -20,7 +20,6 @@ Opencast.Watch = (function ()
         mimetypeTwo = "",
         coverUrlOne = "",
         coverUrlTwo = "";
-    var time = 0;
     var interval;
     var intervalOn = false;
     var mediaPackageIdAvailable = true;
@@ -200,8 +199,6 @@ Opencast.Watch = (function ()
         });
         getClientShortcuts();
         
-        // Parse URL Parameters (time 't') and jump to the given Seconds
-        time = Opencast.Utils.parseSeconds(Opencast.Utils.getURLParameter('t'));
         if (!intervalOn)
         {
             interval = setInterval(forwardSeconds, 250);
@@ -224,11 +221,17 @@ Opencast.Watch = (function ()
     {
         if (($('#oc_duration').text() != "Initializing") && ($('#oc_duration').text() != ""))
         {
-            Videodisplay.seek(parseInt(time));
-            if (intervalOn)
+            var urlParamVal = Opencast.Utils.getURLParameter('t');
+            if(urlParamVal !== null)
             {
-                clearInterval(interval);
-                intervalOn = false;
+                // Parse URL Parameters (time 't') and jump to the given Seconds
+                var time = Opencast.Utils.parseSeconds(urlParamVal);
+                Videodisplay.seek(time);
+                if (intervalOn)
+                {
+                    clearInterval(interval);
+                    intervalOn = false;
+                }
             }
         }
     }

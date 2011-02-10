@@ -20,7 +20,6 @@ Opencast.Watch = (function ()
         coverUrlOne = "",
         coverUrlTwo = "",
         slideLength = 0;
-    var time = 0;
     var interval;
     var intervalOn = false;
     
@@ -206,8 +205,6 @@ Opencast.Watch = (function ()
         // Set the Controls visible
         $('#oc_video-player-controls').show();
         
-        // Parse URL Parameters (time 't') and jump to the given Seconds
-        time = Opencast.Utils.parseSeconds(Opencast.Utils.getURLParameter('t'));
         if (!intervalOn)
         {
             interval = setInterval(forwardSeconds, 250);
@@ -230,11 +227,17 @@ Opencast.Watch = (function ()
     {
         if (($('#oc_duration').text() != "Initializing") && ($('#oc_duration').text() != ""))
         {
-            Videodisplay.seek(parseInt(time));
-            if (intervalOn)
+            var urlParamVal = Opencast.Utils.getURLParameter('t');
+            if(urlParamVal !== null)
             {
-                clearInterval(interval);
-                intervalOn = false;
+                // Parse URL Parameters (time 't') and jump to the given Seconds
+                var time = Opencast.Utils.parseSeconds(urlParamVal);
+                Videodisplay.seek(time);
+                if (intervalOn)
+                {
+                    clearInterval(interval);
+                    intervalOn = false;
+                }
             }
         }
     }
