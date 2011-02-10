@@ -129,7 +129,7 @@ Opencast.segments_ui = (function ()
                 var videoModeStream = true;
                 // Check whether a Videomode has been selected
                 var urlParamProgStream = Opencast.Utils.getURLParameter('videomode');
-                // If such an URL Parameter exists
+                // If such an URL Parameter exists (if parameter doesn't exist, the return value is null)
                 if(urlParamProgStream !== null)
                 {
                     // If current Videomode == progressive && URL Parameter == streaming
