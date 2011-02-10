@@ -204,13 +204,6 @@ Opencast.Watch = (function ()
             interval = setInterval(forwardSeconds, 250);
             intervalOn = true;
         }
-        
-        var startPlaying = Opencast.Utils.getURLParameter('play');
-        if((startPlaying != null) && (startPlaying.toLowerCase() === 'true'))
-        {
-            // Start playing the Video
-            Videodisplay.play();
-        }
     }
     
     /**
@@ -222,16 +215,31 @@ Opencast.Watch = (function ()
         if (($('#oc_duration').text() != "Initializing") && ($('#oc_duration').text() != ""))
         {
             var urlParamVal = Opencast.Utils.getURLParameter('t');
+            var startPlaying = Opencast.Utils.getURLParameter('play');
             if(urlParamVal !== null)
             {
                 // Parse URL Parameters (time 't') and jump to the given Seconds
                 var time = Opencast.Utils.parseSeconds(urlParamVal);
                 Videodisplay.seek(time);
+        
+                // If Autoplay set to true
+                if((startPlaying != null) && (startPlaying.toLowerCase() === 'true'))
+                {
+                    // Start playing the Video
+                    Videodisplay.play();
+                }
+                
                 if (intervalOn)
                 {
                     clearInterval(interval);
                     intervalOn = false;
                 }
+            } else if((startPlaying != null) && (startPlaying.toLowerCase() === 'true'))
+            {
+                // Start playing the Video
+                Videodisplay.play();
+                clearInterval(interval);
+                intervalOn = false;
             }
         }
     }
