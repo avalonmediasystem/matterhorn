@@ -125,6 +125,25 @@ Opencast.segments_ui = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                // Streaming Mode is default true
+                var videoModeStream = true;
+                // Check whether a Videomode has been selected
+                var urlParamProgStream = Opencast.Utils.getURLParameter('videomode');
+                // If such an URL Parameter exists
+                if(urlParamProgStream !== null)
+                {
+                    // If current Videomode == progressive && URL Parameter == streaming
+                    if(urlParamProgStream == 'streaming')
+                    {
+                        videoModeStream = true;
+                    }
+                    // If current Videomode == streaming && URL Parameter == progressive
+                    else if(urlParamProgStream == 'progressive')
+                    {
+                        videoModeStream = false;
+                    }
+                }
+                
                 // Check if Segments + Segments Text is available
                 var segmentsAvailable = (data['search-results'].result.segments !== undefined) && (data['search-results'].result.segments.segment.length > 0);
                 if (segmentsAvailable)
@@ -153,18 +172,31 @@ Opencast.segments_ui = (function ()
                 // Check if any Media.tracks are available
                 if((data['search-results'].result.mediapackage.media !== undefined) && (data['search-results'].result.mediapackage.media.track.length > 0))
                 {
+                    // Set whether prefer streaming of progressive
+                    data['search-results'].result.mediapackage.media.preferStreaming = videoModeStream;
+                        
                     // Check if the File is a Video
                     var isVideo = false;
+                    var rtmpAvailable = false;
                     $.each(data['search-results'].result.mediapackage.media.track, function (i, value)
                     {
                         if(!isVideo && Opencast.Utils.startsWith(this.mimetype, 'video'))
                         {
                             isVideo = true;
+                        }
+                        if(data['search-results'].result.mediapackage.media.track[i].url.substring(0, 4) == "rtmp")
+                        {
+                            rtmpAvailable = true;
+                        }
+                        // If both Values have been set
+                        if(isVideo && rtmpAvailable)
+                        {
                             // Jump out of $.each
                             return false;
                         }
                     });
                     data['search-results'].result.mediapackage.media.isVideo = isVideo;
+                    data['search-results'].result.mediapackage.media.rtmpAvailable = rtmpAvailable;
                 }
                 
                 // Create Trimpath Template

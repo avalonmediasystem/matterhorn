@@ -108,6 +108,10 @@ Opencast.Utils = (function ()
      *                                      - Minutes and seconds:  XmYs    or    YsXm    or    XmY
      *                                      - Minutes only:         Xm
      *                                      - Seconds only:         Ys      or    Y
+     *                  - videomode:    the Video Mode
+     *                                  Valid Parameters:
+                                            - streaming (default)
+                                            - progressive
      *                  - page
      *                  - q
      * @return the value of URL-Parameter 'name' or null if not defined
