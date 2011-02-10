@@ -15,8 +15,13 @@
  */
 package org.opencastproject.videosegmenter.impl.endpoint;
 
+import org.opencastproject.job.api.JaxbJob;
+import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.JobProducer;
 import org.opencastproject.kernel.rest.AbstractJobProducerEndpoint;
+import org.opencastproject.mediapackage.MediaPackageElement;
+import org.opencastproject.mediapackage.MediaPackageElementParser;
+import org.opencastproject.mediapackage.Track;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.util.DocUtil;
@@ -27,12 +32,16 @@ import org.opencastproject.util.doc.RestEndpoint;
 import org.opencastproject.util.doc.RestTestForm;
 import org.opencastproject.videosegmenter.api.VideoSegmenterService;
 
+import org.apache.commons.lang.StringUtils;
 import org.osgi.service.component.ComponentContext;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * The REST endpoint for the {@link VideoSegmenterService} service
@@ -80,6 +89,35 @@ public class VideoSegmenterRestEndpoint extends AbstractJobProducerEndpoint {
     this.service = videoSegmenter;
   }
 
+  /**
+   * Segments a track.
+   * 
+   * @param trackAsXml the track xml to segment
+   * @return the job in the body of a JAX-RS response
+   * @throws Exception
+   */
+  @POST
+  @Path("")
+  @Produces(MediaType.TEXT_XML)
+  public Response segment(@FormParam("track") String trackAsXml) throws Exception {
+    // Ensure that the POST parameters are present
+    if (StringUtils.isBlank(trackAsXml)) {
+      return Response.status(Response.Status.BAD_REQUEST).entity("track must not be null").build();
+    }
+
+    // Deserialize the track
+    MediaPackageElement sourceTrack = MediaPackageElementParser.getFromXml(trackAsXml);
+    if (!Track.TYPE.equals(sourceTrack.getElementType())) {
+      return Response.status(Response.Status.BAD_REQUEST).entity("mediapackage element must be of type track").build();
+    }
+
+    // Asynchronously segment the specified track
+    Job job = service.segment((Track) sourceTrack);
+    if (job == null)
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Segmentation failed").build();
+    return Response.ok().entity(new JaxbJob(job)).build();
+  }
+  
   @GET
   @Produces(MediaType.TEXT_HTML)
   @Path("docs")
