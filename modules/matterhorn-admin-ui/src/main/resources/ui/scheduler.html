@@ -2,8 +2,8 @@
 <html>
   <head>
     <!-- PAGE TITLE -->
-    <title id="i18n_window_title">Schedule Recording | Opencast Matterhorn</title>
-    <link rel="shortcut icon" href="img/favicon.ico"> 
+    <title>Schedule Recording | Opencast Matterhorn</title>
+    <link rel="shortcut icon" href="img/favicon.ico" /> 
     <!-- META -->
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="css/oc.layout.css" />
@@ -24,20 +24,18 @@
     </script>
     <!-- NO SCRIPT -->
     <noscript>
-      <center>
-        <div style="border:1px solid red;width:530px;margin:20px;">
-          <div style="text-align: left;background:red; color:white;padding-top:2px;padding-bottom:2px;">
-            <div class="icon icon-error" style="margin-left:5px;margin-right:5px;">&nbsp;</div>
-            JavaScript is disabled
-          </div>
-          <div style="padding:10px;">
-            JavaScript is turned off in your web browser, so this site won't work properly! <br />
-            <strong>
-              Please turn JavaScript on to use this site, then refresh the page.
-            </strong>
-          </div>
+      <div style="border:1px solid red;width:530px;margin:20px;">
+        <div style="text-align: left;background:red; color:white;padding-top:2px;padding-bottom:2px;">
+          <div class="icon icon-error" style="margin-left:5px;margin-right:5px;">&nbsp;</div>
+          JavaScript is disabled
         </div>
-      </center>
+        <div style="padding:10px;">
+          JavaScript is turned off in your web browser, so this site won't work properly! <br />
+          <strong>
+            Please turn JavaScript on to use this site, then refresh the page.
+          </strong>
+        </div>
+      </div>
     </noscript>
   </head>
   <body>
@@ -184,15 +182,15 @@
               <ul class="oc-ui-form-list">
                 <li class="additionalMeta">
                   <label class="scheduler-label" for="contributor" id="contributorLabel"><span id="i18n_dept_label"></span>:</label>
-                  <input type="text" class="oc-ui-form-field" name="contributor" id="contributor">
+                  <input type="text" class="oc-ui-form-field" name="contributor" id="contributor" />
                 </li>
                 <li class="additionalMeta">
                   <label class="scheduler-label" for="subject" id="subjectLabel"><span id="i18n_sub_label"></span>:</label>
-                  <input type="text" class="oc-ui-form-field" name="subject" id="subject">
+                  <input type="text" class="oc-ui-form-field" name="subject" id="subject" />
                 </li>
                 <li class="additionalMeta">
                   <label class="scheduler-label" for="language" id="languageLabel"><span id="i18n_lang_label"></span>:</label>
-                  <input type="text" class="oc-ui-form-field" name="language" id="language">
+                  <input type="text" class="oc-ui-form-field" name="language" id="language" />
                 </li>
                 <li class="additionalMeta">
                   <label class="scheduler-label" for="description" id="descriptionLabel"><span id="i18n_desc_label"></span>:</label>
@@ -219,7 +217,7 @@
               <ul class="oc-ui-form-list">
                 <li>
                   <label class="scheduler-label" id="startDateLabel"><span class="scheduler-required-text">* </span><span id="i18n_startdate_label"></span>:</label>
-                  <input type="text" size="10" name="startDate" id="startDate">
+                  <input type="text" size="10" name="startDate" id="startDate" />
                 </li>
               </ul>
               <ul class="oc-ui-form-list">
@@ -362,7 +360,6 @@
                   </div>
                 </li>
               </ul>
-              </fieldset>
             </form>
           </div>
         </div>
@@ -387,8 +384,8 @@
                     <li>
                       <label for="scheduleRepeat" class="scheduler-label form-box-label"><span id="i18n_sched_repeats">Repeats</span>:</label>
                       <select id="scheduleRepeat" disabled="disabled">
-                        <option value="norepeat" selected="selected"><span id="i18n_sched_no_repeat">Don't Repeat</span></option>
-                        <option value="weekly" selected="selected"><span id="i18n_sched_weekly">Weekly</span></option>
+                        <option value="norepeat" selected="selected" id="i18n_sched_no_repeat">Don't Repeat</option>
+                        <option value="weekly" selected="selected" id="i18n_sched_weekly">Weekly</option>
                       </select>
                     </li>
                     <li id="daySelect">
@@ -420,11 +417,11 @@
                     </li>
                     <li>
                       <label class="scheduler-label" id="recurStartLabel"><span class="scheduler-required-text">* </span><span id="i18n_recurstart_label">Start Date</span>:</label>
-                      <input type="text" size="10" name="recurStart" id="recurStart" style="margin-right:5px;">
+                      <input type="text" size="10" name="recurStart" id="recurStart" style="margin-right:5px;" />
                     </li>
                     <li>
                       <label class="scheduler-label" for="recurEnd" id="recurEndLabel"><span class="scheduler-required-text">* </span><span id="i18n_recurend_label">End Date</span>:</label>
-                      <input type="text" size="10" name="recurEnd" id="recurEnd" style="margin-right:5px;">
+                      <input type="text" size="10" name="recurEnd" id="recurEnd" style="margin-right:5px;" />
                     </li>
                   </ul>
                 </fieldset>
@@ -613,6 +610,7 @@
         <div id="submitModal" title="Submiting new recording(s)" class="ui-helper-hidden">
           Please wait...
         </div>
+      </div>
     </div>
   </body>
 </html>

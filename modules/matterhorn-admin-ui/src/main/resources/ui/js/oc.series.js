@@ -31,7 +31,7 @@ ocSeries.mode = CREATE_MODE;
 ocSeries.init = function(){
   //Load i18n strings and replace default english
   // disabled temporarily - see MH-6510
-  //ocSeries.Internationalize();
+  ocSeries.Internationalize();
   
   //Add folding action for hidden sections.
   $('.oc-ui-collapsible-widget .ui-widget-header').click(
@@ -55,7 +55,7 @@ ocSeries.init = function(){
     ocSeries.mode = EDIT_MODE;
     $('#submitButton').val('Update Series');
     $('#i18n_page_title').text(i18n.page.title.edit);
-    $('#i18n_window_title').text(i18n.page.title.edit);
+    document.title = i18n.page.title.edit + " " + i18n.window.title.suffix;
     var seriesId = ocUtils.getURLParam('seriesId');
     if(seriesId !== '') {
       $('#seriesId').val(seriesId);
@@ -72,7 +72,7 @@ ocSeries.Internationalize = function(){
   });
   ocUtils.internationalize(i18n, 'i18n');
   //Handle special cases like the window title.
-  $('#i18n_page_title').text(i18n.page.title.add);
+  document.title = i18n.page.title.add + " " + i18n.window.title.suffix;
 }
 
 ocSeries.loadSeries = function(data) {
