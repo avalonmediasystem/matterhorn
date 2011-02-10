@@ -116,7 +116,7 @@
             <tr>
               <th width="25%" class="ui-widget-header oc-ui-sortable">Title</th>
               <th width="25%" class="ui-widget-header oc-ui-sortable">Organizer</th>
-              <th width="25%" class="ui-widget-header oc-ui-sortable">Department</th>
+              <th width="25%" class="ui-widget-header oc-ui-sortable">Contributor</th>
               <th width="25%" class="ui-widget-header">Action</th>
             </tr>
           </thead>
@@ -124,8 +124,8 @@
             {for series in seriesView}
             <tr>
               <td class="ui-widget-content">${series.title}</td>
-              <td class="ui-widget-content">${series.contributor}</td>
               <td class="ui-widget-content">${series.creator}</td>
+              <td class="ui-widget-content">${series.contributor}</td>
               <td class="ui-widget-content">
                 <a href="series.html?seriesId=${series.id}&edit=true">Edit</a><br/>
                 <a href="javascript:ocSeriesList.deleteSeries('${series.id}', '${series.title}');">Delete</a>
