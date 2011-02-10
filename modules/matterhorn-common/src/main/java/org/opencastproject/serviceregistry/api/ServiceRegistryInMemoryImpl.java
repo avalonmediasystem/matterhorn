@@ -605,4 +605,13 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
     logger.info(sb.toString());
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#getMaxConcurrentJobs()
+   */
+  @Override
+  public int getMaxConcurrentJobs() throws ServiceRegistryException {
+    return Integer.MAX_VALUE;
+  }
+
 }

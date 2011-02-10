@@ -1026,7 +1026,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         updateInternal(jpaJob);
       } catch (Exception e) {
         // In theory, we should catch javax.persistence.OptimisticLockException. Unfortunately, eclipselink throws
-        // org.eclipse.persistence.exceptions.OptimisticLockException.  In order to avoid importing the implementation
+        // org.eclipse.persistence.exceptions.OptimisticLockException. In order to avoid importing the implementation
         // specific APIs, we just catch Exception.
         logger.info("Unable to dispatch {}.  This is likely caused by another service registry dispatching the job",
                 job);
@@ -1123,6 +1123,26 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       } catch (Throwable t) {
         ServiceRegistryJpaImpl.logger.warn("Error dispatching jobs", t);
       }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#getMaxConcurrentJobs()
+   */
+  @Override
+  public int getMaxConcurrentJobs() throws ServiceRegistryException {
+    Query query = null;
+    EntityManager em = null;
+    try {
+      em = emf.createEntityManager();
+      query = em.createNamedQuery("HostRegistration.cores");
+      return ((Number)query.getSingleResult()).intValue();
+    } catch (Exception e) {
+      throw new ServiceRegistryException(e);
+    } finally {
+      em.close();
     }
   }
 

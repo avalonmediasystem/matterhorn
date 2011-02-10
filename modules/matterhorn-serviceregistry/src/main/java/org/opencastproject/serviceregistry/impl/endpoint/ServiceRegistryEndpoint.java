@@ -336,6 +336,18 @@ public class ServiceRegistryEndpoint {
       throw new WebApplicationException(e);
     }
   }
+  
+  @GET
+  @Path("/maxconcurrentjobs")
+  @Produces(MediaType.TEXT_PLAIN)
+  public Response getMaximumConcurrentWorkflows() {
+    try {
+      Integer count = serviceRegistry.getMaxConcurrentJobs();
+      return Response.ok(count).build();
+    } catch (ServiceRegistryException e) {
+      throw new WebApplicationException(e);
+    }
+  }
 
   protected String generateDocs(String serviceUrl) {
     DocRestData data = new DocRestData("serviceregistry", "Service Registry", serviceUrl, null);

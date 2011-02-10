@@ -49,6 +49,15 @@ public interface ServiceRegistry {
   void unregisterHost(String host) throws ServiceRegistryException;
 
   /**
+   * Returns the total number of jobs that can be handled by the currently registered hosts.
+   * 
+   * @return the total number of jobs that can be processed concurrently
+   * @throws ServiceRegistryException
+   *           if communication with the service registry fails
+   */
+  int getMaxConcurrentJobs() throws ServiceRegistryException;
+
+  /**
    * Registers a host to handle a specific type of job
    * 
    * @param serviceType

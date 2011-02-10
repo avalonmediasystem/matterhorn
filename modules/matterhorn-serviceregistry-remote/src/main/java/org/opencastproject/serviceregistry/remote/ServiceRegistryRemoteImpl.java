@@ -754,4 +754,28 @@ public class ServiceRegistryRemoteImpl implements ServiceRegistry {
     this.client = client;
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#getMaxConcurrentJobs()
+   */
+  @Override
+  public int getMaxConcurrentJobs() throws ServiceRegistryException {
+    HttpGet get = new HttpGet(UrlSupport.concat(serviceURL, "/maxconcurrentjobs"));
+    HttpResponse response = null;
+    int responseStatusCode;
+    try {
+      response = client.execute(get);
+      responseStatusCode = response.getStatusLine().getStatusCode();
+      if (responseStatusCode == HttpStatus.SC_OK) {
+        return Integer.parseInt(EntityUtils.toString(response.getEntity()));
+      }
+    } catch (IOException e) {
+      throw new ServiceRegistryException("Unable to get service statistics", e);
+    } finally {
+      client.close(response);
+    }
+    throw new ServiceRegistryException("Unable to get service statistics (" + responseStatusCode + ")");
+  }
+
 }

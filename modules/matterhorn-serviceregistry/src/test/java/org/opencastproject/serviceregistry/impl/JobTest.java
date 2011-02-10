@@ -403,5 +403,10 @@ public class JobTest {
     Assert.assertNull("Job's processing service should be null", serviceRegistry.getJob(job.getId())
             .getProcessingHost());
   }
+  
+  @Test
+  public void testNumberOfCores() throws Exception {
+    Assert.assertEquals(2, serviceRegistry.getMaxConcurrentJobs());
+  }
 
 }

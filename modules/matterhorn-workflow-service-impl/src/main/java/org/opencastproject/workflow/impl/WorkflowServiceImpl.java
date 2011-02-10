@@ -121,6 +121,9 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /** The configuration key for setting {@link #maxConcurrentWorkflows} */
   public static final String MAX_CONCURRENT_CONFIG_KEY = "max.concurrent";
 
+  /** Configuration value for the maximum number of parallel workflows based on the number of cores in the cluster */ 
+  public static final String OPT_NUM_CORES = "cores";
+  
   /** Constant value indicating a <code>null</code> parent id */
   private static final String NULL_PARENT_ID = "-";
 
@@ -129,7 +132,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
 
   // TODO: How should we calculate the maximum number of workflows to run?
   /** The maximum number of cluster-wide workflows that will cause this service to stop accepting new jobs */
-  protected int maxConcurrentWorkflows = 0;
+  protected int maxConcurrentWorkflows = -1;
 
   /** The collection of workflow definitions */
   protected Map<String, WorkflowDefinition> workflowDefinitions = new HashMap<String, WorkflowDefinition>();
@@ -1206,7 +1209,13 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
         logger.warn("Unable to determine the number of running workflows", e);
         return false;
       }
-      if (runningWorkflows >= maxConcurrentWorkflows) {
+      
+      int maxWorkflows = maxConcurrentWorkflows;
+      if (maxWorkflows < 1) {
+        maxWorkflows = serviceRegistry.getMaxConcurrentJobs();
+      }
+      
+      if (runningWorkflows >= maxWorkflows) {
         logger.info("Refused to accept dispatched job '{}'. This server is already running {} workflows.", job,
                 runningWorkflows);
         return false;

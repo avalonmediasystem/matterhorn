@@ -18,6 +18,8 @@ package org.opencastproject.serviceregistry.impl;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
@@ -25,6 +27,7 @@ import javax.persistence.Table;
  */
 @Entity(name = "HostRegistration")
 @Table(name = "HOST_REGISTRATION")
+@NamedQueries({ @NamedQuery(name = "HostRegistration.cores", query = "SELECT sum(hr.maxJobs) FROM HostRegistration hr") })
 public class HostRegistration {
 
   /** No-arg constructor needed by JPA */
