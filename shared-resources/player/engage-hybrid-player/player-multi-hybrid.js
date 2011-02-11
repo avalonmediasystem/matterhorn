@@ -1266,7 +1266,8 @@ Opencast.Player = (function ()
      */
     function setTotalTime(text)
     {
-        if(text.indexOf('NaN') != -1)
+        // Assume that no Video/Audio lasts 0 seconds
+        if((text.indexOf('NaN') != -1) && (text != '00:00:00'))
         {
             text = "Initializing";
         }
