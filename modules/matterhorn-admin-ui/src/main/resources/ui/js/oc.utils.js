@@ -87,7 +87,7 @@ ocUtils.makeLocaleDateString = function(timestamp) {
 
 ocUtils.fromUTCDateString = function(UTCDate) {
   var date = new Date(0);
-  if(UTCDate[UTCDate.length - 1] === "Z") {
+  if(UTCDate[UTCDate.length - 1] == 'Z') {
     var dateTime = UTCDate.slice(0,-1).split("T");
     var ymd = dateTime[0].split("-");
     var hms = dateTime[1].split(":");

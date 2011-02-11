@@ -3,7 +3,8 @@ ocRecordings = new (function() {
   var WORKFLOW_LIST_URL = '../workflow/instances.json';          // URL of workflow instances list endpoint
   var WORKFLOW_INSTANCE_URL = '';                                // URL of workflow instance endpoint
   var WORKFLOW_STATISTICS_URL = '../workflow/statistics.json';   // URL of workflow instances statistics endpoint
-  var SERIES_URL = '/series'
+  var SERIES_URL = '/series';
+  var SEARCH_URL = '../search';
 
   var STATISTICS_DELAY = 3000;     // time interval for statistics update
 
@@ -346,8 +347,8 @@ ocRecordings = new (function() {
       }
     } else if (wf.state == 'RUNNING') {
       if (op) {
-          this.state = 'Processing';
-          this.operation = op.description;
+        this.state = 'Processing';
+        this.operation = op.description;
       } else {
         op = ocRecordings.findFirstOperation(wf, "INSTANTIATED");    // MH-6426: it can happen that for running workflow there is no operation in state RUNNING
         if (op) {                                                    //     in this case we search for the next INSTANTIATED operation and display is as QUEUED
@@ -369,25 +370,18 @@ ocRecordings = new (function() {
     } else if (this.state == 'Finished') {
       this.actions.push('play');
       this.actions.push('delete');
+      this.actions.push('publish');
+      this.actions.push('unpublish');
     } else if (this.state == 'Failed') {
       this.actions.push('delete');
     }
-
-    /*
-    if (this.state == 'Upcoming') {
-      this.actions = ['view', 'edit', 'delete'];
-    } else if (this.state == 'Processing' || this.state == 'Queued') {
-      this.actions = ['view'];
-    } else {
-      this.actions = ['view', 'delete'];
-    }*/
 
     return this;
   }
 
   /** Prepare data delivered by workflow instances list endpoint for template
- *  rendering.
- */
+   *  rendering.
+   */
   function makeRenderData(data) {
     var recordings = [];
     var wfs = ocUtils.ensureArray(data.workflows.workflow);
@@ -400,7 +394,7 @@ ocRecordings = new (function() {
   }
 
   /** JSONP callback for calls to the workflow instances list endpoint.
- */
+   */
   this.render = function(data) {
     var template = 'tableTemplate';
     var registerRecordingSelectHandler = false;
@@ -541,7 +535,7 @@ ocRecordings = new (function() {
   }
 
   /** Make the page reload with the currently set configuration
-  */
+   */
   this.reload = function() {
     var url = document.location.href.split('?', 2)[0];
     url += '?' + ocRecordings.buildURLparams();
@@ -549,8 +543,8 @@ ocRecordings = new (function() {
   }
   
   /** Returns the workflow with the specified id from the currently loaded
- *  workflow data or false if workflow with given Id was not found.
- */
+   *  workflow data or false if workflow with given Id was not found.
+   */
   this.getWorkflow = function(wfId) {
     var out = false;
     $.each(ocUtils.ensureArray(this.data.workflows.workflow), function(index, workflow) {
@@ -674,8 +668,8 @@ ocRecordings = new (function() {
   }
 
   /** $(document).ready()
- *
- */
+   *
+   */
   this.init = function() {
 
     // upload/schedule button
@@ -834,6 +828,41 @@ ocRecordings = new (function() {
       });
     }
   }
+
+  this.publishRecording = function(wfId) {
+    var workflow = ocRecordings.getWorkflow(id);
+    if (workflow) {
+
+      /*var mpId = workflow.mediapackage.id;
+      var mpTitle = workflow.mediapackge.title;
+      $.ajax({
+        url : SEARCH_URL + "/add",
+        type : 'POST',
+        data : {mediapackage : mpXML},
+
+      });*/
+    }
+  }
+
+  this.unpublishRecording = function(wfId) {
+    var workflow = ocRecordings.getWorkflow(id);
+    if (workflow) {
+      var mpId = workflow.mediapackage.id;
+      var mpTitle = workflow.mediapackge.title;
+      $.ajax({
+        url : SEARCH_URL + '/' + mpId,
+        type : 'DELETE',
+        error : function(xhr) {
+          if (xhr.status == '204') {
+            alert("The following Recording was removed from Matterhorn Media Module:\n" + mpTitle);
+          } else {
+            alert('Error: The Recording could not be removed from Matterhorn Media Module!');
+          }
+        }
+      });
+    }
+  }
+
   //TEMPORARY (quick'n'dirty) PAGING
   this.nextPage = function() {
     numPages = Math.floor(this.totalRecordings / ocRecordings.Configuration.pageSize);
@@ -940,7 +969,7 @@ ocRecordings = new (function() {
   
   function bulkEditApplyMessage() {
     return "Changes will be made in " + ocUtils.sizeOf(ocRecordings.changedBulkEditFields) + 
-      " field(s) for all " + ocRecordings.numSelectedRecordings + " selected recoding(s).";
+    " field(s) for all " + ocRecordings.numSelectedRecordings + " selected recoding(s).";
   }
   
   function bulkDeleteApplyMessage() {
@@ -1159,8 +1188,14 @@ ocRecordings = new (function() {
       } else if(actions[i] === 'delete') {
         links.push('<a href="javascript:ocRecordings.removeRecording(\'' + id + '\',\'' + recording.title + '\')">Delete</a>');
       }
+      /* Due version 1.2
+      else if (actions[i] === 'publish') {
+        links.push('<a href="javascript:ocRecordings.publishRecording(\'' + id + '\',\'' + recording.title + '\')">Publish</a>');
+      } else if (actions[i] === 'unpublish') {
+        links.push('<a href="javascript:ocRecordings.unpublishRecording(\'' + id + '\',\'' + recording.title + '\')">Unpublish</a>');
+      } */
+      return links.join(' \n');
     }
-    return links.join(' \n');
   }
 
   return this;
