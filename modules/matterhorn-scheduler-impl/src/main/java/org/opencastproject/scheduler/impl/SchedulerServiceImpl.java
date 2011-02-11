@@ -415,23 +415,23 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     EntityManager em = emf.createEntityManager();
     
     if (StringUtils.isNotEmpty(filter.getCreatorFilter())) {
-      where.add("e.creator LIKE :creatorParam");
+      where.add("LOWER(e.creator) LIKE :creatorParam");
     }
     
     if (StringUtils.isNotEmpty(filter.getDeviceFilter())) {
-      where.add("e.device LIKE :deviceParam");
+      where.add("LOWER(e.device) LIKE :deviceParam");
     }
     
     if (StringUtils.isNotEmpty(filter.getTitleFilter())) {
-      where.add("e.title LIKE :titleParam");
+      where.add("LOWER(e.title) LIKE :titleParam");
     }
 
     if (StringUtils.isNotEmpty(filter.getSeriesFilter())) {
-      where.add("e.series LIKE :seriesParam");
+      where.add("LOWER(e.series) LIKE :seriesParam");
     }
     
     if (filter.getSeriesId() != null) {
-      where.add("e.seriesId = :seriesIdParam");
+      where.add("LOWER(e.seriesId) = :seriesIdParam");
     }
     
     if (filter.getStart() != null && filter.getStop() != null) { // Events intersecting start and stop
@@ -457,16 +457,16 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     TypedQuery<EventImpl> eventQuery = em.createQuery(queryBase.toString(), EventImpl.class);
 
     if (StringUtils.isNotEmpty(filter.getCreatorFilter())) {
-      eventQuery.setParameter("creatorParam", "%" + filter.getCreatorFilter() + "%");
+      eventQuery.setParameter("creatorParam", "%" + filter.getCreatorFilter().toLowerCase() + "%");
     }
     if (StringUtils.isNotEmpty(filter.getDeviceFilter())) {
-      eventQuery.setParameter("deviceParam", "%" + filter.getDeviceFilter() + "%");
+      eventQuery.setParameter("deviceParam", "%" + filter.getDeviceFilter().toLowerCase() + "%");
     }
     if (StringUtils.isNotEmpty(filter.getTitleFilter())) {
-      eventQuery.setParameter("titleParam", "%" + filter.getTitleFilter() + "%");
+      eventQuery.setParameter("titleParam", "%" + filter.getTitleFilter().toLowerCase() + "%");
     }
     if (StringUtils.isNotEmpty(filter.getSeriesFilter())) {
-      eventQuery.setParameter("seriesParam", "%" + filter.getSeriesFilter() + "%");
+      eventQuery.setParameter("seriesParam", "%" + filter.getSeriesFilter().toLowerCase() + "%");
     }
     if (filter.getSeriesId() != null) {
       eventQuery.setParameter("seriesIdParam", filter.getSeriesId());

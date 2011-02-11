@@ -259,8 +259,8 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
     EntityManager em = emf.createEntityManager();
     List<SeriesMetadataImpl> found = null;
     try {
-      Query query = em.createQuery("SELECT o FROM SeriesMetadataImpl o WHERE o.value LIKE :keyword");
-      query.setParameter("keyword", "%" + pattern + "%");
+      Query query = em.createQuery("SELECT o FROM SeriesMetadataImpl o WHERE LOWER(o.value) LIKE :keyword");
+      query.setParameter("keyword", "%" + pattern.toLowerCase() + "%");
       found = (List<SeriesMetadataImpl>) query.getResultList();
       logger.debug("Found {} values containing {}.", found.size(), pattern);
     } catch (Exception e) {

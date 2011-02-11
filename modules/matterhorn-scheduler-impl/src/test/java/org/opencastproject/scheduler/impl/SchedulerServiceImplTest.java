@@ -474,10 +474,10 @@ public class SchedulerServiceImplTest {
     Assert.assertEquals(2, events.size());
     
     events = service.getEvents(new SchedulerFilter().withCreatorFilter("PERSON B"));
-    Assert.assertEquals(1, events.size());
+    Assert.assertEquals(2, events.size());
     
     events = service.getEvents(new SchedulerFilter().withSeriesFilter("series a"));
-    Assert.assertEquals(1, events.size());
+    Assert.assertEquals(2, events.size());
   }
   
   @Test
