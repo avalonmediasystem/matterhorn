@@ -20,8 +20,6 @@ Opencast.Watch = (function ()
         coverUrlOne = "",
         coverUrlTwo = "",
         slideLength = 0;
-    var interval;
-    var intervalOn = false;
     
     /**
      * @memberOf Opencast.Watch
@@ -82,6 +80,23 @@ Opencast.Watch = (function ()
         // mimetypeTwo = "audio/x-flv";
         coverUrlOne = $('#oc-cover-presenter').html();
         coverUrlTwo = $('#oc-cover-presentation').html();
+        
+        // If URL Parameter display exists and is set to revert
+        var display = Opencast.Utils.getURLParameter('display');
+        if((display != null) && (display.toLowerCase() == 'invert'))
+        {
+            // Switch the displays and its covers
+            var tmpMediaURLOne = mediaUrlOne;
+            var tmpCoverURLOne = coverUrlOne;
+            var tmpMimetypeOne = mimetypeOne;
+            mediaUrlOne = mediaUrlTwo;
+            coverUrlOne = coverUrlTwo;
+            mimetypeOne = mimetypeTwo;
+            mediaUrlTwo = tmpMediaURLOne;
+            coverUrlTwo = tmpCoverURLOne;
+            mimetypeTwo = tmpMimetypeOne;
+        }
+        
         if (coverUrlOne === null)
         {
             coverUrlOne = coverUrlTwo;
@@ -145,6 +160,7 @@ Opencast.Watch = (function ()
         // init the segements_text
         Opencast.segments_text.initialize();
         slideLength = Opencast.segments.getSlideLength();
+            
         Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo, PLAYERSTYLE, slideLength);
         if (mediaUrlOne !== '' && mediaUrlTwo !== '')
         {
@@ -204,28 +220,23 @@ Opencast.Watch = (function ()
         });
         // Set the Controls visible
         $('#oc_video-player-controls').show();
-        
-        if (!intervalOn)
-        {
-            interval = setInterval(forwardSeconds, 250);
-            intervalOn = true;
-        }
     }
     
     /**
      * @memberOf Opencast.Watch
-     * @description Tries to forward to given Seconds if Player ready and Second set
+     * @description Checks and executes the URL Parameters 't' and 'play'
+     *              Callback if duration time has been set
      */
-    function forwardSeconds()
+    function durationSet()
     {
-        if (($('#oc_duration').text() != "Initializing") && ($('#oc_duration').text() != ""))
+        if ($('#oc_duration').text() != 'Initializing')
         {
-            var urlParamVal = Opencast.Utils.getURLParameter('t');
+            var jumpToTime = Opencast.Utils.getURLParameter('t');
             var startPlaying = Opencast.Utils.getURLParameter('play');
-            if(urlParamVal !== null)
+            if(jumpToTime !== null)
             {
                 // Parse URL Parameters (time 't') and jump to the given Seconds
-                var time = Opencast.Utils.parseSeconds(urlParamVal);
+                var time = Opencast.Utils.parseSeconds(jumpToTime);
                 Videodisplay.seek(time);
         
                 // If Autoplay set to true
@@ -234,19 +245,14 @@ Opencast.Watch = (function ()
                     // Start playing the Video
                     Videodisplay.play();
                 }
-                
-                if (intervalOn)
-                {
-                    clearInterval(interval);
-                    intervalOn = false;
-                }
             } else if((startPlaying != null) && (startPlaying.toLowerCase() === 'true'))
             {
                 // Start playing the Video
                 Videodisplay.play();
-                clearInterval(interval);
-                intervalOn = false;
             }
+        } else
+        {
+            setTimeout('durationSet()', 500);
         }
     }
     
@@ -300,6 +306,7 @@ Opencast.Watch = (function ()
         onPlayerReady: onPlayerReady,
         seekSegment: seekSegment,
         continueProcessing: continueProcessing,
+        durationSet: durationSet,
         getClientShortcuts: getClientShortcuts
     };
 }());
