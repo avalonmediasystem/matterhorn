@@ -371,6 +371,7 @@ public class WorkspaceImpl implements Workspace {
     // Cleanup
     try {
       tee.close();
+      out.close();
     } catch (IOException e) {
       logger.warn("Unable to close file stream: " + e.getLocalizedMessage());
     }
@@ -454,7 +455,8 @@ public class WorkspaceImpl implements Workspace {
       URI copyURI = wfr.getURI(toMediaPackage, toMediaPackageElement, filename);
       File copy = getWorkspaceFile(copyURI, true);
       FileUtils.forceMkdir(copy.getParentFile());
-      FileUtils.moveFile(original, copy);
+      FileUtils.copyFile(original, copy);
+      original.delete();
     }
 
     // Tell working file repository
