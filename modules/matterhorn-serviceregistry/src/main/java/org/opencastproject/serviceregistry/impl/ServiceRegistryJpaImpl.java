@@ -725,24 +725,12 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    *      org.opencastproject.job.api.Job.Status)
    */
   @Override
-  public long count(String type, Status status) throws ServiceRegistryException {
-    Query query = null;
-    EntityManager em = null;
+  public long count(String serviceType, Status status) throws ServiceRegistryException {
+    EntityManager em = emf.createEntityManager();
     try {
-      em = emf.createEntityManager();
-      if (type == null && status == null) {
-        query = em.createNamedQuery("Job.count.all");
-      } else if (type == null) {
-        query = em.createNamedQuery("Job.count.status");
-        query.setParameter("status", status);
-      } else if (status == null) {
-        query = em.createNamedQuery("Job.count.type");
-        query.setParameter("serviceType", type);
-      } else {
-        query = em.createNamedQuery("Job.count");
-        query.setParameter("status", status);
-        query.setParameter("serviceType", type);
-      }
+      Query query = em.createNamedQuery("Job.count");
+      query.setParameter("status", status);
+      query.setParameter("serviceType", serviceType);
       Number countResult = (Number) query.getSingleResult();
       return countResult.longValue();
     } catch (Exception e) {
@@ -755,17 +743,66 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#count(java.lang.String,
-   *      org.opencastproject.job.api.Job.Status, java.lang.String)
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#countByHost(java.lang.String, java.lang.String,
+   *      org.opencastproject.job.api.Job.Status)
    */
   @Override
-  public long count(String type, Status status, String host) throws ServiceRegistryException {
+  public long countByHost(String serviceType, String host, Status status) throws ServiceRegistryException {
     EntityManager em = emf.createEntityManager();
     try {
       Query query = em.createNamedQuery("Job.countByHost");
       query.setParameter("status", status);
-      query.setParameter("serviceType", type);
+      query.setParameter("serviceType", serviceType);
       query.setParameter("host", host);
+      Number countResult = (Number) query.getSingleResult();
+      return countResult.longValue();
+    } catch (Exception e) {
+      throw new ServiceRegistryException(e);
+    } finally {
+      em.close();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#countByOperation(java.lang.String, java.lang.String,
+   *      org.opencastproject.job.api.Job.Status)
+   */
+  @Override
+  public long countByOperation(String serviceType, String operation, Status status) throws ServiceRegistryException {
+    EntityManager em = emf.createEntityManager();
+    try {
+      Query query = em.createNamedQuery("Job.countByOperation");
+      query.setParameter("status", status);
+      query.setParameter("serviceType", serviceType);
+      query.setParameter("operation", operation);
+      Number countResult = (Number) query.getSingleResult();
+      return countResult.longValue();
+    } catch (Exception e) {
+      throw new ServiceRegistryException(e);
+    } finally {
+      em.close();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#count(java.lang.String, java.lang.String,
+   *      java.lang.String, org.opencastproject.job.api.Job.Status)
+   */
+  public long count(String serviceType, String host, String operation, Status status) throws ServiceRegistryException {
+    if (StringUtils.isBlank(serviceType) || StringUtils.isBlank(host) || StringUtils.isBlank(operation) || status == null)
+      throw new IllegalArgumentException("service type, host, operation, and status must be provided");
+    Query query = null;
+    EntityManager em = null;
+    try {
+      em = emf.createEntityManager();
+      query = em.createNamedQuery("Job.fullMonty");
+      query.setParameter("status", status);
+      query.setParameter("serviceType", serviceType);
+      query.setParameter("operation", operation);
       Number countResult = (Number) query.getSingleResult();
       return countResult.longValue();
     } catch (Exception e) {
@@ -1138,7 +1175,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     try {
       em = emf.createEntityManager();
       query = em.createNamedQuery("HostRegistration.cores");
-      return ((Number)query.getSingleResult()).intValue();
+      return ((Number) query.getSingleResult()).intValue();
     } catch (Exception e) {
       throw new ServiceRegistryException(e);
     } finally {

@@ -675,17 +675,39 @@ public class ServiceRegistryRemoteImpl implements ServiceRegistry {
    */
   @Override
   public long count(String serviceType, Status status) throws ServiceRegistryException {
-    return count(serviceType, status, null);
+    return count(serviceType, null, null, status);
   }
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#count(java.lang.String,
-   *      org.opencastproject.job.api.Job.Status, java.lang.String)
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#countByHost(java.lang.String, java.lang.String,
+   *      org.opencastproject.job.api.Job.Status)
    */
   @Override
-  public long count(String serviceType, Status status, String host) throws ServiceRegistryException {
+  public long countByHost(String serviceType, String host, Status status) throws ServiceRegistryException {
+    return count(serviceType, host, null, status);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#countByOperation(java.lang.String, java.lang.String,
+   *      org.opencastproject.job.api.Job.Status)
+   */
+  @Override
+  public long countByOperation(String serviceType, String operation, Status status) throws ServiceRegistryException {
+    return count(serviceType, null, operation, status);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#count(java.lang.String, java.lang.String,
+   *      java.lang.String, org.opencastproject.job.api.Job.Status)
+   */
+  @Override
+  public long count(String serviceType, String host, String operation, Status status) throws ServiceRegistryException {
     if (isBlank(serviceType)) {
       throw new IllegalArgumentException("Service type must not be null");
     }
@@ -695,6 +717,9 @@ public class ServiceRegistryRemoteImpl implements ServiceRegistry {
     }
     if (StringUtils.isNotBlank(host)) {
       queryStringBuilder.add("host", host);
+    }
+    if (StringUtils.isNotBlank(operation)) {
+      queryStringBuilder.add("operation", operation);
     }
     String servicePath = queryStringBuilder.toString();
     HttpGet get = new HttpGet(UrlSupport.concat(serviceURL, servicePath));

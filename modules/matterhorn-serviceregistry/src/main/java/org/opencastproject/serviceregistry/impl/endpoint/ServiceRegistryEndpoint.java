@@ -322,21 +322,25 @@ public class ServiceRegistryEndpoint {
   @Path("/count")
   @Produces(MediaType.TEXT_PLAIN)
   public long count(@QueryParam("serviceType") String serviceType, @QueryParam("status") Job.Status status,
-          @QueryParam("host") String host) {
+          @QueryParam("host") String host, @QueryParam("operation") String operation) {
     if (isBlank(serviceType)) {
       throw new WebApplicationException(Response.serverError().entity("Service type must not be null").build());
     }
     try {
-      if (isBlank(host)) {
-        return serviceRegistry.count(serviceType, status);
+      if (isNotBlank(host) && isNotBlank(operation)) {
+        return serviceRegistry.count(serviceType, host, operation, status);
+      } else if (isNotBlank(host)) {
+        return serviceRegistry.countByHost(serviceType, host, status);
+      } else if (isNotBlank(operation)) {
+        return serviceRegistry.countByOperation(serviceType, operation, status);
       } else {
-        return serviceRegistry.count(serviceType, status, host);
+        return serviceRegistry.count(serviceType, status);
       }
     } catch (ServiceRegistryException e) {
       throw new WebApplicationException(e);
     }
   }
-  
+
   @GET
   @Path("/maxconcurrentjobs")
   @Produces(MediaType.TEXT_PLAIN)
@@ -437,6 +441,7 @@ public class ServiceRegistryEndpoint {
     countEndpoint.addOptionalParam(new Param("status", Type.STRING, "FINISHED",
             "The job status: QUEUED, RUNNING, FINISHED, or FAILED"));
     countEndpoint.addOptionalParam(new Param("host", Type.STRING, serverUrl, "The host's base URL for this service"));
+    countEndpoint.addOptionalParam(new Param("operation", Type.STRING, null, "The operation name"));
     countEndpoint.addFormat(new Format("plain", null, null));
     countEndpoint.addStatus(org.opencastproject.util.doc.Status
             .ok("The number of jobs matching the request criteria has been returned in the http body."));

@@ -1201,20 +1201,22 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   @Override
   public boolean isReadyToAccept(Job job) throws ServiceRegistryException {
     String operation = job.getOperation();
-    if (Operation.START_WORKFLOW.toString().equals(operation) && maxConcurrentWorkflows > 0) {
+    if (Operation.START_WORKFLOW.toString().equals(operation)) {
       long runningWorkflows;
       try {
-        runningWorkflows = this.countWorkflowInstances(RUNNING, null);
-      } catch (WorkflowDatabaseException e) {
+        runningWorkflows = serviceRegistry.countByOperation(JOB_TYPE, Operation.START_WORKFLOW.toString(), Job.Status.RUNNING);
+      } catch (ServiceRegistryException e) {
         logger.warn("Unable to determine the number of running workflows", e);
         return false;
       }
       
+      // If no hard maximum has been configured, ask the service registry for the number of cores in the system 
       int maxWorkflows = maxConcurrentWorkflows;
       if (maxWorkflows < 1) {
         maxWorkflows = serviceRegistry.getMaxConcurrentJobs();
       }
-      
+
+      // Reject if there's enough going on already
       if (runningWorkflows >= maxWorkflows) {
         logger.debug("Refused to accept dispatched job '{}'. This server is already running {} workflows.", job,
                 runningWorkflows);

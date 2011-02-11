@@ -69,7 +69,7 @@ public class JaxbJob implements Job {
     this.createdHost = job.getCreatedHost();
     this.id = job.getId();
     this.jobType = job.getJobType();
-    this.operationType = job.getOperation();
+    this.operation = job.getOperation();
     this.arguments = job.getArguments();
     this.status = job.getStatus();
     this.context = new JaxbJobContext(job.getContext());
@@ -87,7 +87,7 @@ public class JaxbJob implements Job {
   protected String jobType;
 
   /** The operation type */
-  protected String operationType;
+  protected String operation;
 
   /** The arguments passed to the service operation */
   protected List<String> arguments;
@@ -219,7 +219,7 @@ public class JaxbJob implements Job {
   @XmlElement
   @Override
   public String getOperation() {
-    return operationType;
+    return operation;
   }
 
   /**
@@ -229,7 +229,7 @@ public class JaxbJob implements Job {
    */
   @Override
   public void setOperation(String operation) {
-    this.operationType = operation;
+    this.operation = operation;
   }
 
   /**

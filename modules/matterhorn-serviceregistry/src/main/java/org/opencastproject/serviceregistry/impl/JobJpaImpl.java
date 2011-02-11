@@ -76,14 +76,20 @@ import javax.xml.bind.annotation.XmlType;
         // Job count queries
         @NamedQuery(name = "Job.count", query = "SELECT COUNT(j) FROM Job j "
                 + "where j.status = :status and j.creatorServiceRegistration.serviceType = :serviceType"),
-        @NamedQuery(name = "Job.count.type", query = "SELECT COUNT(j) FROM Job j "
-                + "where j.creatorServiceRegistration.serviceType = :serviceType"),
-        @NamedQuery(name = "Job.count.status", query = "SELECT COUNT(j) FROM Job j " + "where j.status = :status "),
-        @NamedQuery(name = "Job.count.all", query = "SELECT COUNT(j) FROM Job j"),
         @NamedQuery(name = "Job.countByHost", query = "SELECT COUNT(j) FROM Job j "
                 + "where j.status = :status and j.processorServiceRegistration is not null and "
                 + "j.processorServiceRegistration.serviceType = :serviceType and "
-                + "j.creatorServiceRegistration.hostRegistration.baseUrl = :host") })
+                + "j.creatorServiceRegistration.hostRegistration.baseUrl = :host"),
+        @NamedQuery(name = "Job.countByOperation", query = "SELECT COUNT(j) FROM Job j "
+                + "where j.status = :status and j.operation = :operation and "
+                + "j.creatorServiceRegistration.serviceType = :serviceType"),
+        @NamedQuery(name = "Job.fullMonty", query = "SELECT COUNT(j) FROM Job j "
+                + "where j.status = :status and j.operation = :operation "
+                + "and j.processorServiceRegistration is not null and "
+                + "j.processorServiceRegistration.serviceType = :serviceType and "
+                + "j.creatorServiceRegistration.hostRegistration.baseUrl = :host")
+
+})
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "job", namespace = "http://job.opencastproject.org/")
 @XmlRootElement(name = "job", namespace = "http://job.opencastproject.org/")
@@ -98,7 +104,7 @@ public class JobJpaImpl extends JaxbJob {
   /** The service that is processing, or processed, this job */
   protected ServiceRegistrationJpaImpl processorServiceRegistration;
 
-//  @ManyToMany(mappedBy = "root_id", fetch = FetchType.EAGER)
+  // @ManyToMany(mappedBy = "root_id", fetch = FetchType.EAGER)
   protected List<JobPropertyJpaImpl> properties;
 
   /** The job context, to be created after loading by JPA */
@@ -122,7 +128,7 @@ public class JobJpaImpl extends JaxbJob {
   public JobJpaImpl(ServiceRegistrationJpaImpl creatorServiceRegistration, String operation, List<String> arguments,
           String payload, boolean queueImmediately) {
     this();
-    this.operationType = operation;
+    this.operation = operation;
     this.context = new JaxbJobContext();
     if (arguments != null) {
       this.arguments = new ArrayList<String>(arguments);
@@ -200,7 +206,7 @@ public class JobJpaImpl extends JaxbJob {
   @XmlAttribute
   @Override
   public String getOperation() {
-    return operationType;
+    return operation;
   }
 
   /**
@@ -425,7 +431,8 @@ public class JobJpaImpl extends JaxbJob {
   /**
    * @return the properties
    */
-  @Transient // TODO: remove to re-enable job context properties
+  @Transient
+  // TODO: remove to re-enable job context properties
   public List<JobPropertyJpaImpl> getProperties() {
     return properties;
   }

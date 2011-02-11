@@ -19,7 +19,6 @@ import org.opencastproject.dictionary.api.DictionaryService;
 import org.opencastproject.dictionary.api.DictionaryService.DICT_TOKEN;
 import org.opencastproject.job.api.AbstractJobProducer;
 import org.opencastproject.job.api.Job;
-import org.opencastproject.job.api.Job.Status;
 import org.opencastproject.mediapackage.Attachment;
 import org.opencastproject.mediapackage.Catalog;
 import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
@@ -219,49 +218,6 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
     } catch (Exception e) {
       throw new ServiceRegistryException("Error handling operation '" + op + "'", e);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.opencastproject.job.api.JobProducer#getJob(long)
-   */
-  public Job getJob(long id) throws NotFoundException, ServiceRegistryException {
-    return serviceRegistry.getJob(id);
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.opencastproject.job.api.JobProducer#getJobType()
-   */
-  @Override
-  public String getJobType() {
-    return JOB_TYPE;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.opencastproject.job.api.JobProducer#countJobs(org.opencastproject.job.api.Job.Status)
-   */
-  public long countJobs(Status status) throws ServiceRegistryException {
-    if (status == null)
-      throw new IllegalArgumentException("status must not be null");
-    return serviceRegistry.count(JOB_TYPE, status);
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.opencastproject.job.api.JobProducer#countJobs(org.opencastproject.job.api.Job.Status, java.lang.String)
-   */
-  public long countJobs(Status status, String host) throws ServiceRegistryException {
-    if (status == null)
-      throw new IllegalArgumentException("status must not be null");
-    if (host == null)
-      throw new IllegalArgumentException("host must not be null");
-    return serviceRegistry.count(JOB_TYPE, status, host);
   }
 
   /**

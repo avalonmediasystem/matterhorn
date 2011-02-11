@@ -478,30 +478,36 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
    */
   @Override
   public long count(String serviceType, Status status) throws ServiceRegistryException {
-    int count = 0;
-    synchronized (jobs) {
-      for (String serializedJob : jobs.values()) {
-        Job job = null;
-        try {
-          job = JobParser.parseJob(serializedJob);
-        } catch (IOException e) {
-          throw new IllegalStateException("Error unmarshaling job", e);
-        }
-        if (serviceType.equals(job.getJobType()) && status.equals(job.getStatus()))
-          count++;
-      }
-    }
-    return count;
+    return count(serviceType, null, null, status);
   }
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#count(java.lang.String,
-   *      org.opencastproject.job.api.Job.Status, java.lang.String)
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#countByOperation(java.lang.String, java.lang.String,
+   *      org.opencastproject.job.api.Job.Status)
    */
-  @Override
-  public long count(String serviceType, Status status, String host) throws ServiceRegistryException {
+  public long countByOperation(String serviceType, String operation, Status status) throws ServiceRegistryException {
+    return count(serviceType, null, operation, status);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#countByHost(java.lang.String, java.lang.String,
+   *      org.opencastproject.job.api.Job.Status)
+   */
+  public long countByHost(String serviceType, String host, Status status) throws ServiceRegistryException {
+    return count(serviceType, host, null, status);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.serviceregistry.api.ServiceRegistry#count(java.lang.String, java.lang.String,
+   *      java.lang.String, org.opencastproject.job.api.Job.Status)
+   */
+  public long count(String serviceType, String host, String operation, Status status) throws ServiceRegistryException {
     int count = 0;
     synchronized (jobs) {
       for (String serializedJob : jobs.values()) {
@@ -511,8 +517,15 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
         } catch (IOException e) {
           throw new IllegalStateException("Error unmarshaling job", e);
         }
-        if (serviceType.equals(job.getJobType()) && status.equals(job.getStatus()))
-          count++;
+        if (serviceType != null && !serviceType.equals(job.getJobType()))
+          continue;
+        if (host != null && !host.equals(job.getProcessingHost()))
+          continue;
+        if (operation != null && !operation.equals(job.getOperation()))
+          continue;
+        if (status != null && !status.equals(job.getStatus()))
+          continue;
+        count++;
       }
     }
     return count;
@@ -607,6 +620,7 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.opencastproject.serviceregistry.api.ServiceRegistry#getMaxConcurrentJobs()
    */
   @Override
