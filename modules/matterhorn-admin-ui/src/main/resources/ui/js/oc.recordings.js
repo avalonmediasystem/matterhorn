@@ -87,7 +87,8 @@ ocRecordings = new (function() {
           }
         }
       }
-    } catch (e) {
+    }
+    catch (e) {
       alert('Unable to parse url parameters:\n' + e.toString());
     }
 
@@ -369,8 +370,7 @@ ocRecordings = new (function() {
       this.actions.push('delete');
     } else if (this.state == 'Finished') {
       this.actions.push('play');
-      this.actions.push('delete');
-      this.actions.push('publish');
+      //this.actions.push('publish');
       this.actions.push('unpublish');
     } else if (this.state == 'Failed') {
       this.actions.push('delete');
@@ -832,23 +832,27 @@ ocRecordings = new (function() {
   this.publishRecording = function(wfId) {
     var workflow = ocRecordings.getWorkflow(id);
     if (workflow) {
-
-      /*var mpId = workflow.mediapackage.id;
+      var mpId = workflow.mediapackage.id;
       var mpTitle = workflow.mediapackge.title;
+      var mpXML = ""; // TODO get MediaPackage XML
       $.ajax({
         url : SEARCH_URL + "/add",
         type : 'POST',
-        data : {mediapackage : mpXML},
-
-      });*/
+        data : {
+          mediapackage : mpXML
+        },
+        error : function(xhr) {
+        // TODO: react on 204 -> success , 404 -> failure
+        }
+      });
     }
   }
 
   this.unpublishRecording = function(wfId) {
-    var workflow = ocRecordings.getWorkflow(id);
+    var workflow = ocRecordings.getWorkflow(wfId);
     if (workflow) {
       var mpId = workflow.mediapackage.id;
-      var mpTitle = workflow.mediapackge.title;
+      var mpTitle = workflow.mediapackage.title;
       $.ajax({
         url : SEARCH_URL + '/' + mpId,
         type : 'DELETE',
@@ -856,7 +860,7 @@ ocRecordings = new (function() {
           if (xhr.status == '204') {
             alert("The following Recording was removed from Matterhorn Media Module:\n" + mpTitle);
           } else {
-            alert('Error: The Recording could not be removed from Matterhorn Media Module!');
+            alert("The recording was not removed from Metterhorn Media Module,\nmaybe it has already been remnoved.");
           }
         }
       });
@@ -1172,31 +1176,31 @@ ocRecordings = new (function() {
   $(document).ready(this.init);
 
   this.makeActions = function(recording, actions) {
-    var id = recording.id
+    var id = recording.id;
     var links = [];
-    for(i in actions){
-      if(actions[i] === 'view') {
+    $.each(actions, function(index, action) {
+      if (action == 'view') {
         links.push('<a href="viewinfo.html?id=' + id + '">View Info</a>');
-      } else if(actions[i] === 'edit') {
+
+      } else if (action == 'edit') {
         links.push('<a href="scheduler.html?eventId=' + id + '&edit=true">Edit</a>');
-      } else if(actions[i] === 'play') {
+
+      } else if (action == 'play') {
         var workflow = ocRecordings.getWorkflow(id);
         if (workflow) {
           var mpId = workflow.mediapackage.id;
           links.push('<a href="../engage/ui/watch.html?id=' + mpId + '">Play</a>');
         }
-      } else if(actions[i] === 'delete') {
-        links.push('<a href="javascript:ocRecordings.removeRecording(\'' + id + '\',\'' + recording.title + '\')">Delete</a>');
-      }
-      /* Due version 1.2
-      else if (actions[i] === 'publish') {
-        links.push('<a href="javascript:ocRecordings.publishRecording(\'' + id + '\',\'' + recording.title + '\')">Publish</a>');
-      } else if (actions[i] === 'unpublish') {
-        links.push('<a href="javascript:ocRecordings.unpublishRecording(\'' + id + '\',\'' + recording.title + '\')">Unpublish</a>');
-      } */
-      return links.join(' \n');
-    }
-  }
 
+      } else if (action == 'delete') {
+        links.push('<a href="javascript:ocRecordings.removeRecording(\'' + id + '\',\'' + recording.title + '\')">Delete</a>');
+        
+      } else if (action == 'unpublish') {
+        links.push('<a href="javascript:ocRecordings.unpublishRecording(\'' + id + '\')">Unpublish</a>');
+      }
+    });
+    return links.join(' \n');
+  }
+  
   return this;
 })();
