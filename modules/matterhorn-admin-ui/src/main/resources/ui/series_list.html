@@ -127,8 +127,9 @@
               <td class="ui-widget-content">${series.creator}</td>
               <td class="ui-widget-content">${series.contributor}</td>
               <td class="ui-widget-content">
-                <a href="series.html?seriesId=${series.id}&edit=true">Edit</a><br/>
-                <a href="javascript:ocSeriesList.deleteSeries('${series.id}', '${series.title}');">Delete</a>
+                <!-- <a href="series.html?seriesId=${series.id}&edit=true">Edit</a><br/> -->
+                <!-- <a href="javascript:ocSeriesList.deleteSeries('${series.id}', '${series.title}');">Delete</a> -->
+                <a href="viewseries.html?id=${series.id}">View Series</a>
               </td>
             </tr>
             {forelse}
