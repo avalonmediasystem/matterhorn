@@ -321,7 +321,18 @@ ocUpload.showHelpBox = function(help,top,left) {
 ocUpload.showProgressStage = function() {
   //$('#gray-out').fadeIn('fast');
   $('#grayOut').css('display','block');
-  $('#progressStage').show();
+  $('#progressStage').dialog(
+  {
+    modal: true,
+    width: 850,
+    height: 'auto',
+    position: [20, 'center'],
+    title: 'File uploading...',
+    resizable: false,
+    draggable: false,
+    disabled: true
+  });
+
 }
 
 /** Restore view
@@ -329,7 +340,7 @@ ocUpload.showProgressStage = function() {
  */
 ocUpload.hideProgressStage = function() {
   $('#grayOut').hide();
-  $('#progressStage').hide();
+  $('#progressStage').dialog('close');
 }
 
 /** Set the progress view to a certain state
