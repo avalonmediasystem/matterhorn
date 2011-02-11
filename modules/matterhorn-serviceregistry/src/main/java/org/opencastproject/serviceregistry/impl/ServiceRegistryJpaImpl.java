@@ -1028,7 +1028,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         // In theory, we should catch javax.persistence.OptimisticLockException. Unfortunately, eclipselink throws
         // org.eclipse.persistence.exceptions.OptimisticLockException. In order to avoid importing the implementation
         // specific APIs, we just catch Exception.
-        logger.info("Unable to dispatch {}.  This is likely caused by another service registry dispatching the job",
+        logger.debug("Unable to dispatch {}.  This is likely caused by another service registry dispatching the job",
                 job);
         return null;
       }
@@ -1063,7 +1063,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         if (responseStatusCode == HttpStatus.SC_NO_CONTENT) {
           return registration.getHost();
         } else if (responseStatusCode == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-          logger.info("Service {} refused to accept {}", registration, job);
+          logger.debug("Service {} refused to accept {}", registration, job);
           continue;
         } else {
           logger.warn("Service {} failed ({}) accepting {}", new Object[] { registration, responseStatusCode, job });

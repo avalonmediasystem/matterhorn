@@ -62,7 +62,7 @@ public abstract class AbstractJobProducerEndpoint {
       service.acceptJob(job);
       return Response.noContent().build();
     } else {
-      logger.warn("Service {} refused to accept job {}", service, job);
+      logger.debug("Service {} refused to accept job {}", service, job);
       throw new WebApplicationException(Status.SERVICE_UNAVAILABLE);
     }
   }
