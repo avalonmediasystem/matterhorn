@@ -41,7 +41,7 @@ import java.util.Properties;
 public class AudioFilesinkConsumerTest {
 
   /** Capture Device Properties created for unit testing **/
-  CaptureDevice captureDevice = null;
+  private CaptureDevice captureDevice = null;
 
   /** True to run the tests */
   private static boolean gstreamerInstalled = true;
@@ -69,7 +69,7 @@ public class AudioFilesinkConsumerTest {
   }
 
   @Before
-  public void setup() throws ConfigurationException, IOException, URISyntaxException {
+  public void setUp() throws ConfigurationException, IOException, URISyntaxException {
     if (!gstreamerInstalled)
       return;
     try {

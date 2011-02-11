@@ -27,8 +27,8 @@ import java.util.Properties;
  * PipelineTestHelpers is a collection of handy helper functions for setting up tests that are common to many of the
  * tests.
  */
-public class PipelineTestHelpers {
-  
+public final class PipelineTestHelpers {
+
   /** TODO Remove this in favor of test parameters. **/
   public static final String V4L_LOCATION = "/dev/vga";
   public static final String V4L2_LOCATION = "/dev/video2";
@@ -37,6 +37,10 @@ public class PipelineTestHelpers {
   /** The cached name of the operating system. **/
   private static String operatingSystemName = null;
 
+  private PipelineTestHelpers() {
+    
+  }
+  
   /** Returns a string of the operating system. **/
   public static String getOsName() {
     if (operatingSystemName == null) {
@@ -61,16 +65,25 @@ public class PipelineTestHelpers {
    * @param captureDevice
    *          The capture device specific properties such as location of the source to capture from, the friendly name
    *          of the capture device etc.
-   * @param customProducer The optional custom pipeline that specifies a device to capture from. 
-   * @param codec The codec to encode the output media to. 
-   * @param bitrate The bitrate to capture from the source. 
-   * @param quantizer If the codec is x264, what level to set the quantizer to. 
-   * @param container The container to dump the codec to. 
-   * @param bufferCount The number of buffers that the queue will have. 
-   * @param bufferBytes The number of bytes that each queue will have. 
-   * @param bufferTime The maxiumum amount of time that the media can be inside the queue. 
-   * @param framerate The framerate of the video. 
-   * @return A Properties file with all of the properties needed to test the agent. 
+   * @param customProducer
+   *          The optional custom pipeline that specifies a device to capture from.
+   * @param codec
+   *          The codec to encode the output media to.
+   * @param bitrate
+   *          The bitrate to capture from the source.
+   * @param quantizer
+   *          If the codec is x264, what level to set the quantizer to.
+   * @param container
+   *          The container to dump the codec to.
+   * @param bufferCount
+   *          The number of buffers that the queue will have.
+   * @param bufferBytes
+   *          The number of bytes that each queue will have.
+   * @param bufferTime
+   *          The maxiumum amount of time that the media can be inside the queue.
+   * @param framerate
+   *          The framerate of the video.
+   * @return A Properties file with all of the properties needed to test the agent.
    */
   public static Properties createCaptureDeviceProperties(CaptureDevice captureDevice, String customProducer,
           String codec, String bitrate, String quantizer, String container, String framerate) {
@@ -101,9 +114,10 @@ public class PipelineTestHelpers {
       properties.setProperty("bufferTime", bufferTime);
     return properties;
   }
-  
+
   /**
-   * Creates a CaptureDevice object along with its properties. 
+   * Creates a CaptureDevice object along with its properties.
+   * 
    * @param sourceLocation
    * @param sourceDeviceName
    * @param friendlyName
@@ -126,7 +140,7 @@ public class PipelineTestHelpers {
     properties.setProperty(CaptureParameters.CAPTURE_CONFIDENCE_VIDEO_LOCATION, "/tmp/testpipe/confidence");
     return properties;
   }
-  
+
   public static boolean testGstreamerElement(String element) {
     try {
       GStreamerElementFactory.getInstance().createElement("Element Creation Test", element, null);

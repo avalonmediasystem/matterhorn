@@ -51,10 +51,10 @@ public class CaptureDeviceBinTest {
 
   private static final int SLEEP_TIME = 1500;
 
-  CaptureAgent captureAgentMock;
+  private CaptureAgent captureAgentMock;
 
   /** Capture Device Properties created for unit testing **/
-  CaptureDevice captureDevice = null;
+  private CaptureDevice captureDevice = null;
 
   /** Properties specifically designed for unit testing */
   private static Properties properties = null;
@@ -80,7 +80,7 @@ public class CaptureDeviceBinTest {
   }
 
   @Before
-  public void setup() throws ConfigurationException, IOException, URISyntaxException {
+  public void setUp() throws ConfigurationException, IOException, URISyntaxException {
     if (!gstreamerInstalled)
       return;
 

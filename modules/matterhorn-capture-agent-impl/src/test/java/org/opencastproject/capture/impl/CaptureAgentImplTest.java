@@ -73,7 +73,7 @@ public class CaptureAgentImplTest {
   }
 
   @Before
-  public void setup() throws ConfigurationException, IOException, URISyntaxException {
+  public void setUp() throws ConfigurationException, IOException, URISyntaxException {
     if (!gstreamerInstalled)
       return;
     // Create the configuration manager
@@ -141,7 +141,7 @@ public class CaptureAgentImplTest {
     // affirm the captured media exists in the appropriate location
     String[] devnames = config.getItem(CaptureParameters.CAPTURE_DEVICE_NAMES).split(",");
     Assert.assertTrue(devnames.length >= 1);
-    Assert.assertFalse(devnames[0].equals(""));
+    Assert.assertFalse("".equals(devnames[0]));
 
     for (String devname : devnames) {
       File outputfile = new File(outputdir, config.getItem(CaptureParameters.CAPTURE_DEVICE_PREFIX + devname

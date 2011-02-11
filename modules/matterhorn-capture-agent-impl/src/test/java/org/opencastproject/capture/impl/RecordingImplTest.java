@@ -35,13 +35,13 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 public class RecordingImplTest {
-  RecordingImpl rec = null;
-  ConfigurationManager configManager = null;
+  private RecordingImpl rec = null;
+  private ConfigurationManager configManager = null;
 
-  File testDir = null;
+  private File testDir = null;
 
   @Before
-  public void setup() throws org.osgi.service.cm.ConfigurationException, IOException {
+  public void setUp() throws org.osgi.service.cm.ConfigurationException, IOException {
     // Setup the configuration manager
     configManager = new ConfigurationManager();
     Properties sourceProps = new Properties();
@@ -59,7 +59,7 @@ public class RecordingImplTest {
   }
 
   @After
-  public void teardown() {
+  public void tearDown() {
     rec = null;
     FileUtils.deleteQuietly(testDir);
   }

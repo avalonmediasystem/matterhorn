@@ -46,21 +46,19 @@ import java.util.List;
 import java.util.Properties;
 
 public class SchedulerImplTest {
-  SchedulerImpl schedulerImpl = null;
-  ConfigurationManager configurationManager = null;
-  Properties schedulerProperties = null;
-  CaptureAgentImpl captureAgentImpl = null;
-  SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
-  WaitForState waiter = null;
+  private SchedulerImpl schedulerImpl = null;
+  private ConfigurationManager configurationManager = null;
+  private Properties schedulerProperties = null;
+  private CaptureAgentImpl captureAgentImpl = null;
+  private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
 
   @Before
-  public void setup() {
+  public void setUp() {
     Properties properties = setupCaptureProperties();
     setupConfigurationManager(properties);
     setupCaptureAgentImpl();
     setupSchedulerProperties();
     setupSchedulerImpl();
-    setupWaiter();
   }
 
   private Properties setupCaptureProperties() {
@@ -119,10 +117,6 @@ public class SchedulerImplTest {
     }
   }
 
-  private void setupWaiter() {
-    waiter = new WaitForState();
-  }
-
   @AfterClass
   public static void afterClass() {
     FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "capture-sched-test"));
@@ -134,7 +128,6 @@ public class SchedulerImplTest {
     schedulerImpl = null;
     configurationManager = null;
     schedulerProperties = null;
-    waiter = null;
   }
 
   private String formatDate(Date d, long offset) {
@@ -200,8 +193,8 @@ public class SchedulerImplTest {
     offset += 1 * CaptureParameters.MINUTES * CaptureParameters.MILLISECONDS;
     // Start time #3, event will be too short
     times[6] = formatDate(d, offset);
-    offset += 1 * CaptureParameters.MINUTES * CaptureParameters.MILLISECONDS - 
-                1 /* second */* CaptureParameters.MILLISECONDS;
+    offset += 1 * CaptureParameters.MINUTES * CaptureParameters.MILLISECONDS - 1 /* second */
+            * CaptureParameters.MILLISECONDS;
     // End time # 5
     times[7] = formatDate(d, offset);
     return times;

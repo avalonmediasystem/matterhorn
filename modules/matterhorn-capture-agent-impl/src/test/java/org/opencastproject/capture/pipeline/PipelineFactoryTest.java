@@ -60,7 +60,7 @@ public class PipelineFactoryTest {
   private File fakeCaptureDevice = new File(System.getProperty("java.io.tmpdir"), "fakeCapture");
   private int numberOfProducers;
   private String deviceNames;
-  
+
   @BeforeClass
   public static void setupClass() {
     try {
@@ -123,10 +123,10 @@ public class PipelineFactoryTest {
     properties = new Properties();
     File testCaptureDirectory = new File(System.getProperty("java.io.tmpdir"), "pipeline-factory-test");
     FileUtils.forceMkdir(testCaptureDirectory);
-    Assert.assertTrue("Can't read from test directory " + testCaptureDirectory.getAbsolutePath(), testCaptureDirectory
-            .canRead());
-    Assert.assertTrue("Can't write to test directory " + testCaptureDirectory.getAbsolutePath(), testCaptureDirectory
-            .canWrite());
+    Assert.assertTrue("Can't read from test directory " + testCaptureDirectory.getAbsolutePath(),
+            testCaptureDirectory.canRead());
+    Assert.assertTrue("Can't write to test directory " + testCaptureDirectory.getAbsolutePath(),
+            testCaptureDirectory.canWrite());
     properties.put("org.opencastproject.storage.dir", testCaptureDirectory.getAbsolutePath());
     properties.setProperty(CaptureParameters.RECORDING_ROOT_URL, testCaptureDirectory.getAbsolutePath());
     numberOfProducers = 0;
@@ -216,7 +216,6 @@ public class PipelineFactoryTest {
       return;
     // if we have something to test
     if (!devices.isEmpty()) {
-      CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
       String deviceNames = setupCaptureDevices();
       String extraDevice = "Extra Device";
       properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + extraDevice
@@ -242,7 +241,7 @@ public class PipelineFactoryTest {
     }
     return deviceNames;
   }
-  
+
   private boolean addProducerTypeDeviceToPropertiesWithSourceLocation(String elementType, ProducerType producerType) {
     boolean canCreateElement = addProducerTypeDeviceToPropertiesWithoutSourceLocation(elementType, producerType);
     if (canCreateElement) {
@@ -290,7 +289,7 @@ public class PipelineFactoryTest {
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.AUDIOTESTSRC, ProducerType.AUDIOTESTSRC);
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.ALSASRC, ProducerType.ALSASRC);
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.PULSESRC, ProducerType.PULSESRC);
-    
+
     // Devices that need a source
     addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.V4LSRC, ProducerType.V4LSRC);
     addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.V4L2SRC, ProducerType.V4L2SRC);
@@ -304,7 +303,7 @@ public class PipelineFactoryTest {
     Pipeline pipeline = PipelineFactory.create(properties, false, captureAgentMock);
     Assert.assertEquals(numberOfProducers, pipeline.getElements().size());
   }
-  
+
   @Test
   public void pipelineFactoryWillCrashWhenMissingSrcLocations() {
     if (!gstreamerInstalled || !PipelineTestHelpers.isLinux())
@@ -319,7 +318,7 @@ public class PipelineFactoryTest {
     addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.AUDIOTESTSRC,ProducerType.AUDIOTESTSRC);
     addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.ALSASRC, ProducerType.ALSASRC);
     addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.PULSESRC, ProducerType.PULSESRC);
-    
+
     // Devices that need a source
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.V4LSRC, ProducerType.V4LSRC);
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.V4L2SRC, ProducerType.V4L2SRC);
@@ -330,7 +329,7 @@ public class PipelineFactoryTest {
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.FILESRC, ProducerType.FILE);
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.DV1394SRC, ProducerType.DV_1394);
     properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, deviceNames);
-    
+
     Pipeline pipeline = PipelineFactory.create(properties, false, captureAgentMock);
     for (Element element : pipeline.getElements()) {
       Bin bin = (Bin)element;
@@ -340,7 +339,7 @@ public class PipelineFactoryTest {
             .getElements().size() == numberOfProducers);
     logger.info("This should be the end of the \"Can't find source file or device\" exceptions.");
   }
-  
+
   /*
    * @Test public void testWithInvalidFileSource() { Properties properties = new Properties();
    * properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, "INVALID");

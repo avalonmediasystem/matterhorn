@@ -15,9 +15,6 @@
  */
 package org.opencastproject.capture.pipeline.bins.consumers;
 
-import static org.easymock.EasyMock.createMock;
-
-import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.pipeline.PipelineTestHelpers;
 import org.opencastproject.capture.pipeline.bins.CaptureDevice;
 import org.opencastproject.capture.pipeline.bins.CaptureDeviceBinTest;
@@ -44,10 +41,8 @@ import java.util.Properties;
 
 public class ConsumerFactoryTest {
 
-  CaptureAgent captureAgentMock;
-
   /** Capture Device Properties created for unit testing **/
-  CaptureDevice captureDevice = null;
+  private CaptureDevice captureDevice = null;
 
   /** Properties specifically designed for unit testing */
   private static Properties properties = null;
@@ -69,11 +64,9 @@ public class ConsumerFactoryTest {
   }
 
   @Before
-  public void setup() throws ConfigurationException, IOException, URISyntaxException {
+  public void setUp() throws ConfigurationException, IOException, URISyntaxException {
     if (!gstreamerInstalled)
       return;
-
-    captureAgentMock = createMock(CaptureAgent.class);
 
     Properties captureDeviceProperties = PipelineTestHelpers.createCaptureDeviceProperties(captureDevice, null, null,
             null, null, null, null);

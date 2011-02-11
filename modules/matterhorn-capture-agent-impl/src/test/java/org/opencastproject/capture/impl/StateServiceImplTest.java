@@ -44,7 +44,7 @@ public class StateServiceImplTest {
   }
 
   @Before
-  public void setup() {
+  public void setUp() {
     service = new CaptureAgentImpl();
     Assert.assertNotNull(service);
 
@@ -62,7 +62,7 @@ public class StateServiceImplTest {
   }
 
   @After
-  public void teardown() {
+  public void tearDown() {
     service.deactivate();
     service = null;
   }

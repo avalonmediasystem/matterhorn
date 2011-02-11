@@ -213,7 +213,6 @@ public class EpiphanVGA2USBV4LProducer extends V4LProducer {
    */
   @Override
   protected void createElements() throws UnableToCreateElementException {
-    GStreamerElements elements;
     src = (AppSrc) GStreamerElementFactory.getInstance().createElement(captureDevice.getFriendlyName(),
             GStreamerElements.APPSRC, captureDevice.getFriendlyName() + "_appsrc");
     identity = GStreamerElementFactory.getInstance().createElement(captureDevice.getFriendlyName(),

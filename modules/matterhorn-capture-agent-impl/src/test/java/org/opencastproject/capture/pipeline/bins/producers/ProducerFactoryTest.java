@@ -45,10 +45,10 @@ import java.util.Properties;
 @Ignore
 public class ProducerFactoryTest {
 
-  CaptureAgent captureAgentMock;
+  private CaptureAgent captureAgentMock;
 
   /** Capture Device Properties created for unit testing **/
-  CaptureDevice captureDevice = null;
+  private CaptureDevice captureDevice = null;
 
   /** Properties specifically designed for unit testing */
   private static Properties properties = null;
@@ -72,7 +72,7 @@ public class ProducerFactoryTest {
   }
 
   @Before
-  public void setup() throws ConfigurationException, IOException, URISyntaxException {
+  public void setUp() throws ConfigurationException, IOException, URISyntaxException {
     if (!gstreamerInstalled)
       return;
 
@@ -213,6 +213,7 @@ public class ProducerFactoryTest {
       captureDevice = PipelineTestHelpers.createCaptureDevice("/woot!/video0",
               ProducerType.HAUPPAUGE_WINTV, "Hauppage Source", "/tmp/testpipe/test.mpeg",
               captureDeviceProperties);
+      @SuppressWarnings("unused")
       ProducerBin srcBin = ProducerFactory.getInstance().getProducer(captureDevice, properties, captureAgentMock);
     } catch (UnableToCreateElementException e) {
       logger.error("testVideoTestSrc in SourceFactoryTest", e);

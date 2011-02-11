@@ -36,12 +36,12 @@ import java.util.List;
  */
 public class EpiphanVGA2USBV4LSubPngBinTest extends EpiphanVGA2USBV4LTest {
 
-  String imageMockPath = null;
+  private String imageMockPath = null;
 
   @Before
   @Override
-  public void setup() throws ConfigurationException, IOException, URISyntaxException {
-    super.setup();
+  public void setUp() throws ConfigurationException, IOException, URISyntaxException {
+    super.setUp();
 
     if (!readyTestEnvironment())
       return;
