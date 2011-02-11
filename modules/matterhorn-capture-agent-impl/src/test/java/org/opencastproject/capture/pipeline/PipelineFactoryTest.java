@@ -21,6 +21,7 @@ import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.impl.ConfigurationManager;
 import org.opencastproject.capture.impl.XProperties;
+import org.opencastproject.capture.pipeline.bins.GStreamerElements;
 import org.opencastproject.capture.pipeline.bins.producers.ProducerFactory.ProducerType;
 
 import org.apache.commons.io.FileUtils;
@@ -56,7 +57,9 @@ public class PipelineFactoryTest {
   private Pipeline testPipeline;
   private static boolean gstreamerInstalled;
   private Properties properties;
-  File fakeCaptureDevice = new File(System.getProperty("java.io.tmpdir"), "fakeCapture");
+  private File fakeCaptureDevice = new File(System.getProperty("java.io.tmpdir"), "fakeCapture");
+  private int numberOfProducers;
+  private String deviceNames;
   
   @BeforeClass
   public static void setupClass() {
@@ -116,7 +119,7 @@ public class PipelineFactoryTest {
   }
 
   @Before
-  public void setupTest() throws IOException{
+  public void setupTest() throws IOException {
     properties = new Properties();
     File testCaptureDirectory = new File(System.getProperty("java.io.tmpdir"), "pipeline-factory-test");
     FileUtils.forceMkdir(testCaptureDirectory);
@@ -126,18 +129,18 @@ public class PipelineFactoryTest {
             .canWrite());
     properties.put("org.opencastproject.storage.dir", testCaptureDirectory.getAbsolutePath());
     properties.setProperty(CaptureParameters.RECORDING_ROOT_URL, testCaptureDirectory.getAbsolutePath());
-    
-    
+    numberOfProducers = 0;
+    deviceNames = "";
     FileUtils.touch(fakeCaptureDevice);
   }
-  
+
   @After
-  public void tearDownTest(){
+  public void tearDownTest() {
     properties = null;
     FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "pipeline-factory-test"));
     FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "fakeCapture"));
   }
-  
+
   @Test
   public void testDevices() {
     // if we have something to test
@@ -208,9 +211,9 @@ public class PipelineFactoryTest {
   }
 
   @Test
-  public void pipelineFactoryWillCaptureWithExtraCapabilities(){
-   if(!gstreamerInstalled)
-     return;
+  public void pipelineFactoryWillCaptureWithExtraCapabilities() {
+    if (!gstreamerInstalled)
+      return;
     // if we have something to test
     if (!devices.isEmpty()) {
       CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
@@ -240,91 +243,101 @@ public class PipelineFactoryTest {
     return deviceNames;
   }
   
-  private String addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType producerType) {
-    addProducerTypeDeviceToPropertiesWithoutSourceLocation(producerType);
-    // Set the source location property.
-    properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + producerType.toString()
-            + CaptureParameters.CAPTURE_DEVICE_SOURCE, fakeCaptureDevice.getAbsolutePath());
-    return producerType.toString();
+  private boolean addProducerTypeDeviceToPropertiesWithSourceLocation(String elementType, ProducerType producerType) {
+    boolean canCreateElement = addProducerTypeDeviceToPropertiesWithoutSourceLocation(elementType, producerType);
+    if (canCreateElement) {
+      // Set the source location property.
+      properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + producerType.toString()
+              + CaptureParameters.CAPTURE_DEVICE_SOURCE, fakeCaptureDevice.getAbsolutePath());
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  private String addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType producerType) {
-    // Set the output location property.
-    properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + producerType.toString()
-            + CaptureParameters.CAPTURE_DEVICE_DEST, producerType.toString() + ".out");
-    // Set the type property.
-    properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + producerType.toString()
-            + CaptureParameters.CAPTURE_DEVICE_TYPE, producerType.toString());
-    if (producerType == ProducerType.CUSTOM_VIDEO_SRC || producerType == ProducerType.CUSTOM_AUDIO_SRC) {
-      // Set the customProducer property
+  private boolean addProducerTypeDeviceToPropertiesWithoutSourceLocation(String elementType, ProducerType producerType) {
+    if (PipelineTestHelpers.testGstreamerElement(elementType)) {
+      // Set the output location property.
       properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + producerType.toString()
-              + CaptureParameters.CAPTURE_DEVICE_CUSTOM_PRODUCER, "fakesrc");
+              + CaptureParameters.CAPTURE_DEVICE_DEST, producerType.toString() + ".out");
+      // Set the type property.
+      properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + producerType.toString()
+              + CaptureParameters.CAPTURE_DEVICE_TYPE, producerType.toString());
+      if (producerType == ProducerType.CUSTOM_VIDEO_SRC || producerType == ProducerType.CUSTOM_AUDIO_SRC) {
+        // Set the customProducer property
+        properties.setProperty(CaptureParameters.CAPTURE_DEVICE_PREFIX + producerType.toString()
+                + CaptureParameters.CAPTURE_DEVICE_CUSTOM_PRODUCER, GStreamerElements.FAKESRC);
+      }
+      deviceNames += producerType.toString() + ",";
+      return true;
+    } else {
+      // Since we can't build an the element, remove it as one of the devices.
+      numberOfProducers--;
+      return false;
     }
-    return producerType.toString();
   }
 
   @Test
-  public void pipelineFactoryWillIgnoreSrcPropertiesOnAllRelevantProducerTypes(){
-    if(!gstreamerInstalled || !PipelineTestHelpers.isLinux())
+  public void pipelineFactoryWillIgnoreSrcPropertiesOnAllRelevantProducerTypes() {
+    if (!gstreamerInstalled || !PipelineTestHelpers.isLinux())
       return;
+    numberOfProducers = 14;
     CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
-    String deviceNames = "";
-    
     // Devices that don't need a source
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.CUSTOM_VIDEO_SRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.CUSTOM_AUDIO_SRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.VIDEOTESTSRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.AUDIOTESTSRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.ALSASRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.PULSESRC) + ",";
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.FAKESRC, ProducerType.CUSTOM_VIDEO_SRC);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.FAKESRC, ProducerType.CUSTOM_AUDIO_SRC);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.VIDEOTESTSRC, ProducerType.VIDEOTESTSRC);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.AUDIOTESTSRC, ProducerType.AUDIOTESTSRC);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.ALSASRC, ProducerType.ALSASRC);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.PULSESRC, ProducerType.PULSESRC);
     
     // Devices that need a source
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.V4LSRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.V4L2SRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.FILE_DEVICE) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.EPIPHAN_VGA2USB) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.HAUPPAUGE_WINTV) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.BLUECHERRY_PROVIDEO) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.FILE) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.DV_1394) + ",";
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.V4LSRC, ProducerType.V4LSRC);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.V4L2SRC, ProducerType.V4L2SRC);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.FILESRC, ProducerType.FILE_DEVICE);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.V4LSRC, ProducerType.EPIPHAN_VGA2USB);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.FILESRC, ProducerType.HAUPPAUGE_WINTV);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.V4L2SRC, ProducerType.BLUECHERRY_PROVIDEO);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.FILESRC, ProducerType.FILE);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.DV1394SRC, ProducerType.DV_1394);
     properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, deviceNames);
     Pipeline pipeline = PipelineFactory.create(properties, false, captureAgentMock);
-    Assert.assertEquals(14, pipeline.getElements().size());
+    Assert.assertEquals(numberOfProducers, pipeline.getElements().size());
   }
   
   @Test
-  public void pipelineFactoryWillCrashWhenMissingSrcLocations(){
-    if(!gstreamerInstalled || !PipelineTestHelpers.isLinux())
+  public void pipelineFactoryWillCrashWhenMissingSrcLocations() {
+    if (!gstreamerInstalled || !PipelineTestHelpers.isLinux())
       return;
     CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
-    String deviceNames = "";
+    numberOfProducers = 6;
     logger.info("A lot of \"Can't find source file or device\" exceptions should follow, this is normal. ");
     // Devices that don't need a source
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.CUSTOM_VIDEO_SRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.CUSTOM_AUDIO_SRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.VIDEOTESTSRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.AUDIOTESTSRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.ALSASRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithSourceLocation(ProducerType.PULSESRC) + ",";
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.FAKESRC, ProducerType.CUSTOM_VIDEO_SRC);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.FAKESRC, ProducerType.CUSTOM_AUDIO_SRC);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.VIDEOTESTSRC, ProducerType.VIDEOTESTSRC);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.AUDIOTESTSRC,ProducerType.AUDIOTESTSRC);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.ALSASRC, ProducerType.ALSASRC);
+    addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.PULSESRC, ProducerType.PULSESRC);
     
     // Devices that need a source
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.V4LSRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.V4L2SRC) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.FILE_DEVICE) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.EPIPHAN_VGA2USB) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.HAUPPAUGE_WINTV) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.BLUECHERRY_PROVIDEO) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.FILE) + ",";
-    deviceNames += addProducerTypeDeviceToPropertiesWithoutSourceLocation(ProducerType.DV_1394) + ",";
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.V4LSRC, ProducerType.V4LSRC);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.V4L2SRC, ProducerType.V4L2SRC);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.FILESRC, ProducerType.FILE_DEVICE);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.V4LSRC, ProducerType.EPIPHAN_VGA2USB);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.FILESRC, ProducerType.HAUPPAUGE_WINTV);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.V4L2SRC, ProducerType.BLUECHERRY_PROVIDEO);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.FILESRC, ProducerType.FILE);
+    addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.DV1394SRC, ProducerType.DV_1394);
     properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, deviceNames);
     
     Pipeline pipeline = PipelineFactory.create(properties, false, captureAgentMock);
-    for (Element element :pipeline.getElements()){
+    for (Element element : pipeline.getElements()) {
       Bin bin = (Bin)element;
       System.out.println(bin.getElements());
     }
-    Assert.assertTrue("There are 6 elements that should be created with or without a source location. ", pipeline
-            .getElements().size() == 6);
+    Assert.assertTrue("There are " + numberOfProducers + " elements that should be created with or without a source location. ", pipeline
+            .getElements().size() == numberOfProducers);
     logger.info("This should be the end of the \"Can't find source file or device\" exceptions.");
   }
   

@@ -17,6 +17,8 @@ package org.opencastproject.capture.pipeline;
 
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.pipeline.bins.CaptureDevice;
+import org.opencastproject.capture.pipeline.bins.GStreamerElementFactory;
+import org.opencastproject.capture.pipeline.bins.UnableToCreateElementException;
 import org.opencastproject.capture.pipeline.bins.producers.ProducerFactory.ProducerType;
 
 import java.util.Properties;
@@ -89,7 +91,7 @@ public class PipelineTestHelpers {
     return properties;
   }
 
-  public static Properties createQueueProperties(String bufferCount, String bufferBytes, String bufferTime){
+  public static Properties createQueueProperties(String bufferCount, String bufferBytes, String bufferTime) {
     Properties properties = new Properties();
     if (bufferCount != null)
       properties.setProperty("bufferCount", bufferCount);
@@ -123,6 +125,15 @@ public class PipelineTestHelpers {
     properties.setProperty(CaptureParameters.CAPTURE_CONFIDENCE_ENABLE, "false");
     properties.setProperty(CaptureParameters.CAPTURE_CONFIDENCE_VIDEO_LOCATION, "/tmp/testpipe/confidence");
     return properties;
+  }
+  
+  public static boolean testGstreamerElement(String element) {
+    try {
+      GStreamerElementFactory.getInstance().createElement("Element Creation Test", element, null);
+      return true;
+    } catch (UnableToCreateElementException e) {
+      return false;
+    } 
   }
   
 }

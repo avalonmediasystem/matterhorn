@@ -6,7 +6,7 @@
   <property name="service.description" value="Capture File Server" />
   <property name="alias" value="/content" />
   <property name="contextId" value="opencast.httpcontext" />
-  <property name="filesystemDir" value="/tmp/opencast/cache/captures" />
+  <property name="filesystemDir" value="/opt/matterhorn/cache/captures" />
   <service>
     <provide interface="javax.servlet.Servlet" />
   </service>
