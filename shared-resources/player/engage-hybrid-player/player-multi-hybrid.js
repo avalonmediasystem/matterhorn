@@ -865,6 +865,7 @@ Opencast.Player = (function ()
      */
     function doPlay()
     {
+        setCurrentPlayPauseState(PLAYING);
         FLASH_PLAYERSTATE = Videodisplay.play();
         if (displVidSizeControl)
         {
@@ -894,6 +895,7 @@ Opencast.Player = (function ()
      */
     function doPause()
     {
+        setCurrentPlayPauseState(PAUSING);
         FLASH_PLAYERSTATE = Videodisplay.pause();
     }
     
@@ -944,12 +946,10 @@ Opencast.Player = (function ()
         // Checking if btn_play_pause is "play"
         if (getCurrentPlayPauseState() === PAUSING)
         {
-            setCurrentPlayPauseState(PLAYING);
             doPlay();
         }
         else
         {
-            setCurrentPlayPauseState(PAUSING);
             doPause();
         }
     }
