@@ -136,6 +136,9 @@ ocScheduler.RegisterEventHandlers = function(){
   
   $('#seriesSelect').blur(function(){if($('#seriesSelect').val() === ''){ $('#series').val(''); }});
   
+  $('#submitButton').button();
+  $('#cancelButton').button();
+  
   $('#submitButton').click(ocScheduler.SubmitForm);
   $('#cancelButton').click(ocScheduler.CancelForm);
 
@@ -241,7 +244,14 @@ ocScheduler.SubmitForm = function(){
   }
   if(eventXML){
     $('#submitButton').attr('disabled', 'disabled');
-    $('#submitModal').dialog({height: 100, modal: true});
+    $('#submitModal').dialog({height: 220, modal: true, resizable: false, 
+      close: function(){ 
+        document.location = RECORDINGS_URL;
+      },
+      buttons: {
+        "Continue in background": function(){ $(this).dialog('close'); }
+      }
+    });
     if(ocUtils.getURLParam('edit')){
       $.ajax({type: 'POST',
               url: SCHEDULER_URL + '/' + $('#eventId').val(),
