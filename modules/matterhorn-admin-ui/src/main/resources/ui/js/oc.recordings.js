@@ -67,7 +67,7 @@ ocRecordings = new (function() {
     this.refresh = 5;
     this.doRefresh = true;
     this.sortField = 'Date';
-    this.sortOrder = 'DESC';
+    this.sortOrder = 'ASC';
     this.filterField = null;
     this.filterText = '';
     
@@ -371,7 +371,7 @@ ocRecordings = new (function() {
     } else if (this.state == 'Finished') {
       this.actions.push('play');
       //this.actions.push('publish');
-      this.actions.push('unpublish');
+      //this.actions.push('unpublish');
     } else if (this.state == 'Failed') {
       this.actions.push('delete');
     }
@@ -483,11 +483,11 @@ ocRecordings = new (function() {
       $(this).removeClass('ui-state-hover');
     })
     .click( function() {
-      var sortDesc = $(this).find('.sort-icon').hasClass('ui-icon-circle-triangle-s');
+      var sortDesc = $(this).find('.sort-icon').hasClass('ui-icon-circle-triangle-n');
       var sortField = ($(this).attr('id')).substr(4);
       $( '#ocRecordingsTable th .sort-icon' )
-      .removeClass('ui-icon-circle-triangle-s')
       .removeClass('ui-icon-circle-triangle-n')
+      .removeClass('ui-icon-circle-triangle-s')
       .addClass('ui-icon-triangle-2-n-s');
       if (sortDesc) {
         ocRecordings.Configuration.sortField = sortField;
@@ -506,9 +506,9 @@ ocRecordings = new (function() {
       var th = $('#sort' + ocRecordings.Configuration.sortField);
       $(th).find('.sort-icon').removeClass('ui-icon-triangle-2-n-s');
       if (ocRecordings.Configuration.sortOrder == 'ASC') {
-        $(th).find('.sort-icon').addClass('ui-icon-circle-triangle-n');
-      } else if (ocRecordings.Configuration.sortOrder == 'DESC') {
         $(th).find('.sort-icon').addClass('ui-icon-circle-triangle-s');
+      } else if (ocRecordings.Configuration.sortOrder == 'DESC') {
+        $(th).find('.sort-icon').addClass('ui-icon-circle-triangle-n');
       }
     }
     // care for items in the table that can be unfolded
