@@ -543,7 +543,6 @@ ocScheduler.CheckForConflictingEvents = function(){
   $.post(SCHEDULER_URL + "/conflict.json", data, function(data){
     var events = [];
     if(data != '') {
-      ocScheduler.conflictingEvents = true;
       if(!$.isArray(data.events.event)){
         if(ocScheduler.mode === CREATE_MODE || (ocScheduler.mode === EDIT_MODE && $('#eventId').val() !== data.events.event.id)) {
           events.push(data.events.event);
@@ -558,6 +557,7 @@ ocScheduler.CheckForConflictingEvents = function(){
         curId = $('#eventId').val();
         eid = events[i].id;
         if(ocScheduler.mode === CREATE_MODE || (ocScheduler.mode === EDIT_MODE && curId !== eid)) {
+          ocScheduler.conflictingEvents = true;
           $('#conflictingEvents').append('<li><a href="scheduler.html?eventId=' + events[i].id + '&edit=true" target="_new">' + events[i].title + '</a></li>');
         }
       }
