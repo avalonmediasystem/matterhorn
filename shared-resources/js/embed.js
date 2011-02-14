@@ -226,6 +226,8 @@ Opencast.Watch = (function ()
             }
         }
         Opencast.Player.setTotalTime(Opencast.Utils.formatSeconds(Opencast.Player.getDuration()));
+        // Set seconds or autoplay
+        durationSet();
     }
     
     /**
@@ -235,40 +237,40 @@ Opencast.Watch = (function ()
      */
     function durationSet()
     {
-        var jumpToTime = Opencast.Utils.getURLParameter('t');
+        var rdy = true;
+        
+        // If Autoplay set to true
         var startPlaying = Opencast.Utils.getURLParameter('play');
-        if (($('#oc_duration').text() != 'Initializing') && (jumpToTime !== null))
+        if((startPlaying !== null) && (startPlaying.toLowerCase() == 'true'))
+        {
+            // Start playing the Video
+            Opencast.Player.doPlay();
+        }
+        
+        var durTextSet = ($('#oc_duration').text() != 'Initializing');
+        // If we've got a given time to jump to
+        var jumpToTime = Opencast.Utils.getURLParameter('t');
+        if (durTextSet && (jumpToTime !== null))
         {
             // Parse URL Parameters (time 't') and jump to the given Seconds
             var time = Opencast.Utils.parseSeconds(jumpToTime);
             
+            // Handle Flash-Bridge errors
             try
             {
                 if(time > 0)
                 {
                     Videodisplay.seek(time);
                 }
-                // If Autoplay set to true
-                if((startPlaying !== null) && (startPlaying.toLowerCase() == 'true'))
-                {
-                    // Start playing the Video
-                    Opencast.Player.doPlay();
-                }
             } catch(err)
             {
-                // If duration time not set, yet: set a timeout and call again
-                setTimeout(function()
-                {
-                    Opencast.Watch.durationSet();
-                }, timeoutTime);
+                rdy = false;
             }
-        }
-        // If Autoplay set to true
-        else if((jumpToTime === null) && (startPlaying !== null) && (startPlaying.toLowerCase() == 'true'))
+        } else if(!durTextSet)
         {
-            // Start playing the Video
-            Opencast.Player.doPlay();
-        } else
+            rdy = false;
+        }
+        if(!rdy)
         {
             // If duration time not set, yet: set a timeout and call again
             setTimeout(function()

@@ -867,13 +867,16 @@ Opencast.Player = (function ()
      */
     function doPlay()
     {
-        setCurrentPlayPauseState(PLAYING);
-        FLASH_PLAYERSTATE = Videodisplay.play();
-        if (displVidSizeControl)
+        if(!(getCurrentPlayPauseState() == PLAYING))
         {
-            // Hide Screen Settings until clicked 'play'
-            $("#oc_btn-dropdown").css("display", 'block');
-            $("#oc_player_video-dropdown").css("display", 'block');
+            setCurrentPlayPauseState(PLAYING);
+            FLASH_PLAYERSTATE = Videodisplay.play();
+            if (displVidSizeControl)
+            {
+                // Hide Screen Settings until clicked 'play'
+                $("#oc_btn-dropdown").css("display", 'block');
+                $("#oc_player_video-dropdown").css("display", 'block');
+            }
         }
     }
     
@@ -897,8 +900,11 @@ Opencast.Player = (function ()
      */
     function doPause()
     {
-        setCurrentPlayPauseState(PAUSING);
-        FLASH_PLAYERSTATE = Videodisplay.pause();
+        if(!(getCurrentPlayPauseState() == PAUSING))
+        {
+            setCurrentPlayPauseState(PAUSING);
+            FLASH_PLAYERSTATE = Videodisplay.pause();
+        }
     }
     
     /**
@@ -1297,8 +1303,6 @@ Opencast.Player = (function ()
         if(text != 'Initializing')
         {
             $("#scrubber").attr("aria-valuemax", text);
-            // Callback that duration time has been successfully set
-            Opencast.Watch.durationSet();
         } else
         {
             $("#scrubber").attr("aria-valuemax", "00:00:00");
