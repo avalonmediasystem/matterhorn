@@ -1217,7 +1217,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       }
 
       // Reject if there's enough going on already
-      if (runningWorkflows >= maxWorkflows) {
+      if (runningWorkflows > maxWorkflows) {
         logger.debug("Refused to accept dispatched job '{}'. This server is already running {} workflows.", job,
                 runningWorkflows);
         return false;
