@@ -1,5 +1,6 @@
 ocRecordings = new (function() {
 
+  var WORKFLOW_URL = '../workflow/';
   var WORKFLOW_LIST_URL = '../workflow/instances.json';          // URL of workflow instances list endpoint
   var WORKFLOW_INSTANCE_URL = '';                                // URL of workflow instance endpoint
   var WORKFLOW_STATISTICS_URL = '../workflow/statistics.json';   // URL of workflow instances statistics endpoint
@@ -374,6 +375,8 @@ ocRecordings = new (function() {
       //this.actions.push('unpublish');
     } else if (this.state == 'Failed') {
       this.actions.push('delete');
+    } else if (this.state == 'On Hold') {
+      this.actions.push('ignore');
     }
 
     return this;
@@ -829,6 +832,22 @@ ocRecordings = new (function() {
     }
   }
 
+  this.stopWorkflow = function(id) {
+    if(confirm("Do you want to stop processing this recording?")){
+      $.ajax({
+        url: WORKFLOW_URL + '/stop',
+        type: 'POST',
+        data: {id : id},
+        error: function(XHR,status,e){
+          alert('Could not stop Processing.');
+        },
+        success: function(){
+          ocRecordings.reload();
+        }
+      });
+    }
+  }
+
   this.publishRecording = function(wfId) {
     var workflow = ocRecordings.getWorkflow(id);
     if (workflow) {
@@ -1197,6 +1216,9 @@ ocRecordings = new (function() {
         
       } else if (action == 'unpublish') {
         links.push('<a href="javascript:ocRecordings.unpublishRecording(\'' + id + '\')">Unpublish</a>');
+      
+      } else if (action == 'ignore') {
+        links.push('<a title="Remove this Recording from UI only" href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Ignore</a>');
       }
     });
     return links.join(' \n');
