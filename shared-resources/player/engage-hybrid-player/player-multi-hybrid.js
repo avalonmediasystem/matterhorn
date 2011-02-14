@@ -64,6 +64,8 @@ Opencast.Player = (function ()
         VIDEOSIZEAUDIO = "videoSizeAudio",
         SHOWPRESENTERVIDEO = "Show presenter video",
         SHOWPRESENTATIONONLY = "Show presentation only",
+        SHOWCAPTION = "Show Caption",
+        HIDECAPTION = "Hide Caption",
         currentPlayPauseState = PAUSING,
         backupPlayPauseState = '',
         currentVideoSize = '',
@@ -201,7 +203,7 @@ Opencast.Player = (function ()
     /**
      @memberOf Opencast.Player
      @description Set the mouseOverBool.
-     @param Booelan bool
+     @param Boolean bool
      */
     function setMouseOverBool(bool)
     {
@@ -220,7 +222,7 @@ Opencast.Player = (function ()
     /**
      @memberOf Opencast.Player
      @description Set the captionsBool.
-     @param Booelan bool
+     @param Boolean bool
      */
     function setCaptionsBool(bool)
     {
@@ -258,7 +260,7 @@ Opencast.Player = (function ()
     /**
      @memberOf Opencast.Player
      @description Get the dragging.
-     @param Booelan bool
+     @param Boolean bool
      */
     function getDragging()
     {
@@ -268,7 +270,7 @@ Opencast.Player = (function ()
     /**
      @memberOf Opencast.Player
      @description Set the dragging.
-     @param Booelan bool
+     @param Boolean bool
      */
     function setDragging(bool)
     {
@@ -287,7 +289,7 @@ Opencast.Player = (function ()
     /**
      @memberOf Opencast.Player
      @description Set the htmlBool.
-     @param Booelan bool
+     @param Boolean bool
      */
     function setHtmlBool(bool)
     {
@@ -1034,7 +1036,15 @@ Opencast.Player = (function ()
         {
             title: CCON
         });
-        $('#oc_video-cc').button('option', 'label', 'Show Caption');
+        $('#oc_video-cc').button('option', 'label', HIDECAPTION);
+        // Because the above piece of code does not work:
+        $('.ui-button-text').each(function(i, val)
+        {
+            if($(val).html().indexOf(SHOWCAPTION) != -1)
+            {
+                $(val).html(HIDECAPTION);
+            }
+        });
         setCaptionsBool(true);
     }
     
@@ -1048,7 +1058,15 @@ Opencast.Player = (function ()
         {
             title: CCOFF
         });
-        $("#oc_video-cc").button('option', 'label', 'Hide Caption');
+        $("#oc_video-cc").button('option', 'label', SHOWCAPTION);
+        // Because the above piece of code does not work:
+        $('.ui-button-text').each(function(i, val)
+        {
+            if($(val).html().indexOf(HIDECAPTION) != -1)
+            {
+                $(val).html(SHOWCAPTION);
+            }
+        });
         setCaptionsBool(false);
     }
     
