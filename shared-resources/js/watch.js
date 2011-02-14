@@ -250,13 +250,25 @@ Opencast.Watch = (function ()
             // Parse URL Parameters (time 't') and jump to the given Seconds
             var time = Opencast.Utils.parseSeconds(jumpToTime);
             
-            Videodisplay.seek(time);
-    
-            // If Autoplay set to true
-            if((startPlaying !== null) && (startPlaying.toLowerCase() == 'true'))
+            try
             {
-                // Start playing the Video
-                Opencast.Player.doPlay();
+                if(time > 0)
+                {
+                    Videodisplay.seek(time);
+                }
+                // If Autoplay set to true
+                if((startPlaying !== null) && (startPlaying.toLowerCase() == 'true'))
+                {
+                    // Start playing the Video
+                    Opencast.Player.doPlay();
+                }
+            } catch(err)
+            {
+                // If duration time not set, yet: set a timeout and call again
+                setTimeout(function()
+                {
+                    Opencast.Watch.durationSet();
+                }, timeoutTime);
             }
         }
         // If Autoplay set to true
