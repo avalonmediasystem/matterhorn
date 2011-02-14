@@ -355,7 +355,7 @@ ocRecordings = new (function() {
         if (op) {                                                    //     in this case we search for the next INSTANTIATED operation and display is as QUEUED
           this.operation = op.description;
         } else {
-          ocUtils.log('Warning could not find current operation (neither RUNNING nor INSTANTIATED) for worklfow ' + wf.id);
+          ocUtils.log('Warning could not find current operation for worklfow ' + wf.id);
         }
         this.state = 'Queued';
       }
