@@ -103,22 +103,25 @@ CREATE TABLE `USER_ACTION` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `HOST_REGISTRATION` (
+  `ID` bigint(20) NOT NULL,
   `HOST` varchar(255) collate utf8_unicode_ci NOT NULL,
   `MAINTENANCE` tinyint(1) NOT NULL default '0',
   `MAX_JOBS` int(11) NOT NULL,
   `ONLINE` tinyint(1) NOT NULL default '0',
-  PRIMARY KEY  (`HOST`)
+  PRIMARY KEY  (`ID`),
+  UNIQUE KEY `UNQ_HOST_REGISTRATION_0` (`HOST`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `SERVICE_REGISTRATION` (
-  `SERVICE_TYPE` varchar(255) collate utf8_unicode_ci NOT NULL,
-  `PATH` varchar(255) collate utf8_unicode_ci NOT NULL,
+  `ID` bigint(20) NOT NULL,
   `JOB_PRODUCER` tinyint(1) NOT NULL default '0',
+  `PATH` varchar(255) collate utf8_unicode_ci NOT NULL,
+  `SERVICE_TYPE` varchar(255) collate utf8_unicode_ci NOT NULL,
   `ONLINE` tinyint(1) NOT NULL default '0',
-  `HOST` varchar(255) collate utf8_unicode_ci NOT NULL,
-  PRIMARY KEY  (`SERVICE_TYPE`,`HOST`),
-  KEY `FK_SERVICE_REGISTRATION_HOST` (`HOST`),
-  CONSTRAINT `FK_SERVICE_REGISTRATION_HOST` FOREIGN KEY (`HOST`) REFERENCES `HOST_REGISTRATION` (`HOST`)
+  `host_reg` bigint(20) default NULL,
+  PRIMARY KEY  (`ID`),
+  UNIQUE KEY `UNQ_SERVICE_REGISTRATION_0` (`host_reg`,`SERVICE_TYPE`),
+  CONSTRAINT `FK_SERVICE_REGISTRATION_host_reg` FOREIGN KEY (`host_reg`) REFERENCES `host_registration` (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `JOB` (
@@ -127,23 +130,24 @@ CREATE TABLE `JOB` (
   `PAYLOAD` text collate utf8_unicode_ci,
   `DATESTARTED` datetime default NULL,
   `RUNTIME` bigint(20) default NULL,
-  `INSTANCE_VERSION` bigint(20) default NULL,
+  `instance_version` bigint(20) default NULL,
   `DATECOMPLETED` datetime default NULL,
-  `OPERATION` varchar(255) collate utf8_unicode_ci default NULL,
+  `operation` varchar(255) collate utf8_unicode_ci default NULL,
   `DATECREATED` datetime default NULL,
   `QUEUETIME` bigint(20) default NULL,
-  `PROCESSOR_SVC_TYPE` varchar(255) collate utf8_unicode_ci default NULL,
-  `PROCESSOR_HOST` varchar(255) collate utf8_unicode_ci default NULL,
-  `CREATOR_SVC_TYPE` varchar(255) collate utf8_unicode_ci default NULL,
-  `CREATOR_HOST` varchar(255) collate utf8_unicode_ci default NULL,
   `PARENTJOB_ID` bigint(20) default NULL,
+  `creator_svc` bigint(20) default NULL,
   `ROOTJOB_ID` bigint(20) default NULL,
+  `processor_svc` bigint(20) default NULL,
   PRIMARY KEY  (`ID`),
-  KEY `FK_JOB_CREATOR_SVC_TYPE` (`CREATOR_SVC_TYPE`,`CREATOR_HOST`),
-  KEY `FK_JOB_PROCESSOR_SVC_TYPE` (`PROCESSOR_SVC_TYPE`,`PROCESSOR_HOST`),
-  CONSTRAINT `FK_JOB_PROCESSOR_SVC_TYPE` FOREIGN KEY (`PROCESSOR_SVC_TYPE`, `PROCESSOR_HOST`) REFERENCES `SERVICE_REGISTRATION` (`SERVICE_TYPE`, `HOST`),
-  CONSTRAINT `FK_JOB_CREATOR_SVC_TYPE` FOREIGN KEY (`CREATOR_SVC_TYPE`, `CREATOR_HOST`) REFERENCES `SERVICE_REGISTRATION` (`SERVICE_TYPE`, `HOST`),
-  CONSTRAINT `FK_JOB_ROOTJOB_ID` FOREIGN KEY (`ROOTJOB_ID`) REFERENCES `JOB` (`ID`)
+  KEY `FK_JOB_ROOTJOB_ID` (`ROOTJOB_ID`),
+  KEY `FK_JOB_PARENTJOB_ID` (`PARENTJOB_ID`),
+  KEY `FK_JOB_processor_svc` (`processor_svc`),
+  KEY `FK_JOB_creator_svc` (`creator_svc`),
+  CONSTRAINT `FK_JOB_creator_svc` FOREIGN KEY (`creator_svc`) REFERENCES `service_registration` (`ID`),
+  CONSTRAINT `FK_JOB_PARENTJOB_ID` FOREIGN KEY (`PARENTJOB_ID`) REFERENCES `job` (`ID`),
+  CONSTRAINT `FK_JOB_processor_svc` FOREIGN KEY (`processor_svc`) REFERENCES `service_registration` (`ID`),
+  CONSTRAINT `FK_JOB_ROOTJOB_ID` FOREIGN KEY (`ROOTJOB_ID`) REFERENCES `job` (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `JOB_ARG` (
@@ -154,6 +158,7 @@ CREATE TABLE `JOB_ARG` (
 
 INSERT INTO `SEQUENCE` VALUES('SEQ_GEN', 50);
 
+CREATE INDEX `JOB_ARG_ID` on `JOB_ARG` (`ID`);
 CREATE INDEX `DICTIONARY_TEXT` ON `DICTIONARY` (`TEXT`);
 CREATE INDEX `DICTIONARY_LANGUAGE` ON `DICTIONARY` (`LANGUAGE`);
 CREATE INDEX `ANNOTATION_MP_IDX` on `ANNOTATION` (`MEDIA_PACKAGE_ID`);

@@ -439,6 +439,26 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   }
 
   /**
+   * Fetches a host registration from persistence.
+   * 
+   * @param em
+   *          an active entity manager
+   * @param host
+   *          the host name
+   * @return the host registration, or null if none exists
+   */
+  protected HostRegistration fetchHostRegistration(EntityManager em, String host) {
+    Query query = em.createNamedQuery("HostRegistration.byHostName");
+    query.setParameter("host", host);
+    try {
+      return (HostRegistration) query.getSingleResult();
+    } catch (NoResultException e) {
+      logger.debug("No existing host registration for {}", host);
+      return null;
+    }
+  }
+
+  /**
    * {@inheritDoc}
    * 
    * @see org.opencastproject.serviceregistry.api.ServiceRegistry#registerHost(java.lang.String, int)
@@ -452,7 +472,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       tx = em.getTransaction();
       tx.begin();
       // Find the existing registrations for this host and if it exists, update it
-      HostRegistration existingHostRegistration = em.find(HostRegistration.class, host);
+      HostRegistration existingHostRegistration = fetchHostRegistration(em, host);
       if (existingHostRegistration == null) {
         em.persist(new HostRegistration(host, maxJobs, true, false));
       } else {
@@ -486,7 +506,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       em = emf.createEntityManager();
       tx = em.getTransaction();
       tx.begin();
-      HostRegistration existingHostRegistration = em.find(HostRegistration.class, host);
+      HostRegistration existingHostRegistration = fetchHostRegistration(em, host);
       if (existingHostRegistration == null) {
         throw new ServiceRegistryException("Host '" + host
                 + "' is not currently registered, so it can not be unregistered");
@@ -569,7 +589,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     EntityTransaction tx = em.getTransaction();
     try {
       tx.begin();
-      HostRegistration hostRegistration = em.find(HostRegistration.class, baseUrl);
+      HostRegistration hostRegistration = fetchHostRegistration(em, baseUrl);
       if (hostRegistration == null) {
         throw new IllegalStateException(
                 "A service registration can not be updated when it has no associated host registration");
@@ -652,7 +672,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     EntityTransaction tx = em.getTransaction();
     try {
       tx.begin();
-      HostRegistration reg = em.find(HostRegistration.class, baseUrl);
+      HostRegistration reg = fetchHostRegistration(em, baseUrl);
       if (reg == null) {
         throw new IllegalArgumentException("Can not set maintenance mode on a host that has not been registered");
       }
@@ -728,8 +748,13 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   public long count(String serviceType, Status status) throws ServiceRegistryException {
     EntityManager em = emf.createEntityManager();
     try {
-      Query query = em.createNamedQuery("Job.count");
-      query.setParameter("status", status);
+      Query query;
+      if(status == null) {
+        query = em.createNamedQuery("Job.count.nullStatus");
+      } else {
+        query = em.createNamedQuery("Job.count");
+        query.setParameter("status", status);
+      }
       query.setParameter("serviceType", serviceType);
       Number countResult = (Number) query.getSingleResult();
       return countResult.longValue();

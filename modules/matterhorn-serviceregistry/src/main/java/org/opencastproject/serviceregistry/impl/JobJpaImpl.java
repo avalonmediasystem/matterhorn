@@ -36,7 +36,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -48,6 +47,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -76,6 +76,8 @@ import javax.xml.bind.annotation.XmlType;
         // Job count queries
         @NamedQuery(name = "Job.count", query = "SELECT COUNT(j) FROM Job j "
                 + "where j.status = :status and j.creatorServiceRegistration.serviceType = :serviceType"),
+        @NamedQuery(name = "Job.count.nullStatus", query = "SELECT COUNT(j) FROM Job j "
+                + "where j.creatorServiceRegistration.serviceType = :serviceType"),
         @NamedQuery(name = "Job.countByHost", query = "SELECT COUNT(j) FROM Job j "
                 + "where j.status = :status and j.processorServiceRegistration is not null and "
                 + "j.processorServiceRegistration.serviceType = :serviceType and "
@@ -218,7 +220,8 @@ public class JobJpaImpl extends JaxbJob {
   @Column(name = "argument")
   @OrderColumn(name = "listindex")
   @ElementCollection(fetch = FetchType.EAGER)
-  @CollectionTable(name = "JOB_ARG", joinColumns = @JoinColumn(name = "ID", referencedColumnName = "ID"))
+  @CollectionTable(name = "JOB_ARG", joinColumns = @JoinColumn(name = "ID", referencedColumnName = "ID"), uniqueConstraints = @UniqueConstraint(columnNames = {
+          "ID", "LISTINDEX" }))
   @XmlElement(name = "arg")
   @XmlElementWrapper(name = "args")
   @Override
@@ -336,8 +339,7 @@ public class JobJpaImpl extends JaxbJob {
    * @return the serviceRegistration where this job was created
    */
   @ManyToOne
-  @JoinColumns({ @JoinColumn(name = "CREATOR_SVC_TYPE", referencedColumnName = "SERVICE_TYPE", updatable = false),
-          @JoinColumn(name = "CREATOR_HOST", referencedColumnName = "HOST", updatable = false) })
+  @JoinColumn(name = "creator_svc")
   public ServiceRegistrationJpaImpl getCreatorServiceRegistration() {
     return creatorServiceRegistration;
   }
@@ -359,8 +361,7 @@ public class JobJpaImpl extends JaxbJob {
    * @return the processorServiceRegistration
    */
   @ManyToOne
-  @JoinColumns({ @JoinColumn(name = "PROCESSOR_SVC_TYPE", referencedColumnName = "SERVICE_TYPE", updatable = false),
-          @JoinColumn(name = "PROCESSOR_HOST", referencedColumnName = "HOST", updatable = false) })
+  @JoinColumn(name = "processor_svc")
   public ServiceRegistrationJpaImpl getProcessorServiceRegistration() {
     return processorServiceRegistration;
   }
