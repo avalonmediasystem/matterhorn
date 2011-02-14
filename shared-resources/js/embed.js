@@ -2,7 +2,7 @@
 /*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, onevar: false */
 
 /**
- @namespace the global Opencast namespace watch
+ * @namespace the global Opencast namespace watch
  */
 Opencast.Watch = (function ()
 {
@@ -10,7 +10,6 @@ Opencast.Watch = (function ()
         SINGLEPLAYER = "Singleplayer",
         SINGLEPLAYERWITHSLIDES = "SingleplayerWithSlides",
         AUDIOPLAYER = "Audioplayer",
-        ADVANCEDPLAYER = "advancedPlayer",
         PLAYERSTYLE = "embedPlayer",
         mediaResolutionOne = "",
         mediaResolutionTwo = "",
@@ -20,7 +19,9 @@ Opencast.Watch = (function ()
         mimetypeTwo = "",
         coverUrlOne = "",
         coverUrlTwo = "",
+        slideLength = 0,
         timeoutTime = 400,
+        duration = 0,
         mediaPackageIdAvailable = true;
     
     /**
@@ -214,11 +215,17 @@ Opencast.Watch = (function ()
         });
         getClientShortcuts();
         
-        // Workaround for Double-Stream-Videos
-        if((mediaUrlOne != '') && (mediaUrlTwo != ''))
+        // Set Duration
+        var durDiv = $('#dc-extent').html();
+        if((durDiv !== undefined) && (durDiv !== null) && (durDiv != ''))
         {
-            Opencast.Player.doTogglePlayPause();
+            duration = parseInt(parseInt(durDiv) / 1000);
+            if((!isNaN(duration)) && (duration > 0))
+            {
+                Opencast.Player.setDuration(duration);
+            }
         }
+        Opencast.Player.setTotalTime(Opencast.Utils.formatSeconds(Opencast.Player.getDuration()));
     }
     
     /**

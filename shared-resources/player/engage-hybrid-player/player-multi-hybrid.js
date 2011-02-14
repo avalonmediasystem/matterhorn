@@ -1273,13 +1273,17 @@ Opencast.Player = (function ()
         }
         $("#oc_duration").text(text);
         $("#scrubber").attr("aria-valuemin", "00:00:00");
-        $("#scrubber").attr("aria-valuemax", text);
         setDurationText(text);
         
+        // If a duration has been set
         if(text != 'Initializing')
         {
+            $("#scrubber").attr("aria-valuemax", text);
             // Callback that duration time has been successfully set
             Opencast.Watch.durationSet();
+        } else
+        {
+            $("#scrubber").attr("aria-valuemax", "00:00:00");
         }
     }
     
