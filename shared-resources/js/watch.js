@@ -249,10 +249,10 @@ Opencast.Watch = (function ()
         
         // If Autoplay set to true
         var startPlaying = Opencast.Utils.getURLParameter('play');
-        if((startPlaying !== null) && (startPlaying.toLowerCase() == 'true'))
+        if((startPlaying !== null) && (startPlaying.toLowerCase() == 'true') && !Opencast.Player.doPlay())
         {
-            // Start playing the Video
-            Opencast.Player.doPlay();
+            // Didn't start playing the Video
+            rdy = false;
         }
         
         var durTextSet = ($('#oc_duration').text() != 'Initializing');

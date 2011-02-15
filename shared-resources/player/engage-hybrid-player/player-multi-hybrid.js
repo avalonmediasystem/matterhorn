@@ -100,8 +100,19 @@ Opencast.Player = (function ()
         outPosition = 0,
         curPosition = 0,
         INTERVAL_LENGTH = 5;
+        
+    /**
+     * @memberOf Opencast.Player
+     * @description Returns if playing
+     * @return true if playing, false else
+     */
+    function isPlaying()
+    {
+        return getCurrentPlayPauseState() === PLAYING;
+    }
     
     /**
+     * @memberOf Opencast.Player
      * true if video size control is visible
      */
     function displayVideoSizeControl()
@@ -864,20 +875,28 @@ Opencast.Player = (function ()
     /**
      @memberOf Opencast.Player
      @description Do play the video.
+     @return true if playing, false else
      */
     function doPlay()
     {
-        if(!(getCurrentPlayPauseState() == PLAYING))
+        if(!isPlaying())
         {
-            setCurrentPlayPauseState(PLAYING);
-            FLASH_PLAYERSTATE = Videodisplay.play();
-            if (displVidSizeControl)
+            try
             {
-                // Hide Screen Settings until clicked 'play'
-                $("#oc_btn-dropdown").css("display", 'block');
-                $("#oc_player_video-dropdown").css("display", 'block');
+                FLASH_PLAYERSTATE = Videodisplay.play();
+                setCurrentPlayPauseState(PLAYING);
+                if (displVidSizeControl)
+                {
+                    // Hide Screen Settings until clicked 'play'
+                    $("#oc_btn-dropdown").css("display", 'block');
+                    $("#oc_player_video-dropdown").css("display", 'block');
+                }
+            } catch(err)
+            {
+                setCurrentPlayPauseState(PAUSING);
             }
         }
+        return isPlaying();
     }
     
     /**
@@ -1640,6 +1659,7 @@ Opencast.Player = (function ()
     }
     
     return {
+        isPlaying: isPlaying,
         PlayPauseMouseOver: PlayPauseMouseOver,
         PlayPauseMouseOut: PlayPauseMouseOut,
         PlayPauseMouseDown: PlayPauseMouseDown,
