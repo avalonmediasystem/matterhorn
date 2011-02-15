@@ -1,6 +1,6 @@
 ocRecordings = new (function() {
 
-  var WORKFLOW_URL = '../workflow/';
+  var WORKFLOW_URL = '../workflow';
   var WORKFLOW_LIST_URL = '../workflow/instances.json';          // URL of workflow instances list endpoint
   var WORKFLOW_INSTANCE_URL = '';                                // URL of workflow instance endpoint
   var WORKFLOW_STATISTICS_URL = '../workflow/statistics.json';   // URL of workflow instances statistics endpoint
@@ -705,6 +705,7 @@ ocRecordings = new (function() {
     })
 
     // search box
+    $( '#searchBox' ).css('width', $('#addButtonsContainer').outerWidth(false) - 10);   // make searchbox beeing aligned with upload/schedule buttons (MH-6519)
     this.searchbox = $( '#searchBox' ).searchbox({
       search : function(text, field) {
         if ($.trim(text) != '') {
