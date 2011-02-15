@@ -478,8 +478,14 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       eventQuery.setParameter("stopParam", filter.getStop());
     }
 
-    List<EventImpl> results = eventQuery.getResultList();
-    List<Event> returnList = new LinkedList<Event>();
+    List<EventImpl> results = new ArrayList<EventImpl>();
+    try {
+    results = eventQuery.getResultList();
+    } finally {
+      em.close();
+    }
+    
+    List<Event> returnList = new ArrayList<Event>();
     for (EventImpl event : results) {
       returnList.add((Event) event);
     }
@@ -519,8 +525,9 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     Date now = new Date(System.currentTimeMillis());
     for (Event e : list) {
       Date enddate = e.getEndDate();
-      if (!(enddate == null) && !enddate.after(now))
+      if (!(enddate == null) && !enddate.after(now)) {
         list.remove(e);
+      }
     }
     return list;
   }
