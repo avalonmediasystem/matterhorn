@@ -290,6 +290,18 @@ ocRecordings = new (function() {
     this.actions=[];
     this.holdAction=false;
     this.error = false;
+    this.captureAgent = '';
+
+    // ensure workflow.configuration.configurations is an array / search for capture agent name
+    if (wf.configurations && wf.configurations.configuration) {
+      wf.configurations.configuration = ocUtils.ensureArray(wf.configurations.configuration);
+      var self = this;
+      $.each(wf.configurations.configuration, function(index, elm) {
+        if (elm.key == 'schedule.location') {
+          self.captureAgent = elm['$'];
+        }
+      });
+    }
 
     if (wf.mediapackage && wf.mediapackage.title) {
       this.title = wf.mediapackage.title;

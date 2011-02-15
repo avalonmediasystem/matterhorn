@@ -37,6 +37,7 @@
       #recordingsTable .sortable {cursor:pointer;}
       #recordingsTable th .sort-icon {float:right;}
       #recordingsTable tr {border-bottom: 1px solid silver;}
+      #recordingsTable tr td {padding-left:3px; padding-right:3px;}
       #recordingsTable tr:hover {background-color: silver;}
       #recordingsTable .foldable {cursor: pointer;}
       #recordingsTable .fold-body {display: none;}
@@ -258,6 +259,9 @@
       <th id="sortTitle" width="25%" class="oc-light-background sortable">Title<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
       <th id="sortPresenter" width="15%" class="oc-light-background sortable">Presenter<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
       <th id="sortSeries" width="15%" class="oc-light-background sortable">Course/Series<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
+      {if ocRecordings.Configuration.state == 'upcoming' || ocRecordings.Configuration.state == 'capturing'}
+      <th class="oc-light-background" style="white-space:nowrap;padding-left:5px;padding-right:5px;">Capture Agent</th>
+      {/if}
       <th id="sortDate" width="18%" class="oc-light-background sortable">Recording Date&amp;Time<span class="sort-icon ui-icon ui-icon-triangle-2-n-s"></span></th>
       <th width="17%" class="oc-light-background">Status</th>
       <th width="10%" class="oc-light-background">Action</th>
@@ -275,6 +279,11 @@
         <td>
           ${recording.seriesTitle}
         </td>
+        {if ocRecordings.Configuration.state == 'upcoming' || ocRecordings.Configuration.state == 'capturing'}
+        <td style="white-space:nowrap;">
+          ${recording.captureAgent}
+        </td>
+        {/if}
         <td>
           ${recording.start}
         </td>
