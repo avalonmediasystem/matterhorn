@@ -732,10 +732,11 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
 
   protected URI addContentToRepo(MediaPackage mp, String elementId, URI uri) throws IOException {
     InputStream in = null;
+    HttpResponse response = null;
     try {
       if (uri.toString().startsWith("http")) {
         HttpGet get = new HttpGet(uri);
-        HttpResponse response = httpClient.execute(get);
+        response = httpClient.execute(get);
         int httpStatusCode = response.getStatusLine().getStatusCode();
         if (httpStatusCode != 200) {
           throw new IOException(uri + " returns http " + httpStatusCode);
@@ -749,6 +750,7 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
       return returnedUri;
     } finally {
       IOUtils.closeQuietly(in);
+      httpClient.close(response);
     }
   }
 
