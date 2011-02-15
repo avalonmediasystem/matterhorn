@@ -245,39 +245,53 @@ Opencast.Watch = (function ()
      */
     function durationSet()
     {
-        var rdy = true;
-        
-        // If Autoplay set to true
-        var startPlaying = Opencast.Utils.getURLParameter('play');
-        if((startPlaying !== null) && (startPlaying.toLowerCase() == 'true') && !Opencast.Player.doPlay())
-        {
-            // Didn't start playing the Video
-            rdy = false;
-        }
-        
+        var playParam = Opencast.Utils.getURLParameter('play');
+        var timeParam = Opencast.Utils.getURLParameter('t');
         var durTextSet = ($('#oc_duration').text() != 'Initializing');
-        // If we've got a given time to jump to
-        var jumpToTime = Opencast.Utils.getURLParameter('t');
-        if (durTextSet && (jumpToTime !== null))
+        
+        var autoplay = (playParam !== null) && (playParam.toLowerCase() == 'true');
+        var time = (timeParam === null) ? 0 : Opencast.Utils.parseSeconds(timeParam);
+        time = (time < 0) ? 0 : time;
+        
+        var rdy = false;
+        // duration set
+        if(durTextSet)
         {
-            // Parse URL Parameters (time 't') and jump to the given Seconds
-            var time = Opencast.Utils.parseSeconds(jumpToTime);
-            
-            // Handle Flash-Bridge errors
-            try
+            // autoplay and jump to time
+            if(autoplay && (time != 0 ))
             {
-                if(time > 0)
+                // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
+                if(Opencast.Player.doPlay() && jumpToTime(time))
                 {
-                    Videodisplay.seek(time);
+                    rdy = true;
                 }
-            } catch(err)
-            {
-                rdy = false;
             }
-        } else if(!durTextSet)
+            // autoplay and not jump to time
+            else if(autoplay && (time == 0 ))
+            {
+                if(Opencast.Player.doPlay())
+                {
+                    rdy = true;
+                }
+            }
+            // not autoplay and jump to time
+            else if(!autoplay && (time != 0 ))
+            {
+                if(jumpToTime(time))
+                {
+                    rdy = true;
+                }
+            }
+            // not autoplay and not jump to time
+            else
+            {
+                rdy = true;
+            }
+        } else
         {
             rdy = false;
         }
+        
         if(!rdy)
         {
             // If duration time not set, yet: set a timeout and call again
@@ -286,6 +300,25 @@ Opencast.Watch = (function ()
                 Opencast.Watch.durationSet();
             }, timeoutTime);
         }
+    }
+    
+    /**
+     * @memberOf Opencast.Watch
+     * @description tries to jump to a given time
+     * @return true if successfully jumped, false else
+     */
+    function jumpToTime(time)
+    {
+        var success = false;
+        try
+        {
+            Videodisplay.seek(time);
+            success = true;
+        } catch(err)
+        {
+            success = false;
+        }
+        return success;
     }
     
     /**
