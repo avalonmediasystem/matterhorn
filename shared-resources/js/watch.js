@@ -257,19 +257,11 @@ Opencast.Watch = (function ()
         // duration set
         if(durTextSet)
         {
-            // autoplay and jump to time
-            if(autoplay && (time != 0 ))
+            // autoplay and jump to time OR autoplay and not jump to time
+            if((autoplay && (time != 0 )) || (autoplay && (time == 0 )))
             {
                 // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
                 if(Opencast.Player.doPlay() && jumpToTime(time))
-                {
-                    rdy = true;
-                }
-            }
-            // autoplay and not jump to time
-            else if(autoplay && (time == 0 ))
-            {
-                if(Opencast.Player.doPlay())
                 {
                     rdy = true;
                 }
