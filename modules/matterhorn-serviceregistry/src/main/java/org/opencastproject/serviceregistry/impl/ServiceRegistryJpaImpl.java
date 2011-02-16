@@ -186,7 +186,6 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       if (dispatchIntervalString != null) {
         try {
           dispatchInterval = Long.parseLong(dispatchIntervalString);
-          logger.info("Dispatch interval set to {} ms", dispatchInterval);
         } catch (Exception e) {
           logger.warn("Dispatch interval '{}' is malformed, setting to {}", dispatchIntervalString,
                   MIN_DISPATCH_INTERVAL);
@@ -197,6 +196,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         } else if (dispatchInterval < MIN_DISPATCH_INTERVAL) {
           logger.warn("Dispatch interval {} ms too low, adjusting to {}", dispatchInterval, MIN_DISPATCH_INTERVAL);
           dispatchInterval = MIN_DISPATCH_INTERVAL;
+        } else {
+          logger.info("Dispatch interval set to {} ms", dispatchInterval);
         }
       }
     }
