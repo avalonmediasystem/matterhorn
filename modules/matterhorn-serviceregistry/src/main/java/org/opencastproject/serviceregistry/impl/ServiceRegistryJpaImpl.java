@@ -1103,7 +1103,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     // Find service instances
     List<ServiceRegistration> registrations = getServiceRegistrationsByLoad(job.getJobType());
     if (registrations.size() == 0) {
-      logger.info("No service is available to handle jobs of type '" + job.getJobType() + "'");
+      logger.debug("No service is available to handle jobs of type '" + job.getJobType() + "'");
       return null;
     }
 
