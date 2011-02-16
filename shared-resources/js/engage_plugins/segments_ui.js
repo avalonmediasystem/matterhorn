@@ -128,7 +128,7 @@ Opencast.segments_ui = (function ()
                 // Streaming Mode is default true
                 var videoModeStream = true;
                 // Check whether a Videomode has been selected
-                var urlParamProgStream = Opencast.Utils.getURLParameter('videomode');
+                var urlParamProgStream = Opencast.Utils.getURLParameter('videomode') || Opencast.Utils.getURLParameter('vmode');
                 // If such an URL Parameter exists (if parameter doesn't exist, the return value is null)
                 if(urlParamProgStream !== null)
                 {

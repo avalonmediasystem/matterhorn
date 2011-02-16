@@ -29,6 +29,8 @@ Opencast.Watch = (function ()
      */
     function onPlayerReady()
     {
+        // Hide loading indicators
+        $('#oc_flash-player-loading').hide();
         // Hide Screen Settings until clicked 'play'
         $("#oc_btn-dropdown").css("display", 'none');
         $("#oc_player_video-dropdown").css("display", 'none');

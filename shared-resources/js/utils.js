@@ -97,23 +97,24 @@ Opencast.Utils = (function ()
      * @memberOf Opencast.Utils
      * @description Returns the value of URL-Parameter 'name'
      *              Current used URL Parameters:
-     *                  - id:           the current media package id
-     *                  - user:         the user id
-     *                  - play:         autoplay, true or false
-     *                  - videoUrl:     the current url for video (1)
-     *                  - videoUrl2:    the current url for video 2
-     *                  - coverUrl:     the current url for cover (preview image)
-     *                  - t:            jump to given time
-     *                                  Valid Parameter Formats (as seen at Opencast.Utils.parseSeconds):
-     *                                      - Minutes and seconds:  XmYs    or    YsXm    or    XmY
-     *                                      - Minutes only:         Xm
-     *                                      - Seconds only:         Ys      or    Y
-     *                  - videomode:    the Video Mode
-     *                                  Valid Parameters:
-     *                                      - streaming (default)
-     *                                      - progressive
-     *                  - display:      the display alignment
-     *                                      - invert
+     *                  - id:               the current media package id
+     *                  - user:             the user id
+     *                  - play:             autoplay, true or false
+     *                  - videoUrl:         the current url for video (1)
+     *                  - videoUrl2:        the current url for video 2
+     *                  - coverUrl:         the current url for cover (preview image)
+     *                  - t:                jump to given time
+     *                                          Valid Parameter Formats (as seen at Opencast.Utils.parseSeconds):
+     *                                              - Minutes and seconds:  XmYs    or    YsXm    or    XmY
+     *                                              - Minutes only:         Xm
+     *                                              - Seconds only:         Ys      or    Y
+     *                  - videomode/vmode:  The Video Mode (videomode preferred to vmode)
+     *                                          Valid Parameters:
+     *                                              - streaming (default)
+     *                                              - progressive
+     *                  - display:          the display alignment
+     *                                          Valid Parameter:
+     *                                              - invert
      *                  - page
      *                  - q
      * @return the value of URL-Parameter 'name' or null if not defined
@@ -121,7 +122,7 @@ Opencast.Utils = (function ()
     function getURLParameter(name)
     {
         var urlParam = parseURL()[name];
-        if(urlParam === undefined)
+        if((urlParam === undefined) || (urlParam === ''))
         {
             return null;
         }
