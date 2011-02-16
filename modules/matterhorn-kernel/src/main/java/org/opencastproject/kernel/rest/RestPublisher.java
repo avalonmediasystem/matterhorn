@@ -46,6 +46,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.Servlet;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -70,7 +72,7 @@ public class RestPublisher implements RestConstants {
 
   /** The 404 Error page */
   protected String fourOhFour = null;
-  
+
   @SuppressWarnings("rawtypes")
   protected List providers = null;
 
@@ -100,7 +102,7 @@ public class RestPublisher implements RestConstants {
     this.fourOhFour = "The resource you requested does not exist."; // TODO: Replace this with something a little nicer
     this.servletRegistrationMap = new ConcurrentHashMap<String, ServiceRegistration>();
     this.providers = new ArrayList();
-    
+
     JSONProvider jsonProvider = new MatterhornJSONProvider();
     jsonProvider.setIgnoreNamespaces(true);
     jsonProvider.setNamespaceMap(NAMESPACE_MAP);
@@ -138,7 +140,7 @@ public class RestPublisher implements RestConstants {
    */
   @SuppressWarnings("unchecked")
   protected void createEndpoint(ServiceReference ref, Object service) {
-    CXFNonSpringServlet cxf = new CXFNonSpringServlet();
+    RestServlet cxf = new RestServlet();
     ServiceRegistration reg = null;
     String serviceType = (String) ref.getProperty(SERVICE_TYPE_PROPERTY);
     String servicePath = (String) ref.getProperty(SERVICE_PATH_PROPERTY);
@@ -156,6 +158,18 @@ public class RestPublisher implements RestConstants {
       return;
     }
     servletRegistrationMap.put(servicePath, reg);
+
+    // Wait for the servlet to be initialized. Since the servlet is published via the whiteboard, this may happen
+    // asynchronously
+    while (!cxf.isInitialized()) {
+      logger.debug("Waiting for the servlet at '{}' to be initialized", servicePath);
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        logger.warn("Interrupt while waiting for RestServlet initialization");
+        break;
+      }
+    }
 
     // Set up cxf
     Bus bus = cxf.getBus();
@@ -263,6 +277,32 @@ public class RestPublisher implements RestConstants {
       }
       createEndpoint(reference, service);
       return super.addingService(reference);
+    }
+  }
+
+  /**
+   * An HttpServlet that uses a JAX-RS service to handle requests.
+   */
+  public class RestServlet extends CXFNonSpringServlet {
+    /** Serialization UID */
+    private static final long serialVersionUID = -8963338160276371426L;
+
+    /** Whether this servlet has been initialized by the http service */
+    private boolean initialized = false;
+
+    /**
+     * Whether the http service has initialized this servlet.
+     * 
+     * @return the initialization state
+     */
+    public boolean isInitialized() {
+      return initialized;
+    }
+
+    @Override
+    public void init(ServletConfig servletConfig) throws ServletException {
+      super.init(servletConfig);
+      initialized = true;
     }
   }
 }

@@ -111,8 +111,8 @@
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Import-Package>
               javax.activation,
-              javax.servlet,
-              javax.servlet.http,
+              javax.servlet;version=2.5,
+              javax.servlet.http;version=2.5,
               javax.xml.stream,
               javax.ws.rs,
               javax.ws.rs.core,
