@@ -76,6 +76,12 @@ public abstract class AbstractJobProducer implements JobProducer {
   @Override
   public boolean acceptJob(Job job) throws ServiceRegistryException {
     if (isReadyToAccept(job)) {
+      try {
+        job.setStatus(Job.Status.RUNNING);
+        getServiceRegistry().updateJob(job);
+      } catch (NotFoundException e) {
+        throw new IllegalStateException(e);
+      }
       executor.submit(new JobRunner(job));
       return true;
     } else {

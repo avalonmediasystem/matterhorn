@@ -91,6 +91,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   static {
     JOB_STATUSES_INFLUENCING_LOAD_BALANCING = new ArrayList<Status>();
     JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.QUEUED);
+    JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.DISPATCHING);
     JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.RUNNING);
   }
 
@@ -873,6 +874,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
               stats.setRunningJobs(count.intValue());
               break;
             case QUEUED:
+            case DISPATCHING:
               stats.setQueuedJobs(count.intValue());
               break;
             case FINISHED:
@@ -1109,7 +1111,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
 
     // Try the service registrations, after the first one finished, we quit
     JobJpaImpl jpaJob = ((JobJpaImpl) job);
-    jpaJob.setStatus(Status.RUNNING);
+    jpaJob.setStatus(Status.DISPATCHING);
     boolean triedDispatching = false;
 
     for (ServiceRegistration registration : registrations) {

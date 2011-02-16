@@ -1232,10 +1232,12 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @see org.opencastproject.job.api.AbstractJobProducer#acceptJob(org.opencastproject.job.api.Job)
    */
   @Override
-  public boolean acceptJob(Job job) throws ServiceRegistryException {
+  public synchronized boolean acceptJob(Job job) throws ServiceRegistryException {
     if (!isReadyToAccept(job))
       return false;
     try {
+      job.setStatus(Job.Status.RUNNING);
+      serviceRegistry.updateJob(job);
       executorService.submit(new JobRunner(job));
       return true;
     } catch (Exception e) {

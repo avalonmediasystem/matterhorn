@@ -248,6 +248,7 @@ public class JobBarrier {
                 break;
               case PAUSED:
               case QUEUED:
+              case DISPATCHING:
               case RUNNING:
                 logger.trace("Job {} is still in the works", JobBarrier.this);
                 allDone = false;

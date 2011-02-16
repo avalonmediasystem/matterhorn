@@ -562,7 +562,7 @@ public class ServiceRegistryInMemoryImpl implements ServiceRegistry {
           try {
             job = JobParser.parseJob(serializedJob);
             if (Status.QUEUED.equals(job.getStatus())) {
-              job.setStatus(Status.RUNNING);
+              job.setStatus(Status.DISPATCHING);
               if (!dispatchJob(job)) {
                 job.setStatus(Status.QUEUED);
               }
