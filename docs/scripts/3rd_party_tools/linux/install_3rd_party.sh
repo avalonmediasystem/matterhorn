@@ -29,7 +29,9 @@ libtiff_version="3.8.2"
 jam_version="2.5"
 
 # ffmpeg
-ffmpeg_revision="22592"
+#ffmpeg_revision="22592"
+#git hash corresponding to old svn rev 22592
+ffmpeg_revision="35a3bd844ec4865891a98944c4da0d9d2f8cc5ad"
 
 # libswscale
 libswscale_revision="30929"
@@ -54,7 +56,9 @@ libtiff_url="${thirdparty_repository}/tiff${libtiff_version}.zip"
 
 jam_url="${thirdparty_repository}/jam${jam_version}.zip"
 
-ffmpeg_url="svn://svn.ffmpeg.org/ffmpeg/trunk"
+#ffmpeg_url="svn://svn.ffmpeg.org/ffmpeg/trunk"
+#New git url for ffmpeg
+ffmpeg_url="git://git.ffmpeg.org/ffmpeg.git"
 libswscale_url="svn://svn.mplayerhq.hu/mplayer/trunk/libswscale"
 
 mediainfo_url="${thirdparty_repository}/MediaInfo_CLI_${mediainfo_version}_GNU_FromSource.tar.bz2"
@@ -264,7 +268,12 @@ setup_ffmpeg ()
 	cd ${working_dir}/ffmpeg
 	if ! [ -f ./source/version.h ]
 	then
-		svn checkout ${ffmpeg_url}@${ffmpeg_revision} source &&
+		#ffmpeg now on git
+		git clone ${ffmpeg_url} source
+		cd source
+		git checkout ${ffmpeg_revision}
+		cd ..
+		#seems odd that we might use libswscale that is out of step with the ffmpeg repo
 		rm -rf source/libswscale &&
 		svn checkout ${libswscale_url}@${libswscale_revision} source/libswscale
 		if ! [ $? -eq 0 ]

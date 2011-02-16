@@ -30,7 +30,7 @@ sleep 5
 
 if
 	# installing prerequisite tools
-	su -c "yum -y install gcc gcc-c++ pkgconfig zlib-devel byacc subversion patch wget" &&
+	su -c "yum -y install gcc gcc-c++ pkgconfig zlib-devel byacc subversion git patch wget" &&
 	# installing required libraries
 	su -c "yum -y install libjpeg-devel libpng-devel libtiff-devel aspell-devel" &&
 	# checking for jam package
