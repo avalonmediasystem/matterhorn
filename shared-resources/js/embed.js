@@ -30,9 +30,6 @@ Opencast.Watch = (function ()
      */
     function onPlayerReady()
     {
-        // Hide loading indicators
-        $('#oc_flash-player-loading').hide();
-        $('#data').show();
         var mediaPackageId = Opencast.Utils.getURLParameter('id');
         var userId = Opencast.Utils.getURLParameter('user');
         if (mediaPackageId === null)
@@ -217,6 +214,11 @@ Opencast.Watch = (function ()
             Opencast.Player.stopFastForward();
         });
         getClientShortcuts();
+        
+        // Hide loading indicators
+        $('#oc_flash-player-loading').hide();
+        // Show video controls and data
+        $('#data').show();
         
         // Set Duration
         var durDiv = $('#dc-extent').html();

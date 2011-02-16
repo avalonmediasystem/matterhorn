@@ -29,8 +29,6 @@ Opencast.Watch = (function ()
      */
     function onPlayerReady()
     {
-        // Hide loading indicators
-        $('#oc_flash-player-loading').hide();
         // Hide Screen Settings until clicked 'play'
         $("#oc_btn-dropdown").css("display", 'none');
         $("#oc_player_video-dropdown").css("display", 'none');
@@ -224,6 +222,12 @@ Opencast.Watch = (function ()
         });
         // Set the Controls visible
         $('#oc_video-player-controls').show();
+        
+        // Hide loading indicators
+        $('#oc_flash-player-loading').hide();
+        // Show video controls and data
+        $('#oc_player_video-dropdown').show();
+        $('#data').show();
         
         // Set Duration
         var durDiv = $('#dc-extent').html();
