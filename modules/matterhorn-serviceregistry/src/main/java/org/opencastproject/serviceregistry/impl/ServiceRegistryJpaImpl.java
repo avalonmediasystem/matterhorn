@@ -77,11 +77,17 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   /** Configuration key for the maximum load */
   protected static final String OPT_MAXLOAD = "org.opencastproject.server.maxload";
 
+  /** Configuration key for the dispatch interval in miliseconds */
+  protected static final String OPT_DISPATCHINTERVAL = "org.opencastproject.serviceregistry.dispatchinterval";
+
   /** The http client to use when connecting to remote servers */
   protected TrustedHttpClient client = null;
 
+  /** Minimum delay between job dispatching attempts, in milliseconds */
+  static final long MIN_DISPATCH_INTERVAL = 1000;
+
   /** Default delay between job dispatching attempts, in milliseconds */
-  static final long DEFAULT_DISPATCH_PERIOD = 1000;
+  static final long DEFAULT_DISPATCH_PERIOD = 5000;
 
   /**
    * A static list of statuses that influence how load balancing is calculated
@@ -174,9 +180,30 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       }
     }
 
+    long dispatchInterval = DEFAULT_DISPATCH_PERIOD;
+    if (cc != null) {
+      String dispatchIntervalString = StringUtils.trimToNull(cc.getBundleContext().getProperty(OPT_DISPATCHINTERVAL));
+      if (dispatchIntervalString != null) {
+        try {
+          dispatchInterval = Long.parseLong(dispatchIntervalString);
+          logger.info("Dispatch interval set to {} ms", dispatchInterval);
+        } catch (Exception e) {
+          logger.warn("Dispatch interval '{}' is malformed, setting to {}", dispatchIntervalString,
+                  MIN_DISPATCH_INTERVAL);
+          dispatchInterval = MIN_DISPATCH_INTERVAL;
+        }
+        if (dispatchInterval == 0) {
+          logger.info("Dispatching disabled");
+        } else if (dispatchInterval < MIN_DISPATCH_INTERVAL) {
+          logger.warn("Dispatch interval {} ms too low, adjusting to {}", dispatchInterval, MIN_DISPATCH_INTERVAL);
+          dispatchInterval = MIN_DISPATCH_INTERVAL;
+        }
+      }
+    }
+
     // Schedule the job dispatching.
-    dispatcher.scheduleWithFixedDelay(new JobDispatcher(), DEFAULT_DISPATCH_PERIOD, DEFAULT_DISPATCH_PERIOD,
-            TimeUnit.MILLISECONDS);
+    if (dispatchInterval > 0)
+      dispatcher.scheduleWithFixedDelay(new JobDispatcher(), dispatchInterval, dispatchInterval, TimeUnit.MILLISECONDS);
   }
 
   public void deactivate() {
@@ -194,7 +221,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     }
 
     // Stop the job dispatcher
-    dispatcher.shutdown();
+    if (dispatcher != null)
+      dispatcher.shutdown();
   }
 
   /**
@@ -947,7 +975,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
 
       // Update the load numbers and sort the registrations list
       for (ServiceRegistration r : serviceRegistrations) {
-        ((ServiceRegistrationWithLoad)r).setHostLoad(loadByHost.get(r.getHost()));
+        ((ServiceRegistrationWithLoad) r).setHostLoad(loadByHost.get(r.getHost()));
       }
       Collections.sort(serviceRegistrations);
 
