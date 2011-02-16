@@ -90,7 +90,6 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
 
   static {
     JOB_STATUSES_INFLUENCING_LOAD_BALANCING = new ArrayList<Status>();
-    JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.QUEUED);
     JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.DISPATCHING);
     JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.RUNNING);
   }
