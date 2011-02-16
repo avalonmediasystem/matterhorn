@@ -335,14 +335,23 @@ public class WorkflowServiceImplTest {
   @Test
   public void testGetWorkflowByWildcardMatching() throws Exception {
     String searchTerm = "another";
-    String title = "just" + searchTerm + "rev129";
+    String searchTermWithoutQuotes = "yet another";
+    String searchTermInQuotes = "\"" + searchTermWithoutQuotes + "\"";
+    String title = "just" + searchTerm + " " + searchTermInQuotes + " rev129";
 
     // Ensure that the database doesn't have any workflow instances
     Assert.assertEquals(0, service.countWorkflowInstances());
     mediapackage1.setTitle(title);
     startAndWait(workingDefinition, mediapackage1, WorkflowState.SUCCEEDED);
+
     WorkflowSet workflowsWithTitle = service.getWorkflowInstances(new WorkflowQuery().withTitle(searchTerm));
     Assert.assertEquals(1, workflowsWithTitle.getTotalCount());
+
+    WorkflowSet workflowsWithQuotedTitle = service.getWorkflowInstances(new WorkflowQuery().withTitle(searchTermInQuotes));
+    Assert.assertEquals(1, workflowsWithQuotedTitle.getTotalCount());
+
+    WorkflowSet workflowsWithUnQuotedTitle = service.getWorkflowInstances(new WorkflowQuery().withTitle(searchTermWithoutQuotes));
+    Assert.assertEquals(1, workflowsWithUnQuotedTitle.getTotalCount());
   }
 
   @Test
