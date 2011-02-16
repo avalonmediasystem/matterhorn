@@ -800,9 +800,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     for (File f : filesToZip)
       logger.debug("--> {}", f.getName());
 
-    // Nuke any existing zipfile, we want to recreate it if it already exists.
-    File outputZip = new File(recording.getBaseDir(), CaptureParameters.ZIP_NAME);
-    FileUtils.deleteQuietly(outputZip);
+    File outputZip = deleteZipFiles(recording);
 
     // Return a pointer to the zipped file
     File returnZip;
@@ -815,6 +813,20 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
 
     return returnZip;
 
+  }
+
+  /**
+   * Removes any zip files that we may have created for ingestion.
+   * 
+   * @param recording
+   *          The recording we want to remove the zip files from.
+   * @return Returns a File pointer to the place where the zip file was if it existed.
+   */
+  private File deleteZipFiles(AgentRecording recording) {
+    // Nuke any existing zipfile, we want to recreate it if it already exists.
+    File outputZip = new File(recording.getBaseDir(), CaptureParameters.ZIP_NAME);
+    FileUtils.deleteQuietly(outputZip);
+    return outputZip;
   }
 
   // FIXME: Replace HTTP-based ingest with remote implementation of the Ingest Service. (jt)
@@ -930,6 +942,8 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     if (retValue == HttpURLConnection.HTTP_OK) {
       completedRecordings.put(recID, recording);
       pendingRecordings.remove(recID);
+      // Remove the serialized recording to save on disk space.
+      deleteZipFiles(recording);
     }
     return retValue;
   }
