@@ -12,6 +12,19 @@
         <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/opencast-reset.css" />
         <link rel="stylesheet" type="text/css" href="jquery/plugins/jwysiwyg/jquery.wysiwyg.css" />
         <link rel="stylesheet" type="text/css" href="css/oc.segments.css">
+        <style type="text/css">
+            .loadingImage {
+                text-align: center;
+                vertical-align: middle;
+                margin-top: 0px;
+                margin-bottom: 0px;
+                padding: 0px;
+                background-color: #000000;
+            }
+            body {
+            	overflow:hidden;
+            }
+        </style>
         <script type="text/javascript" src="jquery/jquery-1.4.2.min.js">
         </script>
         <script type="text/javascript" src="jquery/plugins/jquery.xslt.js">
@@ -73,7 +86,7 @@
         <script type="text/javascript" src="js/embed.js">
         </script>
     </head>
-    <body style="overflow:hidden;">
+    <body>
         <noscript>
             <p style="color:red;">
                 JavaScript is turned off in your web browser. So this site wouldn't work properly! 
@@ -82,141 +95,143 @@
             </p>
         </noscript>
         <div id="oc_body">
-        <div id="oc_embed-title-bar">
-            <div id="oc_embed-title">
-                <a id="oc-link-advanced-player" href="#" target="_blank" title="View Advanced Player">Open Engage Player</a>
-            </div>
-        </div>
-        <div id="oc_flash-player-loading" class="loadingImage" style="text-align:center;background-color:#000000;">
-            <img src="img/MatterhornLogo_large.png" width="120" height="90"/>
-            <span style="font-size:20px;color:#FFFFFF;">Initializing</span>
-            <img src="img/squares.gif" />
-        </div>
-        <div id="oc_flash-player" style="width=50px;height:50px;">
-            <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js">
-            </script>
-        </div>
-        <div id="oc_controlbar-embed">
-            <div id="oc_video-player-controls-embed">
-                <input id="oc_btn-play-pause-embed" class="oc_btn-play" type="submit" name="Play: Control + Alt + P" alt="Play: Control + Alt + P" title="Play: Control + Alt + P" value="" />
-            </div>
-            <div id="oc_draggable-embed">
-            </div>
-            <div id="oc_segments-embed">
-            </div>
-        </div>
-        <div id="oc_video-player-controls">
-            <div id="oc_video-time">
-                <div id="simpleEdit">
-                    <input id="oc_current-time" class="oc_current-time" type="text" name="Current Time" title="Current Time" value="00:00:00" tabIndex="0" />
-                    <input id="oc_edit-time" class="oc_edit-time-hide" type="text" maxlength="8" size="8" name="Edit Current Time HH:MM:SS" title="Edit Current Time HH:MM:SS" value="00:00:00" />
-                    of&nbsp;<span id="oc_duration" class="oc_duration" name="Duration" title="Duration" tabIndex="0">Initializing</span>
-                    <!--
-                    <input id="oc_time-chooser" type="image" name="Choose Time" src="img/space.png" title="Choose Time" alt="Choose Time" role="button" aria-disabled="false" aria-pressed="false"/>
-                    --><span id="oc_video-cc"><input id="oc_btn-cc" class="oc_btn-cc-off" type="submit" name="Closed Caption Off: Control + Alt + C" alt="Closed Caption Off: Control + Alt + C" title="Closed Caption Off: Control + Alt + C" value="" />
-                        </span>
+            <div id="oc_embed-title-bar">
+                <div id="oc_embed-title">
+                    <a id="oc-link-advanced-player" href="#" target="_blank" title="View Advanced Player">Open Engage Player</a>
                 </div>
             </div>
-            <div id="oc_video-controls">
-                <span id="skip"><a name="controls"></a><h2>Video Player Controls</h2></span>
-                <input id="oc_btn-skip-backward" class="oc_btn-skip-backward" type="submit" name="Jump To The Previous Slide" alt="Jump To The Previous Slide" title="Jump To The Previous Slide" value="" />
-                <input id="oc_btn-rewind" class="oc_btn-rewind" type="submit" name="Jump Back: Control + Alt + R" alt="Jump Back: Control + Alt + R" title="Jump Back: Control + Alt + R" value="" />
-                <input id="oc_btn-play-pause" class="oc_btn-play" type="submit" name="Play: Control + Alt + P" alt="Play: Control + Alt + P" title="Play: Control + Alt + P" value="" />
-                <input id="oc_btn-fast-forward" class="oc_btn-fast-forward" type="submit" name="Jump Forward: Control + Alt + F" alt="Jump Forward: Control + Alt + F" title="Jump Forward: Control + Alt + F" value="" />
-                <input id="oc_btn-skip-forward" class="oc_btn-skip-forward" type="submit" name="Jump To The Next Slide" alt="Jump To The Next Slide" title="Jump To The Next Slide" value="" />
+            <div id="oc_flash-player-loading" class="loadingImage">
+                <img src="img/MatterhornLogo_large.png" width="120" height="90"/>
+                <span style="font-size:20px;color:#FFFFFF;">Initializing</span>
+                <img src="img/squares.gif" />
             </div>
-            <div id="oc_sound">
-                <span id="oc_volume-dropdown"><input id="oc_btn-volume" class="oc_btn-volume-high" type="submit" name="Unmute: Control + Alt + M" alt="Unmute: Control + Alt + M" title="Unmute: Control + Alt + M" value="" />
-                    </span><span id="oc_volume-menue" style="visibility:hidden;">
-                    <div id="oc_volume-dropdown-div">
-                        <div id="oc_volume-slider">
-                            <div id="slider_volume_Rail" class="oc_slider-volume-Rail" title="Volume" alt="Volume">
-                                <label id="volumeLabel" for="slider_volume_Rail" class="oc_offScreen-hidden">
-                                </label>
-                                <input id="slider_volume_Thumb" class="oc_slider-volume-Thumb" type="submit" value="" />
+            <div id="oc_flash-player" style="width=50px;height:50px;">
+                <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js">
+                </script>
+            </div>
+            <div id="oc_controlbar-embed">
+                <div id="oc_video-player-controls-embed">
+                    <input id="oc_btn-play-pause-embed" class="oc_btn-play" type="submit" name="Play: Control + Alt + P" alt="Play: Control + Alt + P" title="Play: Control + Alt + P" value="" />
+                </div>
+                <div id="oc_draggable-embed">
+                </div>
+                <div id="oc_segments-embed">
+                </div>
+            </div>
+            <div id="oc_video-player-controls">
+                <div id="oc_video-time">
+                    <div id="simpleEdit">
+                        <input id="oc_current-time" class="oc_current-time" type="text" name="Current Time" title="Current Time" value="00:00:00" tabIndex="0" />
+                        <input id="oc_edit-time" class="oc_edit-time-hide" type="text" maxlength="8" size="8" name="Edit Current Time HH:MM:SS" title="Edit Current Time HH:MM:SS" value="00:00:00" />
+                        of&nbsp;<span id="oc_duration" class="oc_duration" name="Duration" title="Duration" tabIndex="0">Initializing</span>
+                        <!--
+                        <input id="oc_time-chooser" type="image" name="Choose Time" src="img/space.png" title="Choose Time" alt="Choose Time" role="button" aria-disabled="false" aria-pressed="false"/>
+                        --><span id="oc_video-cc"><input id="oc_btn-cc" class="oc_btn-cc-off" type="submit" name="Closed Caption Off: Control + Alt + C" alt="Closed Caption Off: Control + Alt + C" title="Closed Caption Off: Control + Alt + C" value="" />
+                            </span>
+                    </div>
+                </div>
+                <div id="oc_video-controls">
+                    <span id="skip"><a name="controls"></a><h2>Video Player Controls</h2></span>
+                    <input id="oc_btn-skip-backward" class="oc_btn-skip-backward" type="submit" name="Jump To The Previous Slide" alt="Jump To The Previous Slide" title="Jump To The Previous Slide" value="" />
+                    <input id="oc_btn-rewind" class="oc_btn-rewind" type="submit" name="Jump Back: Control + Alt + R" alt="Jump Back: Control + Alt + R" title="Jump Back: Control + Alt + R" value="" />
+                    <input id="oc_btn-play-pause" class="oc_btn-play" type="submit" name="Play: Control + Alt + P" alt="Play: Control + Alt + P" title="Play: Control + Alt + P" value="" />
+                    <input id="oc_btn-fast-forward" class="oc_btn-fast-forward" type="submit" name="Jump Forward: Control + Alt + F" alt="Jump Forward: Control + Alt + F" title="Jump Forward: Control + Alt + F" value="" />
+                    <input id="oc_btn-skip-forward" class="oc_btn-skip-forward" type="submit" name="Jump To The Next Slide" alt="Jump To The Next Slide" title="Jump To The Next Slide" value="" />
+                </div>
+                <div id="oc_sound">
+                    <span id="oc_volume-dropdown"><input id="oc_btn-volume" class="oc_btn-volume-high" type="submit" name="Unmute: Control + Alt + M" alt="Unmute: Control + Alt + M" title="Unmute: Control + Alt + M" value="" />
+                        </span><span id="oc_volume-menue" style="visibility:hidden;">
+                        <div id="oc_volume-dropdown-div">
+                            <div id="oc_volume-slider">
+                                <div id="slider_volume_Rail" class="oc_slider-volume-Rail" title="Volume" alt="Volume">
+                                    <label id="volumeLabel" for="slider_volume_Rail" class="oc_offScreen-hidden">
+                                    </label>
+                                    <input id="slider_volume_Thumb" class="oc_slider-volume-Thumb" type="submit" value="" />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </span>
+                    </span>
+                </div>
+                <div id="oc_video-size-controls">
+                    <span id="oc_video-size-dropdown"><input id="oc_btn-dropdown" class="oc_btn-centerDisplay" type="submit" name="Video Size Controls" alt="Video Size Controls" title="Video Size Controls" value="" />
+                    </span>
+                    <span id="oc_video-size-menue"></span>
+                </div>
             </div>
-            <div id="oc_video-size-controls">
-                <span id="oc_video-size-dropdown"><input id="oc_btn-dropdown" class="oc_btn-centerDisplay" type="submit" name="Video Size Controls" alt="Video Size Controls" title="Video Size Controls" value="" />
-                    </span><span id="oc_video-size-menue"></span>
+            <div id="oc_player_video-dropdown">
             </div>
-        </div>
-        <div id="oc_player_video-dropdown">
-        </div>
-        <!-- segments_ui_slider + segments_ui -->
-        <div id="data">
-            <div id="oc_seek-slider">
-                <label id="skip" for="srubber">
-                    Time Slider
-                </label>
-                <table width="100%" style="float:left; margin-top:-5px; margin-bottom: -3px;">
-                    <tbody>
-                        <tr class="player-chrome">
-                            <td class="progress-segment" width="100%">
-                                <table class="segments" id="tableData1" cellspacing="0" cellpadding="0">
-                                    <!-- data comes here -->
-                                </table>
-                                <div class="progress-list">
-                                    <span class="load-progress" value="0"></span>
-                                    <span id="play-progress" class="play-progress" value="0" style="width: 0%;"></span>
-                                    <span id="scubber-channel" class="scrubber-channel"><input id="scrubber" type="submit" type="image" src="img/space.png" class="scrubber-button" role="slider"/>
-                                        <div id="draggable" class="ui-widget-content" style="left: 0%;">
-                                        </div>
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- segments_ui_slider + segments_ui -->
+            <div id="data" style="display:none;">
+                <div id="oc_seek-slider">
+                    <label id="skip" for="srubber">
+                        Time Slider
+                    </label>
+                    <table width="100%" style="float:left; margin-top:-5px; margin-bottom: -3px;">
+                        <tbody>
+                            <tr class="player-chrome">
+                                <td class="progress-segment" width="100%">
+                                    <table class="segments" id="tableData1" cellspacing="0" cellpadding="0">
+                                        <!-- data comes here -->
+                                    </table>
+                                    <div class="progress-list">
+                                        <span class="load-progress" value="0"></span>
+                                        <span id="play-progress" class="play-progress" value="0" style="width: 0%;"></span>
+                                        <span id="scubber-channel" class="scrubber-channel"><input id="scrubber" type="submit" type="image" src="img/space.png" class="scrubber-button" role="slider"/>
+                                            <div id="draggable" class="ui-widget-content" style="left: 0%;">
+                                            </div>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Analytics and Annotations -->
+                <div style="height: 25px;">
+                    <span id="analytics" class="analytics" style="display: none;">Loading..</span>
+                    <span id="annotation" class="annotation" style="display: none;">Annotation..</span>
+                    <table class="segments" id="segmentstable1" style="float:left;" cellspacing="0" cellpadding="0" style="opacity:0.65; filter: alpha(opacity=65);">
+                        <!-- data comes here -->
+                    </table>
+                </div>
+                <div id="segments_ui_slider_data1" style="display: none">
+                </div>
+                <div id="segments_ui_slider_data2" style="display: none">
+                </div>
+                <div id="segments_ui_slider_information" style="display: none">
+                </div>
+                <div id="segments_ui-media1">
+                </div>
+                <div id="data1">
+                </div>
+                <div id="segments_ui-mediapackagesAttachments">
+                </div>
+                <div id="data2">
+                </div>
+                <div id="segments_ui-mediapackagesCatalog">
+                </div>
+                <div style="display: none">
+                    <!-- id="oc-segments-text" -->
+                    <table cellspacing="0" cellpadding="0" id="segmentstable2">
+                    </table>
+                </div>
             </div>
-            <!-- Analytics and Annotations -->
-            <div style="height: 25px;">
-                <span id="analytics" class="analytics" style="display: none;">Loading..</span>
-                <span id="annotation" class="annotation" style="display: none;">Annotation..</span>
-                <table class="segments" id="segmentstable1" style="float:left;" cellspacing="0" cellpadding="0" style="opacity:0.65; filter: alpha(opacity=65);">
-                    <!-- data comes here -->
-                </table>
+            <div id="segment-tooltip" class="segment-tooltip" style="display: none;">
             </div>
-            <div id="segments_ui_slider_data1" style="display: none">
+            <!-- #time-chooser-layer dialog -->
+            <div id="oc_time-chooser-layer" class="ui-widget ui-widget-content ui-corner-all oc_popuplayer ui-helper-hidden" title="change player time/ session time" tabindex="-1" role="dialog" aria-hidden="true">
+                <ul id="oc_time-chooser-list" class="oc_popuplayer-list">
+                    <li>
+                        <a href="javascript: " id="oc_btn-player-time" onclick="Opencast.Player.doToggleTimeLayer();" class="handcursor" title="View player time" role="button">View player time</a>
+                    </li>
+                    <li>
+                        <a href="javascript: " id="oc_btn-session-time" onclick="Opencast.Player.doToggleTimeLayer();" class="handcursor" title="View session time" role="button">View session time</a>
+                    </li>
+                </ul>
+                <button id="oc_btn-leave-session-time" class="oc_btn-close">
+                    Leave time dialog
+                </button>
             </div>
-            <div id="segments_ui_slider_data2" style="display: none">
-            </div>
-            <div id="segments_ui_slider_information" style="display: none">
-            </div>
-            <div id="segments_ui-media1">
-            </div>
-            <div id="data1">
-            </div>
-            <div id="segments_ui-mediapackagesAttachments">
-            </div>
-            <div id="data2">
-            </div>
-            <div id="segments_ui-mediapackagesCatalog">
-            </div>
-            <div style="display: none">
-                <!-- id="oc-segments-text" -->
-                <table cellspacing="0" cellpadding="0" id="segmentstable2">
-                </table>
-            </div>
-        </div>
-        <div id="segment-tooltip" class="segment-tooltip" style="display: none;">
-        </div>
-        <!-- #time-chooser-layer dialog -->
-        <div id="oc_time-chooser-layer" class="ui-widget ui-widget-content ui-corner-all oc_popuplayer ui-helper-hidden" title="change player time/ session time" tabindex="-1" role="dialog" aria-hidden="true">
-            <ul id="oc_time-chooser-list" class="oc_popuplayer-list">
-                <li>
-                    <a href="javascript: " id="oc_btn-player-time" onclick="Opencast.Player.doToggleTimeLayer();" class="handcursor" title="View player time" role="button">View player time</a>
-                </li>
-                <li>
-                    <a href="javascript: " id="oc_btn-session-time" onclick="Opencast.Player.doToggleTimeLayer();" class="handcursor" title="View session time" role="button">View session time</a>
-                </li>
-            </ul>
-            <button id="oc_btn-leave-session-time" class="oc_btn-close">
-                Leave time dialog
-            </button>
         </div>
     </body>
 </html>

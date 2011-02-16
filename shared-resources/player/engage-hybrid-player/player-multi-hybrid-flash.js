@@ -264,13 +264,16 @@ Opencast.FlashVersion = (function ()
         if (playerType === "/engage/ui/embed.html")
         {
             var play = Opencast.Utils.getURLParameter('play');
-            if (play !== "true")
+            if ((play === null) || (play !== "true"))
             {
                 str = '<input id="oc_image" type="image" src="" alt="Matterhorn Player" title="Click to start" />';
                 $('#oc_flash-player-loading').hide();
+                $('#oc_player_video-dropdown').hide();
+                $('#data').hide();
             } else
             {
                 $('#oc_flash-player-loading').show();
+                $('#oc_player_video-dropdown').show();
             }
         }
         // DO NOT CHANGE THIS. IE8 Flash 10.0 cannot handle adding the SWF by jquery

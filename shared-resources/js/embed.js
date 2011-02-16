@@ -32,6 +32,7 @@ Opencast.Watch = (function ()
     {
         // Hide loading indicators
         $('#oc_flash-player-loading').hide();
+        $('#data').show();
         var mediaPackageId = Opencast.Utils.getURLParameter('id');
         var userId = Opencast.Utils.getURLParameter('user');
         if (mediaPackageId === null)
