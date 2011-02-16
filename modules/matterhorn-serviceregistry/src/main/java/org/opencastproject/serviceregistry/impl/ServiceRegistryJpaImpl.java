@@ -641,9 +641,10 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     EntityTransaction tx = em.getTransaction();
     try {
       tx.begin();
-      Query query = em.createNamedQuery("Job.host.status");
+      Query query = em.createNamedQuery("Job.processinghost.status");
       query.setParameter("status", Status.RUNNING);
       query.setParameter("host", baseUrl);
+      query.setParameter("serviceType", serviceType);
       @SuppressWarnings("unchecked")
       List<JobJpaImpl> unregisteredJobs = query.getResultList();
       for (JobJpaImpl job : unregisteredJobs) {
@@ -749,7 +750,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     EntityManager em = emf.createEntityManager();
     try {
       Query query;
-      if(status == null) {
+      if (status == null) {
         query = em.createNamedQuery("Job.count.nullStatus");
       } else {
         query = em.createNamedQuery("Job.count");
@@ -818,7 +819,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    *      java.lang.String, org.opencastproject.job.api.Job.Status)
    */
   public long count(String serviceType, String host, String operation, Status status) throws ServiceRegistryException {
-    if (StringUtils.isBlank(serviceType) || StringUtils.isBlank(host) || StringUtils.isBlank(operation) || status == null)
+    if (StringUtils.isBlank(serviceType) || StringUtils.isBlank(host) || StringUtils.isBlank(operation)
+            || status == null)
       throw new IllegalArgumentException("service type, host, operation, and status must be provided");
     Query query = null;
     EntityManager em = null;
@@ -901,29 +903,57 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   }
 
   /**
+   * Do not look at this, it will burn your eyes! This is due to JPA's inability to do a left outer join with join
+   * conditions.
+   * 
    * {@inheritDoc}
    * 
    * @see org.opencastproject.serviceregistry.api.ServiceRegistry#getServiceRegistrationsByLoad(java.lang.String)
    */
   @Override
   public List<ServiceRegistration> getServiceRegistrationsByLoad(String serviceType) throws ServiceRegistryException {
-    List<ServiceRegistration> registrations = new ArrayList<ServiceRegistration>();
-    List<ServiceStatistics> stats = getServiceStatistics();
-    Collections.sort(stats, new Comparator<ServiceStatistics>() {
-      @Override
-      public int compare(ServiceStatistics o1, ServiceStatistics o2) {
-        return (o1.getQueuedJobs() + o1.getRunningJobs()) - (o2.getQueuedJobs() + o2.getRunningJobs());
+    EntityManager em = emf.createEntityManager();
+    try {
+      Query q = em.createNamedQuery("ServiceRegistration.hostload");
+      List<ServiceRegistrationWithLoad> serviceRegistrations = new ArrayList<ServiceRegistrationWithLoad>();
+      Map<String, Integer> loadByHost = new HashMap<String, Integer>();
+
+      // Accumulate the numbers for relevant job statuses per host
+      for (Object result : q.getResultList()) {
+        Object[] resultArray = (Object[]) result;
+        ServiceRegistrationJpaImpl service = (ServiceRegistrationJpaImpl) resultArray[0];
+        String host = service.getHost();
+        Job.Status status = (Status) resultArray[1];
+        int count = ((Number) resultArray[2]).intValue();
+
+        // Only queued and running jobs are adding to the load, so every other status is discarded
+        if (!JOB_STATUSES_INFLUENCING_LOAD_BALANCING.contains(status)) {
+          count = 0;
+        }
+
+        // Add the service registration
+        if (serviceType.equals(service.getServiceType()) && !serviceRegistrations.contains(service)) {
+          serviceRegistrations.add(new ServiceRegistrationWithLoad(service));
+        }
+
+        // Update the overall host load
+        if (loadByHost.containsKey(host)) {
+          loadByHost.put(host, loadByHost.get(host) + count);
+        } else {
+          loadByHost.put(host, count);
+        }
       }
-    });
-    for (ServiceStatistics serviceStats : stats) {
-      ServiceRegistration registration = serviceStats.getServiceRegistration();
-      if (registration.isInMaintenanceMode() || !registration.isOnline()
-              || !serviceType.equals(registration.getServiceType())) {
-        continue;
+
+      // Update the load numbers and sort the registrations list
+      for (ServiceRegistration r : serviceRegistrations) {
+        ((ServiceRegistrationWithLoad)r).setHostLoad(loadByHost.get(r.getHost()));
       }
-      registrations.add(serviceStats.getServiceRegistration());
+      Collections.sort(serviceRegistrations);
+
+      return new ArrayList<ServiceRegistration>(serviceRegistrations);
+    } finally {
+      em.close();
     }
-    return registrations;
   }
 
   /**
