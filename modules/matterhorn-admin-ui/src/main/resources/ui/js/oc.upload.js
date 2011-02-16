@@ -83,7 +83,7 @@ ocUpload.init = function() {
   $('#BtnSubmit').click( function() {
     if (ocUpload.checkRequiredFields(true))  {
       ocUtils.log("Collecting metadata");
-      $('.formField').each( function() {
+      $('.oc-ui-form-field').each( function() {
         if (($(this).attr('id') != 'flavor') && ($(this).attr('id') != 'distribution')) {
           //log("adding metadata " + $(this).attr('id') + ' ' + $(this).val());
           if ($(this).hasClass('multiValueField')) {
@@ -112,9 +112,9 @@ ocUpload.init = function() {
   });
 
   // Event: collapsable title clicked, de-/collapse collapsables
-  $('.collapse-control').click(function() {
-    $(this).toggleClass('collapse-control-closed');
-    $(this).toggleClass('collapse-control-open');
+  $('.collapse-control2').click(function() {
+    $('#ui-icon').toggleClass('ui-icon-triangle-1-e');
+    $('#ui-icon').toggleClass('ui-icon-triangle-1-s');
     $(this).next('.collapsable').toggle('fast');
   });
 
@@ -326,7 +326,7 @@ ocUpload.showProgressStage = function() {
     modal: true,
     width: 850,
     height: 'auto',
-    position: [20, 'center'],
+    position: ['center', 'center'],
     title: 'File uploading...',
     resizable: false,
     draggable: false,
