@@ -236,7 +236,7 @@ Opencast.segments = (function ()
             margin = ((margin - controlswith) / 2) - 8;
             $(".oc_btn-rewind").css("margin-left", margin + "px");
         }
-        else if (playerWidth < 380 && playerWidth >= 300)
+        else if (playerWidth < 380)
         {
             $(".oc_btn-skip-backward").css('display', 'none');
             $(".oc_btn-skip-forward").css('display', 'none');
