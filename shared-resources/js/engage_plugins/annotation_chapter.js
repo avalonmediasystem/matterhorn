@@ -15,7 +15,6 @@ Opencast.Annotation_Chapter = (function ()
     var ANNOTATION_CHAPTER = "Annotation",
         ANNOTATION_CHAPTERHIDE = "Annotation off";
     
-    
     var annotationType = "chapter";
     var annotationDataURL = '../../annotation/annotations.json'; // Test-Data can be found: "js/engage_plugins/demodata/annotation_demo.json"
     
@@ -36,31 +35,22 @@ Opencast.Annotation_Chapter = (function ()
             success: function (data)
             {
                 var tmpData = data['annotations'];
-                if ((tmpData !== undefined) && (tmpData.annotation !== undefined))
+                if((tmpData !== undefined) && (tmpData.annotation !== undefined))
                 {
                     // Display the controls
                     $('#oc_checkbox-annotations').show();
                     $('#oc_label-annotations').show();
                     $('#oc_video-view').show();
                     Opencast.Analytics.initialize();
-                    return;
+                } else
+                {
+                    displayNoAnnotationsAvailable("No data available (undefined status, initialize)");
                 }
-                // Don't display anything + make unavailable
-                $("#annotation").html("No annotations available");
-                $('#oc_checkbox-annotations').removeAttr("checked");
-                $('#oc_checkbox-annotations').attr('disabled', true);
-                // Hide the controls as well
-                $('#oc_checkbox-annotations').hide();
-                $('#oc_label-annotations').hide();
-                hideAnnotation_Chapter();
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                // Don't display anything
-                $("#annotation").html("No annotations available");
-                $('#oc_checkbox-annotations').removeAttr("checked");
-                hideAnnotation_Chapter();
+                displayNoAnnotationsAvailable("No data available (1), initialize");
             }
         });
     }
@@ -80,44 +70,61 @@ Opencast.Annotation_Chapter = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
-                var tmpData = data['annotations'];
-                if ((tmpData !== undefined) && (tmpData.annotation !== undefined))
+                if((data === undefined) || (data['annotations'] === undefined) || (data['annotations'].annotation === undefined))
+                {
+                    displayNoAnnotationsAvailable("No data defined (1)");
+                } else
                 {
                     tmpData.duration = duration;
                     // Create Trimpath Template
-                    Opencast.Annotation_ChapterPlugin.addAsPlugin($('#annotation'), tmpData);
-                    annotationChapterDisplayed = true;
-                    var analyticsVisible = Opencast.Analytics.isVisible();
-                    // If Analytics is visible: Hide it before changing
-                    if (analyticsVisible)
+                    var annotSet = Opencast.Annotation_ChapterPlugin.addAsPlugin($('#annotation'), data['annotations'].annotation);
+                    if(annotSet)
                     {
-                        Opencast.Analytics.hideAnalytics();
-                    }
-                    $('#segmentstable').css('segment-holder-empty', 'none');
-                    $("#annotation").show();
-                    $('#segmentstable1').hide();
-                    $('#segmentstable2').hide();
-                    // If Analytics was visible: Display it again
-                    if (analyticsVisible)
+                        displayNoAnnotationsAvailable("No template available (1)");
+                    } else
                     {
-                        Opencast.Analytics.showAnalytics();
+                        annotationChapterDisplayed = true;
+                        var analyticsVisible = Opencast.Analytics.isVisible();
+                        // If Analytics is visible: Hide it before changing
+                        if (analyticsVisible)
+                        {
+                            Opencast.Analytics.hideAnalytics();
+                        }
+                        $('#segmentstable').css('segment-holder-empty', 'none');
+                        $("#annotation").show();
+                        $('#segmentstable1').hide();
+                        $('#segmentstable2').hide();
+                        // If Analytics was visible: Display it again
+                        if (analyticsVisible)
+                        {
+                            Opencast.Analytics.showAnalytics();
+                        }
                     }
-                    return;
                 }
-                // Don't display anything
-                $("#annotation").html("No Annotations available");
-                $('#oc_checkbox-annotations').removeAttr("checked");
-                hideAnnotation_Chapter();
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                // Don't display anything
-                $("#annotation").html("No Annotations available");
-                $('#oc_checkbox-annotations').removeAttr("checked");
-                hideAnnotation_Chapter();
+                displayNoAnnotationsAvailable("No data available (1)");
             }
         });
+    }
+    
+    /**
+     * @memberOf Opencast.Annotation_Chapter
+     * @description Displays that no Annotation is available and hides Annotations
+     * @param errorDesc Error Description (optional)
+     */
+    function displayNoAnnotationsAvailable(errorDesc)
+    {    
+        errorDesc = errorDesc || '';
+        var optError = (errorDesc != '') ? (": " + errorDesc) : '';
+        $("#annotation").html("No Annotations available" + optError);
+        $('#oc_checkbox-annotations').removeAttr("checked");
+        $('#oc_checkbox-annotations').attr('disabled', true);
+        $('#oc_checkbox-annotations').hide();
+        $('#oc_label-annotations').hide();
+        hideAnnotation_Chapter();
     }
     
     /**

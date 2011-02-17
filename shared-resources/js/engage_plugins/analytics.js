@@ -29,7 +29,7 @@ Opencast.Analytics = (function ()
     
     /**
      * @memberOf Opencast.Analytics
-     * @description Initializes ANalytics
+     * @description Initializes Analytics
      *              Checks whether Data are available. If not: Hide Analytics
      */
     function initialize()
@@ -51,24 +51,15 @@ Opencast.Analytics = (function ()
                     $('#oc_checkbox-statistics').show();
                     $('#oc_label-statistics').show();
                     $('#oc_video-view').show();
-                    return;
+                } else
+                {
+                    displayNoAnalyticsAvailable("No data defined (1), initialize");
                 }
-                // Don't display anything + make unavailable
-                $("#analytics").html("No annotations available");
-                $('#oc_checkbox-statistics').removeAttr("checked");
-                $('#oc_checkbox-statistics').attr('disabled', true);
-                // Hide the controls as well
-                $('#oc_checkbox-statistics').hide();
-                $('#oc_label-statistics').hide();
-                hideAnalytics();
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                // Don't display anything
-                $("#analytics").html("No analytics available");
-                $('#oc_checkbox-statistics').removeAttr("checked");
-                hideAnalytics();
+                displayNoAnalyticsAvailable("No data available (1), initialize");
             }
         });
     }
@@ -79,6 +70,14 @@ Opencast.Analytics = (function ()
      */
     function showAnalytics()
     {
+        if(isVisible())
+        {
+            var rez = Opencast.AnalyticsPlugin.resizePlugin();
+            if(rez)
+            {
+                return;
+            }
+        }
         // Request JSONP data
         $.ajax(
         {
@@ -113,38 +112,61 @@ Opencast.Analytics = (function ()
                         footprintData[position] = views;
                         lastPosition = position;
                         lastViews = views;
-                    })
-                    Opencast.AnalyticsPlugin.addAsPlugin($('#analytics'), footprintData);
-                    $(".segments").css('top', '-25px');
-                    $('#annotation').css('top', '-25px');
-                    $('#segmentstable1').css('float', '');
-                    $('#annotation').css('float', '');
-                    $('#annotation_holder').css('float', '');
-                    $("#analytics").show();
-                    $('#segmentstable1').css('opacity', '0.65');
-                    $('#segmentstable1').css('filter', 'alpha(opacity=65)');
-                    //$.sparkline_display_visible();
-                    analyticsDisplayed = true;
-                    
-                    if(!intervalRunning)
+                    });
+                    var plugAn = Opencast.AnalyticsPlugin.addAsPlugin($('#analytics'), footprintData);
+                    if(plugAn)
                     {
-                        // Display actual Results every updateIntervall Milliseconds
-                        interval = setInterval(showAnalytics, updateInterval);
-                        intervalRunning = true;
-                        showAnalytics();
+                        $(".segments").css('top', '-25px');
+                        $('#annotation').css('top', '-25px');
+                        $('#segmentstable1').css('float', '');
+                        $('#annotation').css('float', '');
+                        $('#annotation_holder').css('float', '');
+                        $("#analytics").show();
+                        $('#segmentstable1').css('opacity', '0.65');
+                        $('#segmentstable1').css('filter', 'alpha(opacity=65)');
+                        //$.sparkline_display_visible();
+                        analyticsDisplayed = true;
+                        
+                        if(!intervalRunning)
+                        {
+                            // Display actual Results every updateIntervall Milliseconds
+                            interval = setInterval(showAnalytics, updateInterval);
+                            intervalRunning = true;
+                            showAnalytics();
+                        }
+                    } else
+                    {
+                        displayNoAnalyticsAvailable("No template available (1)");
                     }
                 }
                 else
                 {
-                    $('#oc_checkbox-statistics').removeAttr("checked");
-                    hideAnalytics();
+                    displayNoAnalyticsAvailable("No data defined (1)");
                 }
             },
-            error: function (a, b, c)
+            // If no data comes back
+            error: function (xhr, ajaxOptions, thrownError)
             {
-                hideAnalytics();
+                displayNoAnalyticsAvailable("No data available (1)");
             }
         });
+    }
+    
+    /**
+     * @memberOf Opencast.Analytics
+     * @description Displays that no Analytics is available and hides Annotations
+     * @param errorDesc Error Description (optional)
+     */
+    function displayNoAnalyticsAvailable(errorDesc)
+    {
+        errorDesc = errorDesc || '';
+        var optError = (errorDesc != '') ? (": " + errorDesc) : '';
+        $("#analytics").html("No analytics available" + optError);
+        $('#oc_checkbox-statistics').removeAttr("checked");
+        $('#oc_checkbox-statistics').attr('disabled', true);
+        $('#oc_checkbox-statistics').hide();
+        $('#oc_label-statistics').hide();
+        hideAnalytics();
     }
     
     /**

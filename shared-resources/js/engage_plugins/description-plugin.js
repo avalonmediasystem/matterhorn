@@ -15,7 +15,7 @@ Opencast.Description_Plugin = (function ()
                         'Views: <span style="color:grey;">${result.dcViews}</span><br />' +
                     '</div>' +
                     '<div style="float: right; margin-right: 300px;">' +
-                        'See related Videos: <span style="color:grey;"></span><br />' +
+                        // 'See related Videos: <span style="color:grey;"></span><br />' +
                         'Series: ${result.dcSeriesTitle}<br />' +
                         'Presenter: <a href="../../engage/ui/index.html?q=${result.dcCreator}">${result.dcCreator}</a></span><br />' +
                         // 'Contents: <br />' +
@@ -35,17 +35,19 @@ Opencast.Description_Plugin = (function ()
      * @description Add As Plug-in
      * @param elem Element to fill with the Data (e.g. a div)
      * @param data Data to fill the Element with
+     * @return true if successfully processed, false else
      */
     function addAsPlugin(elem, data)
     {
         element = elem;
         description_data = data;
-        createDescription();
+        return createDescription();
     }
 
     /**
      * @memberOf Opencast.Description_Plugin
      * @description Processes the Data and puts it into the Element
+     * @return true if successfully processed, false else
      */
     function createDescription()
     {
@@ -53,6 +55,10 @@ Opencast.Description_Plugin = (function ()
         {
             processedTemplateData = template.process(description_data);
             element.html(processedTemplateData);
+            return true;
+        } else
+        {
+            return false;
         }
     }
 

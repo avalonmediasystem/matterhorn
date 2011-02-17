@@ -67,6 +67,7 @@ Opencast.search_Plugin = (function ()
      * @description Add As Plug-in
      * @param elem Element to fill with the Data (e.g. a div)
      * @param data Data to fill the Element with
+     * @return true if successfully processed, false else
      */
     function addAsPlugin(elem, data, value)
     {
@@ -74,12 +75,13 @@ Opencast.search_Plugin = (function ()
         search_data = data;
         
         search_value = value;
-        createSearch();
+        return createSearch();
     }
 
     /**
      * @memberOf Opencast.search_Plugin
      * @description Processes the Data and puts it into the Element
+     * @return true if successfully processed, false else
      */
     function createSearch()
     {
@@ -95,6 +97,10 @@ Opencast.search_Plugin = (function ()
                 processedTemplate = template.process(search_data);
             }
             element.html(processedTemplate);
+            return true;
+        } else
+        {
+            return false;
         }
     }
 

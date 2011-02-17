@@ -395,6 +395,17 @@ Opencast.segments = (function ()
             {
                 // get rid of every '@' in the JSON data
                 // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
+                
+                if((data === undefined) ||
+                   (data['search-results'] === undefined) ||
+                   (data['search-results'].result === undefined) ||
+                   (data['search-results'].result.segments === undefined))
+                {
+                    $('#scrollcontainer').html('No Slides available');
+                    $('#scrollcontainer').hide();
+                    return;
+                }
+                
                 // Create Trimpath Template
                 Opencast.segments_Plugin.addAsPlugin($('#scrollcontainer'), data['search-results'].result.segments);
                 // Show a loading Image
