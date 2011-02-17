@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.xpath.XPathConstants;
 
@@ -91,7 +92,7 @@ public class PreProcessingWorkflowTest {
   public void test() throws Exception {
     String workflowId = null;
     long waiting = 0;
-    long TIMEOUT = 5000L;
+    long TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
     long GRACE_PERIOD = 30000L;
 
     // Make sure the demo capture agent is online
@@ -113,7 +114,7 @@ public class PreProcessingWorkflowTest {
     workflowId = scheduleEvent(start, end);
     while (WorkflowUtils.isWorkflowInState(workflowId, "INSTANTIATED")) {
       logger.info("Waiting for scheduled recording workflow {} to be dispatched", workflowId);
-      Thread.sleep(5000);
+      Thread.sleep(TIMEOUT);
     }
     if (!WorkflowUtils.isWorkflowInState(workflowId, "PAUSED")) {
       fail("Workflow " + workflowId + " should be on hold in 'schedule', or ");

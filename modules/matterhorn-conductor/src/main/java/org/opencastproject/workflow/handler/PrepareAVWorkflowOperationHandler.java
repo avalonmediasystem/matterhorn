@@ -120,9 +120,11 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.api.WorkflowOperationHandler#start(org.opencastproject.workflow.api.WorkflowInstance, JobContext)
+   * @see org.opencastproject.workflow.api.WorkflowOperationHandler#start(org.opencastproject.workflow.api.WorkflowInstance,
+   *      JobContext)
    */
-  public WorkflowOperationResult start(final WorkflowInstance workflowInstance, JobContext context) throws WorkflowOperationException {
+  public WorkflowOperationResult start(final WorkflowInstance workflowInstance, JobContext context)
+          throws WorkflowOperationException {
     logger.debug("Running a/v muxing workflow operation on workflow {}", workflowInstance.getId());
     try {
       return mux(workflowInstance.getMediaPackage(), workflowInstance.getCurrentOperation());
@@ -192,29 +194,29 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
     Track videoTrack = null;
 
     switch (tracks.length) {
-    case 0:
-      logger.info("No audio/video tracks with flavor '{}' found to prepare", sourceFlavor);
-      return createResult(mediaPackage, Action.CONTINUE);
-    case 1:
-      if (!tracks[0].hasAudio() && tracks[0].hasVideo() && promiscuousMuxing) {
-        videoTrack = tracks[0];
-        audioTrack = findAudioTrack(tracks[0], mediaPackage);
-      } else {
-        audioTrack = videoTrack = tracks[0];
-      }
-      break;
-    case 2:
-      for (Track track : tracks) {
-        if (track.hasAudio() && !track.hasVideo()) {
-          audioTrack = track;
-        } else if (!track.hasAudio() && track.hasVideo()) {
-          videoTrack = track;
+      case 0:
+        logger.info("No audio/video tracks with flavor '{}' found to prepare", sourceFlavor);
+        return createResult(mediaPackage, Action.CONTINUE);
+      case 1:
+        if (!tracks[0].hasAudio() && tracks[0].hasVideo() && promiscuousMuxing) {
+          videoTrack = tracks[0];
+          audioTrack = findAudioTrack(tracks[0], mediaPackage);
+        } else {
+          audioTrack = videoTrack = tracks[0];
         }
-      }
-      break;
-    default:
-      logger.error("More than two tracks with flavor {} found. No idea what we should be doing", sourceFlavor);
-      throw new WorkflowOperationException("More than two tracks with flavor '" + sourceFlavor + "' found");
+        break;
+      case 2:
+        for (Track track : tracks) {
+          if (track.hasAudio() && !track.hasVideo()) {
+            audioTrack = track;
+          } else if (!track.hasAudio() && track.hasVideo()) {
+            videoTrack = track;
+          }
+        }
+        break;
+      default:
+        logger.error("More than two tracks with flavor {} found. No idea what we should be doing", sourceFlavor);
+        throw new WorkflowOperationException("More than two tracks with flavor '" + sourceFlavor + "' found");
     }
 
     Job job = null;
@@ -278,6 +280,16 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
       }
     } else {
       logger.info("Muxing audio and video only track {} to work version", videoTrack);
+
+      if (audioTrack.hasVideo()) {
+        logger.info("Stripping audio from track {}", audioTrack);
+        Job stripAudioJob = composerService.encode(audioTrack, PREPARE_AONLY_PROFILE);
+        if (!waitForStatus(stripAudioJob).isSuccess()) {
+          throw new WorkflowOperationException("Stripping audio from track " + audioTrack + " failed");
+        }
+        audioTrack = (Track) MediaPackageElementParser.getFromXml(stripAudioJob.getPayload());
+      }
+
       job = composerService.mux(videoTrack, audioTrack, profile.getIdentifier());
       if (!waitForStatus(job).isSuccess()) {
         throw new WorkflowOperationException("Muxing video track " + videoTrack + " and audio track " + audioTrack
