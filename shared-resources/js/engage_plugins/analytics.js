@@ -29,6 +29,52 @@ Opencast.Analytics = (function ()
     
     /**
      * @memberOf Opencast.Analytics
+     * @description Initializes ANalytics
+     *              Checks whether Data are available. If not: Hide Analytics
+     */
+    function initialize()
+    {
+        // Request JSONP data
+        $.ajax(
+        {
+            type: 'GET',
+            contentType: 'text/xml',
+            url: "../../usertracking/footprint.xml",
+            data: "id=" + mediaPackageId,
+            dataType: 'xml',
+            success: function (xml)
+            {
+                var tmpData = $(xml).find('footprint');
+                if (tmpData !== undefined)
+                {
+                    // Display the controls
+                    $('#oc_checkbox-statistics').show();
+                    $('#oc_label-statistics').show();
+                    $('#oc_video-view').show();
+                    return;
+                }
+                // Don't display anything + make unavailable
+                $("#analytics").html("No annotations available");
+                $('#oc_checkbox-statistics').removeAttr("checked");
+                $('#oc_checkbox-statistics').attr('disabled', true);
+                // Hide the controls as well
+                $('#oc_checkbox-statistics').hide();
+                $('#oc_label-statistics').hide();
+                hideAnalytics();
+            },
+            // If no data comes back
+            error: function (xhr, ajaxOptions, thrownError)
+            {
+                // Don't display anything
+                $("#analytics").html("No analytics available");
+                $('#oc_checkbox-statistics').removeAttr("checked");
+                hideAnnotation_Chapter();
+            }
+        });
+    }
+    
+    /**
+     * @memberOf Opencast.Analytics
      * @description Show Analytics
      */
     function showAnalytics()
@@ -195,6 +241,7 @@ Opencast.Analytics = (function ()
     }
     
     return {
+        initialize: initialize,
         isVisible: isVisible,
         hideAnalytics: hideAnalytics,
         showAnalytics: showAnalytics,

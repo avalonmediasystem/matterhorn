@@ -22,7 +22,7 @@ Opencast.Annotation_Chapter = (function ()
     /**
      * @memberOf Opencast.Annotation_Chapter
      * @description Initializes Annotation Chapter
-     *              Checks whether Data are available. If not: Grey out Annotation Checkbox
+     *              Checks whether Data are available. If not: Hide Annotations
      */
     function initialize()
     {
@@ -38,15 +38,21 @@ Opencast.Annotation_Chapter = (function ()
                 var tmpData = data['annotations'];
                 if ((tmpData !== undefined) && (tmpData.annotation !== undefined))
                 {
+                    // Display the controls
+                    $('#oc_checkbox-annotations').show();
+                    $('#oc_label-annotations').show();
+                    $('#oc_video-view').show();
+                    Opencast.Analytics.initialize();
                     return;
                 }
                 // Don't display anything + make unavailable
                 $("#annotation").html("No annotations available");
                 $('#oc_checkbox-annotations').removeAttr("checked");
                 $('#oc_checkbox-annotations').attr('disabled', true);
-                // Hide as well
+                // Hide the controls as well
                 $('#oc_checkbox-annotations').hide();
-                $('#oc_label-annotations').hide(); 
+                $('#oc_label-annotations').hide();
+                hideAnnotation_Chapter();
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
