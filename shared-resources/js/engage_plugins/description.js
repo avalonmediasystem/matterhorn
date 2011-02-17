@@ -46,6 +46,19 @@ Opencast.Description = (function ()
                 sd.setMinutes(parseInt(timeDate.substring(14, 16), 10));
                 sd.setSeconds(parseInt(timeDate.substring(17, 19), 10));
                 data['search-results'].result.dcCreated = sd.toLocaleString();
+                
+                // Trimpath throws (no) errors if a variable is not defined => assign default value
+                var tmp = data['search-results'].result.dcSeriesTitle;
+                data['search-results'].result.dcSeriesTitle = ((tmp !== undefined) && (tmp !== null)) ? data['search-results'].result.dcSeriesTitle : '';
+                tmp = data['search-results'].result.dcContributor;
+                data['search-results'].result.dcContributor = ((tmp !== undefined) && (tmp !== null)) ? data['search-results'].result.dcContributor : '';
+                tmp = data['search-results'].result.dcLanguage;
+                data['search-results'].result.dcLanguage = ((tmp !== undefined) && (tmp !== null)) ? data['search-results'].result.dcLanguage : '';
+                tmp = data['search-results'].result.dcViews;
+                data['search-results'].result.dcViews = ((tmp !== undefined) && (tmp !== null)) ? data['search-results'].result.dcViews : '';
+                tmp = data['search-results'].result.dcCreator;
+                data['search-results'].result.dcCreator = ((tmp !== undefined) && (tmp !== null)) ? data['search-results'].result.dcCreator : '';
+                
                 // Request JSONP data (Stats)
                 $.ajax(
                 {
