@@ -68,7 +68,7 @@ Opencast.Analytics = (function ()
                 // Don't display anything
                 $("#analytics").html("No analytics available");
                 $('#oc_checkbox-statistics').removeAttr("checked");
-                hideAnnotation_Chapter();
+                hideAnalytics();
             }
         });
     }
