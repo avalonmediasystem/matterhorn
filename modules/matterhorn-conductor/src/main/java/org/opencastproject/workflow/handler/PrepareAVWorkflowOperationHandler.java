@@ -210,6 +210,8 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
             audioTrack = track;
           } else if (!track.hasAudio() && track.hasVideo()) {
             videoTrack = track;
+          } else {
+            throw new WorkflowOperationException("Multiple tracks with competing audio/video streams and flavor '" + sourceFlavor + "' found");
           }
         }
         break;
