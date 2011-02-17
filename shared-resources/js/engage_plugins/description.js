@@ -75,13 +75,16 @@ Opencast.Description = (function ()
                                     // Create Trimpath Template
                                     Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
                                     // Make visible
-                                    $('#oc_description').show();
                                     $('#description-loading').hide();
                                     $('#oc-description').show();
                                 },
                                 // If no data comes back (JSONP-Call #3)
                                 error: function (xhr, ajaxOptions, thrownError)
                                 {
+                                    $('#description-loading').hide();
+                                    $('#oc-description').html('No Description available');
+                                    $('#oc-description').show();
+                                    $('#scrollcontainer').hide();
                                 }
                             });
                         }
@@ -90,7 +93,6 @@ Opencast.Description = (function ()
                             // Create Trimpath Template
                             Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
                             // Make visible
-                            $('#oc_description').show();
                             $('#description-loading').hide();
                             $('#oc-description').show();
                         }
@@ -98,7 +100,9 @@ Opencast.Description = (function ()
                     // If no data comes back (JSONP-Call #2)
                     error: function (xhr, ajaxOptions, thrownError)
                     {
-                        $('#scrollcontainer').html('No Description available');
+                        $('#description-loading').hide();
+                        $('#oc-description').html('No Description available');
+                        $('#oc-description').show();
                         $('#scrollcontainer').hide();
                     }
                 });
@@ -106,6 +110,10 @@ Opencast.Description = (function ()
             // If no data comes back (JSONP-Call #1)
             error: function (xhr, ajaxOptions, thrownError)
             {
+                $('#description-loading').hide();
+                $('#oc-description').html('No Description available');
+                $('#oc-description').show();
+                $('#scrollcontainer').hide();
             }
         });
     }
