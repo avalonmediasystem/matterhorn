@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
+    <link rel="shortcut icon" href="img/favicon.ico"> 
+    <title>Opencast Matterhorn - View Recording Info</title>
+
+    <!-- style -->
+    <link rel="stylesheet" type="text/css" href="infusion-1.1.2/fss/css/fss-reset.css">
+    <link rel="stylesheet" type="text/css" href="infusion-1.1.2/fss/css/fss-layout.css">
+    <link rel="stylesheet" type="text/css" href="infusion-1.1.2/fss/css/fss-text.css">
+
+    <link rel="stylesheet" type="text/css" href="css/admin.css">
+    <link rel="stylesheet" type="text/css" href="css/scheduler.css">
+    <link rel="stylesheet" type="text/css" href="css/shared.css">
+
+    <!-- static library scripts -->
+    <script type="text/javascript" src="jquery/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.xslt.js"></script>
+
+    <!-- page script -->
+    <script type="text/javascript" src="js/viewevent.js"></script>
+    <script type="text/javascript">
+      var params = {};
+      if(document.location.search){
+        var query = document.location.search.substr(1).split('&');
+        for (var p in query) {
+          var pair = query[p].split('=');
+          if (pair.length > 1) {
+            params[pair[0]] = pair[1];
+          }
+        }
+      }
+      
+      $(document).ready(
+      function() {
+        if (params.type && params.id) {
+          if (params.type.toLowerCase() == 'workflow') {
+            $.get("/workflow/rest/instance/" + params.id + ".xml", handleWorkflow);
+          } else if (params.type.toLowerCase() == 'event') {
+            $.get("/scheduler/rest/event/" + params.id , handleEvent);
+          }
+        }
+      }
+    );
+    </script>
+  </head>
+  <body>
+    <div id="pageHeader">
+      <div id="currentVersion" style="float:left;"></div>
+      <div style="text-align:right; float: right;"><a href="/j_spring_security_logout" style="color:#FFFFFF">Log out</a></div>
+    </div>
+    <div id="header">
+      <div id="logotitle">
+        <a href="recordings.html">
+          <img src="img/MatterhornLogo.png" alt="Opencast Matterhorn" width="104" height="72" align="left">
+          <h1>Admin Tools</h1>
+        </a>
+      </div>
+      <div id="oclogo">
+        <a href="http://www.opencastproject.org">
+          <img src="img/OpencastLogo.png" width="143" height="38" alt="Opencast Community | Project">        </a>    </div>
+    </div>
+    <ul class="fl-tabs fl-tabs-left" style="background-color: white;">
+      <li class="oc_tabs fl-activeTab"><a class="oc_tabs" href="/admin/">Recordings</a></li>
+      <li class="oc_tabs"><a class="oc_tabs" href="series.html" id="i18n_tab_series">Series</a></li>
+      <li class="oc_tabs"><a class="oc_tabs" href="/admin/agents_status.html">Capture Agents</a></li>
+    </ul>
+    <div class="fl-container-850">
+      <div id="stage" class="fl-tab-content wu-tab-content fl-fix" style="background:white;" ></div>
+    </div>
+  </body>
+</html>

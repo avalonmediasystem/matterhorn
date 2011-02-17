@@ -1,0 +1,89 @@
+
+#slider {
+    width: 80%;
+    margin: 0 auto;
+    position: relative;
+    border: 1px solid #ccc;
+	  height: 85px;
+}
+
+.scroll {
+	overflow: hidden;
+	width: 100%;
+  margin: 0 auto;
+  position: relative;
+  height: 85px;
+}
+
+.scrollContainer {
+	position: relative;
+}
+
+.scrollContainer div.panel {
+    padding: 1px;
+}
+
+.inside {
+	padding: 0px;
+	border: none;
+}
+
+.inside img {
+	display: block;
+	border: none;
+	margin: 0 0 0 0;
+	height: 83px;
+}
+
+
+.scrollButtons {
+    position: absolute;
+    top: 17px;
+    cursor: pointer;
+}
+
+.scrollButtons.left {
+    left: -52px;
+}
+
+.scrollButtons.right {
+    right: -52px;
+}
+
+.oc-segments-time {
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+span.marked {
+  background-color: #FFFF00;
+}
+
+div.segment-tooltip
+{
+  position :                absolute;
+  padding:                  2px;
+  text-align:               center;
+  -moz-border-radius :      5px 5px 5px 5px;
+  -webkit-border-radius :   5px 5px 5px 5px;
+  border :                  1px solid #f8bb22;
+  color :                   #000000;
+  background-color:         #fae6a0;
+  font-size :               14;
+  cursor:                   default !important;
+  z-index:                  1000;
+}
+
+.oc-segments-preview {
+  display: none;
+}
+
+a.segments-time {
+    color:            #2D8F8B;
+    cursor:           pointer;
+}
+
+.segments-time:hover {
+    text-decoration:underline;
+}
