@@ -149,8 +149,6 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
    * @throws NotFoundException
    *           if the workspace does not contain the requested element
    */
-  // FIXME: Refactor so this method isn't so long and complex
-  // CHECKSTYLE:OFF
   private WorkflowOperationResult mux(MediaPackage src, WorkflowOperationInstance operation) throws EncoderException,
           WorkflowOperationException, NotFoundException, MediaPackageException, IOException {
     MediaPackage mediaPackage = (MediaPackage) src.clone();
@@ -202,7 +200,8 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
           videoTrack = tracks[0];
           audioTrack = findAudioTrack(tracks[0], mediaPackage);
         } else {
-          audioTrack = videoTrack = tracks[0];
+          audioTrack = tracks[0];
+          videoTrack = tracks[0];
         }
         break;
       case 2:
@@ -225,20 +224,7 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
     // Make sure we have a matching combination
     if (audioTrack == null && videoTrack != null) {
       if (rewrite) {
-        logger.info("Encoding video only track {} to work version", videoTrack);
-        job = composerService.encode(videoTrack, PREPARE_VONLY_PROFILE);
-        if (!waitForStatus(job).isSuccess()) {
-          throw new WorkflowOperationException("Rewriting container for video track " + videoTrack + " failed");
-        }
-        composedTrack = (Track) MediaPackageElementParser.getFromXml(job.getPayload());
-        mediaPackage.add(composedTrack);
-        String fileName = getFileNameFromElements(videoTrack, composedTrack);
-
-        // Note that the composed track must have an ID before being moved to the mediapackage in the working file
-        // repository. This ID is generated when the track is added to the mediapackage. So the track must be added
-        // to the mediapackage before attempting to move the file.
-        composedTrack.setURI(workspace.moveTo(composedTrack.getURI(), mediaPackage.getIdentifier().toString(),
-                composedTrack.getIdentifier(), fileName));
+        composedTrack = prepare(videoTrack, mediaPackage, PREPARE_VONLY_PROFILE);
       } else {
         composedTrack = (Track) videoTrack.clone();
         composedTrack.setIdentifier(null);
@@ -247,15 +233,7 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
     } else if (videoTrack == null && audioTrack != null) {
       if (rewrite) {
         logger.info("Encoding audio only track {} to work version", audioTrack);
-        job = composerService.encode(audioTrack, PREPARE_AONLY_PROFILE);
-        if (!waitForStatus(job).isSuccess()) {
-          throw new WorkflowOperationException("Rewriting container for audio track " + audioTrack + " failed");
-        }
-        composedTrack = (Track) MediaPackageElementParser.getFromXml(job.getPayload());
-        String fileName = getFileNameFromElements(audioTrack, composedTrack);
-        mediaPackage.add(composedTrack);
-        composedTrack.setURI(workspace.moveTo(composedTrack.getURI(), mediaPackage.getIdentifier().toString(),
-                composedTrack.getIdentifier(), fileName));
+        composedTrack = prepare(audioTrack, mediaPackage, PREPARE_AONLY_PROFILE);
       } else {
         composedTrack = (Track) audioTrack.clone();
         composedTrack.setIdentifier(null);
@@ -264,15 +242,7 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
     } else if (audioTrack == videoTrack) {
       if (rewrite) {
         logger.info("Encoding audiovisual track {} to work version", videoTrack);
-        job = composerService.encode(videoTrack, PREPARE_AV_PROFILE);
-        if (!waitForStatus(job).isSuccess()) {
-          throw new WorkflowOperationException("Rewriting container for a/v track " + videoTrack + " failed");
-        }
-        composedTrack = (Track) MediaPackageElementParser.getFromXml(job.getPayload());
-        mediaPackage.add(composedTrack);
-        String fileName = getFileNameFromElements(videoTrack, composedTrack);
-        composedTrack.setURI(workspace.moveTo(composedTrack.getURI(), mediaPackage.getIdentifier().toString(),
-                composedTrack.getIdentifier(), fileName));
+        composedTrack = prepare(videoTrack, mediaPackage, PREPARE_AV_PROFILE);
       } else {
         composedTrack = (Track) videoTrack.clone();
         composedTrack.setIdentifier(null);
@@ -283,11 +253,7 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
 
       if (audioTrack.hasVideo()) {
         logger.info("Stripping audio from track {}", audioTrack);
-        Job stripAudioJob = composerService.encode(audioTrack, PREPARE_AONLY_PROFILE);
-        if (!waitForStatus(stripAudioJob).isSuccess()) {
-          throw new WorkflowOperationException("Stripping audio from track " + audioTrack + " failed");
-        }
-        audioTrack = (Track) MediaPackageElementParser.getFromXml(stripAudioJob.getPayload());
+        audioTrack = prepare(audioTrack, null, PREPARE_AONLY_PROFILE);
       }
 
       job = composerService.mux(videoTrack, audioTrack, profile.getIdentifier());
@@ -321,7 +287,41 @@ public class PrepareAVWorkflowOperationHandler extends AbstractWorkflowOperation
     return createResult(mediaPackage, Action.CONTINUE, timeInQueue);
   }
 
-  // CHECKSTYLE:ON
+  /**
+   * Prepares a video track. If the mediapackage is specified, the prepared track will be added to it.
+   * 
+   * @param videoTrack
+   *          the track containing the video
+   * @param mediaPackage
+   *          the mediapackage
+   * @return the rewritten track
+   * @throws WorkflowOperationException
+   * @throws NotFoundException
+   * @throws IOException
+   * @throws EncoderException
+   * @throws MediaPackageException
+   */
+  private Track prepare(Track videoTrack, MediaPackage mediaPackage, String encodingProfile)
+          throws WorkflowOperationException, NotFoundException, IOException, EncoderException, MediaPackageException {
+    Track composedTrack = null;
+    logger.info("Encoding video only track {} to work version", videoTrack);
+    Job job = composerService.encode(videoTrack, encodingProfile);
+    if (!waitForStatus(job).isSuccess()) {
+      throw new WorkflowOperationException("Rewriting container for video track " + videoTrack + " failed");
+    }
+    composedTrack = (Track) MediaPackageElementParser.getFromXml(job.getPayload());
+    if (mediaPackage != null) {
+      mediaPackage.add(composedTrack);
+      String fileName = getFileNameFromElements(videoTrack, composedTrack);
+
+      // Note that the composed track must have an ID before being moved to the mediapackage in the working file
+      // repository. This ID is generated when the track is added to the mediapackage. So the track must be added
+      // to the mediapackage before attempting to move the file.
+      composedTrack.setURI(workspace.moveTo(composedTrack.getURI(), mediaPackage.getIdentifier().toString(),
+              composedTrack.getIdentifier(), fileName));
+    }
+    return composedTrack;
+  }
 
   /**
    * 
