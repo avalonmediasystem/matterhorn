@@ -66,15 +66,17 @@ import javax.xml.bind.annotation.XmlType;
 @NamedQueries({
         // Job queries
         @NamedQuery(name = "Job", query = "SELECT j FROM Job j "
-                + "where j.status = :status and j.creatorServiceRegistration.serviceType = :serviceType"),
+                + "where j.status = :status and j.creatorServiceRegistration.serviceType = :serviceType "
+                + "order by j.dateCreated"),
         @NamedQuery(name = "Job.type", query = "SELECT j FROM Job j "
-                + "where j.creatorServiceRegistration.serviceType = :serviceType"),
-        @NamedQuery(name = "Job.status", query = "SELECT j FROM Job j " + "where j.status = :status "),
-        @NamedQuery(name = "Job.all", query = "SELECT j FROM Job j"),
+                + "where j.creatorServiceRegistration.serviceType = :serviceType order by j.dateCreated"),
+        @NamedQuery(name = "Job.status", query = "SELECT j FROM Job j "
+                + "where j.status = :status order by j.dateCreated"),
+        @NamedQuery(name = "Job.all", query = "SELECT j FROM Job j order by j.dateCreated"),
         @NamedQuery(name = "Job.processinghost.status", query = "SELECT j FROM Job j "
                 + "where j.status = :status and j.processorServiceRegistration is not null and "
                 + "j.processorServiceRegistration.serviceType = :serviceType and "
-                + "j.processorServiceRegistration.hostRegistration.baseUrl = :host"),
+                + "j.processorServiceRegistration.hostRegistration.baseUrl = :host order by j.dateCreated"),
         // Job count queries
         @NamedQuery(name = "Job.count", query = "SELECT COUNT(j) FROM Job j "
                 + "where j.status = :status and j.creatorServiceRegistration.serviceType = :serviceType"),
