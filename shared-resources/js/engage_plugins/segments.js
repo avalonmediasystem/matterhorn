@@ -378,51 +378,82 @@ Opencast.segments = (function ()
         $('#oc_btn-slides').html(SEGMENTS_HIDE);
         $("#oc_btn-slides").attr('aria-pressed', 'true');
         // Will be overwritten if the Template is ready
-        $('#scrollcontainer').html('<img src="img/loading.gif" />');
+        $('#scrollcontainer').html('<img src="img/squares.gif" />');
         // Show a loading Image
         $('#oc_slides').show();
         $('#oc_slides').css('display', 'block');
         $('#segments-loading').show();
         $('#slider').hide();
-        // Request JSONP data
-        $.ajax(
+        
+        // If cashed data are available
+        if(Opencast.segments_Plugin.createSegmentsFromCashe())
         {
-            url: '../../search/episode.json',
-            data: 'id=' + mediaPackageId,
-            dataType: 'jsonp',
-            jsonp: 'jsonp',
-            success: function (data)
+            // Request JSONP data -- senseless but otherwise weirdly no correct css parsing?!
+            $.ajax(
             {
-                // get rid of every '@' in the JSON data
-                // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
-                
-                if((data === undefined) ||
-                   (data['search-results'] === undefined) ||
-                   (data['search-results'].result === undefined) ||
-                   (data['search-results'].result.segments === undefined))
+                url: '../../search/episode.json',
+                data: 'id=' + mediaPackageId,
+                dataType: 'jsonp',
+                jsonp: 'jsonp',
+                success: function (data)
+                {
+                    // Hide the loading Image
+                    $('#segments-loading').hide();
+                    $('#oc_slides').show();
+                    $('#oc_slides').css('display', 'block');
+                    $('#slider').show();
+                    // Sets slider container width after panels are displayed
+                    sizeSliderContainer();
+                },
+                // If no data comes back
+                error: function (xhr, ajaxOptions, thrownError)
                 {
                     $('#scrollcontainer').html('No Slides available');
                     $('#scrollcontainer').hide();
-                    return;
                 }
-                
-                // Create Trimpath Template
-                Opencast.segments_Plugin.addAsPlugin($('#scrollcontainer'), data['search-results'].result.segments);
-                // Show a loading Image
-                $('#oc_slides').show();
-                $('#oc_slides').css('display', 'block');
-                $('#segments-loading').hide();
-                $('#slider').show();
-                // Sets slider container width after panels are displayed
-                Opencast.segments.sizeSliderContainer();
-            },
-            // If no data comes back
-            error: function (xhr, ajaxOptions, thrownError)
+            });
+        } else
+        {
+            // Request JSONP data
+            $.ajax(
             {
-                $('#scrollcontainer').html('No Slides available');
-                $('#scrollcontainer').hide();
-            }
-        });
+                url: '../../search/episode.json',
+                data: 'id=' + mediaPackageId,
+                dataType: 'jsonp',
+                jsonp: 'jsonp',
+                success: function (data)
+                {
+                    // get rid of every '@' in the JSON data
+                    // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
+                    
+                    if((data === undefined) ||
+                       (data['search-results'] === undefined) ||
+                       (data['search-results'].result === undefined) ||
+                       (data['search-results'].result.segments === undefined))
+                    {
+                        $('#scrollcontainer').html('No Slides available');
+                        $('#scrollcontainer').hide();
+                    } else
+                    {
+                        // Create Trimpath Template
+                        Opencast.segments_Plugin.addAsPlugin($('#scrollcontainer'), data['search-results'].result.segments);
+                        // Hide the loading Image
+                        $('#segments-loading').hide();
+                        $('#oc_slides').show();
+                        $('#oc_slides').css('display', 'block');
+                        $('#slider').show();
+                        // Sets slider container width after panels are displayed
+                        sizeSliderContainer();
+                    }
+                },
+                // If no data comes back
+                error: function (xhr, ajaxOptions, thrownError)
+                {
+                    $('#scrollcontainer').html('No Slides available');
+                    $('#scrollcontainer').hide();
+                }
+            });
+        }
     }
     
     /**

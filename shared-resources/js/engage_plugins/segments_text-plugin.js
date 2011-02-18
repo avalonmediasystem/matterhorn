@@ -35,7 +35,7 @@ Opencast.segments_text_Plugin = (function ()
     // Data to process
     var segments_data;
     // Precessed Data
-    var processedTemplateData;
+    var processedTemplateData = false;
 
     /**
      * @memberOf Opencast.segments_text_Plugin
@@ -48,6 +48,23 @@ Opencast.segments_text_Plugin = (function ()
         element = elem;
         segments_data = data;
         createSegments();
+    }
+    
+    /**
+     * @memberOf Opencast.segments_text_Plugin
+     * @description Tries to work with the cashed data
+     * @return true if successfully processed, false else
+     */
+    function createSegmentsTextFromCashe()
+    {
+        if((processedTemplateData !== false) && (element !== undefined) && (segments_data.segment !==  undefined) && (segments_data.segment.length > 0))
+        {
+            element.html(processedTemplateData);
+            return true;
+        } else
+        {
+            return false;
+        }
     }
 
     /**
@@ -64,6 +81,7 @@ Opencast.segments_text_Plugin = (function ()
     }
 
     return {
+        createSegmentsTextFromCashe: createSegmentsTextFromCashe,
         addAsPlugin: addAsPlugin
     };
 }());

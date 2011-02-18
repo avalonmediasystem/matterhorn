@@ -28,7 +28,7 @@ Opencast.Description_Plugin = (function ()
     // Data to process
     var description_data;
     // Precessed Data
-    var processedTemplateData;
+    var processedTemplateData = false;
 
     /**
      * @memberOf Opencast.Description_Plugin
@@ -42,6 +42,23 @@ Opencast.Description_Plugin = (function ()
         element = elem;
         description_data = data;
         return createDescription();
+    }
+    
+    /**
+     * @memberOf Opencast.Description_Plugin
+     * @description Tries to work with the cashed data
+     * @return true if successfully processed, false else
+     */
+    function createDescriptionFromCashe()
+    {
+        if((processedTemplateData !== false) && (element !== undefined) && (description_data !== undefined))
+        {
+            element.html(processedTemplateData);
+            return true;
+        } else
+        {
+            return false;
+        }
     }
 
     /**
@@ -63,6 +80,7 @@ Opencast.Description_Plugin = (function ()
     }
 
     return {
+        createDescriptionFromCashe: createDescriptionFromCashe,
         addAsPlugin: addAsPlugin
     };
 }());
