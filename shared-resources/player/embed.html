@@ -24,6 +24,10 @@
             body {
             	overflow:hidden;
             }
+            
+            #data, #analytics, #annotation, #segments_ui_slider_data1, #segments_ui_slider_data2, #segments_ui_slider_information, #segment-tooltip {
+                display: none;
+            }
         </style>
         <script type="text/javascript" src="jquery/jquery-1.4.2.min.js">
         </script>
@@ -161,7 +165,7 @@
             <div id="oc_player_video-dropdown">
             </div>
             <!-- segments_ui_slider + segments_ui -->
-            <div id="data" style="display:none;">
+            <div id="data">
                 <div id="oc_seek-slider">
                     <label id="skip" for="srubber">
                         Time Slider
@@ -188,17 +192,17 @@
                 </div>
                 <!-- Analytics and Annotations -->
                 <div style="height: 25px;">
-                    <span id="analytics" class="analytics" style="display: none;">Loading..</span>
-                    <span id="annotation" class="annotation" style="display: none;">Annotation..</span>
+                    <span id="analytics" class="analytics">Loading..</span>
+                    <span id="annotation" class="annotation">Annotation..</span>
                     <table class="segments" id="segmentstable1" style="float:left;" cellspacing="0" cellpadding="0" style="opacity:0.65; filter: alpha(opacity=65);">
                         <!-- data comes here -->
                     </table>
                 </div>
-                <div id="segments_ui_slider_data1" style="display: none">
+                <div id="segments_ui_slider_data1">
                 </div>
-                <div id="segments_ui_slider_data2" style="display: none">
+                <div id="segments_ui_slider_data2">
                 </div>
-                <div id="segments_ui_slider_information" style="display: none">
+                <div id="segments_ui_slider_information">
                 </div>
                 <div id="segments_ui-media1">
                 </div>
@@ -216,7 +220,7 @@
                     </table>
                 </div>
             </div>
-            <div id="segment-tooltip" class="segment-tooltip" style="display: none;">
+            <div id="segment-tooltip" class="segment-tooltip">
             </div>
             <!-- #time-chooser-layer dialog -->
             <div id="oc_time-chooser-layer" class="ui-widget ui-widget-content ui-corner-all oc_popuplayer ui-helper-hidden" title="change player time/ session time" tabindex="-1" role="dialog" aria-hidden="true">

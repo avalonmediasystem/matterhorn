@@ -67,10 +67,11 @@ Opencast.Analytics = (function ()
     /**
      * @memberOf Opencast.Analytics
      * @description Show Analytics
+     * @param resized if resized (== used cashed footprint) or not (== request new data))
      */
-    function showAnalytics()
+    function showAnalytics(resized)
     {
-        if(isVisible())
+        if(resized && isVisible())
         {
             var rez = Opencast.AnalyticsPlugin.resizePlugin();
             if(rez)
@@ -130,9 +131,12 @@ Opencast.Analytics = (function ()
                         if(!intervalRunning)
                         {
                             // Display actual Results every updateIntervall Milliseconds
-                            interval = setInterval(showAnalytics, updateInterval);
+                            interval = setInterval(function()
+                            {
+                                showAnalytics(false);
+                            }, updateInterval);
                             intervalRunning = true;
-                            showAnalytics();
+                            showAnalytics(false);
                         }
                     } else
                     {
@@ -201,7 +205,7 @@ Opencast.Analytics = (function ()
         } else {
             // else: repaint Statistics div
             resizeEndTimeoutRunning = false;
-            showAnalytics();
+            showAnalytics(true);
         }
     }
     
@@ -234,7 +238,7 @@ Opencast.Analytics = (function ()
         if (!analyticsDisplayed)
         {
             initResizeEnd();
-            showAnalytics();
+            showAnalytics(false);
         }
         else
         {

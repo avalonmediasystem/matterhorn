@@ -38,6 +38,10 @@
                 text-align: center;
                 display: block;
             }
+            
+            #oc_player-head-right, #oc_player_video-dropdown, #data, #oc_video-view, #oc_checkbox-statistics, #oc_label-statistics, #oc_checkbox-annotations, #oc_label-annotations, #analytics, #annotation, #segments_ui_slider_data1, #segments_ui_slider_data2, #segments_ui_slider_information, #oc_ui_tabs, #oc_description, #oc_slides, #oc_slidetext, #oc_search-segment, #segment-tooltip, #oc_embed-right, #oc_embed, #oc_player-head-see-more {
+                display: none;
+            }
         </style>
         <script type="text/javascript" src="jquery/jquery-1.4.2.min.js">
         </script>
@@ -145,7 +149,7 @@
     </head>
     <body>
         <noscript>
-            <p style="color:red;">
+            <p style="color:red;text-align:center;">
                 JavaScript is turned off in your web browser. So this site wouldn't work properly! 
                 <br/>
                 <strong>Please turn JavaScript on to use this site, then refresh the page.</strong>
@@ -184,19 +188,19 @@
             <div id="oc_title">
             </div>
             <div id="oc_player-head-see-more" class="ui-helper-hidden">
-                <a href="javascript:" id="oc_see-more-button" title="click to see more of this series" role="button" aria-pressed="false">
+                <a hrefjavascript:  id="oc_see-more-button" title="click to see more of this series" role="button" aria-pressed="false">
                     <div>
                         See More
                     </div>
                 </a>
             </div>
-            <div id="oc_player-head-right" style="display:none">
-                <a href="javascript:" id="oc_shortcut-button" title="click to show shortcuts" role="button" aria-pressed="false" tabindex="70">
+            <div id="oc_player-head-right">
+                <a hrefjavascript:  id="oc_shortcut-button" title="click to show shortcuts" role="button" aria-pressed="false" tabindex="70">
                     <div>
                         Shortcuts
                     </div>
                 </a>
-                <a href="javascript:" id="oc_share-button" title="click to show share options" role="button" aria-pressed="false" tabindex="80">
+                <a hrefjavascript:  id="oc_share-button" title="click to show share options" role="button" aria-pressed="false" tabindex="80">
                     <div>
                         Share
                     </div>
@@ -243,10 +247,11 @@
                     <span id="oc_video-size-dropdown" style="display:block"><input id="oc_btn-dropdown" class="oc_btn-centerDisplay" type="submit" name="Video Size Controls" alt="Video Size Controls" title="Video Size Controls" value=""></span>
                 </div>
             </div>
-            <div id="oc_player_video-dropdown" class="ui-corner-all" style="display:none;">
+            <div id="oc_player_video-dropdown" class="ui-corner-all">
             </div>
+            
             <!-- segments_ui_slider + segments_ui -->
-            <div id="data" style="display:none;">
+            <div id="data">
                 <div id="oc_seek-slider">
                     <label id="skip" for="srubber">
                         Time Slider
@@ -273,17 +278,17 @@
                 </div>
                 <!-- Analytics and Annotations -->
                 <div style="height: 25px">
-                    <span id="analytics" class="analytics" style="display: none;">Loading..</span>
-                    <span id="annotation" class="annotation" style="display: none;">Annotation..</span>
+                    <span id="analytics" class="analytics">Loading..</span>
+                    <span id="annotation" class="annotation">Annotation..</span>
                     <table class="segments" id="segmentstable1" style="float:left;" cellspacing="0" cellpadding="0" style="opacity:0.65; filter: alpha(opacity=65);">
                         <!-- data comes here -->
                     </table>
                 </div>
-                <div id="segments_ui_slider_data1" style="display: none">
+                <div id="segments_ui_slider_data1">
                 </div>
-                <div id="segments_ui_slider_data2" style="display: none">
+                <div id="segments_ui_slider_data2">
                 </div>
-                <div id="segments_ui_slider_information" style="display: none">
+                <div id="segments_ui_slider_information">
                 </div>
                 <div id="segments_ui-media1">
                 </div>
@@ -301,17 +306,17 @@
                     </table>
                 </div>
             </div>
-            <div id="oc_video-view" style="display:none">
+            <div id="oc_video-view">
                 <ul>
                     <li>
-                        <input id="oc_checkbox-statistics" type="checkbox" name="show Statistics" title="show Statistics" style="display:none">
-                        <label id="oc_label-statistics" for="oc_checkbox-statistics" style="display:none">
+                        <input id="oc_checkbox-statistics" type="checkbox" name="show Statistics" title="show Statistics">
+                        <label id="oc_label-statistics" for="oc_checkbox-statistics">
                             Viewing Statistics
                         </label>
                     </li>
                     <li>
-                        <input id="oc_checkbox-annotations" type="checkbox" name="show Annotations" title="show Annotations" style="display:none">
-                        <label id="oc_label-annotations" for="oc_checkbox-annotations" style="display:none">
+                        <input id="oc_checkbox-annotations" type="checkbox" name="show Annotations" title="show Annotations">
+                        <label id="oc_label-annotations" for="oc_checkbox-annotations">
                             Annotations
                         </label>
                     </li>
@@ -324,7 +329,7 @@
             </div>
         </div>
         <!-- Tabs -->
-        <div id="oc_ui_tabs" style="display: none">
+        <div id="oc_ui_tabs">
             <div id="oc_tabs" class="oc_tabs-input">
                 <ul id="oc_tabs-head">
                     <li>
@@ -344,14 +349,14 @@
                     </li>
                 </ul>
             </div>
-            <div id="oc_description" class="fl-fix" style="display: none">
+            <div id="oc_description" class="fl-fix">
                 <div id="description-loading" class="loadingImage">
                     <img src="img/squares.gif" />
                 </div>
                 <div id="oc-description">
                 </div>
             </div>
-            <div id="oc_slides" class="oc_DisplayBlock" style="display: none">
+            <div id="oc_slides" class="oc_DisplayBlock">
                 <div id="segments-holder" class="oc-segments-holder">
                     <div id="oc_segment-table" class="oc-segments">
                         <div id="oc-segments">
@@ -370,14 +375,14 @@
                     </div>
                 </div>
             </div>
-            <div id="oc_slidetext" class="fl-fix" style="display: none">
+            <div id="oc_slidetext" class="fl-fix">
                 <div id="segments_text-loading" class="loadingImage">
                     <img src="img/squares.gif" />
                 </div>
                 <div id="oc-segments_text">
                 </div>
             </div>
-            <div id="oc_search-segment" class="fl-fix" style="display: none;">
+            <div id="oc_search-segment" class="fl-fix">
                 <div id="search-loading" class="loadingImage">
                     <img src="img/squares.gif" />
                 </div>
@@ -387,7 +392,7 @@
         </div>
         <div class="clear">
         </div>
-        <div id="segment-tooltip" class="segment-tooltip" style="display: none;">
+        <div id="segment-tooltip" class="segment-tooltip">
         </div>
         <!-- Shortcut dialog -->
         <div id="oc_shortcuts" title="Shortcuts">
@@ -399,7 +404,7 @@
         <div id="oc_share-layer" class="ui-widget ui-widget-content ui-corner-all oc_popuplayer ui-helper-hidden" title="share this Video" tabindex="-1" role="dialog" aria-hidden="true">
             <ul id="oc_share-list" class="oc_popuplayer-list">
                 <li>
-                    <a href="javascript: " id="oc_btn-embed" class="handcursor" title="Embed" role="button">Embed</a>
+                    <a hrefjavascript: " id="oc_btn-embed" class="handcursor" title="Embed" role="button">Embed</a>
                 </li>
                 <li>
                     <a id="oc_btn-email" class="handcursor" title="Email" role="button">Email</a>
@@ -410,10 +415,10 @@
         <div id="oc_time-chooser-layer" class="ui-widget ui-widget-content ui-corner-all oc_popuplayer ui-helper-hidden" title="change player time/ session time" tabindex="-1" role="dialog" aria-hidden="true">
             <ul id="oc_time-chooser-list" class="oc_popuplayer-list">
                 <li>
-                    <a href="javascript: " id="oc_btn-player-time" onclick="Opencast.Player.doToggleTimeLayer();" class="handcursor" title="View player time" role="button">View player time</a>
+                    <a hrefjavascript: " id="oc_btn-player-time" onclick="Opencast.Player.doToggleTimeLayer();" class="handcursor" title="View player time" role="button">View player time</a>
                 </li>
                 <li>
-                    <a href="javascript: " id="oc_btn-session-time" onclick="Opencast.Player.doToggleTimeLayer();" class="handcursor" title="View session time" role="button">View session time</a>
+                    <a hrefjavascript: " id="oc_btn-session-time" onclick="Opencast.Player.doToggleTimeLayer();" class="handcursor" title="View session time" role="button">View session time</a>
                 </li>
             </ul>
             <button id="oc_btn-leave-session-time" class="oc_btn-close">
@@ -438,7 +443,7 @@
                 <label for="oc_embed-costum-height-textinput" class="handcursor">
                     height:
                 </label>
-                <input id="oc_embed-costum-height-textinput" maxlength="4" type="text" name="" alt="" title="" value=""><a href="javascript: " id="oc_btn-leave-session-time" onclick="$('#oc_embed').dialog('close');" class="handcursor ui-helper-hidden-accessible" title="Leave embed dialog" role="button">Leave embed dialog</a>
+                <input id="oc_embed-costum-height-textinput" maxlength="4" type="text" name="" alt="" title="" value=""><a hrefjavascript: " id="oc_btn-leave-session-time" onclick="$('#oc_embed').dialog('close');" class="handcursor ui-helper-hidden-accessible" title="Leave embed dialog" role="button">Leave embed dialog</a>
             </div>
             <div class="clear">
             </div>
