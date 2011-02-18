@@ -75,6 +75,7 @@ public class JaxbJob implements Job {
     this.context = new JaxbJobContext(job.getContext());
     this.parentJobId = job.getParentJobId();
     this.rootJobId = job.getRootJobId();
+    this.dispatchable = job.isDispatchable();
   }
 
   /** The job ID */
@@ -128,6 +129,9 @@ public class JaxbJob implements Job {
   /** The output produced by this job, or null if it has not yet been generated (or was not due to an exception) */
   // @XmlJavaTypeAdapter(value = CdataAdapter.class)
   protected String payload;
+  
+  /** Whether this job is queueable */
+  protected boolean dispatchable;
 
   /**
    * {@inheritDoc}
@@ -461,6 +465,23 @@ public class JaxbJob implements Job {
    */
   public void setRootJobId(Long rootJobId) {
     this.rootJobId = rootJobId;
+  }
+  
+  
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.job.api.Job#isDispatchable()
+   */
+  @Override
+  @XmlAttribute
+  public boolean isDispatchable() {
+    return dispatchable;
+  }
+  
+  @Override
+  public void setDispatchable(boolean dispatchable) {
+    this.dispatchable = dispatchable;
   }
 
   /**

@@ -175,14 +175,14 @@ public interface ServiceRegistry {
    *          the arguments to the operation
    * @param payload
    *          an optional initial payload
-   * @param enqueueImmediately
-   *          whether the job should be enqueued for dispatch immediately. Otherwise, the job's initial state will be
-   *          {@link Status#INSTANTIATED}.
+   * @param queueable
+   *          whether the job can be enqueued for dispatch. If false, the job's initial state will be
+   *          {@link Status#INSTANTIATED} and will not be dispatched.
    * @return the job
    * @throws ServiceRegistryException
    *           if there is a problem creating the job
    */
-  Job createJob(String type, String operation, List<String> arguments, String payload, boolean enqueueImmediately)
+  Job createJob(String type, String operation, List<String> arguments, String payload, boolean queueable)
           throws ServiceRegistryException;
 
   /**

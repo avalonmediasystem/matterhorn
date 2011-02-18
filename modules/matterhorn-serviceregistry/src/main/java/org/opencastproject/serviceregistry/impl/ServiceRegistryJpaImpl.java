@@ -266,16 +266,16 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    *      java.util.List, String, boolean)
    */
   @Override
-  public Job createJob(String type, String operation, List<String> arguments, String payload, boolean enqueueImmediately)
+  public Job createJob(String type, String operation, List<String> arguments, String payload, boolean dispatchable)
           throws ServiceRegistryException {
-    return createJob(this.hostName, type, operation, arguments, payload, enqueueImmediately);
+    return createJob(this.hostName, type, operation, arguments, payload, dispatchable);
   }
 
   /**
    * Creates a job on a remote host.
    */
   public Job createJob(String host, String serviceType, String operation, List<String> arguments, String payload,
-          boolean enqueueImmediately) throws ServiceRegistryException {
+          boolean dispatchable) throws ServiceRegistryException {
     if (StringUtils.isBlank(host))
       throw new IllegalArgumentException("Host can't be null");
     if (StringUtils.isBlank(serviceType))
@@ -295,12 +295,17 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       if (creator.getHostRegistration().isMaintenanceMode()) {
         logger.warn("Creating a job from {}, which is currently in maintenance mode.", creator.getHost());
       }
-      JobJpaImpl job = new JobJpaImpl(creator, operation, arguments, payload, enqueueImmediately);
+      JobJpaImpl job = new JobJpaImpl(creator, operation, arguments, payload, dispatchable);
 
       creator.creatorJobs.add(job);
-      if (enqueueImmediately) {
+
+      // if this job is not dispatchable, it must be handled by the host that has created it
+      if (dispatchable) {
+        job.setStatus(Status.QUEUED);
+      } else {
         creator.processorJobs.add(job);
       }
+
       em.persist(job);
       tx.commit();
       return job;
@@ -317,15 +322,18 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    * 
    * @return the new job
    */
-  JobJpaImpl createJob(ServiceRegistrationJpaImpl serviceRegistration, String operation, List<String> arguments,
-          String payload, boolean startImmediately) {
+  protected JobJpaImpl createJob(ServiceRegistrationJpaImpl serviceRegistration, String operation, List<String> arguments,
+          String payload, boolean dispatchable) {
     EntityManager em = emf.createEntityManager();
     EntityTransaction tx = em.getTransaction();
     try {
       tx.begin();
-      JobJpaImpl job = new JobJpaImpl(serviceRegistration, operation, arguments, payload, startImmediately);
+      JobJpaImpl job = new JobJpaImpl(serviceRegistration, operation, arguments, payload, dispatchable);
       serviceRegistration.creatorJobs.add(job);
-      if (startImmediately) {
+      // if this job is not dispatchable, it must be handled by the host that has created it
+      if (dispatchable) {
+        job.setStatus(Status.QUEUED);
+      } else {
         serviceRegistration.processorJobs.add(job);
       }
       em.persist(job);
@@ -429,6 +437,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     Status status = job.getStatus();
     fromDb.setPayload(job.getPayload());
     fromDb.setStatus(job.getStatus());
+    fromDb.setDispatchable(job.isDispatchable());
     fromDb.setVersion(job.getVersion());
     fromDb.setOperation(job.getOperation());
     fromDb.setArguments(job.getArguments());
@@ -677,8 +686,12 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       @SuppressWarnings("unchecked")
       List<JobJpaImpl> unregisteredJobs = query.getResultList();
       for (JobJpaImpl job : unregisteredJobs) {
-        job.setStatus(Status.QUEUED);
-        job.setProcessorServiceRegistration(null);
+        if (job.isDispatchable()) {
+          job.setStatus(Status.QUEUED);
+          job.setProcessorServiceRegistration(null);
+        } else {
+          job.setStatus(Status.FAILED);
+        }
         em.merge(job);
       }
       tx.commit();
@@ -760,6 +773,29 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         query.setParameter("status", status);
         query.setParameter("serviceType", type);
       }
+      return query.getResultList();
+    } catch (Exception e) {
+      throw new ServiceRegistryException(e);
+    } finally {
+      em.close();
+    }
+  }
+
+  /**
+   * Gets jobs of all types that are in the {@value Status#QUEUED} state and are dispatchable.
+   * 
+   * @return the list of jobs waiting for dispatch
+   * @throws ServiceRegistryException
+   *           if there is a problem communicating with the jobs database
+   */
+  @SuppressWarnings("unchecked")
+  protected List<Job> getDispatchableJobs() throws ServiceRegistryException {
+    Query query = null;
+    EntityManager em = null;
+    try {
+      em = emf.createEntityManager();
+      query = em.createNamedQuery("Job.dispatchable.status");
+      query.setParameter("status", Status.QUEUED);
       return query.getResultList();
     } catch (Exception e) {
       throw new ServiceRegistryException(e);
@@ -1227,7 +1263,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     @Override
     public void run() {
       try {
-        List<Job> jobsToDispatch = getJobs(null, Status.QUEUED);
+        List<Job> jobsToDispatch = getDispatchableJobs();
         for (Job job : jobsToDispatch) {
           try {
             String hostAcceptingJob = dispatchJob(job);

@@ -194,4 +194,19 @@ public interface Job {
    */
   Long getRootJobId();
 
+  /**
+   * Gets whether this job may be dispatched.
+   * 
+   * @return whether the job can be queued for dispatch or not
+   */
+  boolean isDispatchable();
+
+  /**
+   * Sets whether this job can be dispatched.
+   * 
+   * @param dispatchable
+   *          whether the job should be queueable for dispatch.
+   */
+  void setDispatchable(boolean dispatchable);
+
 }

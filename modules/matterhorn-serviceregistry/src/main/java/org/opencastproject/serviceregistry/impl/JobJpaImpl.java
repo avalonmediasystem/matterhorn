@@ -73,6 +73,8 @@ import javax.xml.bind.annotation.XmlType;
         @NamedQuery(name = "Job.status", query = "SELECT j FROM Job j "
                 + "where j.status = :status order by j.dateCreated"),
         @NamedQuery(name = "Job.all", query = "SELECT j FROM Job j order by j.dateCreated"),
+        @NamedQuery(name = "Job.dispatchable.status", query = "SELECT j FROM Job j where j.dispatchable = true and "
+                + "j.status=:status order by j.dateCreated"),
         @NamedQuery(name = "Job.processinghost.status", query = "SELECT j FROM Job j "
                 + "where j.status = :status and j.processorServiceRegistration is not null and "
                 + "j.processorServiceRegistration.serviceType = :serviceType and "
@@ -128,11 +130,10 @@ public class JobJpaImpl extends JaxbJob {
   }
 
   /**
-   * Constructor with everything needed for a newly instantiated job, using a random ID and setting the status to
-   * queued.
+   * Constructor with everything needed for a newly instantiated job.
    */
   public JobJpaImpl(ServiceRegistrationJpaImpl creatorServiceRegistration, String operation, List<String> arguments,
-          String payload, boolean queueImmediately) {
+          String payload, boolean dispatchable) {
     this();
     this.operation = operation;
     this.context = new JaxbJobContext();
@@ -143,14 +144,9 @@ public class JobJpaImpl extends JaxbJob {
     setDateCreated(new Date());
     setCreatedHost(creatorServiceRegistration.getHost());
     setJobType(creatorServiceRegistration.getServiceType());
+    setDispatchable(dispatchable);
+    setStatus(Status.INSTANTIATED);
     this.creatorServiceRegistration = creatorServiceRegistration;
-    if (queueImmediately) {
-      setDateStarted(getDateCreated());
-      setStatus(Status.QUEUED);
-    } else {
-      setStatus(Status.INSTANTIATED);
-    }
-
   }
 
   /**
@@ -339,6 +335,18 @@ public class JobJpaImpl extends JaxbJob {
     super.setPayload(payload);
   }
 
+  @Column
+  @XmlAttribute
+  @Override
+  public boolean isDispatchable() {
+    return super.dispatchable;
+  }
+
+  @Override
+  public void setDispatchable(boolean dispatchable) {
+    super.setDispatchable(dispatchable);
+  }
+  
   /**
    * @return the serviceRegistration where this job was created
    */

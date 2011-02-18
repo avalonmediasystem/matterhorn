@@ -124,12 +124,14 @@ public class JobTest {
 
   @Test
   public void testGetJobs() throws Exception {
-    long id = serviceRegistry.createJob(JOB_TYPE_1, OPERATION_NAME, null).getId();
-    long queuedJobs = serviceRegistry.count(JOB_TYPE_1, Status.QUEUED);
-    Assert.assertEquals(1, queuedJobs);
+    Job job = serviceRegistry.createJob(LOCALHOST, JOB_TYPE_1, OPERATION_NAME, null, null, false);
+    job.setStatus(Status.RUNNING);
+    serviceRegistry.updateJob(job);
 
+    long id = job.getId();
+    
     // Search using both the job type and status
-    List<Job> jobs = serviceRegistry.getJobs(JOB_TYPE_1, Status.QUEUED);
+    List<Job> jobs = serviceRegistry.getJobs(JOB_TYPE_1, Status.RUNNING);
     Assert.assertEquals(1, jobs.size());
 
     // Search using just the job type
@@ -137,7 +139,7 @@ public class JobTest {
     Assert.assertEquals(1, jobs.size());
 
     // Search using just the status
-    jobs = serviceRegistry.getJobs(null, Status.QUEUED);
+    jobs = serviceRegistry.getJobs(null, Status.RUNNING);
     Assert.assertEquals(1, jobs.size());
 
     // Search using nulls (return everything)
@@ -145,9 +147,9 @@ public class JobTest {
     Assert.assertEquals(1, jobs.size());
 
     Job receipt = serviceRegistry.getJob(id);
-    receipt.setStatus(Status.RUNNING);
+    receipt.setStatus(Status.FINISHED);
     serviceRegistry.updateJob(receipt);
-    queuedJobs = serviceRegistry.count(JOB_TYPE_1, Status.QUEUED);
+    long queuedJobs = serviceRegistry.count(JOB_TYPE_1, Status.RUNNING);
     Assert.assertEquals(0, queuedJobs);
   }
 
@@ -417,6 +419,7 @@ public class JobTest {
 
     // Set its status to running on a localhost
     job.setStatus(Status.RUNNING);
+    job.setDispatchable(true);
     job.setProcessorServiceRegistration(regType1Localhost);
     serviceRegistry.updateJob(job);
 

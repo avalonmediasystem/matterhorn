@@ -609,6 +609,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       operation.setId(job.getId());
       update(workflow);
       job.setStatus(Status.QUEUED);
+      job.setDispatchable(true);
       return serviceRegistry.updateJob(job);
     } catch (ServiceRegistryException e) {
       throw new WorkflowDatabaseException(e);
@@ -723,6 +724,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
             currentOperation.setId(job.getId());
             update(workflow);
             job.setStatus(Status.QUEUED);
+            job.setDispatchable(true);
             serviceRegistry.updateJob(job);
           } catch (ServiceRegistryException e) {
             throw new WorkflowDatabaseException(e);
@@ -830,6 +832,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
 
         // Now set this job to be queued so it can be dispatched
         operationJob.setStatus(Status.QUEUED);
+        operationJob.setDispatchable(true);
         serviceRegistry.updateJob(operationJob);
 
         return workflowInstance;
@@ -853,6 +856,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
 
       Job operationJob = serviceRegistry.getJob(operationJobId);
       operationJob.setStatus(Status.QUEUED);
+      operationJob.setDispatchable(true);
       if (properties != null) {
         Properties props = new Properties();
         props.putAll(properties);
@@ -911,6 +915,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
         case FAILING:
           break;
         case INSTANTIATED:
+          job.setDispatchable(true);
           job.setStatus(Status.QUEUED);
           break;
         case PAUSED:

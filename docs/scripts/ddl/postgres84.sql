@@ -106,6 +106,7 @@ CREATE TABLE job (
     instance_version bigint,
     datecompleted timestamp without time zone,
     operation character varying(255),
+    dispatchable boolean,
     datecreated timestamp without time zone,
     queuetime bigint,
     processor_svc bigint,
