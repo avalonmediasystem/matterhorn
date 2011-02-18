@@ -322,8 +322,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    * 
    * @return the new job
    */
-  protected JobJpaImpl createJob(ServiceRegistrationJpaImpl serviceRegistration, String operation, List<String> arguments,
-          String payload, boolean dispatchable) {
+  protected JobJpaImpl createJob(ServiceRegistrationJpaImpl serviceRegistration, String operation,
+          List<String> arguments, String payload, boolean dispatchable) {
     EntityManager em = emf.createEntityManager();
     EntityTransaction tx = em.getTransaction();
     try {
@@ -978,45 +978,49 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    */
   @Override
   public List<ServiceRegistration> getServiceRegistrationsByLoad(String serviceType) throws ServiceRegistryException {
+    Map<String, Integer> loadByHost = getHostLoads(true);
+    List<ServiceRegistration> serviceRegistrations = getServiceRegistrationsByType(serviceType);
+    return filterAndSortServiceRegistrations(serviceRegistrations, serviceType, loadByHost);
+  }
+
+  /**
+   * Gets a map of hosts to the number of jobs currently loading that host
+   * 
+   * @param activeOnly
+   *          if true, the map will include only hosts that are online and have non-maintenance mode services
+   * @return the map of hosts to job counts
+   */
+  protected Map<String, Integer> getHostLoads(boolean activeOnly) {
     EntityManager em = emf.createEntityManager();
     try {
       Query q = em.createNamedQuery("ServiceRegistration.hostload");
-      List<ServiceRegistrationWithLoad> serviceRegistrations = new ArrayList<ServiceRegistrationWithLoad>();
       Map<String, Integer> loadByHost = new HashMap<String, Integer>();
 
       // Accumulate the numbers for relevant job statuses per host
       for (Object result : q.getResultList()) {
         Object[] resultArray = (Object[]) result;
         ServiceRegistrationJpaImpl service = (ServiceRegistrationJpaImpl) resultArray[0];
-        String host = service.getHost();
         Job.Status status = (Status) resultArray[1];
         int count = ((Number) resultArray[2]).intValue();
 
+        if (activeOnly && (service.isInMaintenanceMode() || !service.isOnline())) {
+          continue;
+        }
+
         // Only queued and running jobs are adding to the load, so every other status is discarded
-        if (!JOB_STATUSES_INFLUENCING_LOAD_BALANCING.contains(status)) {
+        if (status == null || !JOB_STATUSES_INFLUENCING_LOAD_BALANCING.contains(status)) {
           count = 0;
         }
 
         // Add the service registration
-        if (serviceType.equals(service.getServiceType()) && !serviceRegistrations.contains(service)) {
-          serviceRegistrations.add(new ServiceRegistrationWithLoad(service));
-        }
-
-        // Update the overall host load
-        if (loadByHost.containsKey(host)) {
-          loadByHost.put(host, loadByHost.get(host) + count);
+        if (loadByHost.containsKey(service.getHost())) {
+          Integer previousServiceLoad = loadByHost.get(service.getHost());
+          loadByHost.put(service.getHost(), previousServiceLoad + count);
         } else {
-          loadByHost.put(host, count);
+          loadByHost.put(service.getHost(), count);
         }
       }
-
-      // Update the load numbers and sort the registrations list
-      for (ServiceRegistration r : serviceRegistrations) {
-        ((ServiceRegistrationWithLoad) r).setHostLoad(loadByHost.get(r.getHost()));
-      }
-      Collections.sort(serviceRegistrations);
-
-      return new ArrayList<ServiceRegistration>(serviceRegistrations);
+      return loadByHost;
     } finally {
       em.close();
     }
@@ -1160,15 +1164,15 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    * 
    * @param job
    *          the job to dispatch
+   * @param hostLoads
+   *          a map containint each host and the number of jobs
    * @return the host that accepted the dispatched job, or <code>null</code> if no services took the job.
    * @throws ServiceRegistryException
    *           if the service registrations are unavailable
    */
-  protected String dispatchJob(Job job) throws ServiceRegistryException {
+  protected String dispatchJob(Job job, List<ServiceRegistration> services) throws ServiceRegistryException {
 
-    // Find service instances
-    List<ServiceRegistration> registrations = getServiceRegistrationsByLoad(job.getJobType());
-    if (registrations.size() == 0) {
+    if (services.size() == 0) {
       logger.debug("No service is available to handle jobs of type '" + job.getJobType() + "'");
       return null;
     }
@@ -1178,7 +1182,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     jpaJob.setStatus(Status.DISPATCHING);
     boolean triedDispatching = false;
 
-    for (ServiceRegistration registration : registrations) {
+    for (ServiceRegistration registration : services) {
       jpaJob.setProcessorServiceRegistration((ServiceRegistrationJpaImpl) registration);
       try {
         updateInternal(jpaJob);
@@ -1264,14 +1268,24 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     public void run() {
       try {
         List<Job> jobsToDispatch = getDispatchableJobs();
+        Map<String, Integer> hostLoads = getHostLoads(true);
+        List<ServiceRegistration> serviceRegistrations = getServiceRegistrations();
+
         for (Job job : jobsToDispatch) {
           try {
-            String hostAcceptingJob = dispatchJob(job);
+            String hostAcceptingJob = dispatchJob(job,
+                    filterAndSortServiceRegistrations(serviceRegistrations, job.getJobType(), hostLoads));
             if (hostAcceptingJob == null) {
               ServiceRegistryJpaImpl.logger.debug("Job {} could not be dispatched and is put back into queue",
                       job.getId());
             } else {
               ServiceRegistryJpaImpl.logger.debug("Job {} dispatched to {}", job.getId(), hostAcceptingJob);
+              if (hostLoads.containsKey(hostAcceptingJob)) {
+                Integer previousServiceLoad = hostLoads.get(hostAcceptingJob);
+                hostLoads.put(hostAcceptingJob, ++previousServiceLoad);
+              } else {
+                hostLoads.put(hostAcceptingJob, 1);
+              }
             }
           } catch (ServiceRegistryException e) {
             Throwable cause = (e.getCause() != null) ? e.getCause() : e;
@@ -1282,6 +1296,38 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         ServiceRegistryJpaImpl.logger.warn("Error dispatching jobs", t);
       }
     }
+  }
+
+  /**
+   * Returns a filtered list of service registrations, containing only those that are online, not in maintenance mode,
+   * and with a specific service type, ordered by load.
+   * 
+   * @param serviceRegistrations
+   *          the complete list of service registrations.
+   * @param serviceType
+   *          the service type to filter by
+   * @param loadByHost
+   *          the map of hosts to the number of running jobs
+   */
+  protected List<ServiceRegistration> filterAndSortServiceRegistrations(List<ServiceRegistration> serviceRegistrations,
+          String serviceType, final Map<String, Integer> loadByHost) {
+    List<ServiceRegistration> filteredList = new ArrayList<ServiceRegistration>();
+    for (ServiceRegistration reg : serviceRegistrations) {
+      if (reg.isOnline() && !reg.isInMaintenanceMode() && serviceType.equals(reg.getServiceType())) {
+        filteredList.add(reg);
+      }
+    }
+    Comparator<ServiceRegistration> comparator = new Comparator<ServiceRegistration>() {
+      @Override
+      public int compare(ServiceRegistration reg1, ServiceRegistration reg2) {
+        String host1 = reg1.getHost();
+        String host2 = reg2.getHost();
+        return loadByHost.get(host1) - loadByHost.get(host2);
+      }
+    };
+
+    Collections.sort(filteredList, comparator);
+    return filteredList;
   }
 
   /**

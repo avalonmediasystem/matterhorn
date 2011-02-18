@@ -426,6 +426,7 @@ public class WorkflowInstanceImpl implements WorkflowInstance {
     for (Iterator<WorkflowOperationInstance> opIter = operations.iterator(); opIter.hasNext();) {
       WorkflowOperationInstance op = opIter.next();
       if (op.equals(currentOperation) && opIter.hasNext()) {
+        currentOperation.setState(OperationState.SKIPPED);
         currentOperation = opIter.next();
         return currentOperation;
       }

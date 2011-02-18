@@ -690,7 +690,6 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
               throw new IllegalStateException("Error updating job associated with skipped operation " + currentOperation, e);
             }
           }
-          currentOperation.setState(OperationState.SKIPPED);
           currentOperation = workflow.next();
           currentPosition++;
         }
