@@ -67,7 +67,8 @@ import org.apache.commons.lang.StringUtils;
  * to string. Resources and Attendees are store in the metadata too, as
  */
 
-@NamedQueries({ @NamedQuery(name = "Event.getAll", query = "SELECT e FROM Event e") })
+@NamedQueries({ @NamedQuery(name = "Event.getAll", query = "SELECT e FROM Event e"),
+        @NamedQuery(name = "Event.getLastUpdated", query = "SELECT max(e.lastModified) FROM Event e where e.device=:device") })
 @XmlRootElement(name = "event")
 @XmlAccessorType(XmlAccessType.NONE)
 @Entity(name = "Event")
@@ -114,6 +115,10 @@ public class EventImpl implements Event {
   @XmlJavaTypeAdapter(value = DateAdapter.class, type = Date.class)
   @Temporal(TemporalType.TIMESTAMP)
   protected Date startDate;
+  @XmlElement(name = "lastModified")
+  @XmlJavaTypeAdapter(value = DateAdapter.class, type = Date.class)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date lastModified;
   @XmlElement(name = "subject")
   protected String subject;
   @XmlElement(name = "title")
@@ -348,6 +353,22 @@ public class EventImpl implements Event {
   }
 
   /**
+   * @see Event#getLastModified()
+   */
+  @Override
+  public Date getLastModified() {
+    return lastModified;
+  }
+
+  /**
+   * @see Event#setLastModified(Date)
+   */
+  @Override
+  public void setLastModified(Date lastUpdated) {
+    this.lastModified = lastUpdated;
+  }
+
+  /**
    * @param Event
    *          start date
    */
@@ -482,7 +503,7 @@ public class EventImpl implements Event {
     }
     return null;
   }
-  
+
   /**
    * 
    * {@inheritDoc}
@@ -500,10 +521,12 @@ public class EventImpl implements Event {
     if (StringUtils.isNotEmpty(e.getCreator()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getCreator()))) {
       this.setCreator(e.getCreator());
     }
-    if (StringUtils.isNotEmpty(e.getContributor()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getContributor()))) {
+    if (StringUtils.isNotEmpty(e.getContributor())
+            || (updateWithEmptyValues && StringUtils.isEmpty(e.getContributor()))) {
       this.setContributor(e.getContributor());
     }
-    if (StringUtils.isNotEmpty(e.getDescription()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getDescription()) )) {
+    if (StringUtils.isNotEmpty(e.getDescription())
+            || (updateWithEmptyValues && StringUtils.isEmpty(e.getDescription()))) {
       this.setDescription(e.getDescription());
     }
     if (e.getDevice() != null) {
@@ -524,7 +547,8 @@ public class EventImpl implements Event {
     if (StringUtils.isNotEmpty(e.getRecurrence()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getRecurrence()))) {
       this.setRecurrence(e.getRecurrence());
     }
-    if (StringUtils.isNotEmpty(e.getRecurrencePattern()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getRecurrencePattern()))) {
+    if (StringUtils.isNotEmpty(e.getRecurrencePattern())
+            || (updateWithEmptyValues && StringUtils.isEmpty(e.getRecurrencePattern()))) {
       this.setRecurrencePattern(e.getRecurrencePattern());
     }
     if (StringUtils.isNotEmpty(e.getResources()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getResources()))) {
@@ -545,7 +569,7 @@ public class EventImpl implements Event {
     if (StringUtils.isNotEmpty(e.getTitle()) || (updateWithEmptyValues && StringUtils.isEmpty(e.getTitle()))) {
       this.setTitle(e.getTitle());
     }
-    
+
     if (updateWithEmptyValues) {
       // eliminate removed keys
       for (Metadata m : getMetadataList()) {
@@ -680,10 +704,10 @@ public class EventImpl implements Event {
     }
     DateTime seed = new DateTime(true);
     DateTime period = new DateTime(true);
-    if(tz.inDaylightTime(start) && !tz.inDaylightTime(end)) {
+    if (tz.inDaylightTime(start) && !tz.inDaylightTime(end)) {
       seed.setTime(start.getTime() + 3600000);
       period.setTime(end.getTime());
-    } else if(!tz.inDaylightTime(start) && tz.inDaylightTime(end)) {
+    } else if (!tz.inDaylightTime(start) && tz.inDaylightTime(end)) {
       seed.setTime(start.getTime());
       period.setTime(end.getTime() + 3600000);
     } else {

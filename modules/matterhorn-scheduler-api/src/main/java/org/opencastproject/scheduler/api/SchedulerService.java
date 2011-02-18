@@ -150,8 +150,9 @@ public interface SchedulerService {
    * @throws NotFoundException
    *           if this event hasn't previously been saved
    */
-  void updateEvent(Event e, boolean updateWorkflow, boolean updateWithEmptyValues) throws NotFoundException, SchedulerException;
-  
+  void updateEvent(Event e, boolean updateWorkflow, boolean updateWithEmptyValues) throws NotFoundException,
+          SchedulerException;
+
   /**
    * Updates each event with an id in the list with the passed event.
    * 
@@ -161,7 +162,7 @@ public interface SchedulerService {
    *          Event containing metadata to be updated.
    */
   void updateEvents(List<Long> eventIdList, Event e) throws NotFoundException, SchedulerException;
-  
+
   /**
    * Updates each event in the list with the passed event.
    * 
@@ -172,7 +173,8 @@ public interface SchedulerService {
    * @param updateWithEmptyValues
    *          if the passed event contains empty values, overwrite the existing event with them.
    */
-  void updateEvents(List<Event> eventList, Event e, boolean updateWithEmptyValues) throws NotFoundException, SchedulerException;
+  void updateEvents(List<Event> eventList, Event e, boolean updateWithEmptyValues) throws NotFoundException,
+          SchedulerException;
 
   /**
    * @param device
@@ -181,7 +183,7 @@ public interface SchedulerService {
    * @return A list of events that conflict with the start, or end dates of provided event.
    */
   List<Event> findConflictingEvents(String device, Date startDate, Date endDate);
-  
+
   /**
    * @param device
    * @param rrule
@@ -189,7 +191,7 @@ public interface SchedulerService {
    * @return A list of events that conflict with the start, or end dates of provided event.
    */
   List<Event> findConflictingEvents(String device, String rrule, Date startDate, Date endDate, Long duration)
-    throws ParseException, ValidationException;
+          throws ParseException, ValidationException;
 
   /**
    * 
@@ -230,4 +232,16 @@ public interface SchedulerService {
    */
   SchedulerFilter getFilterForCaptureAgent(String captureAgentID);
 
+  /**
+   * Gets the last modified date for a capture agent's calendar. If no events exist for this capture agent, this method
+   * returns null.
+   * 
+   * @param captureAgentId
+   *          the identifier for a capture agent. this maps to the {@link Event#getDevice()} method.
+   * @return the date the schedule for this capture agent was last changed, or null if there is no capture agent with
+   *         this id, or there are no events for this capture agent.
+   * @throws SchedulerException
+   *           if the scheduling database is unavailable
+   */
+  Date getScheduleLastModified(String captureAgentId) throws SchedulerException;
 }

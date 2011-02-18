@@ -63,6 +63,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.spi.PersistenceProvider;
@@ -244,6 +245,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     try {
       event.setEventId(workflow.getId());
       event.setMetadataList(event.getMetadataList());
+      event.setLastModified(new Date());
       em = emf.createEntityManager();
       tx = em.getTransaction();
       event = (EventImpl) event;
@@ -345,6 +347,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
         try {
           event.setEventId(workflow.getId());
           event.setMetadataList(event.getMetadataList());
+          event.setLastModified(new Date());
           event = (EventImpl) event;
           em.persist(event);
         } catch (Exception ex) {
@@ -413,15 +416,15 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     StringBuilder queryBase = new StringBuilder("SELECT e FROM Event e");
     ArrayList<String> where = new ArrayList<String>();
     EntityManager em = emf.createEntityManager();
-    
+
     if (StringUtils.isNotEmpty(filter.getCreatorFilter())) {
       where.add("LOWER(e.creator) LIKE :creatorParam");
     }
-    
+
     if (StringUtils.isNotEmpty(filter.getDeviceFilter())) {
       where.add("LOWER(e.device) LIKE :deviceParam");
     }
-    
+
     if (StringUtils.isNotEmpty(filter.getTitleFilter())) {
       where.add("LOWER(e.title) LIKE :titleParam");
     }
@@ -429,11 +432,11 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     if (StringUtils.isNotEmpty(filter.getSeriesFilter())) {
       where.add("LOWER(e.series) LIKE :seriesParam");
     }
-    
+
     if (filter.getSeriesId() != null) {
       where.add("LOWER(e.seriesId) = :seriesIdParam");
     }
-    
+
     if (filter.getStart() != null && filter.getStop() != null) { // Events intersecting start and stop
       where.add("e.startDate < :stopParam AND e.endDate > :startParam");
     } else if (filter.getStart() != null && filter.getStop() == null) { // All events with dates after start
@@ -442,14 +445,14 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       where.add("e.startDate < :stopParam");
     }
     
-    if(filter.getCurrentAndUpcoming()){
-      where.add("e.endDate > :now");
-    }
+//    if(filter.getCurrentAndUpcoming()){
+//      where.add("e.endDate > :now");
+//    }
     
     if(where.size() > 0) {
       queryBase.append(" WHERE " + StringUtils.join(where, " AND "));
     }
-    
+
     if (filter.getOrder() != null) {
       if (filter.isOrderAscending()) {
         queryBase.append(" ORDER BY e.title ASC");
@@ -481,17 +484,17 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     if (filter.getStop() != null) {
       eventQuery.setParameter("stopParam", filter.getStop());
     }
-    if (filter.getCurrentAndUpcoming()) {
-      eventQuery.setParameter("now", new Date(System.currentTimeMillis()));
-    }
+//    if (filter.getCurrentAndUpcoming()) {
+//      eventQuery.setParameter("now", new Date(System.currentTimeMillis()));
+//    }
 
     List<EventImpl> results = new ArrayList<EventImpl>();
     try {
-    results = eventQuery.getResultList();
+      results = eventQuery.getResultList();
     } finally {
       em.close();
     }
-    
+
     List<Event> returnList = new ArrayList<Event>();
     for (EventImpl event : results) {
       returnList.add((Event) event);
@@ -591,7 +594,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
   public void updateEvent(Event e, boolean updateWorkflow) throws NotFoundException, SchedulerException {
     updateEvent(e, updateWorkflow, false);
   }
-  
+
   /**
    * Updates an event.
    * 
@@ -606,7 +609,8 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * @throws NotFoundException
    *           if this event hasn't previously been saved
    */
-  public void updateEvent(Event e, boolean updateWorkflow, boolean updateWithEmptyValues) throws NotFoundException, SchedulerException {
+  public void updateEvent(Event e, boolean updateWorkflow, boolean updateWithEmptyValues) throws NotFoundException,
+          SchedulerException {
     EntityManager em = null;
     EntityTransaction tx = null;
     Event storedEvent = getEvent(e.getEventId());
@@ -615,6 +619,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       tx = em.getTransaction();
       tx.begin();
       storedEvent.update(e, updateWithEmptyValues);
+      storedEvent.setLastModified(new Date());
       em.merge(storedEvent);
       tx.commit();
       if (updateWorkflow) {
@@ -647,8 +652,8 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     mediapackage.setSeries(event.getSeriesId());
     mediapackage.setSeriesTitle(event.getSeries());
     mediapackage.setDate(event.getStartDate());
-    //mediapackage supports multiple creators, interface does not. replace them all with this one
-    //We really should handle this better
+    // mediapackage supports multiple creators, interface does not. replace them all with this one
+    // We really should handle this better
     for (String creator : mediapackage.getCreators()) {
       mediapackage.removeCreator(creator);
     }
@@ -675,13 +680,14 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    */
   public void updateEvents(List<Long> eventIdList, Event e) throws NotFoundException, SchedulerException {
     List<Event> eventList = new LinkedList<Event>();
-    for(Long id : eventIdList) {
+    for (Long id : eventIdList) {
       eventList.add(getEvent(id));
     }
     updateEvents(eventList, e, false);
   }
-  
-  public void updateEvents(List<Event> eventList, Event e, boolean updateWithEmptyValues) throws NotFoundException, SchedulerException{
+
+  public void updateEvents(List<Event> eventList, Event e, boolean updateWithEmptyValues) throws NotFoundException,
+          SchedulerException {
     for (Event event : eventList) {
       e.setEventId(event.getEventId());
       updateEvent(e, true, updateWithEmptyValues);
@@ -697,9 +703,9 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     filter.withDeviceFilter(device).withStart(startDate).withStop(endDate);
     return getEvents(filter);
   }
-  
-  public List<Event> findConflictingEvents(String device, String rrule, Date startDate, Date endDate, Long duration) 
-    throws ParseException, ValidationException {
+
+  public List<Event> findConflictingEvents(String device, String rrule, Date startDate, Date endDate, Long duration)
+          throws ParseException, ValidationException {
     RRule rule = new RRule(rrule);
     rule.validate();
     Recur recur = rule.getRecur();
@@ -709,17 +715,15 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     end.setUtc(true);
     DateList dates = recur.getDates(start, end, Value.DATE_TIME);
     List<Event> events = new ArrayList<Event>();
-    
+
     for (Object d : dates) {
       Date filterStart = (Date) d;
-      SchedulerFilter filter = new SchedulerFilter()
-        .withDeviceFilter(device)
-        .withStart(filterStart)
-        .withStop(new Date(filterStart.getTime() + duration));
+      SchedulerFilter filter = new SchedulerFilter().withDeviceFilter(device).withStart(filterStart)
+              .withStop(new Date(filterStart.getTime() + duration));
       List<Event> filterEvents = getEvents(filter);
       events.addAll(filterEvents);
     }
-    
+
     return events;
   }
 
@@ -825,8 +829,22 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    */
   public SchedulerFilter getFilterForCaptureAgent(String captureAgentID) {
     SchedulerFilter filter = new SchedulerFilter();
-    filter.withDeviceFilter(captureAgentID).withOrder("startDate").withCurrentAndUpcoming();
+    filter.withDeviceFilter(captureAgentID).withOrder("startDate");
     return filter;
   }
 
+  public Date getScheduleLastModified(String captureAgentId) throws SchedulerException {
+    EntityManager em = emf.createEntityManager();
+    try {
+      Query q = em.createNamedQuery("Event.getLastUpdated").setParameter("device", captureAgentId);
+      return (Date) q.getSingleResult();
+    } catch (NoResultException e) {
+      logger.debug("No events scheduled for {}", captureAgentId);
+    } catch (Exception e) {
+      throw new SchedulerException(e);
+    } finally {
+      em.close();
+    }
+    return null;
+  }
 }

@@ -46,6 +46,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -55,6 +56,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -524,12 +527,24 @@ public class SchedulerRestService {
   @GET
   @Produces(MediaType.TEXT_PLAIN)
   @Path("{captureAgentID}/calendar")
-  public Response getCalendarForCaptureAgent(@PathParam("captureAgentID") String captureAgentId) throws NotFoundException {
-    if (!captureAgentId.isEmpty()) {
+  public Response getCalendarForCaptureAgent(@PathParam("captureAgentID") String captureAgentId,
+          @Context HttpServletRequest request) throws NotFoundException {
+    if (captureAgentId.isEmpty()) {
+      return Response.status(Status.BAD_REQUEST).build();
+    } else {
       try {
+        // If the etag matches the if-not-modified header, return a 304
+        Date lastModified = service.getScheduleLastModified(captureAgentId);
+        if (lastModified == null) {
+          lastModified = new Date();
+        }
+        String ifNoneMatch = request.getHeader(HttpHeaders.IF_NONE_MATCH);
+        if (StringUtils.isNotBlank(ifNoneMatch) && ifNoneMatch.equals("mod" + Long.toString(lastModified.getTime()))) {
+          return Response.notModified("mod" + Long.toString(lastModified.getTime())).expires(null).build();
+        }
         String result = service.getCalendarForCaptureAgent(captureAgentId);
         if (!result.isEmpty()) {
-          return Response.ok(result).build();
+          return Response.ok(result).header(HttpHeaders.ETAG, "mod" + Long.toString(lastModified.getTime())).build();
         } else {
           throw new NotFoundException();
         }
@@ -537,8 +552,6 @@ public class SchedulerRestService {
         logger.error("Unable to get calendar for capture agent '{}': {}", captureAgentId, e);
         return Response.serverError().build();
       }
-    } else {
-      return Response.status(Status.BAD_REQUEST).build();
     }
   }
 
@@ -826,26 +839,4 @@ public class SchedulerRestService {
       return null;
     }
   }
-
-  /**
-   * Creates an example XML of an SchedulerFilter for the documentation.
-   * 
-   * @return A XML with a SchedulerFilter
-   */
-  private String generateSchedulerFilter() {
-    return "<ns2:SchedulerFilter xmlns:ns2=\"http://scheduler.opencastproject.org/\">\n"
-            + " <event-id>exact id to search for</event-id>\n" + " <device>pattern to search for</device>\n"
-            + " <title>pattern to search for</title>\n" + " <creator>pattern to search for</creator>\n"
-            + " <abstract>A short description of the content of the lecture</abstract>\n"
-            + " <startdate>begin of the period of valid events</startdate>\n"
-            + " <enddate>end of the period of valid events</enddate>\n"
-            + " <contributor>pattern to search for</contributor>\n"
-            + " <series-id>ID of the series which will be filtered</series-id>\n"
-            + " <channel-id>ID of the channel that will be filtered</channel-id>\n"
-            + " <location>pattern to search for</location>\n" + " <attendee>pattern to search for</attendee>\n"
-            + " <resource>pattern to search for</resource>\n"
-            + " <order-by>title|creator|series|time-asc|time-desc|contributor|channel|location|device</order-by>\n"
-            + "</ns2:SchedulerFilter>";
-  }
-
 }

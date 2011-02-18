@@ -35,6 +35,7 @@ CREATE TABLE `SCHED_EVENT` (
   `STARTDATE` datetime default NULL,
   `RESOURCES` varchar(255) collate utf8_unicode_ci default NULL,
   `SERIES` varchar(255) collate utf8_unicode_ci default NULL,
+  `LASTMODIFIED` datetime default NULL,
   `SUBJECT` varchar(255) collate utf8_unicode_ci default NULL,
   `ENDDATE` datetime default NULL,
   `RECURRENCEPATTERN` varchar(255) collate utf8_unicode_ci default NULL,

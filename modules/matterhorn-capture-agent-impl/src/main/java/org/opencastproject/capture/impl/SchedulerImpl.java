@@ -36,6 +36,7 @@ import org.opencastproject.mediapackage.MediaPackageElements;
 import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.mediapackage.identifier.IdImpl;
 import org.opencastproject.security.api.TrustedHttpClient;
+import org.opencastproject.security.api.TrustedHttpClientException;
 import org.opencastproject.util.IoSupport;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
@@ -50,7 +51,12 @@ import net.fortuna.ical4j.model.property.Duration;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.message.BasicHeader;
 import org.osgi.service.cm.ConfigurationException;
 import org.quartz.CronExpression;
 import org.quartz.CronTrigger;
@@ -120,6 +126,9 @@ public class SchedulerImpl {
   /** The time in milliseconds between attempts to fetch the calendar data */
   private long calendarPollTime = 0;
 
+  /** The last etag, if any, returned by a calendar polling request. */
+  private String lastCalendarEtag = null;
+
   /** A stored copy of the Calendar */
   private Calendar calendar = null;
 
@@ -132,14 +141,14 @@ public class SchedulerImpl {
   /** The trusted HttpClient used to talk to the core */
   private TrustedHttpClient trustedClient = null;
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public SchedulerImpl(Dictionary dictionary, ConfigurationManager configurationManager,
           CaptureAgentImpl captureAgentImpl) throws ConfigurationException {
     configService = configurationManager;
     this.captureAgent = captureAgentImpl;
     this.updated(dictionary);
   }
-  
+
   /**
    * Set the current ConfigurationManager and register this class as a listener for property updates.
    * 
@@ -197,8 +206,8 @@ public class SchedulerImpl {
    * 
    * @see org.osgi.service.cm.ManagedService#updated(Dictionary)
    */
-  //@Override
-  @SuppressWarnings("unchecked")
+  // @Override
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private void updated(Dictionary properties) throws ConfigurationException {
     log.debug("Scheduler updated.");
 
@@ -479,9 +488,53 @@ public class SchedulerImpl {
    *         performed.
    */
   Calendar parseCalendar(URL url) {
-
+    URI uri;
+    try {
+      uri = url.toURI();
+    } catch (URISyntaxException e1) {
+      log.warn("{} is not a valid uri", url);
+      return null;
+    }
     String calendarString = null;
-    calendarString = IoSupport.readFileFromURL(url, trustedClient);
+    try {
+      if ("file".equals(url.getProtocol())) {
+        if (new File(uri).exists()) {
+          calendarString = IOUtils.toString(url.openStream(), "UTF-8");
+        } else {
+          log.debug("File {} does not exist", url);
+          return null;
+        }
+      } else {
+        HttpResponse response = null;
+        try {
+          HttpGet get = new HttpGet(uri);
+          Header[] requestHeaders = lastCalendarEtag == null ? null : new Header[] { new BasicHeader("If-None-Match",
+                  lastCalendarEtag) };
+          get.setHeaders(requestHeaders);
+          response = trustedClient.execute(get);
+          if (response.getStatusLine().getStatusCode() == 304) { // didn't find constants without bringing in more
+                                                                 // dependencies
+            log.debug("Calendar has not changed");
+            return null;
+          } else if (response.getStatusLine().getStatusCode() == 200) {
+            calendarString = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+            Header etagHeader = response.getFirstHeader("ETag");
+            if (etagHeader != null && StringUtils.isNotBlank(etagHeader.getValue())) {
+              lastCalendarEtag = etagHeader.getValue();
+            }
+            log.debug("Calendar updated from {}", url);
+          }
+        } catch (TrustedHttpClientException e) {
+          log.warn("Unable to fetch file from {}.", url, e);
+          return null;
+        } finally {
+          trustedClient.close(response);
+        }
+      }
+    } catch (IOException e) {
+      log.warn("Error parsing calendar", e);
+      return null;
+    }
 
     if (calendarString == null) {
       // If the calendar is null, which only happens the first time through
@@ -1006,11 +1059,12 @@ public class SchedulerImpl {
     }
 
     // Create job and trigger
-    JobDetail job = new JobDetail(SerializeJob.JOB_PREFIX + recordingID, JobParameters.SUPPORT_TYPE, 
-            SerializeJob.class);
+    JobDetail job = new JobDetail(SerializeJob.JOB_PREFIX + recordingID, JobParameters.SUPPORT_TYPE, SerializeJob.class);
 
-    /* Setup the trigger. The serialization job will automatically refire if it fails, 
-     so we don't need to worry about it */
+    /*
+     * Setup the trigger. The serialization job will automatically refire if it fails, so we don't need to worry about
+     * it
+     */
     SimpleTrigger trigger = new SimpleTrigger(SerializeJob.TRIGGER_PREFIX + recordingID, JobParameters.SUPPORT_TYPE,
             new Date());
     trigger.setMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_FIRE_NOW);
@@ -1159,18 +1213,12 @@ public class SchedulerImpl {
    * 
    * @see org.opencastproject.capture.api.Scheduler#isSchedulerEnabled()
    */
-  /*@Override
-  public boolean isSchedulerEnabled() {
-    try {
-      if (scheduler != null && scheduler.isStarted()) {
-        return true;
-      }
-    } catch (SchedulerException e) {
-      log.warn("Unable to get scheduler state!");
-    }
-
-    return false;
-  }*/
+  /*
+   * @Override public boolean isSchedulerEnabled() { try { if (scheduler != null && scheduler.isStarted()) { return
+   * true; } } catch (SchedulerException e) { log.warn("Unable to get scheduler state!"); }
+   * 
+   * return false; }
+   */
 
   /**
    * {@inheritDoc}

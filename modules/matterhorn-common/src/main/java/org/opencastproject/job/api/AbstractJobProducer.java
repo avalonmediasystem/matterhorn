@@ -116,7 +116,7 @@ public abstract class AbstractJobProducer implements JobProducer {
    * @return the operation result
    * @throws Exception
    */
-  abstract protected String process(Job job) throws Exception;
+  protected abstract String process(Job job) throws Exception;
 
   /**
    * A utility class to run jobs

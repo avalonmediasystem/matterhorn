@@ -32,6 +32,7 @@ CREATE TABLE sched_event (
     startdate timestamp without time zone,
     resources character varying(255),
     series character varying(255),
+    lastmodified timestamp without time zone,
     subject character varying(255),
     enddate timestamp without time zone,
     recurrencepattern character varying(255),
