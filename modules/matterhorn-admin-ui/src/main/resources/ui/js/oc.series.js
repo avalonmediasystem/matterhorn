@@ -34,7 +34,7 @@ ocSeries.init = function(){
   ocSeries.Internationalize();
   
   //Add folding action for hidden sections.
-  $('.oc-ui-collapsible-widget .ui-widget-header').click(
+  $('.oc-ui-collapsible-widget .form-box-head').click(
     function() {
       $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e');
       $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-s');

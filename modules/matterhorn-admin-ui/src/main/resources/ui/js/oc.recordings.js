@@ -46,7 +46,7 @@ ocRecordings = new (function() {
   this.refreshingStats = false; // indicates if JSONP requesting statistics data is in progress
   this.refreshInterval = null;
   this.statsInterval = null;
-  
+
   this.bulkEditComponents = {};
 
   // object that holds the workflow and the operation object for the hold state UI currently displayed
@@ -66,12 +66,12 @@ ocRecordings = new (function() {
     this.pageSize = 10;
     this.page = 0;
     this.refresh = 5;
-    this.doRefresh = true;
+    this.doRefresh = 'true';
     this.sortField = 'Date';
     this.sortOrder = 'ASC';
     this.filterField = null;
     this.filterText = '';
-    
+
     this.lastState = 'all'
     this.lastPageSize = 10;
     this.lastPage = 0;
@@ -223,7 +223,7 @@ ocRecordings = new (function() {
         addStatistics(data.statistics.definitions.definition, stats);
       }
     }
-    
+
     stats.all = stats.upcoming + stats.capturing + stats.processing + stats.finished + stats.failed + stats.hold;
     if (ocRecordings.statistics != null
       && ocRecordings.statistics[ocRecordings.Configuration.state] != stats[ocRecordings.Configuration.state]) {
@@ -260,14 +260,14 @@ ocRecordings = new (function() {
       $('#stats-' + key).text(' (' + value + ')');
     });
   }
-  
+
   this.startStatisticsUpdate = function() {
     refreshStatistics();
     if(ocRecordings.statsInterval == null) {
       ocRecordings.statsInterval = window.setInterval(refreshStatistics, STATISTICS_DELAY);
     }
   }
-  
+
   this.stopStatisticsUpdate = function() {
     if(ocRecordings.statsInterval != null) {
       window.clearInterval(ocRecordings.statsInterval);
@@ -425,7 +425,7 @@ ocRecordings = new (function() {
     ocRecordings.totalRecordings = parseInt(data.workflows.totalCount);
     var result = TrimPath.processDOMTemplate(template, makeRenderData(data));
     $( '#tableContainer' ).empty().append(result);
-    
+
     if(registerRecordingSelectHandler) {
       $('.selectRecording').click(function() {
         if(this.checked === true) {
@@ -446,13 +446,13 @@ ocRecordings = new (function() {
         ocRecordings.updateBulkActionApplyMessage();
       });
     }
-    
+
     if(ocRecordings.Configuration.state === 'upcoming'){
       $('#bulkActionButton').show();
     } else {
       $('#bulkActionButton').hide();
     }
-    
+
     // display number of matches if filtered
     if (ocRecordings.Configuration.filterText) {
       var countText;
@@ -491,12 +491,6 @@ ocRecordings = new (function() {
 
     // When table is ready, attach event handlers
     $('.sortable')
-    .mouseenter( function() {
-      $(this).addClass('ui-state-hover');
-    })
-    .mouseleave( function() {
-      $(this).removeClass('ui-state-hover');
-    })
     .click( function() {
       var sortDesc = $(this).find('.sort-icon').hasClass('ui-icon-circle-triangle-s');
       var sortField = ($(this).attr('id')).substr(4);
@@ -556,7 +550,7 @@ ocRecordings = new (function() {
     url += '?' + ocRecordings.buildURLparams();
     document.location.href = url;
   }
-  
+
   /** Returns the workflow with the specified id from the currently loaded
    *  workflow data or false if workflow with given Id was not found.
    */
@@ -707,8 +701,8 @@ ocRecordings = new (function() {
 
     // ocRecordings state selectors
     $( '#state-' +  ocRecordings.Configuration.state).attr('checked', true);
-    $( '.state-filter-container' ).buttonset();
-    $( '.state-filter-container input' ).click( function() {
+    $( '#runningStatesContainer, #notRunningStatesContainer' ).buttonset();
+    $( '#runningStatesContainer input, #notRunningStatesContainer input' ).click( function() {
       ocRecordings.Configuration.filterText = '';
       ocRecordings.Configuration.filterField = '';
       ocRecordings.Configuration.state = $(this).val();
@@ -735,8 +729,7 @@ ocRecordings = new (function() {
       },
       searchText : ocRecordings.Configuration.filterText,
       options : FILTER_FIELDS,
-      selectedOption : ocRecordings.Configuration.filterField,
-      bgclass : 'oc-light-background'
+      selectedOption : ocRecordings.Configuration.filterField
     });
 
     // set refresh
@@ -744,24 +737,24 @@ ocRecordings = new (function() {
 
     // Refresh Controls
     // set values according to config
-    if (ocRecordings.Configuration.doRefresh === 'true') {
+    if (ocRecordings.Configuration.doRefresh == 'true') {
       $('#refreshEnabled').attr('checked', 'checked');
       $('#refreshInterval').removeAttr('disabled');
-      $('#refreshControlsContainer span').css('color', 'black');
+      $('#refreshControlsContainer span').removeAttr('style');
     } else {
       $('#refreshEnabled').removeAttr('checked');
       $('#refreshInterval').attr('disabled', 'true');
-      $('#refreshControlsContainer span').css('color', 'gray');
+      $('#refreshControlsContainer span').css('color', 'silver');
     }
     $('#refreshInterval').val(ocRecordings.Configuration.refresh);
-    
+    // attatch event handlers
     $('#refreshEnabled').change(function() {
       if ($(this).is(':checked')) {
         $('#refreshInterval').removeAttr('disabled');
-        $('#refreshControlsContainer span').css('color', 'black');
+        $('#refreshControlsContainer span').removeAttr('style');
       } else {
         $('#refreshInterval').attr('disabled', 'true');
-        $('#refreshControlsContainer span').css('color', 'gray');
+        $('#refreshControlsContainer span').css('color', 'silver');
       }
       ocRecordings.updateRefreshInterval($(this).is(':checked'), $('#refreshInterval').val());
     });
@@ -777,15 +770,15 @@ ocRecordings = new (function() {
         $(this).next().toggle();
         return false;
       });
-    
+
     $('#bulkActionSelect').change(function(){
       ocRecordings.bulkActionHandler($(this).val());
     });
-    
+
     $('.recordings-cancel-bulk-action').click(ocRecordings.cancelBulkAction);
-    
+
     $('#applyBulkAction').click(ocRecordings.applyBulkAction);
-    
+
     $('#seriesSelect').autocomplete({
       source: SERIES_URL + '/search',
       select: function(event, ui){
@@ -798,19 +791,19 @@ ocRecordings = new (function() {
 
     // pager
     $('#pageSize').val(ocRecordings.Configuration.pageSize);
-    
+
     $('#pageSize').change(function(){
       ocRecordings.Configuration.pageSize = $(this).val();
       ocRecordings.Configuration.page = 0;
       ocRecordings.reload();
     });
-    
+
     $('#page').val(parseInt(ocRecordings.Configuration.page) + 1);
-    
+
     $('#page').blur(function(){
       ocRecordings.gotoPage($(this).val() - 1);
     });
-    
+
     $('#page').keypress(function(event) {
       if(event.keyCode == '13') {
         event.preventDefault();
@@ -820,7 +813,7 @@ ocRecordings = new (function() {
 
     // set up statistics update
     ocRecordings.startStatisticsUpdate();
-    
+
     if (ocRecordings.Configuration.state === 'bulkedit') {
       ocRecordings.bulkActionHandler('edit');
     } else if (ocRecordings.Configuration.state === 'bulkdelete') {
@@ -829,7 +822,7 @@ ocRecordings = new (function() {
       refresh();    // load and render data for currently set configuration
     }
   };
-  
+
   this.removeRecording = function(id, title) {
     if(confirm('Are you sure you wish to delete ' + title + '?')){
       $.ajax({
@@ -907,19 +900,19 @@ ocRecordings = new (function() {
     }
     ocRecordings.reload();
   }
-  
+
   this.previousPage = function() {
     if(ocRecordings.Configuration.page > 0) {
       ocRecordings.Configuration.page--;
     }
     ocRecordings.reload();
   }
-  
+
   this.lastPage = function() {
     ocRecordings.Configuration.page = Math.floor(this.totalRecordings / ocRecordings.Configuration.pageSize);
     ocRecordings.reload();
   }
-  
+
   this.gotoPage = function(page) {
     if(page > (ocRecordings.totalRecordings / ocRecordings.Configuration.pageSize)) {
       ocRecordings.lastPage();
@@ -953,7 +946,7 @@ ocRecordings = new (function() {
     }
     $('#bulkActionApplyMessage').text(bulkEditApplyMessage());
   }
-  
+
   this.cancelBulkAction = function() {
     ocRecordings.resetBulkActionPanel();
     ocRecordings.Configuration.state = ocRecordings.Configuration.lastState;
@@ -1002,16 +995,16 @@ ocRecordings = new (function() {
       refresh();
     }
   }
-  
+
   function bulkEditApplyMessage() {
-    return "Changes will be made in " + ocUtils.sizeOf(ocRecordings.changedBulkEditFields) + 
+    return "Changes will be made in " + ocUtils.sizeOf(ocRecordings.changedBulkEditFields) +
     " field(s) for all " + ocRecordings.numSelectedRecordings + " selected recoding(s).";
   }
-  
+
   function bulkDeleteApplyMessage() {
     return ocRecordings.numSelectedRecordings + " selected recording(s) will be deleted.";
   }
-  
+
   this.updateBulkActionApplyMessage = function() {
     if(ocRecordings.Configuration.state === 'bulkedit'){
       $('#bulkActionApplyMessage').text(bulkEditApplyMessage());
@@ -1054,7 +1047,7 @@ ocRecordings = new (function() {
       if(ocRecordings.Configuration.state === 'bulkedit') {
         manager = new ocAdmin.Manager('event', '', ocRecordings.bulkEditComponents);
         event = manager.serialize();
-        $.post('/scheduler/', 
+        $.post('/scheduler/',
         {
           event: event,
           idList: '[' + eventIdList.toString() + ']'
@@ -1199,7 +1192,7 @@ ocRecordings = new (function() {
       label: 'descriptionLabel'
     });
   }
-  
+
   this.closeDeleteDialog = function() {
     $('#deleteModal').dialog('close');
     refresh();
