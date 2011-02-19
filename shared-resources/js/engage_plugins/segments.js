@@ -145,19 +145,6 @@ Opencast.segments = (function ()
                     disabled: [4]
                 });
             }
-            else
-            {
-                // If no Segents are available
-                if ($('#segmentstable > tbody > tr > td').size() <= 1)
-                {
-                    // Disable and grey out "Segments" Tab
-                    // Disable and grey out "Segments Text" Tab
-                    $("#oc_ui_tabs").tabs(
-                    {
-                        disabled: [1, 2]
-                    });
-                }
-            }
             var scroll = $('#slider .scroll').css('overflow', 'hidden');
             //when the left/right arrows are clicked
             $(".right").click(function ()
@@ -210,11 +197,21 @@ Opencast.segments = (function ()
             hideSegments();
             $(".oc_btn-skip-backward").hide();
             $(".oc_btn-skip-forward").hide();
+            // Disable and grey out "Segments" and "Segments Text" Tab
+            $("#oc_ui_tabs").tabs(
+            {
+                disabled: [1, 2]
+            });
+            // Hide Search, too
+            $('#oc_lecturer-search-field').attr('disabled', true);
         }
         else
         {
+            // Display and grey out "Segments" and "Segments Text" Tab
             $("#oc_ui_tabs").tabs('enable', 1);
             $("#oc_ui_tabs").tabs('enable', 2);
+            // Display Search, too
+            $('#oc_lecturer-search-field').attr('disabled', false);
         }
         // set the center of the controls
         var margin = $('#oc_video-controls').width();

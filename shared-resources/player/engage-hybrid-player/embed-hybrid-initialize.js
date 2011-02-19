@@ -219,6 +219,16 @@ Opencast.Initialize = (function ()
         }
     }
     
+    /**
+     @memberOf Opencast.Initialize
+     @description binds the Video Control Button
+     */
+    function bindVidSize()
+    {
+        $('#oc_video-size-controls').bind('mouseover', dropdownVideo_open);
+        $('#oc_video-size-controls').bind('mouseout', dropdown_timer);
+    }
+    
     $(document).ready(function ()
     {
         keyboardListener();
@@ -302,10 +312,9 @@ Opencast.Initialize = (function ()
                 }
             }
         });
-        $('#oc_video-size-controls').bind('mouseover', dropdownVideo_open);
         $('#oc_player_video-dropdown').bind('mouseover', dropdownVideo_open);
-        $('#oc_video-size-controls').bind('mouseout', dropdown_timer);
         $('#oc_player_video-dropdown').bind('mouseout', dropdown_timer);
+        
         // Handler focus
         $('#oc_btn-dropdown').focus(function ()
         {
@@ -854,6 +863,7 @@ Opencast.Initialize = (function ()
     }
     
     return {
+        bindVidSize: bindVidSize,
         dropdownVideo_open: dropdownVideo_open,
         dropdown_timer: dropdown_timer,
         dropdown_close: dropdown_close,

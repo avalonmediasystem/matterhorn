@@ -887,6 +887,8 @@ Opencast.Player = (function ()
                 setCurrentPlayPauseState(PLAYING);
                 if (displVidSizeControl)
                 {
+                    // Bind the video size controls to its functions
+                    Opencast.Initialize.bindVidSize();
                     // Hide Screen Settings until clicked 'play'
                     $("#oc_btn-dropdown").css("display", 'block');
                     $("#oc_player_video-dropdown").css("display", 'block');
@@ -1616,7 +1618,6 @@ Opencast.Player = (function ()
             setCurrentVideoSize(VIDEOSIZESINGLE);
             
             displVidSizeControl = false;
-            displayMonitorControls = false;
         }
         else if (displayMode === SINGLEPLAYERWITHSLIDES)
         {
@@ -1630,7 +1631,6 @@ Opencast.Player = (function ()
             setDisplayMode(displayMode);
             
             displVidSizeControl = false;
-            displayMonitorControls = false;
         }
         else if (displayMode === AUDIOPLAYER)
         {
@@ -1640,9 +1640,8 @@ Opencast.Player = (function ()
             setCurrentVideoSize(VIDEOSIZEAUDIO);
             
             displVidSizeControl = false;
-            displayMonitorControls = false;
         }
-        if (!displayMonitorControls)
+        if (!displVidSizeControl)
         {
             $("#oc_video-size-controls").unbind('mouseover mouseout mouseenter mouseleave');
         }
