@@ -16,7 +16,6 @@
 package org.opencastproject.capture.impl;
 
 import org.opencastproject.capture.admin.api.AgentState;
-import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.api.CaptureParameters;
 import org.opencastproject.capture.api.ScheduledEvent;
 import org.opencastproject.capture.api.ScheduledEventImpl;
@@ -29,6 +28,8 @@ import org.opencastproject.capture.impl.jobs.PollCalendarJob;
 import org.opencastproject.capture.impl.jobs.SerializeJob;
 import org.opencastproject.capture.impl.jobs.StartCaptureJob;
 import org.opencastproject.capture.impl.jobs.StopCaptureJob;
+import org.opencastproject.capture.pipeline.NoCaptureDevicesSpecifiedException;
+import org.opencastproject.capture.pipeline.PipelineFactory;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageElement;
@@ -127,7 +128,7 @@ public class SchedulerImpl {
   private ConfigurationManager configService = null;
 
   /** The capture agent this scheduler is scheduling for */
-  private CaptureAgent captureAgent = null;
+  private CaptureAgentImpl captureAgent = null;
 
   /** The trusted HttpClient used to talk to the core */
   private TrustedHttpClient trustedClient = null;
@@ -390,7 +391,7 @@ public class SchedulerImpl {
    * @param agent
    *          The agent.
    */
-  public void setCaptureAgent(CaptureAgent agent) {
+  public void setCaptureAgent(CaptureAgentImpl agent) {
     captureAgent = agent;
   }
 
@@ -1287,7 +1288,7 @@ class Event {
   private Date start;
   private Date end;
   private Duration duration;
-  private CaptureAgent captureAgent;
+  private CaptureAgentImpl captureAgent;
   private SchedulerImpl scheduler;
   private boolean isValid = true;
   private VEvent sourceEvent = null;
@@ -1295,7 +1296,7 @@ class Event {
   /** Simple Date Format used for start and end times of events to capture. **/
   private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
 
-  public Event(VEvent event, CaptureAgent agent, SchedulerImpl sched) {
+  public Event(VEvent event, CaptureAgentImpl agent, SchedulerImpl sched) {
 
     captureAgent = agent;
     scheduler = sched;
@@ -1444,17 +1445,17 @@ class Event {
       isValid = false;
       return false;
     } else if (captureIsHappeningNow(this.getStart(), this.getEnd())) {
-      if (!captureAgentIsCapturing()) {
+      if (!captureAgentIsCapturing() && !mediaFilesExist()) {
         // Try to handle a capture we have just missed.
         log.warn("Event {} is scheduled for a time that has already passed,"
                 + " but should be capturing.  Starting capture.", this.getUID());
-        this.setUID(this.getUID() + "-" + sdf.format(new Date()));
         this.setStart(new Date(System.currentTimeMillis() + (1 * CaptureParameters.MILLISECONDS)));
         // Sanity check on the duration
         if (this.getDuration().isNegative()) {
           log.warn("Event {} has a negative duration, skipping.", uid);
           isValid = false;
           return false;
+
         }
       }
     } else if (this.getEnd().before(new Date())) {
@@ -1479,6 +1480,88 @@ class Event {
     return true;
   }
 
+  /**
+   * Currently doesn't work and isn't tested but it should test to see if there are media files on the hard drive that
+   * are evidence of an earlier record and should fail.
+   * 
+   * @return True if there is evidence that a recording has already occured with this UID.
+   */
+  private boolean mediaFilesExist() {
+    try {
+      XProperties properties = captureAgent.getConfigService().getAllProperties();
+      String[] deviceNames = PipelineFactory.getDeviceNames(properties);
+      if (deviceNames != null && deviceNames.length != 0 && deviceNames[0].contains("=")) {
+        deviceNames[0] = deviceNames[0].split("=")[1];
+      }
+      File captureLocation = determineRootURL(uid, properties);
+      for (String name : deviceNames) {
+        String outputProperty = CaptureParameters.CAPTURE_DEVICE_PREFIX + name + CaptureParameters.CAPTURE_DEVICE_DEST;
+        if (!properties.containsKey(outputProperty)) {
+          // We can't check to see if this media has been created because we don't have an output location.
+          return true;
+        } 
+        File captureDirectory = new File(captureLocation.getAbsolutePath(), uid);
+        File outputFile = new File(captureDirectory.getAbsolutePath(), properties.get(outputProperty).toString());
+        if (outputFile.exists()) {
+          // At least one of the media files exist so return true.
+          return true;
+        }
+      }
+    } catch (NoCaptureDevicesSpecifiedException e) {
+      log.warn("There were no capture devices specified in the properties so we can't check to see if the media files exist. ");
+      return true;
+    } catch (IOException e) {
+      log.warn("Couldn't determine whether media files exists because " + e);
+      return true;
+    }
+    return false;
+    
+   
+  }
+
+  /**
+   * Determines the root URL and ID from the recording's properties //TODO: What if the properties object contains a
+   * character in the recording id or root url fields that is invalid for the filesystem?
+   * 
+   * @throws IOException
+   */
+  private File determineRootURL(String uid, XProperties props) throws IOException {
+    File baseDir;
+    if (props == null) {
+      log.info("Properties are null for recording, guessing that the root capture dir is java.io.tmpdir...");
+      props = new XProperties();
+      props.setProperty(CaptureParameters.CAPTURE_FILESYSTEM_CAPTURE_CACHE_URL, System.getProperty("java.io.tmpdir"));
+    }
+
+    // Figures out where captureDir lives
+    if (props.containsKey(CaptureParameters.RECORDING_ROOT_URL)) {
+      baseDir = new File(props.getProperty(CaptureParameters.RECORDING_ROOT_URL));
+      if (props.containsKey(CaptureParameters.RECORDING_ID)) {
+        // In this case they've set both the root URL and the recording ID, so we're done.
+        uid = props.getProperty(CaptureParameters.RECORDING_ID);
+      } else {
+        // In this case they've set the root URL, but not the recording ID. Get the id from that url instead then.
+        log.debug("{} was set, but not {}.", CaptureParameters.RECORDING_ROOT_URL, CaptureParameters.RECORDING_ID);
+        uid = new File(props.getProperty(CaptureParameters.RECORDING_ROOT_URL)).getName();
+        props.put(CaptureParameters.RECORDING_ID, uid);
+      }
+    } else {
+      File cacheDir = new File(props.getProperty(CaptureParameters.CAPTURE_FILESYSTEM_CAPTURE_CACHE_URL));
+      // If there is a recording ID use it, otherwise it's unscheduled so just grab a timestamp
+      if (props.containsKey(CaptureParameters.RECORDING_ID)) {
+        uid = props.getProperty(CaptureParameters.RECORDING_ID);
+        baseDir = new File(cacheDir, uid);
+      } else {
+        // Unscheduled capture, use a timestamp value instead
+        uid = "Unscheduled-" + props.getProperty(CaptureParameters.AGENT_NAME) + "-" + System.currentTimeMillis();
+        props.setProperty(CaptureParameters.RECORDING_ID, uid);
+        baseDir = new File(cacheDir, uid);
+      }
+      props.put(CaptureParameters.RECORDING_ROOT_URL, baseDir.getCanonicalPath());
+    }
+    return baseDir;
+  }
+  
   /**
    * Returns true if this event is valid (ie, scheduleable)
    * 

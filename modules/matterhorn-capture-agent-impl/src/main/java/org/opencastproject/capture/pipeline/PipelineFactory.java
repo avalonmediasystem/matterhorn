@@ -78,7 +78,7 @@ public final class PipelineFactory {
 
     String[] friendlyNames;
     try {
-      friendlyNames = getDeviceNames();
+      friendlyNames = getDeviceNames(props);
     } catch (NoCaptureDevicesSpecifiedException e) {
       e.printStackTrace();
       return null;
@@ -101,9 +101,9 @@ public final class PipelineFactory {
    * @throws NoCaptureDevicesSpecifiedException
    *           - If there are no capture devices specified in the configuration file we throw an exception.
    */
-  private static String[] getDeviceNames() throws NoCaptureDevicesSpecifiedException {
+  public static String[] getDeviceNames(Properties props) throws NoCaptureDevicesSpecifiedException {
     // Setup pipeline for all the devices specified
-    String deviceNames = properties.getProperty(CaptureParameters.CAPTURE_DEVICE_NAMES);
+    String deviceNames = props.getProperty(CaptureParameters.CAPTURE_DEVICE_NAMES);
     if (deviceNames == null) {
       throw new NoCaptureDevicesSpecifiedException("No capture devices specified in "
               + CaptureParameters.CAPTURE_DEVICE_NAMES);
