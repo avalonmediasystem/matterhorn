@@ -13,6 +13,9 @@
         <link rel="stylesheet" type="text/css" href="jquery/plugins/jwysiwyg/jquery.wysiwyg.css" />
         <link rel="stylesheet" type="text/css" href="css/oc.segments.css">
         <style type="text/css">
+            body {
+            	overflow:hidden;
+            }
             .loadingImage {
                 text-align: center;
                 vertical-align: middle;
@@ -21,10 +24,9 @@
                 padding: 0px;
                 background-color: #000000;
             }
-            body {
-            	overflow:hidden;
+            .initializing {
+                font-family: arial, helvetica, clean, sans-serif;
             }
-            
             #data, #analytics, #annotation, #segments_ui_slider_data1, #segments_ui_slider_data2, #segments_ui_slider_information, #segment-tooltip {
                 display: none;
             }
@@ -105,11 +107,12 @@
                 </div>
             </div>
             <div id="oc_flash-player-loading" class="loadingImage">
-                <img src="img/MatterhornLogo_large.png" width="120" height="90"/>
-                <span style="font-size:20px;color:#FFFFFF;">Initializing</span>
+                <!--<img src="img/MatterhornLogo_large.png" width="120" height="90"/>-->
+                <span class="initializing" style="font-size:22px;color:#A72123;">matter</span><span class="initializing" style="font-size:22px;color:#F6921E;">horn</span>
+                <span class="initializing" style="font-size:20px;color:#FFFFFF;">initializing</span>
                 <img src="img/squares.gif" />
             </div>
-            <div id="oc_flash-player" style="width=50px;height:50px;">
+            <div id="oc_flash-player"><!-- style="width=50px;height:50px;" -->
                 <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js">
                 </script>
             </div>

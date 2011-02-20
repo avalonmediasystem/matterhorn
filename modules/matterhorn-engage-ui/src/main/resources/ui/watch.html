@@ -38,7 +38,9 @@
                 text-align: center;
                 display: block;
             }
-            
+            .initializing {
+                font-family: arial, helvetica, clean, sans-serif;
+            }
             #oc_player-head-right, #oc_player_video-dropdown, #data, #oc_video-view, #oc_checkbox-statistics, #oc_label-statistics, #oc_checkbox-annotations, #oc_label-annotations, #analytics, #annotation, #segments_ui_slider_data1, #segments_ui_slider_data2, #segments_ui_slider_information, #oc_ui_tabs, #oc_description, #oc_slides, #oc_slidetext, #oc_search-segment, #segment-tooltip, #oc_embed-right, #oc_embed, #oc_player-head-see-more {
                 display: none;
             }
@@ -212,7 +214,7 @@
         <div id="oc_body" class="ui-widget ui-widget-content ui-corner-bottom">
             <div id="oc_flash-player-loading" class="loadingImage" style="margin-top:50px;">
                 <img src="img/MatterhornLogo_large.png" width="120" height="90"/>
-                <span style="font-size:20px;">Initializing</span>
+                <span class="initializing" style="font-size:20px;">initializing</span>
                 <img src="img/squares.gif" />
             </div>
             <div id="oc_flash-player" style="width=50px;height:50px;">
