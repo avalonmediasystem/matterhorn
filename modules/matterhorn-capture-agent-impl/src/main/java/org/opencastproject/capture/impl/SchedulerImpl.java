@@ -1481,10 +1481,10 @@ class Event {
   }
 
   /**
-   * Currently doesn't work and isn't tested but it should test to see if there are media files on the hard drive that
-   * are evidence of an earlier record and should fail.
+   * Tests to see if there are media files on the hard drive that are evidence of an earlier capturing. This way we can
+   * check to see if the there was an earlier recording and not overwrite it.
    * 
-   * @return True if there is evidence that a recording has already occured with this UID.
+   * @return True if there is evidence that a recording has already occurred with this UID.
    */
   private boolean mediaFilesExist() {
     try {
