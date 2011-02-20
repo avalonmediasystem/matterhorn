@@ -172,4 +172,9 @@ public class ResumableTestWorkflowOperationHandler extends AbstractWorkflowOpera
     return properties;
   }
 
+  @Override
+  public boolean isAlwaysPause() {
+    return false;
+  }
+
 }

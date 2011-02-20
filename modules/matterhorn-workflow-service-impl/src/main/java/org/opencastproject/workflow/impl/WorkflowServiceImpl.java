@@ -87,6 +87,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
@@ -121,16 +122,15 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /** The configuration key for setting {@link #maxConcurrentWorkflows} */
   public static final String MAX_CONCURRENT_CONFIG_KEY = "max.concurrent";
 
-  /** Configuration value for the maximum number of parallel workflows based on the number of cores in the cluster */ 
+  /** Configuration value for the maximum number of parallel workflows based on the number of cores in the cluster */
   public static final String OPT_NUM_CORES = "cores";
-  
+
   /** Constant value indicating a <code>null</code> parent id */
   private static final String NULL_PARENT_ID = "-";
 
   /** Remove references to the component context once felix scr 1.2 becomes available */
   protected ComponentContext componentContext = null;
 
-  // TODO: How should we calculate the maximum number of workflows to run?
   /** The maximum number of cluster-wide workflows that will cause this service to stop accepting new jobs */
   protected int maxConcurrentWorkflows = -1;
 
@@ -143,11 +143,17 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /** The data access object responsible for storing and retrieving workflow instances */
   protected WorkflowServiceIndex index;
 
+  /** Whether to index workflows synchronously as they are stored */
+  protected boolean synchronousIndexing;
+
   /** The list of workflow listeners */
   private List<WorkflowListener> listeners = new CopyOnWriteArrayList<WorkflowListener>();
 
   /** The thread pool to use for firing listeners and handling dispatched jobs */
   protected ThreadPoolExecutor executorService;
+
+  /** The thread pool to use in asynchronous indexing */
+  protected ExecutorService indexingExecutor;
 
   /** The service registry */
   protected ServiceRegistry serviceRegistry = null;
@@ -170,7 +176,9 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   }
 
   /**
-   * Activate this service implementation via the OSGI service component runtime.
+   * Activate this service implementation via the OSGI service component runtime. The search indexing behavior can be
+   * set using component context properties. <code>synchronousIndexing=true|false</code> determines whether threads
+   * performing workflow updates block on adding the workflow instances to the search index.
    * 
    * @param componentContext
    *          the component context
@@ -178,6 +186,20 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   public void activate(ComponentContext componentContext) {
     this.componentContext = componentContext;
     executorService = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+    if (componentContext == null) {
+      this.synchronousIndexing = true;
+    } else {
+      Object syncIndexingConfig = componentContext.getProperties().get("synchronousIndexing");
+      if (syncIndexingConfig != null && (syncIndexingConfig instanceof Boolean)) {
+        this.synchronousIndexing = (Boolean) syncIndexingConfig;
+      }
+    }
+    if (this.synchronousIndexing) {
+      logger.debug("Workflows will be added to the search index synchronously");
+    } else {
+      logger.debug("Workflows will be added to the search index asynchronously");
+      indexingExecutor = Executors.newSingleThreadExecutor();
+    }
   }
 
   /**
@@ -881,7 +903,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * 
    * @see org.opencastproject.workflow.api.WorkflowService#update(org.opencastproject.workflow.api.WorkflowInstance)
    */
-  public void update(WorkflowInstance workflowInstance) throws WorkflowDatabaseException {
+  public void update(final WorkflowInstance workflowInstance) throws WorkflowDatabaseException {
     WorkflowInstance originalWorkflowInstance = null;
     try {
       originalWorkflowInstance = getWorkflowById(workflowInstance.getId());
@@ -935,7 +957,19 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       }
 
       // Update the search index
-      index.update(workflowInstance);
+      if (synchronousIndexing) {
+        index.update(workflowInstance);
+      } else {
+        indexingExecutor.submit(new Runnable() {
+          public void run() {
+            try {
+              index.update(workflowInstance);
+            } catch (WorkflowDatabaseException e) {
+              WorkflowServiceImpl.logger.warn("Unable to index {}: {}", workflowInstance, e);
+            }
+          }
+        });
+      }
 
       // Update the service registry
       serviceRegistry.updateJob(job);
@@ -1207,21 +1241,39 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   public boolean isReadyToAccept(Job job) throws ServiceRegistryException {
     String operation = job.getOperation();
     if (Operation.START_WORKFLOW.toString().equals(operation)) {
+
+      // If the first operation is guaranteed to pause, run the job.
+      if (job.getArguments().size() > 1 && job.getArguments().get(0) != null) {
+        try {
+          WorkflowDefinition workflowDef = WorkflowParser.parseWorkflowDefinition(job.getArguments().get(0));
+          String firstOperationId = workflowDef.getOperations().get(0).getId();
+          WorkflowOperationHandler handler = getWorkflowOperationHandler(firstOperationId);
+          if (handler instanceof ResumableWorkflowOperationHandler) {
+            if (((ResumableWorkflowOperationHandler) handler).isAlwaysPause()) {
+              return true;
+            }
+          }
+        } catch (WorkflowParsingException e) {
+          throw new IllegalStateException(job + " is not a proper job to start a workflow");
+        }
+      }
+
       long runningWorkflows;
       try {
-        runningWorkflows = serviceRegistry.countByOperation(JOB_TYPE, Operation.START_WORKFLOW.toString(), Job.Status.RUNNING);
+        runningWorkflows = serviceRegistry.countByOperation(JOB_TYPE, Operation.START_WORKFLOW.toString(),
+                Job.Status.RUNNING);
       } catch (ServiceRegistryException e) {
         logger.warn("Unable to determine the number of running workflows", e);
         return false;
       }
-      
-      // If no hard maximum has been configured, ask the service registry for the number of cores in the system 
+
+      // If no hard maximum has been configured, ask the service registry for the number of cores in the system
       int maxWorkflows = maxConcurrentWorkflows;
       if (maxWorkflows < 1) {
         maxWorkflows = serviceRegistry.getMaxConcurrentJobs();
       }
 
-      // Reject if there's enough going on already
+      // Reject if there's enough going on already.
       if (runningWorkflows >= maxWorkflows) {
         logger.debug("Refused to accept dispatched job '{}'. This server is already running {} workflows.", job,
                 runningWorkflows);
