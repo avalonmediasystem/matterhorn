@@ -59,15 +59,11 @@
          */
         components['org.opencastproject.workflow.config.trimHold'] = new ocAdmin.Component(
           ['trimHold'],
-          {nodeKey: 'org.opencastproject.workflow.config.trimHold'},
-          {getValue: function(){ return this.fields.trimHold.is(":checked"); }
-          });
+          {nodeKey: 'org.opencastproject.workflow.config.trimHold'});
           
         components['org.opencastproject.workflow.config.captionHold'] = new ocAdmin.Component(
           ['captionHold'],
-          {nodeKey: 'org.opencastproject.workflow.config.captionHold'},
-          {getValue: function(){ return this.fields.captionHold.is(":checked");}
-          });
+          {nodeKey: 'org.opencastproject.workflow.config.captionHold'});
           
           //etc...
       }
