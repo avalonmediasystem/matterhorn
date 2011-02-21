@@ -2,6 +2,20 @@ body {
 	padding-top: 20px;
 }
 
+/* Classes */
+
+.noJSAlert {
+    color: red;
+    text-align: center;
+}
+
+.play-progress {
+    width: 0%;
+}
+
+/* IDs */
+
+/* Start: Header */
 #pageHeader {
 	position: absolute;
 	top: 0;
@@ -36,7 +50,6 @@ body {
 	position: absolute;
 	top: 0;
 }
-/* HEADER STYLE */
 
 #header {
     position:relative;
@@ -57,4 +70,15 @@ body {
 #logotitle {
 	position: absolute;
 	top: 16px;
+}
+/* End: Header */
+
+/* Misc */
+
+#draggable {
+    left: 0%;
+}
+
+#analytics-and-annotations {
+    height: 25px;
 }

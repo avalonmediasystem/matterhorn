@@ -118,13 +118,13 @@ Opencast.Analytics = (function ()
                     if(plugAn)
                     {
                         $(".segments").css('top', '-25px');
-                        $('#annotation').css('top', '-25px');
-                        $('#segmentstable1').css('float', '');
-                        $('#annotation').css('float', '');
-                        $('#annotation_holder').css('float', '');
-                        $("#analytics").show();
+                        $('#oc_video-view').css('top', '-23px');
                         $('#segmentstable1').css('opacity', '0.65');
                         $('#segmentstable1').css('filter', 'alpha(opacity=65)');
+                        $('#oc_video-view').css('position', 'relative');
+                        $('#annotation').css('top', '-25px');
+                        $("#analytics").show();
+                        
                         //$.sparkline_display_visible();
                         analyticsDisplayed = true;
                         
@@ -224,8 +224,8 @@ Opencast.Analytics = (function ()
         }
         $("#analytics").css('display', 'none');
         $(".segments").css('top', '0');
+        $('#oc_video-view').css('top', 'auto');
         $("#annotation_holder").css('top', '0');
-        $('#segmentstable1').css('float', 'left');
         $('#annotation_holder').css('float', 'left');
     }
     

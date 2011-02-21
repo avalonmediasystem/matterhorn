@@ -816,7 +816,7 @@ option:hover
   height:                   25px;
   border-bottom-color:      #000000;
   border-bottom-style:      solid;
-  border-bottom-width:      0px;
+  border-bottom-width:      1px;
   border-right-color:       #ffffff;
   border-right-style:       solid;
   border-right-width:       1px;
@@ -835,10 +835,10 @@ option:hover
 .segment-holder-over
 {
   background-color:         #d8d8d8;
-  height:                   25px;
+  height:                   23px;
   border-bottom-color:      #000000;
   border-bottom-style:      solid;
-  border-bottom-width:      0px;
+  border-bottom-width:      1px;
   border-right-color:       #ffffff;
   border-right-style:       solid;
   border-right-width:       1px;
