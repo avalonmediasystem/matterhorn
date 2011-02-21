@@ -172,7 +172,7 @@
               *;resolution:=optional
             </Import-Package>
             <Private-Package>
-              net.fortuna.ical4j.*,
+              net.fortuna.ical4j.*;-split-package:=merge-last,
               org.json.*
             </Private-Package>
             <Embed-Dependency>

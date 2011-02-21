@@ -152,9 +152,6 @@
 				<configuration>
 					<instructions>
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-						<Export-Package>
-							org.opencastproject.dictionary;version=${project.version}
-            </Export-Package>
 						<Service-Component>
 							OSGI-INF/dictionary-service.xml,
               OSGI-INF/dictionary-scanner.xml
