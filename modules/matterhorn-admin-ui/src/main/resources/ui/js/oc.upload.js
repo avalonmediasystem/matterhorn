@@ -262,12 +262,11 @@ ocUpload.collectWorkflowConfig = function() {
  */
 ocUpload.checkRequiredFields = function(submit) {
   var missing = false;
-  var wrongtype = false; //ID TODO
   $('.requiredField:visible, .requiredField[type|=hidden]').each( function() {
     if (!$(this).val()) {
       $('#notification' + $(this).attr('id')).show();
       if ((submit) || ($('#containerMissingFields').is(':visible'))) {
-        $(this).prev('.fl-label').css('color','red');
+        $(this).prev('.scheduler-label').css('color','red');
       }
       if ((submit) && $('#track').val() == '') {
         $('#i18n_upload_file').css('color','red');
@@ -275,31 +274,13 @@ ocUpload.checkRequiredFields = function(submit) {
       missing = true;
     } else {
       $('#notification' + $(this).attr('id')).hide();
-      $(this).prev('.fl-label').css('color','black');
+      $(this).prev('.scheduler-label').css('color','black');
+      if ($('#track').val() != '') {
+        $('#i18n_upload_file').css('color','black');
+      }
     }
   });
 
-  // check for right file extension
-  /*
-  if ($('#track').val() != '') {
-    var ext = $('#track').val();
-    ext = ext.substr(ext.length-3).toLowerCase();
-    var right = (ext == 'avi') || (ext == 'mpg') ||
-    (ext == 'mp4') || (ext == 'mkv') ||
-    (ext == 'flv') || (ext == 'mov') ||
-    (ext == 'wmv') || (ext == 'mp3');
-    if (!right) {
-      $('#notification-track').show();
-      wrongtype = true;
-    } else {
-      $('#notification-track').hide();
-      wrongtype = false;
-    }
-  }
-  if (!missing && !wrongtype) {
-    $('#container-missingFields').hide('fast');
-  }
-  return !missing && right;*/
   if (!missing) {
     $('#containerMissingFields').hide('fast');
   }
@@ -324,7 +305,7 @@ ocUpload.showProgressStage = function() {
   $('#progressStage').dialog(
   {
     modal: true,
-    width: 850,
+    width: 450,
     height: 'auto',
     position: ['center', 'center'],
     title: 'File uploading...',
