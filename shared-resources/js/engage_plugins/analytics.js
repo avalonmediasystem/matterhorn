@@ -117,11 +117,14 @@ Opencast.Analytics = (function ()
                     var plugAn = Opencast.AnalyticsPlugin.addAsPlugin($('#analytics'), footprintData);
                     if(plugAn)
                     {
-                        $(".segments").css('top', '-25px');
-                        $('#oc_video-view').css('top', '-23px');
-                        $('#segmentstable1').css('opacity', '0.65');
-                        $('#segmentstable1').css('filter', 'alpha(opacity=65)');
-                        $('#oc_video-view').css('position', 'relative');
+                        if(Opencast.segments.getSlideLength() > 0)
+                        {
+                            $(".segments").css('top', '-25px');
+                            $('#oc_video-view').css('top', '-23px');
+                            $('#segmentstable1').css('opacity', '0.65');
+                            $('#segmentstable1').css('filter', 'alpha(opacity=65)');
+                            $('#oc_video-view').css('position', 'relative');
+                        }
                         $('#annotation').css('top', '-25px');
                         $("#analytics").show();
                         
