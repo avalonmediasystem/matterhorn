@@ -956,20 +956,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
           throw new IllegalStateException("Found a workflow state that is not handled");
       }
 
-      // Update the search index
-      if (synchronousIndexing) {
-        index.update(workflowInstance);
-      } else {
-        indexingExecutor.submit(new Runnable() {
-          public void run() {
-            try {
-              index.update(workflowInstance);
-            } catch (WorkflowDatabaseException e) {
-              WorkflowServiceImpl.logger.warn("Unable to index {}: {}", workflowInstance, e);
-            }
-          }
-        });
-      }
+      index(workflowInstance);
 
       // Update the service registry
       serviceRegistry.updateJob(job);
@@ -987,6 +974,31 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
     } catch (Exception e) {
       // Can't happen, since we are converting from an in-memory object
       throw new IllegalStateException("In-memory workflow instance could not be serialized", e);
+    }
+  }
+
+  /**
+   * Updates the search index entries for this workflow instance.
+   * 
+   * @param workflowInstance
+   *          the workflow
+   * @throws WorkflowDatabaseException
+   *           if there is a problem storing the workflow instance
+   */
+  protected void index(final WorkflowInstance workflowInstance) throws WorkflowDatabaseException {
+    // Update the search index
+    if (synchronousIndexing) {
+      index.update(workflowInstance);
+    } else {
+      indexingExecutor.submit(new Runnable() {
+        public void run() {
+          try {
+            index.update(workflowInstance);
+          } catch (WorkflowDatabaseException e) {
+            WorkflowServiceImpl.logger.warn("Unable to index {}: {}", workflowInstance, e);
+          }
+        }
+      });
     }
   }
 
@@ -1290,17 +1302,19 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    */
   @Override
   public synchronized boolean acceptJob(Job job) throws ServiceRegistryException {
-    if (!isReadyToAccept(job))
+    if (isReadyToAccept(job)) {
+      try {
+        job.setStatus(Job.Status.RUNNING);
+        serviceRegistry.updateJob(job);
+        executorService.submit(new JobRunner(job));
+        return true;
+      } catch (Exception e) {
+        if (e instanceof ServiceRegistryException)
+          throw (ServiceRegistryException) e;
+        throw new ServiceRegistryException(e);
+      }
+    } else {
       return false;
-    try {
-      job.setStatus(Job.Status.RUNNING);
-      serviceRegistry.updateJob(job);
-      executorService.submit(new JobRunner(job));
-      return true;
-    } catch (Exception e) {
-      if (e instanceof ServiceRegistryException)
-        throw (ServiceRegistryException) e;
-      throw new ServiceRegistryException(e);
     }
   }
 
