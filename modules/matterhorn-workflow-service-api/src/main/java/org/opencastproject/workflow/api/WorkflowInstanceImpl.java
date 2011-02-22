@@ -558,6 +558,7 @@ public class WorkflowInstanceImpl implements WorkflowInstance {
       operations.add(new WorkflowOperationInstanceImpl(operationDefintion, -1));
     }
     setOperations(operations);
+    setTemplate(workflowDefinition.getId());
   }
 
 }

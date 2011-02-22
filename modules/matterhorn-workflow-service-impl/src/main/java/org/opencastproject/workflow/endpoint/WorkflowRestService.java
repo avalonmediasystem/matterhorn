@@ -577,6 +577,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
     q.withLanguage(language);
     q.withLicense(license);
     q.withTitle(title);
+    q.withWorkflowDefintion(workflowDefinitionId);
 
     if (currentOperations != null && currentOperations.size() > 0) {
       for (String op : currentOperations) {
