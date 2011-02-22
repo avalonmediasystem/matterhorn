@@ -343,8 +343,11 @@ ocScheduler.HandleAgentChange = function(elm){
 ocScheduler.DisplayCapabilities = function(capabilities){
   $(ocScheduler.inputList).append('<ul class="oc-ui-checkbox-list">');
   $.each(capabilities, function(i, v){
-    $(ocScheduler.inputList).append('<li><input type="checkbox" id="' + v + '" value="' + v + '" checked="checked">&nbsp;<label for="' + v +'">' + v.charAt(0).toUpperCase() + v.slice(1).toLowerCase() + '</label></li>');
+    $(ocScheduler.inputList).append('<li><input type="checkbox" id="' + v + '" value="' + v + '">&nbsp;<label for="' + v +'">' + v.charAt(0).toUpperCase() + v.slice(1).toLowerCase() + '</label></li>');
   });
+  if(ocScheduler.mode === CREATE_MODE) {
+    $(':input', ocScheduler.inputList).attr('checked', 'checked');
+  }
   $(ocScheduler.inputList).append('</ul>');
   ocScheduler.components.resources.setFields(capabilities);
   if(ocScheduler.selectedInputs && ocUtils.getURLParam('edit')){
