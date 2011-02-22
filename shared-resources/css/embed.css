@@ -5,9 +5,32 @@ body {
 
 /* Classes */
 
+/* Start: No Javascript activated Error Box customization */
 .noJSAlert-outer {
     background-color: #FFFFFF;
 }
+
+#noJSAlert-matter {
+    color: #A72123;
+    height: 20px;
+    font-size:20px;
+    font-family: arial, helvetica, clean, sans-serif;
+    height: 20px;
+    line-height: 20px;
+    vertical-align: bottom;
+    position: relative;
+}
+
+#noJSAlert-horn {
+    color: #F6921E;
+    font-size:20px;
+    font-family: arial, helvetica, clean, sans-serif;
+    height: 20px;
+    line-height: 20px;
+    vertical-align: bottom;
+    position: relative;
+}
+/* End: No Javascript activated Error Box customization */
 
 /* IDs */
 

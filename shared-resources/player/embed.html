@@ -50,6 +50,8 @@
         <!-- If no Javascript is activated -->
         <noscript>
             <center>
+                <br />
+                <span id="noJSAlert-matter">matter</span><span id="noJSAlert-horn">horn</span>
                 <div class="noJSAlert-outer">
                     <div class="noJSAlert-inner-up">
                         <div class="icon icon-error noJSAlert-inner-image">&nbsp;</div>
@@ -74,10 +76,10 @@
                 </div>
             </div>
             <div id="oc_flash-player-loading">
-                <span id="initializing-matter">matter</span>
-                <span id="initializing-horn">horn</span>
                 <!-- START: Hide when no Javascript is activated -->
                 <script type="text/javascript">
+                    document.write('<span id="initializing-matter">matter</span>');
+                    document.write('<span id="initializing-horn">horn</span>');
                     document.write('&nbsp;');
                     document.write('<span id="initializing">initializing</span>');
                     document.write('<span id="loading-init"></span>');
