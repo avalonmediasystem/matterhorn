@@ -127,55 +127,70 @@
                 <a href="http://www.opencastproject.org"><img src="img/OpencastLogo.png" width="143" height="38" alt="Opencast Community Project" title="Opencast Community Project"></a>
             </div>
         </div><hr style="clear:both;border-style: none none solid none;height:1px; color:#CCCCCC;padding-top: 10px; margin-right:20px;margin-left:20px;">
+        
+        <!-- If no Javascript is activated -->
         <noscript>
-            <p style="color: red;">
-                JavaScript is turned off in your web browser, 
-                so this site won't work properly! 
-                <br/>
-                <strong>Please turn JavaScript on to use this site, then
-                    refresh the page.</strong>
-            </p>
-        </noscript>
-        <div class="oc-holder">
-            <div class="oc-search-bar-holder fl-helper-clearfix">
-                &nbsp;
-                <div class="oc-search-bar">
-                    <span class="subscriptions"><a id="rsslink" href="/feeds/rss/2.0/latest">RSS</a>&nbsp;|&nbsp;<a id="atomlink" href="/feeds/atom/0.3/latest">ATOM</a></span>
-                    <br/>
-                    <span style="float:right">
-                        <form action="index.html">
-                            <label id="skip" for="searchField">
-                                Search Field
-                            </label>
-                            <input id="searchField" type="text" name="q" value="" /><input id="searchSubmit" type="submit" value="Search" />
-                        </form>
-                    </span>
-                </div>
-            </div>
-            <div class="oc-search-result-header">
+            <center>
                 <h2>Media Gallery</h2>
-                <div class="oc-sort-controls">
+                <div class="noJSAlert-outer">
+                    <div class="noJSAlert-inner-up">
+                        <div class="icon icon-error noJSAlert-inner-image">&nbsp;</div>
+                        JavaScript is disabled
+                    </div>
+                    <div class="noJSAlert-inner-down">
+                        JavaScript is turned off in your web browser, so this site won't work properly! <br />
+                        <strong>
+                            Please turn JavaScript on to use this site, then refresh the page.
+                        </strong>
+                    </div>
                 </div>
-            </div>
-            <div style="padding-top:20px;">
-                <span class="title" style="float:left">Results</span>
-                <span style="float:right">
-                    <ul class="navigation">
-                    </ul>
-                </span>
-            </div>
-            <div style="clear:both" class="oc-search-result-items">
-                <div id="stage">
-                    loading results...
-                </div>
-            </div>
-            <div>
-                <span class="title" style="float:left">Results</span>
-                <span style="float:right">
-                    <ul class="navigation">
-                    </ul>
-                </span>
-            </div>
-        </div>
+            </center>
+        </noscript>
+        
+        <!-- START: Hide when no Javascript is activated -->
+        <script type="text/javascript">
+            document.write('<div class="oc-holder">');
+                document.write('<div class="oc-search-bar-holder fl-helper-clearfix">');
+                    document.write('&nbsp;');
+                    document.write('<div class="oc-search-bar">');
+                        document.write('<span class="subscriptions"><a id="rsslink" href="/feeds/rss/2.0/latest">RSS</a>&nbsp;|&nbsp;<a id="atomlink" href="/feeds/atom/0.3/latest">ATOM</a></span>');
+                        document.write('<br/>');
+                        document.write('<span style="float:right">');
+                            document.write('<form action="index.html">');
+                                document.write('<label id="skip" for="searchField">');
+                                    document.write('Search Field');
+                                document.write('</label>');
+                                document.write('<input id="searchField" type="text" name="q" value="" /><input id="searchSubmit" type="submit" value="Search" />');
+                            document.write('</form>');
+                        document.write('</span>');
+                    document.write('</div>');
+                document.write('</div>');
+                document.write('<div class="oc-search-result-header">');
+                    document.write('<h2>Media Gallery</h2>');
+                    document.write('<div class="oc-sort-controls">');
+                    document.write('</div>');
+                document.write('</div>');
+                document.write('<div style="padding-top:20px;">');
+                    document.write('<span class="title" style="float:left">Results</span>');
+                    document.write('<span style="float:right">');
+                        document.write('<ul class="navigation">');
+                        document.write('</ul>');
+                    document.write('</span>');
+                document.write('</div>');
+                document.write('<div style="clear:both" class="oc-search-result-items">');
+                    document.write('<div id="stage">');
+                        document.write('loading results...');
+                    document.write('</div>');
+                document.write('</div>');
+                document.write('<div>');
+                    document.write('<span class="title" style="float:left">Results</span>');
+                    document.write('<span style="float:right">');
+                        document.write('<ul class="navigation">');
+                        document.write('</ul>');
+                    document.write('</span>');
+                document.write('</div>');
+            document.write('</div>');
+        </script>
+        <!-- END: Hide when no Javascript is activated -->
     </body>
 </html>
