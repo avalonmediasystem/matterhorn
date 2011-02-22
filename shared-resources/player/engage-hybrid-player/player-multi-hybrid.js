@@ -736,7 +736,7 @@ Opencast.Player = (function ()
         $('#oc_time-chooser-layer').attr(
         {
             'aria-hidden': 'true',
-            'tabindex': '-1',
+            'tabindex': '-1'
         });
         $('#oc_time-chooser-layer').hide();
         $('#oc_time-chooser').focus();
@@ -755,7 +755,7 @@ Opencast.Player = (function ()
         $('#oc_time-chooser-layer').attr(
         {
             'aria-hidden': 'false',
-            'tabindex': '0',
+            'tabindex': '0'
         });
         $('#oc_time-chooser-layer').focus();
         timeLayerDisplayed = true;
@@ -1735,6 +1735,6 @@ Opencast.Player = (function ()
         setVolumeSlider: setVolumeSlider,
         setVideoSizeList: setVideoSizeList,
         currentTime: currentTime,
-        flashVars: flashVars,
+        flashVars: flashVars
     };
 }());
