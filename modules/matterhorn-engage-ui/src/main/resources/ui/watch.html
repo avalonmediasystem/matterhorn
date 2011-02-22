@@ -56,24 +56,6 @@
         <script type="text/javascript" src="js/watch.js"></script>
     </head>
     <body>
-        <!-- If no Javascript is activated -->
-        <noscript>
-            <center>
-                <div class="noJSAlert-outer">
-                    <div class="noJSAlert-inner-up">
-                        <div class="icon icon-error noJSAlert-inner-image">&nbsp;</div>
-                        JavaScript is disabled
-                    </div>
-                    <div class="noJSAlert-inner-down">
-                        JavaScript is turned off in your web browser, so this site won't work properly! <br />
-                        <strong>
-                            Please turn JavaScript on to use this site, then refresh the page.
-                        </strong>
-                    </div>
-                </div>
-            </center>
-        </noscript>
-        
         <div id="skip">
             <a href="#controls" tabindex="10">
                 Skip to player controls
@@ -93,15 +75,18 @@
                         <div id="matterhorn-main-logo"></div>
                     </a>
                 </div>
-                <div id="oc_search">
-                    <form action="index.html">
-                        <label id="skip" for="oc_searchField">
-                            Search Media
-                        </label>
-                        <input id="oc_searchField" class="oc_search-Field handcursor ui-corner-all" type="text" name="q" value="Search Media" tabindex="40" />
-                        <input id="oc_btn-search" class="handcursor" type="image" src="img/space.png" name="search" title="do search Matterhorn" value="Search" tabindex="50" aria-label="do search Matterhorn" />
-                    </form>
-                </div>
+                <!-- START: Hide when no Javascript is activated -->
+                <script type="text/javascript">
+                    document.write('<div id="oc_search">');
+                        document.write('<form action="index.html">');
+                            document.write('<label id="skip" for="oc_searchField">');
+                                document.write('Search Media');
+                            document.write('</label>');
+                            document.write('<input id="oc_searchField" class="oc_search-Field handcursor ui-corner-all" type="text" name="q" value="Search Media" tabindex="40" />');
+                            document.write('<input id="oc_btn-search" class="handcursor" type="image" src="img/space.png" name="search" title="do search Matterhorn" value="Search" tabindex="50" aria-label="do search Matterhorn" />');
+                        document.write('</form>');
+                    document.write('</div>');
+                </script>
                 <div id="oc_title-bar-gallery-link">
                     <a href="index.html" title="go to Media Gallery" tabindex="30">
                         Go to Media Gallery
@@ -147,6 +132,25 @@
                 </script>
                 <!-- END: Hide when no Javascript is activated -->
             </div>
+                
+            <!-- If no Javascript is activated -->
+            <noscript>
+                <center>
+                    <div class="noJSAlert-outer">
+                        <div class="noJSAlert-inner-up">
+                            <div class="icon icon-error noJSAlert-inner-image">&nbsp;</div>
+                            JavaScript is disabled
+                        </div>
+                        <div class="noJSAlert-inner-down">
+                            JavaScript is turned off in your web browser, so this site won't work properly! <br />
+                            <strong>
+                                Please turn JavaScript on to use this site, then refresh the page.
+                            </strong>
+                        </div>
+                    </div>
+                </center>
+            </noscript>
+                
             <div id="oc_flash-player">
                 <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js"></script>
             </div>

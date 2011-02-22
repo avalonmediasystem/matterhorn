@@ -10,6 +10,7 @@ body {
 
 /* Start: No Javascript activated Error Box */
 .noJSAlert-outer {
+    background-color: #FFFFFF;
     border:1px solid red;
     width:530px;
     margin:20px;
