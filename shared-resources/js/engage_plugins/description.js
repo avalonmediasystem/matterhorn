@@ -60,7 +60,7 @@ Opencast.Description = (function ()
                     var defaultChar = '-';
                     // Trimpath throws (no) errors if a variable is not defined => assign default value
                     data['search-results'].result.dcCreated = data['search-results'].result.dcCreated || defaultChar;
-                    data['search-results'].result.dcSeriesTitle = data['search-results'].result.dcSeriesTitle || defaultChar;
+                    data['search-results'].result.dcSeriesTitle = data['search-results'].result.mediapackage.seriestitle || defaultChar;
                     data['search-results'].result.dcContributor = data['search-results'].result.dcContributor || defaultChar;
                     data['search-results'].result.dcLanguage = data['search-results'].result.dcLanguage || defaultChar;
                     data['search-results'].result.dcViews = data['search-results'].result.dcViews || defaultChar;
@@ -83,77 +83,18 @@ Opencast.Description = (function ()
                         jsonp: 'jsonp',
                         success: function (result)
                         {
-                            // If episode is part of a series: get series data    
-                            if ((result !== undefined) && (data['search-results'].result.dcIsPartOf != ''))
+                            data['search-results'].result.dcViews = result.stats.views;
+                            // Create Trimpath Template
+                            var descriptionSet = Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
+                            if (!descriptionSet)
                             {
-                                // Request JSONP data (Series)
-                                $.ajax(
-                                {
-                                    url: '../../series/' + data['search-results'].result.dcIsPartOf + ".json",
-                                    data: 'id=' + mediaPackageId,
-                                    dataType: 'jsonp',
-                                    jsonp: 'jsonp',
-                                    success: function (res)
-                                    {
-                                        if ((res !== undefined) && (res.series !== undefined) && (res.series.additionalMetadata !== undefined) && (res.series.additionalMetadata.metadata !== undefined))
-                                        {
-                                            for (var i = 0; i < res.series.additionalMetadata.metadata.length; i++)
-                                            {
-                                                if (res.series.additionalMetadata.metadata[i].key == 'title')
-                                                {
-                                                    data['search-results'].result.dcSeriesTitle = res.series.additionalMetadata.metadata[i].value;
-                                                }
-                                            }
-                                            // Create Trimpath Template
-                                            var descriptionSet = Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
-                                            if (!descriptionSet)
-                                            {
-                                                displayNoDescriptionAvailable("No template available (2)");
-                                            }
-                                            else
-                                            {
-                                                // Make visible
-                                                $('#description-loading').hide();
-                                                $('#oc-description').show();
-                                            }
-                                        }
-                                        else
-                                        {
-                                            displayNoDescriptionAvailable("No data available (undefined status)");
-                                        }
-                                    },
-                                    // If no data comes back (JSONP-Call #3)
-                                    error: function (xhr, ajaxOptions, thrownError)
-                                    {
-                                        // Create Trimpath Template
-                                        var descriptionSet = Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
-                                        if (!descriptionSet)
-                                        {
-                                            displayNoDescriptionAvailable("No template available (2)");
-                                        }
-                                        else
-                                        {
-                                            // Make visible
-                                            $('#description-loading').hide();
-                                            $('#oc-description').show();
-                                        }
-                                    }
-                                });
+                                displayNoDescriptionAvailable("No template available (2)");
                             }
                             else
                             {
-                                // Create Trimpath Template
-                                var descriptionSet = Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
-                                if (!descriptionSet)
-                                {
-                                    displayNoDescriptionAvailable("No data defined (2)");
-                                }
-                                else
-                                {
-                                    // Make visible
-                                    $('#description-loading').hide();
-                                    $('#oc-description').show();
-                                }
+                                // Make visible
+                                $('#description-loading').hide();
+                                $('#oc-description').show();
                             }
                         },
                         // If no data comes back (JSONP-Call #2)
