@@ -320,7 +320,7 @@ ocRecordings = new (function() {
 
     // Start Time
     if (wf.mediapackage.start) {
-      this.start = ocUtils.fromUTCDateString(wf.mediapackage.start);
+      this.start = ocUtils.fromUTCDateStringToFormattedTime(wf.mediapackage.start, wf.mediapackage.duration);
     }
 
     // Status

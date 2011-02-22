@@ -85,6 +85,42 @@ ocUtils.makeLocaleDateString = function(timestamp) {
   return date.toLocaleString();
 }
 
+/** converts a date to a human readable date string
+ * @param date
+ * @return formatted date string
+ */
+ocUtils.getDateString = function(date) {
+    var days = [ "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" ];
+    var months = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
+    var daySeparator = ", ";
+    var dateSeparator = " ";
+    var yearSeparator = " ";
+	var d = date;
+	var datestring = days[(d.getDate() + 1) % 7];
+	datestring += daySeparator;
+	datestring += months[d.getMonth() % 12];
+	datestring += dateSeparator;
+	datestring += (d.getDate() >= 10) ? d.getDate() : "0".concat(d.getDate());
+	datestring += yearSeparator;
+	datestring += d.getFullYear();
+	return datestring;
+}
+
+/** converts a date to a human readable time string
+ * @param date
+ * @return formatted time string
+ */
+ocUtils.getTimeString = function(date) {
+    var timeSeparator = ":";
+	var d = date;
+	var h = (d.getHours() >= 10) ? d.getHours() : "0".concat(d.getHours());
+	var m = (d.getMinutes() >= 10) ? d.getMinutes() : "0"
+			.concat(d.getMinutes());
+	var s = (d.getSeconds() >= 10) ? d.getSeconds() : "0"
+			.concat(d.getSeconds());
+	return (h + timeSeparator + m /* + timeSeparator + s*/);
+}
+
 ocUtils.fromUTCDateString = function(UTCDate) {
   var date = new Date(0);
   if(UTCDate[UTCDate.length - 1] == 'Z') {
@@ -100,6 +136,57 @@ ocUtils.fromUTCDateString = function(UTCDate) {
     date.setUTCFullYear(parseInt(ymd[0], 10));
   }
   return date;
+}
+
+/** converts a date to a human readable date and time string
+ * @description Returns formatted Seconds
+ * @param seconds Seconds to format
+ * @return formatted Seconds
+ */
+ocUtils.formatSeconds = function(seconds)
+{
+    var result = "";
+    if (parseInt(seconds / 3600) < 10)
+    {
+        result += "0";
+    }
+    result += parseInt(seconds / 3600);
+    result += ":";
+    if ((parseInt(seconds / 60) - parseInt(seconds / 3600) * 60) < 10)
+    {
+        result += "0";
+    }
+    result += parseInt(seconds / 60) - parseInt(seconds / 3600) * 60;
+    result += ":";
+    if (seconds % 60 < 10)
+    {
+        result += "0";
+    }
+    result += Math.round(seconds % 60);
+    return result;
+}
+
+/** converts a duration in ms to a human readable duration string
+ * @param duration duration in ms
+ * @return formatted duration string, '' is duration is null or < 0
+ */
+ocUtils.getDuration = function(duration) {
+    var durationSeparator = "<br />Duration: ";
+    if((duration !== null) && (duration >= 0)) {
+        return durationSeparator + ocUtils.formatSeconds(duration / 1000);
+    } else {
+        return '';
+    }
+}
+
+/** converts a date to a human readable date and time string
+ * @param UTCDate
+ * @return formatted date and time string
+ */
+ocUtils.fromUTCDateStringToFormattedTime = function(UTCDate, duration) {
+  var dateTimeSeparator = " - ";
+  var date = ocUtils.fromUTCDateString(UTCDate);
+  return (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date) + ocUtils.getDuration(duration));
 }
 
 /* Convert Date object to yyyy-MM-dd'T'HH:mm:ss'Z' string.
