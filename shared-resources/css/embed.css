@@ -5,6 +5,10 @@ body {
 
 /* Classes */
 
+.noJSAlert-outer {
+    background-color: #FFFFFF;
+}
+
 /* IDs */
 
 /* Start: Flash Player loading */

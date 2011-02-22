@@ -22,6 +22,25 @@ Opencast.Watch = (function ()
         slideLength = 0,
         timeoutTime = 400,
         duration = 0;
+        
+    /**
+     * @memberOf Opencast.Watch
+     * @description Parses a query string
+     */
+    function parseQueryString(qs){
+        var urlParams = {};
+        var currentUrl = window.location.href;
+        var email_message = "mailto:?subject=I recommend you to take a look at this Opencast video&body=Please have a look at: "
+        document.getElementById("oc_btn-email").setAttribute("href", email_message + currentUrl);
+        var e, d = function(s){
+            return decodeURIComponent(s.replace(/\+/g, " "));
+        }, q = window.location.search.substring(1), r = /([^&=]+)=?([^&]*)/g;
+        while (e = r.exec(q))
+        {
+            urlParams[d(e[1])] = d(e[2]);
+        }
+        return urlParams;
+    }
     
     /**
      * @memberOf Opencast.Watch
@@ -226,6 +245,12 @@ Opencast.Watch = (function ()
         
         // Hide loading indicators
         $('#oc_flash-player-loading').hide();
+        
+        if(parseQueryString(window.location.search.substring(1)).embed) {
+            $('#oc_title-bar').hide();
+            $('#oc_btn-embed').hide();
+            $('#oc_slidetext').addClass('scroll');
+        }
         // Show video controls and data
         $('#oc_player_video-dropdown').show();
         $('#data').show();
