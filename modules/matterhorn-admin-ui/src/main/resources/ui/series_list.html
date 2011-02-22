@@ -22,43 +22,38 @@
         <script type="text/javascript" src="/series/all.json?jsonp=ocSeriesList.buildSeriesView"></script>
         <script type="text/javascript">
             $(document).ready( function() {
-                ocSeriesList.init();
-        
-                $('#seriesTable').tablesorter({
-                    cssHeader: 'oc-ui-sortable',
-                    cssAsc: 'oc-ui-sortable-Ascending',
-                    cssDesc: 'oc-ui-sortable-Descending' ,
-                    headers: { 3: { sorter: false } }
-                });
-
-                var $tabs = $( "#ad_tabsWrapper" ).tabs(
-                {
-                    select: function (event, ui)
-                    {
-                        switch (ui.index)
-                        {
-                            case 0:
-                                window.location = 'recordings.html';
-                                return false;
-                                break;
-                            case 1:
-                                window.location = 'series_list.html';
-                                return false;
-                                break;
-                            case 2:
-                                window.location = 'agents_status.html';
-                                return false;
-                                break;
-                            case 3:
-                                window.location = 'statistics.html';
-                                return false;
-                                break;
-                        }
-                    },
-                    selected: 1
-                });
-        
-        
+              ocSeriesList.init();
+      
+              $('#seriesTable').tablesorter({
+                cssHeader: 'oc-ui-sortable',
+                cssAsc: 'oc-ui-sortable-Ascending',
+                cssDesc: 'oc-ui-sortable-Descending' ,
+                headers: { 3: { sorter: false } }
+              });
+              
+              $("#ad_tabsWrapper").tabs({
+                select: function (event, ui) {
+                  switch (ui.index) {
+                    case 0:
+                      window.location = 'recordings.html';
+                      return false;
+                      break;
+                    case 1:
+                      window.location = 'series_list.html';
+                      return false;
+                      break;
+                    case 2:
+                      window.location = 'agents_status.html';
+                      return false;
+                      break;
+                    case 3:
+                      window.location = 'statistics.html';
+                      return false;
+                      break;
+                  }
+                },
+                selected: 1
+              });
             });
         </script>
     </head>
@@ -166,7 +161,8 @@
                         <td class="ui-state-active">${series.contributor}</td>
                         <td class="ui-state-active">${series.creator}</td>
                         <td class="ui-state-active" align="center">
-                          <a href="series.html?seriesId=${series.id}&edit=true">Edit</a> | <a href="javascript:ocSeriesList.deleteSeries('${series.id}', '${series.title}');">Delete</a>
+                          <a href="viewseries.html?seriesId=${series.id}">View Info</a>
+                          <!-- <a href="series.html?seriesId=${series.id}&edit=true">Edit</a> | <a href="javascript:ocSeriesList.deleteSeries('${series.id}', '${series.title}');">Delete</a> -->
                         </td>
                       </tr>
                       {forelse}

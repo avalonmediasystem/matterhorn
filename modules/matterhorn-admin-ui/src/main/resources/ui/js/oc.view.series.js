@@ -18,14 +18,13 @@ var ocViewSeries = (function(){
   var self = this;
   
   this.init = function() {
-    var id = ocUtils.getURLParam('id');
+    var id = ocUtils.getURLParam('seriesId');
 
-    $('.oc-ui-collapsible-widget .ui-widget-header').click(
-      function() {
-        $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e');
-        $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-s');
-        $(this).next().toggle();
-        return false;
+    $('.oc-ui-collapsible-widget .ui-widget-header').click( function() {
+      $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e');
+      $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-s');
+      $(this).next().toggle();
+      return false;
     });
     $('#id').text(id);
     self.loadSeries(id);

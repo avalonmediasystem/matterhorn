@@ -422,7 +422,7 @@ ocRecordings = new (function() {
     }
     refreshing = false;
     ocRecordings.data = data;
-    ocRecordings.totalRecordings = parseInt(data.workflows.totalCount);
+    ocRecordings.totalRecordings = parseInt(data.workflows.count);
     var result = TrimPath.processDOMTemplate(template, makeRenderData(data));
     $( '#tableContainer' ).empty().append(result);
 
