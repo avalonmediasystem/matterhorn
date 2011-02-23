@@ -308,7 +308,7 @@ ocUpload.showProgressStage = function() {
     width: 450,
     height: 'auto',
     position: ['center', 'center'],
-    title: 'File uploading...',
+    title: 'Uploading Recording',
     resizable: false,
     draggable: false,
     disabled: true
