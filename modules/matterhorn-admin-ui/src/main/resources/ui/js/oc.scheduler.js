@@ -147,13 +147,15 @@ ocScheduler.RegisterEventHandlers = function(){
   $('#startDate').datepicker({
     showOn: 'both',
     buttonImage: 'img/icons/calendar.gif',
-    buttonImageOnly: true
+    buttonImageOnly: true,
+    dateFormat: 'yy-mm-dd'
   });
   $('#startDate').datepicker('setDate', initializerDate);
   $('#endDate').datepicker({
     showOn: 'both',
     buttonImage: 'img/icons/calendar.gif',
-    buttonImageOnly: true
+    buttonImageOnly: true,
+    dateFormat: 'yy-mm-dd'
   });
   
   $('#agent').change(ocScheduler.HandleAgentChange);
@@ -162,13 +164,15 @@ ocScheduler.RegisterEventHandlers = function(){
   $('#recurStart').datepicker({
     showOn: 'both',
     buttonImage: 'img/icons/calendar.gif',
-    buttonImageOnly: true
+    buttonImageOnly: true,
+    dateFormat: 'yy-mm-dd'
   });
   
   $('#recurEnd').datepicker({
     showOn: 'both',
     buttonImage: 'img/icons/calendar.gif',
-    buttonImageOnly: true
+    buttonImageOnly: true,
+    dateFormat: 'yy-mm-dd'
   });
 
   $('#recurAgent').change(ocScheduler.HandleAgentChange);
