@@ -994,7 +994,7 @@ ocScheduler.RegisterComponents = function(){
         }
       });
     ocScheduler.components.startDate = new ocAdmin.Component(['startDate', 'startTimeHour', 'startTimeMin'],
-      { label: 'startDateLabel', errorField: 'missingStartDate', required: true, nodeKey: 'startDate' },
+      { label: 'startDateLabel', errorField: 'missingStartdate', required: true, nodeKey: 'startDate' },
       { getValue: function(){
           var date = 0;
           date = this.fields.startDate.datepicker('getDate').getTime() / 1000; // Get date in milliseconds, convert to seconds.
