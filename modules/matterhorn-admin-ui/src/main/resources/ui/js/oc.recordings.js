@@ -6,6 +6,7 @@ ocRecordings = new (function() {
   var WORKFLOW_STATISTICS_URL = '../workflow/statistics.json';   // URL of workflow instances statistics endpoint
   var SERIES_URL = '/series';
   var SEARCH_URL = '../search';
+  var ENGAGE_URL = '';
 
   var STATISTICS_DELAY = 3000;     // time interval for statistics update
 
@@ -1063,8 +1064,13 @@ ocRecordings = new (function() {
           }
         });
         $('#deleteModal').dialog({
-          height: 140,
-          modal: true
+          modal: true,
+          resizable: false,
+          draggable: false,
+          create: function (event, ui)
+          {
+            $('.ui-dialog-titlebar-close').hide();
+          }
         });
         var toid = setInterval(function(){
           var id = eventIdList.pop();
@@ -1214,14 +1220,18 @@ ocRecordings = new (function() {
         var workflow = ocRecordings.getWorkflow(id);
         if (workflow) {
           var mpId = workflow.mediapackage.id;
-          var data = $.ajax(
+          if(ENGAGE_URL == '')
           {
-              url: '/info/components.json',
-              dataType: 'json',
-              async: false
-          }).responseText;
-          data = $.parseJSON(data);
-          links.push('<a href="' + data.engage + '/engage/ui/watch.html?id=' + mpId + '">Play</a>');
+             var data = $.ajax(
+            {
+                url: '/info/components.json',
+                dataType: 'json',
+                async: false
+            }).responseText;
+            data = $.parseJSON(data);
+            ENGAGE_URL = data.engage;
+          }
+          links.push('<a href="' + ENGAGE_URL + '/engage/ui/watch.html?id=' + mpId + '">Play</a>');
         }
 
       } else if (action == 'delete') {

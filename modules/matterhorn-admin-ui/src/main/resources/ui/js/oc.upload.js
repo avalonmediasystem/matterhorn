@@ -309,6 +309,10 @@ ocUpload.showProgressStage = function() {
     height: 'auto',
     position: ['center', 'center'],
     title: 'Uploading Recording',
+    create: function (event, ui)
+    {
+      $('.ui-dialog-titlebar-close').hide();
+    },
     resizable: false,
     draggable: false,
     disabled: true

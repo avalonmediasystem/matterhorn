@@ -244,12 +244,17 @@ ocScheduler.SubmitForm = function(){
   }
   if(eventXML){
     $('#submitButton').attr('disabled', 'disabled');
-    $('#submitModal').dialog({height: 220, modal: true, resizable: false, 
+    $('#submitModal').dialog(
+    {
+      modal: true,
+      resizable: false,
+      draggable: false,
       close: function(){ 
         document.location = RECORDINGS_URL;
       },
-      buttons: {
-        "Continue in background": function(){ $(this).dialog('close'); }
+      create: function (event, ui)
+      {
+        $('.ui-dialog-titlebar-close').hide();
       }
     });
     if(ocUtils.getURLParam('edit')){
