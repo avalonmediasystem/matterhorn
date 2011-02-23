@@ -40,15 +40,15 @@ table tr:hover a { color: black!important; text-decoration: underline!important;
 #pageHeader a { color: #FFFFFF; margin-right: 10px; text-decoration: none;}
 #pageHeader #currentVersion { float: left; margin-left: 10px;}
 
-#ad_wrapper { width: 95%; margin: 0 auto; }
+#wrapper { width: 95%; margin: 0 auto; }
 
 #header { margin-bottom: -2em; } /* IE Problem */
 #header #oc-logo { float: right;}
 #header a h1 { margin-left: 160px; font-size: 18px; color: #F6921E; text-decoration: none!important;}
 
-#ad_tabsWrapper { border: none; background: none; margin-bottom: 30px; }
-#ad_tabsWrapper #ad_tabs { border-left: none; border-right: none; border-top: none; background: none; padding-left: 150px; }
-#ad_tabsWrapper #ad_tabs  li a { padding: 0.3em 1em; }
+#tabsWrapper { border: none; background: none; margin-bottom: 30px; }
+#tabsWrapper #tabs { border-left: none; border-right: none; border-top: none; background: none; padding-left: 150px; }
+#tabsWrapper #tabs  li a { padding: 0.3em 1em; }
 
 #addSeriesButton { margin-top: 7px; float: right; }
 

@@ -10,7 +10,6 @@
         <link rel="stylesheet" type="text/css" href="css/jquery-ui-1.8.6.custom.css" />
         <link rel="stylesheet" type="text/css" href="css/jquery-ui-opencast-admin/jquery-ui-opencast-admin.css" />
         <link rel="stylesheet" type="text/css" href="css/11x_admin.css" />
-        <link rel="stylesheet" type="text/css" href="css/popuphelp.css">
         <link type="text/css" rel="stylesheet" href="css/upload.css">
         <link type="text/css" rel="stylesheet" href="css/progress.css">
 
@@ -29,7 +28,7 @@
             $(document).ready(function() {
               ocUpload.init();
               $('#BtnSubmit, #btnCancel').button();
-              $( "#ad_tabsWrapper" ).tabs({
+              $( "#tabsWrapper" ).tabs({
                 select: function (event, ui) {
                   switch (ui.index) {
                     case 0:
@@ -79,7 +78,7 @@
             </div>
         </noscript>
 
-        <div id="ad_wrapper">
+        <div id="wrapper">
             <div id="header">
                 <a href="recordings.html" style="text-decoration: none;">
                    <img src="img/MatterhornLogo.png" onclick="window.location='../welcome.html'; return false;" alt="Matterhorn Home Page" title="Matterhorn Home Page" width="104" height="72" align="left">
@@ -93,8 +92,8 @@
 
 
 
-            <div id="ad_tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
-                <ul id="ad_tabs">
+            <div id="tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+                <ul id="tabs">
                     <li>
                         <a href="#recordingsA" id="i18n_tab_recording">Recordings</a>
                     </li>
@@ -300,15 +299,8 @@
                     <div id="labelBytesTrasfered">&nbsp;</div>
                 </div>
 
-                <!-- template for the popup help box -->
-                <div id="helpBox" class="helpbox" style="display:none;">
-                    <img src="img/icons/lightbulb.png" alt="help" >
-                    <div id="helpTitle" style="display:inline;font-weight:bold; margin-left:10px;"></div>
-                    <div id="helpText" style="padding-left:7px; padding-right:7px; white-space:normal;"></div>
-                </div>
+            </div><!-- END #tabsWrapper -->
 
-            </div><!-- END #ad_tabsWrapper -->
-
-        </div><!-- END #ad_wrapper -->
+        </div><!-- END #wrapper -->
     </body>
 </html>

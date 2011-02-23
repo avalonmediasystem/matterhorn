@@ -20,7 +20,7 @@
         <script type="text/javascript" src="js/oc.admin.js"></script>
         <script type="text/javascript">
             $(document).ready( function() {
-              $("#ad_tabsWrapper").tabs({
+              $("#tabsWrapper").tabs({
                 select: function (event, ui) {
                   switch (ui.index) {
                     case 0:
@@ -69,7 +69,7 @@
             </div>
         </noscript>
     
-          <div id="ad_wrapper">
+          <div id="wrapper">
               <div id="header">
                 <a href="recordings.html" style="text-decoration: none;">
                     <img src="img/MatterhornLogo.png" onclick="document.location='../welcome.html'; return false;" alt="Matterhorn Home Page" title="Matterhorn Home Page" width="104" height="72" align="left" />
@@ -81,8 +81,8 @@
                 <div class="clear"></div>
             </div>
 
-            <div id="ad_tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
-                <ul id="ad_tabs">
+            <div id="tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+                <ul id="tabs">
                     <li>
                         <a href="#recordings" id="i18n_tab_recording">Recordings</a>
                     </li>
@@ -403,7 +403,7 @@
 
                 </div><!-- END #templates -->
 
-            </div><!-- END #ad_tabsWrapper -->
-        </div><!-- END #ad_wrapper -->
+            </div><!-- END #tabsWrapper -->
+        </div><!-- END #wrapper -->
     </body>
 </html>

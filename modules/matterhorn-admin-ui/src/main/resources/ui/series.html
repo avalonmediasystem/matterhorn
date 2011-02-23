@@ -20,32 +20,28 @@
             $(document).ready(function() {
                 ocSeries.init();
                 $('#submitButton, #cancelButton').button();
-                $( "#ad_tabsWrapper" ).tabs(
-                {
-                    select: function (event, ui)
-                    {
-                        switch (ui.index)
-                        {
-                            case 0:
-                                window.location = 'recordings.html';
-                                return false;
-                                break;
-                            case 1:
-                                window.location = 'series_list.html';
-                                return false;
-                                break;
-                            case 2:
-
-                                window.location = 'agents_status.html';
-                                return false;
-                                break;
-                            case 3:
-                                window.location = 'statistics.html';
-                                return false;
-                                break;
-                        }
-                    },
-                    selected: 1
+                $("#tabsWrapper").tabs({
+                  select: function (event, ui) {
+                    switch (ui.index) {
+                      case 0:
+                        window.location = 'recordings.html';
+                        return false;
+                        break;
+                      case 1:
+                        window.location = 'series_list.html';
+                        return false;
+                        break;
+                      case 2:
+                        window.location = 'agents_status.html';
+                        return false;
+                        break;
+                      case 3:
+                        window.location = 'statistics.html';
+                        return false;
+                        break;
+                    }
+                  },
+                  selected: 1
                 });
             });
         </script>
@@ -89,8 +85,8 @@
 
 
 
-            <div id="ad_tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
-                <ul id="ad_tabs">
+            <div id="tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+                <ul id="tabs">
                     <li>
                         <a href="#recordingsA" id="i18n_tab_recording">Recordings</a>
                     </li>
@@ -181,8 +177,8 @@
                         </div>
                     </div>
                 </div>
-            </div><!-- END #ad_tabsWrapper -->
+            </div><!-- END #tabsWrapper -->
 
-        </div><!-- END #ad_wrapper -->
+        </div><!-- END #wrapper -->
     </body>
 </html>

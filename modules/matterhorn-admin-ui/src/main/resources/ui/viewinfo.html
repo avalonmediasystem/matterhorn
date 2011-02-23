@@ -29,32 +29,28 @@
                     var id = ocUtils.getURLParam('id');
                     Opencast.WorkflowInspect.renderInfo(id, 'infoContainer', 'infoTemplate');
 
-                    $( "#ad_tabsWrapper" ).tabs(
-                    {
-                        select: function (event, ui)
-                        {
-                            switch (ui.index)
-                            {
-                                case 0:
-                                    window.location = 'recordings.html';
-                                    return false;
-                                    break;
-                                case 1:
-                                    window.location = 'series_list.html';
-                                    return false;
-                                    break;
-                                case 2:
-
-                                    window.location = 'agents_status.html';
-                                    return false;
-                                    break;
-                                case 3:
-                                    window.location = 'statistics.html';
-                                    return false;
-                                    break;
-                            }
-                        },
-                        selected: 0
+                    $("#tabsWrapper").tabs({
+                      select: function (event, ui) {
+                        switch (ui.index) {
+                          case 0:
+                            window.location = 'recordings.html';
+                            return false;
+                            break;
+                          case 1:
+                            window.location = 'series_list.html';
+                            return false;
+                            break;
+                          case 2:
+                            window.location = 'agents_status.html';
+                            return false;
+                            break;
+                          case 3:
+                            window.location = 'statistics.html';
+                            return false;
+                            break;
+                        }
+                      },
+                      selected: 0
                     });
                 });
 
@@ -85,7 +81,7 @@
             </center>
         </noscript>
 
-        <div id="ad_wrapper">
+        <div id="wrapper">
             <div id="header">
                 <a href="recordings.html" style="text-decoration: none;">
                    <img src="img/MatterhornLogo.png" onclick="window.location='../welcome.html'; return false;" alt="Matterhorn Home Page" title="Matterhorn Home Page" width="104" height="72" align="left">
@@ -97,8 +93,8 @@
                 <div class="clear"></div>
             </div>
 
-            <div id="ad_tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
-                <ul id="ad_tabs">
+            <div id="tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+                <ul id="tabs">
                     <li>
                         <a href="#recordingsA" id="i18n_tab_recording">Recordings</a>
                     </li>
@@ -255,8 +251,8 @@
         </tr>
       </table>
                             </textarea>
-                            </div><!-- END #ad_tabsWrapper -->
+                            </div><!-- END #tabsWrapper -->
 
-                            </div><!-- END #ad_wrapper -->
+                            </div><!-- END #wrapper -->
                             </body>
                             </html>
