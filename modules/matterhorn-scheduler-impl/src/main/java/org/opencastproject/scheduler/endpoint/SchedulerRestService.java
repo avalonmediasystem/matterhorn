@@ -417,7 +417,7 @@ public class SchedulerRestService {
   @Path("conflict.json")
   public Response getConflictingEventsJson(@FormParam("device") String device, @FormParam("start") Long startDate,
           @FormParam("end") Long endDate, @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
-    logger.info("Checking for conflicts");
+    logger.debug("Checking for conflicts");
     return getConflictingEvents(device, new Date(startDate), new Date(endDate), duration, rrule);
   }
 
