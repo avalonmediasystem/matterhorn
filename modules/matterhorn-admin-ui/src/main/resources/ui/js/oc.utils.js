@@ -90,11 +90,11 @@ ocUtils.makeLocaleDateString = function(timestamp) {
  * @return formatted date string
  */
 ocUtils.getDateString = function(date) {
-    var days = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ];
-    var months = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
-    var daySeparator = ", ";
-    var dateSeparator = " ";
-    var yearSeparator = " ";
+  var days = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ];
+  var months = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
+  var daySeparator = ", ";
+  var dateSeparator = " ";
+  var yearSeparator = " ";
 	var d = date;
 	var datestring = days[(d.getDate() + 1) % 7];
 	datestring += daySeparator;

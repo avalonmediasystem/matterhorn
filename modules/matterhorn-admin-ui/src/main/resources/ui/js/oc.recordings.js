@@ -472,7 +472,7 @@ ocRecordings = new (function() {
     }
 
     var page = parseInt(ocRecordings.Configuration.page) + 1;
-    var pageCount = Math.ceil(ocRecordings.totalRecordings / ocRecordings.Configuration.pageSize);
+    var pageCount = Math.ceil(data.workflows.totalCount / ocRecordings.Configuration.pageSize);
     pageCount = pageCount == 0 ? 1 : pageCount;
     $('#pageList').text( page + " of " + pageCount);
     if (page == 1) {
