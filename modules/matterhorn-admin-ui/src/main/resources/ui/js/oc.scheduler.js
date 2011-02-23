@@ -371,11 +371,9 @@ ocScheduler.DisplayCapabilities = function(capabilities){
         	  $('#inputhelpTitle').text('Please Note');
         	  $('#inputhelpText').text('You have to select at least one input in order to schedule a recording.');
         	  $('#inputhelpBox').show();
-        	  $('#submitButton').attr('disabled', 'true');
           }
           else {
         	  $('#inputhelpBox').hide();
-        	  $('#submitButton').removeAttr('disabled');
           }
         });
       });
