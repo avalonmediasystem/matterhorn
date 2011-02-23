@@ -25,10 +25,7 @@
                 <xsl:for-each select="ns1:agent-state-updates/ns1:agent-state-update">
                     <tr class="highlightable">
                         <td class="ui-state-active">
-                          <a title="Confidence Monitoring">
-                            <xsl:attribute name="href"><xsl:value-of select="url" />/confidence-monitoring/index.html</xsl:attribute>
                             <xsl:value-of select="name" />
-                          </a>
                         </td>
                         <td class="ui-state-active">
                           <xsl:value-of select="capabilities" />
