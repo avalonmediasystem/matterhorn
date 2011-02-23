@@ -457,10 +457,12 @@ ocRecordings = new (function() {
     if (ocRecordings.Configuration.filterText) {
       var countText;
       if (data.workflows.totalCount == '0') {
-        countText = data.workflows.totalCount + ' found';
+        countText = 'No Recordings matching Filter';
         $('#filterRecordingCount').css('color', 'red');
       } else {
-        countText = data.workflows.totalCount + ' found';
+        countText = data.workflows.totalCount;
+        countText += parseInt(data.workflows.totalCount) > 1 ? ' Recordings' : ' Recording';
+        countText += ' matching Filter';
         $('#filterRecordingCount').css('color', 'black');
       }
       $('#filterRecordingCount').text(countText).show();
