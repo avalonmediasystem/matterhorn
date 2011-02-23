@@ -50,7 +50,7 @@ Opencast.segments_ui = (function ()
                 pos -= (pos + tooltipWidth) - segmentLastRight;
             }
             $("#segment-tooltip").css("left", pos + "px");
-            $("#segment-tooltip").css("top", segmentTop - (imageHeight + 7) + "px");
+            $("#segment-tooltip").css("top", segmentTop - (imageHeight + 6) + "px");
             $("#segment-tooltip").show();
         }
     }
