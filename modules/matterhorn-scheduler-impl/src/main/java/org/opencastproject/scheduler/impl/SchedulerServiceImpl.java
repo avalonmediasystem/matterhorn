@@ -688,9 +688,15 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
 
   public void updateEvents(List<Event> eventList, Event e, boolean updateWithEmptyValues) throws NotFoundException,
           SchedulerException {
+    int sequence = 1;
+    String title = e.getTitle();
     for (Event event : eventList) {
       e.setEventId(event.getEventId());
+      if(eventList.size() > 1) {
+        e.setTitle(title + " " + String.valueOf(sequence));
+      }
       updateEvent(e, true, updateWithEmptyValues);
+      sequence++;
     }
   }
 

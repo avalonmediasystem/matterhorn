@@ -262,7 +262,7 @@ public class SchedulerRestService {
     if (!eventId.isEmpty() && event != null) {
       try {
         event.setEventId(Long.parseLong(eventId));
-        service.updateEvent(event);
+        service.updateEvent(event, true, true);
         return Response.noContent().type("").build(); // remove content-type, no message-body.
       } catch (Exception e) {
         logger.warn("Unable to update event with id '{}': {}", eventId, e);

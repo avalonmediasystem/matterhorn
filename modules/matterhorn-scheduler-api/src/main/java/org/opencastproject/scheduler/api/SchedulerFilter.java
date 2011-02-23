@@ -32,6 +32,7 @@ public class SchedulerFilter {
   protected String order;
   protected boolean betweenStartAndStop = false;
   protected boolean isAscending = true;
+  protected boolean includeCurrent = false;
   protected Date start;
   protected Date stop;
 
@@ -184,6 +185,15 @@ public class SchedulerFilter {
     this.stop = stop;
     this.betweenStartAndStop = true;
     return this;
+  }
+  
+  public SchedulerFilter withCurrentAndUpcoming() {
+   this.includeCurrent = true; 
+   return this;
+  }
+  
+  public boolean getCurrentAndUpcoming() {
+    return this.includeCurrent;
   }
 
   /**
