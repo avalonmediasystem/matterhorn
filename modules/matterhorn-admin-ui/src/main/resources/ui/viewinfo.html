@@ -1,60 +1,59 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
     <head>
+        <!-- PAGE TITLE -->
         <title>View Info | Opencast Matterhorn</title>
-        <link rel="shortcut icon" href="img/favicon.ico">
-            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <link rel="stylesheet" type="text/css" href="css/jquery-ui-1.8.6.custom.css" />
-            <link rel="stylesheet" type="text/css" href="css/jquery-ui-opencast-admin/jquery-ui-opencast-admin.css" />
+        <link rel="shortcut icon" href="img/favicon.ico" />
+        <!-- META -->
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <!-- STYLESHEETS -->
+        <link rel="stylesheet" type="text/css" href="css/jquery-ui-1.8.6.custom.css" />
+        <link rel="stylesheet" type="text/css" href="css/jquery-ui-opencast-admin/jquery-ui-opencast-admin.css" />
+        <link rel="stylesheet" type="text/css" href="css/admin.css" />
+        <style>
+            #stage {font-family:"Arial","Helvetica","Verdana","sans-serif"; font-size:10px; margin:20px; min-height:100%; max-width:800; padding:0 0 20px;}
+            table {font-family:"Arial","Helvetica","Verdana","sans-serif"; font-size:10px; margin:10px;}
+            .td-key {font-weight:bold;text-align:right;vertical-align: top;}
+            .td-value {font-weight:normal; text-align:left; padding-left:5px;}
+            .unfoldable-header {cursor: pointer;}
+            .unfoldable-content {display: none;}
+        </style>
+        <!-- SCRIPTS -->
+        <script type="text/javascript" src="jquery/jquery-1.4.4.min.js"></script>
+        <script type="text/javascript" src="jquery/jquery-ui-1.8.6.custom.min.js"></script>
+        <script type="text/javascript" src="trimpath/trimpath-template-1.0.38.js"></script>
+        <script type="text/javascript" src="js/oc.utils.js"></script>
+        <script type="text/javascript" src="js/oc.inspect.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                var id = ocUtils.getURLParam('id');
+                Opencast.WorkflowInspect.renderInfo(id, 'infoContainer', 'infoTemplate');
 
-            <link rel="stylesheet" type="text/css" href="css/11x_admin.css" />
-
-            <style>
-                #stage {font-family:"Arial","Helvetica","Verdana","sans-serif"; font-size:10px; margin:20px; min-height:100%; max-width:800; padding:0 0 20px;}
-                table {font-family:"Arial","Helvetica","Verdana","sans-serif"; font-size:10px; margin:10px;}
-                .td-key {font-weight:bold;text-align:right;vertical-align: top;}
-                .td-value {font-weight:normal; text-align:left; padding-left:5px;}
-                .unfoldable-header {cursor: pointer;}
-                .unfoldable-content {display: none;}
-            </style>
-
-            <script type="text/javascript" src="jquery/jquery-1.4.4.min.js"></script>
-            <script type="text/javascript" src="jquery/jquery-ui-1.8.6.custom.min.js"></script>
-            <script type="text/javascript" src="trimpath/trimpath-template-1.0.38.js"></script>
-            <script type="text/javascript" src="js/oc.utils.js"></script>
-            <script type="text/javascript" src="js/oc.inspect.js"></script>
-            <script type="text/javascript">
-
-                $(document).ready(function() {
-                    var id = ocUtils.getURLParam('id');
-                    Opencast.WorkflowInspect.renderInfo(id, 'infoContainer', 'infoTemplate');
-
-                    $("#tabsWrapper").tabs({
-                      select: function (event, ui) {
-                        switch (ui.index) {
-                          case 0:
-                            window.location = 'recordings.html';
-                            return false;
-                            break;
-                          case 1:
-                            window.location = 'series_list.html';
-                            return false;
-                            break;
-                          case 2:
-                            window.location = 'agents_status.html';
-                            return false;
-                            break;
-                          case 3:
-                            window.location = 'statistics.html';
-                            return false;
-                            break;
-                        }
-                      },
-                      selected: 0
-                    });
+                $("#tabsWrapper").tabs({
+                  select: function (event, ui) {
+                    switch (ui.index) {
+                      case 0:
+                        window.location = 'recordings.html';
+                        return false;
+                        break;
+                      case 1:
+                        window.location = 'series_list.html';
+                        return false;
+                        break;
+                      case 2:
+                        window.location = 'agents_status.html';
+                        return false;
+                        break;
+                      case 3:
+                        window.location = 'statistics.html';
+                        return false;
+                        break;
+                    }
+                  },
+                  selected: 0
                 });
-
-            </script>
+            });
+        </script>
     </head>
     <body>
         <div id="pageHeader">
@@ -84,11 +83,11 @@
         <div id="wrapper">
             <div id="header">
                 <a href="recordings.html" style="text-decoration: none;">
-                   <img src="img/MatterhornLogo.png" onclick="window.location='../welcome.html'; return false;" alt="Matterhorn Home Page" title="Matterhorn Home Page" width="104" height="72" align="left">
+                   <img src="img/MatterhornLogo.png" onclick="window.location='../welcome.html'; return false;" alt="Matterhorn Home Page" title="Matterhorn Home Page" width="104" height="72" align="left" />
                         <h1>Admin Tools</h1>
                 </a>
                 <a href="http://www.opencastproject.org" id="oc-logo">
-                    <img src="img/OpencastLogo.png" width="143" height="38" alt="Opencast Community Project" title="Opencast Community Project">
+                    <img src="img/OpencastLogo.png" width="143" height="38" alt="Opencast Community Project" title="Opencast Community Project" />
                 </a>
                 <div class="clear"></div>
             </div>
