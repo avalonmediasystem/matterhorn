@@ -1214,7 +1214,14 @@ ocRecordings = new (function() {
         var workflow = ocRecordings.getWorkflow(id);
         if (workflow) {
           var mpId = workflow.mediapackage.id;
-          links.push('<a href="../engage/ui/watch.html?id=' + mpId + '">Play</a>');
+          var data = $.ajax(
+          {
+              url: '/info/components.json',
+              dataType: 'json',
+              async: false
+          }).responseText;
+          data = $.parseJSON(data);
+          links.push('<a href="' + data.engage + '/engage/ui/watch.html?id=' + mpId + '">Play</a>');
         }
 
       } else if (action == 'delete') {
