@@ -24,7 +24,7 @@
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
     </fieldType>
-    <fieldType name="sortCaseInsensitive" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+    <fieldType name="caseInsensitiveString" class="solr.TextField" sortMissingLast="true" omitNorms="true">
       <analyzer type="index">
         <tokenizer class="org.opencastproject.solr.NonTokenizingFactory" />
         <filter class="solr.LowerCaseFilterFactory" />
@@ -43,12 +43,12 @@
     <!-- The indexed workflow fields -->
 
     <field name="xml" type="string" indexed="false" stored="true" multiValued="false" />
-    <field name="templateid" type="string" indexed="true" stored="true" multiValued="false" />
-    <field name="state" type="string" indexed="true" stored="true" multiValued="false" />
-    <field name="operation" type="string" indexed="true" stored="true" multiValued="false" />
+    <field name="templateid" type="caseInsensitiveString" indexed="true" stored="true" multiValued="false" />
+    <field name="state" type="caseInsensitiveString" indexed="true" stored="true" multiValued="false" />
+    <field name="operation" type="caseInsensitiveString" indexed="true" stored="true" multiValued="false" />
     <field name="mediapackageid" type="string" indexed="true" stored="false" multiValued="false" />
     <field name="seriesid" type="string" indexed="true" stored="false" multiValued="false" />
-    <field name="seriestitle" type="text" indexed="true" stored="false" multiValued="false" />
+    <field name="seriestitle" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
     <field name="title" type="text" indexed="true" stored="false" multiValued="false" />
     <field name="license" type="text" indexed="true" stored="false" multiValued="false" />
     <field name="language" type="text" indexed="true" stored="false" multiValued="false" />
@@ -61,22 +61,24 @@
     <!-- Fields used for sorting (can't be multivalued or tokenized (i. e. must not have an analyzer) -->
     
     <field name="created_sort" type="date" indexed="true" stored="false" multiValued="false" />
-    <field name="title_sort" type="sortCaseInsensitive" indexed="true" stored="false" multiValued="false" />
-    <field name="seriestitle_sort" type="sortCaseInsensitive" indexed="true" stored="false" multiValued="false" />
+    <field name="title_sort" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
+    <field name="seriestitle_sort" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
     <field name="seriesid_sort" type="string" indexed="true" stored="false" multiValued="false" />
     <field name="mp_sort" type="string" indexed="true" stored="false" multiValued="false" />
-    <field name="templateid_sort" type="sortCaseInsensitive" indexed="true" stored="false" multiValued="false" />
-    <field name="creator_sort" type="sortCaseInsensitive" indexed="true" stored="false" multiValued="false" />
-    <field name="contributor_sort" type="sortCaseInsensitive" indexed="true" stored="false" multiValued="false" />
-    <field name="language_sort" type="sortCaseInsensitive" indexed="true" stored="false" multiValued="false" />
-    <field name="license_sort" type="sortCaseInsensitive" indexed="true" stored="false" multiValued="false" />
-    <field name="subject_sort" type="sortCaseInsensitive" indexed="true" stored="false" multiValued="false" />
+    <field name="templateid_sort" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
+    <field name="creator_sort" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
+    <field name="contributor_sort" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
+    <field name="language_sort" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
+    <field name="license_sort" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
+    <field name="subject_sort" type="caseInsensitiveString" indexed="true" stored="false" multiValued="false" />
 
   </fields>
 
   <uniqueKey>id</uniqueKey>
   <defaultSearchField>fulltext</defaultSearchField>
   <solrQueryParser defaultOperator="OR" />
+
+  <!-- Copy regular fields into the full text search field -->
 
   <copyField source="id" dest="fulltext" />
   <copyField source="mediapackageid" dest="fulltext" />

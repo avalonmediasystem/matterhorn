@@ -493,7 +493,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
               // Add the states
               FacetField stateFacet = response.getFacetField(STATE_KEY);
               for (Count stateValue : stateFacet.getValues()) {
-                WorkflowState state = WorkflowState.valueOf(stateValue.getName());
+                WorkflowState state = WorkflowState.valueOf(stateValue.getName().toUpperCase());
                 templateTotal += stateValue.getCount();
                 total += stateValue.getCount();
                 switch (state) {
@@ -593,7 +593,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     }
     sb.append(key);
     sb.append(":");
-    sb.append(ClientUtils.escapeQueryChars(value));
+    sb.append(ClientUtils.escapeQueryChars(value.toLowerCase()));
     return sb;
   }
 
@@ -617,9 +617,9 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
       sb.append(" AND ");
     }
     sb.append("(");
-    sb.append(key).append(":").append(ClientUtils.escapeQueryChars(value));
+    sb.append(key).append(":").append(ClientUtils.escapeQueryChars(value.toLowerCase()));
     sb.append(" OR ");
-    sb.append(key).append(":*").append(ClientUtils.escapeQueryChars(value)).append("*");
+    sb.append(key).append(":*").append(ClientUtils.escapeQueryChars(value.toLowerCase())).append("*");
     sb.append(")");
     return sb;
   }
@@ -759,7 +759,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
       }
       sb.append(key);
       sb.append(":");
-      sb.append(ClientUtils.escapeQueryChars(term.getValue()));
+      sb.append(ClientUtils.escapeQueryChars(term.getValue().toLowerCase()));
     }
     if (!positiveTerm) {
       sb.append(" AND *:*");
