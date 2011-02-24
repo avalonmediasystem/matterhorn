@@ -210,7 +210,7 @@ ocUtils.toISODate = function(date, utc) {
           ocUtils.padString(date.getDate() ,'0' , 2) + 'T' +
           ocUtils.padString(date.getHours() ,'0' , 2) + ':' + 
           ocUtils.padString(date.getMinutes() ,'0' , 2) + ':' + 
-          ocUtils.padString(date.getSeconds() ,'0' , 2) + 'Z';
+          ocUtils.padString(date.getSeconds() ,'0' , 2);
   }
   return out;
 }
