@@ -183,11 +183,11 @@ a:hover {
 	color:#A72123;
 }
 #middlebanner ul {
-	list-style-image:url(img/bullet_white.png);
+	/*list-style-image:url(img/bullet_white.png);*/
 	padding: 0 0 16px 16px;
-	}
+}
 #bottombanner ul {
-	list-style-image:url(img/bullet_arrow.png);
+	list-style-image:url(img/icons/bullet-arrow.png);
 	padding: 0 0 16px 16px;
 	margin-bottom:0
-	}
+}
