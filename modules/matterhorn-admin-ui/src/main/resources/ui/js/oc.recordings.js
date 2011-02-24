@@ -111,10 +111,6 @@ ocRecordings = new (function() {
         params.push('state=paused');
         params.push('state=running');
         params.push('op=schedule');
-
-        // filter out events that are in the past
-        var now = ocUtils.toISODate(new Date());
-        params.push('fromdate=' + now);
       }
       else if (state == 'capturing') {
         params.push('state=paused');
