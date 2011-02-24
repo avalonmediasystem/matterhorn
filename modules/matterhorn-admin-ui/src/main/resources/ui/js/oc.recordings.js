@@ -1048,6 +1048,7 @@ ocRecordings = new (function() {
       if(ocRecordings.Configuration.state === 'bulkedit') {
         manager = new ocAdmin.Manager('event', '', ocRecordings.bulkEditComponents);
         event = manager.serialize();
+        $('#progressIndicator').show();
         $.post('/scheduler/',
         {
           event: event,
@@ -1102,6 +1103,9 @@ ocRecordings = new (function() {
   }
 
   this.bulkActionComplete = function() {
+    if(ocRecordings.Configuration.state === 'bulkedit') {
+      $('#progressIndicator').hide();
+    }
     ocRecordings.cancelBulkAction();
   }
 

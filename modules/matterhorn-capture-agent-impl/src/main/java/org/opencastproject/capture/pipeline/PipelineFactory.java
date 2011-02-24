@@ -259,13 +259,13 @@ public final class PipelineFactory {
       try {
         V4LInfo v4linfo = JV4LInfo.getV4LInfo(srcLoc);
         String deviceString = v4linfo.toString();
-        if (deviceString.contains("Epiphan VGA2USB"))
+        if (deviceString.contains("Epiphan VGA2USB") || deviceString.contains("Epiphan VGA2PCI")) {
           return ProducerType.EPIPHAN_VGA2USB;
-        else if (deviceString.contains("Hauppauge") || deviceString.contains("WinTV"))
+        } else if (deviceString.contains("Hauppauge") || deviceString.contains("WinTV")) {
           return ProducerType.HAUPPAUGE_WINTV;
-        else if (deviceString.contains("BT878"))
+        } else if (deviceString.contains("BT878")) {
           return ProducerType.BLUECHERRY_PROVIDEO;
-        else {
+        } else {
           throw new UnrecognizedDeviceException("Do not recognized device: " + srcLoc);
 
         }
