@@ -125,104 +125,109 @@ Opencast.segments_ui = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
-                // Streaming Mode is default true
-                var videoModeStream = true;
-                // Check whether a Videomode has been selected
-                var urlParamProgStream = Opencast.Utils.getURLParameter('videomode') || Opencast.Utils.getURLParameter('vmode');
-                // If such an URL Parameter exists (if parameter doesn't exist, the return value is null)
-                if(urlParamProgStream !== null)
+                if((data !== undefined) && (data['search-results'] !== undefined) && (data['search-results'].result !== undefined))
                 {
-                    // If current Videomode == progressive && URL Parameter == streaming
-                    if(urlParamProgStream == 'streaming')
+                    // Streaming Mode is default true
+                    var videoModeStream = true;
+                    // Check whether a Videomode has been selected
+                    var urlParamProgStream = Opencast.Utils.getURLParameter('videomode') || Opencast.Utils.getURLParameter('vmode');
+                    // If such an URL Parameter exists (if parameter doesn't exist, the return value is null)
+                    if(urlParamProgStream !== null)
                     {
-                        videoModeStream = true;
+                        // If current Videomode == progressive && URL Parameter == streaming
+                        if(urlParamProgStream == 'streaming')
+                        {
+                            videoModeStream = true;
+                        }
+                        // If current Videomode == streaming && URL Parameter == progressive
+                        else if(urlParamProgStream == 'progressive')
+                        {
+                            videoModeStream = false;
+                        }
                     }
-                    // If current Videomode == streaming && URL Parameter == progressive
-                    else if(urlParamProgStream == 'progressive')
+                    
+                    // Check if Segments + Segments Text is available
+                    var segmentsAvailable = (data['search-results'].result !== undefined) && (data['search-results'].result.segments !== undefined) && (data['search-results'].result.segments.segment.length > 0);
+                    if (segmentsAvailable)
                     {
-                        videoModeStream = false;
+                        // get rid of every '@' in the JSON data
+                        // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
+                        data['search-results'].result.segments.currentTime = Opencast.Utils.getTimeInMilliseconds(Opencast.Player.getCurrentTime());
+                        // Get the complete Track Duration // TODO: handle more clever
+                        var complDur = 0;
+                        $.each(data['search-results'].result.segments.segment, function (i, value)
+                        {
+                            complDur += parseInt(data['search-results'].result.segments.segment[i].duration);
+                        });
+                        // Set Duration until this Segment ends
+                        var completeDuration = 0;
+                        $.each(data['search-results'].result.segments.segment, function (i, value)
+                        {
+                            data['search-results'].result.segments.segment[i].completeDuration = complDur;
+                            // Set a Duration until the Beginning of this Segment
+                            data['search-results'].result.segments.segment[i].durationExcludingSegment = completeDuration;
+                            completeDuration += parseInt(data['search-results'].result.segments.segment[i].duration);
+                            // Set a Duration until the End of this Segment
+                            data['search-results'].result.segments.segment[i].durationIncludingSegment = completeDuration;
+                        });
                     }
-                }
-                
-                // Check if Segments + Segments Text is available
-                var segmentsAvailable = (data['search-results'].result.segments !== undefined) && (data['search-results'].result.segments.segment.length > 0);
-                if (segmentsAvailable)
+                    // Check if any Media.tracks are available
+                    if((data['search-results'].result.mediapackage.media !== undefined) && (data['search-results'].result.mediapackage.media.track.length > 0))
+                    {
+                        // Set whether prefer streaming of progressive
+                        data['search-results'].result.mediapackage.media.preferStreaming = videoModeStream;
+                            
+                        // Check if the File is a Video
+                        var isVideo = false;
+                        var rtmpAvailable = false;
+                        $.each(data['search-results'].result.mediapackage.media.track, function (i, value)
+                        {
+                            if(!isVideo && Opencast.Utils.startsWith(this.mimetype, 'video'))
+                            {
+                                isVideo = true;
+                            }
+                            if(data['search-results'].result.mediapackage.media.track[i].url.substring(0, 4) == "rtmp")
+                            {
+                                rtmpAvailable = true;
+                            }
+                            // If both Values have been set
+                            if(isVideo && rtmpAvailable)
+                            {
+                                // Jump out of $.each
+                                return false;
+                            }
+                        });
+                        data['search-results'].result.mediapackage.media.isVideo = isVideo;
+                        data['search-results'].result.mediapackage.media.rtmpAvailable = rtmpAvailable;
+                    }
+                    
+                    // Create Trimpath Template
+                    Opencast.segments_ui_Plugin.addAsPlugin($('#segmentstable1'),
+                                                            $('#segments_ui-media1'),
+                                                            $('#data1'),
+                                                            $('#segments_ui-mediapackagesAttachments'),
+                                                            $('#data2'),
+                                                            $('#segments_ui-mediapackagesCatalog'),
+                                                            $('#segmentstable2'),
+                                                            data['search-results'].result,
+                                                            segmentsAvailable);
+                    Opencast.segments_ui_slider_Plugin.addAsPlugin($('#tableData1'),
+                                                                   $('#segments_ui_slider_data1'),
+                                                                   $('#segments_ui_slider_data2'),
+                                                                   data['search-results'].result,
+                                                                   segmentsAvailable);
+                    Opencast.Watch.continueProcessing();
+                } else
                 {
-                    // get rid of every '@' in the JSON data
-                    // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
-                    data['search-results'].result.segments.currentTime = Opencast.Utils.getTimeInMilliseconds(Opencast.Player.getCurrentTime());
-                    // Get the complete Track Duration // TODO: handle more clever
-                    var complDur = 0;
-                    $.each(data['search-results'].result.segments.segment, function (i, value)
-                    {
-                        complDur += parseInt(data['search-results'].result.segments.segment[i].duration);
-                    });
-                    // Set Duration until this Segment ends
-                    var completeDuration = 0;
-                    $.each(data['search-results'].result.segments.segment, function (i, value)
-                    {
-                        data['search-results'].result.segments.segment[i].completeDuration = complDur;
-                        // Set a Duration until the Beginning of this Segment
-                        data['search-results'].result.segments.segment[i].durationExcludingSegment = completeDuration;
-                        completeDuration += parseInt(data['search-results'].result.segments.segment[i].duration);
-                        // Set a Duration until the End of this Segment
-                        data['search-results'].result.segments.segment[i].durationIncludingSegment = completeDuration;
-                    });
+                    Opencast.Watch.continueProcessing(true);
                 }
-                // Check if any Media.tracks are available
-                if((data['search-results'].result.mediapackage.media !== undefined) && (data['search-results'].result.mediapackage.media.track.length > 0))
-                {
-                    // Set whether prefer streaming of progressive
-                    data['search-results'].result.mediapackage.media.preferStreaming = videoModeStream;
-                        
-                    // Check if the File is a Video
-                    var isVideo = false;
-                    var rtmpAvailable = false;
-                    $.each(data['search-results'].result.mediapackage.media.track, function (i, value)
-                    {
-                        if(!isVideo && Opencast.Utils.startsWith(this.mimetype, 'video'))
-                        {
-                            isVideo = true;
-                        }
-                        if(data['search-results'].result.mediapackage.media.track[i].url.substring(0, 4) == "rtmp")
-                        {
-                            rtmpAvailable = true;
-                        }
-                        // If both Values have been set
-                        if(isVideo && rtmpAvailable)
-                        {
-                            // Jump out of $.each
-                            return false;
-                        }
-                    });
-                    data['search-results'].result.mediapackage.media.isVideo = isVideo;
-                    data['search-results'].result.mediapackage.media.rtmpAvailable = rtmpAvailable;
-                }
-                
-                // Create Trimpath Template
-                Opencast.segments_ui_Plugin.addAsPlugin($('#segmentstable1'),
-                                                        $('#segments_ui-media1'),
-                                                        $('#data1'),
-                                                        $('#segments_ui-mediapackagesAttachments'),
-                                                        $('#data2'),
-                                                        $('#segments_ui-mediapackagesCatalog'),
-                                                        $('#segmentstable2'),
-                                                        data['search-results'].result,
-                                                        segmentsAvailable);
-                Opencast.segments_ui_slider_Plugin.addAsPlugin($('#tableData1'),
-                                                               $('#segments_ui_slider_data1'),
-                                                               $('#segments_ui_slider_data2'),
-                                                               data['search-results'].result,
-                                                               segmentsAvailable);
-                
-                Opencast.Watch.continueProcessing();
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
                 $('#data').html('No Segment UI available');
                 $('#data').hide();
-                Opencast.Watch.continueProcessing();
+                Opencast.Watch.continueProcessing(true);
             }
         });
     }

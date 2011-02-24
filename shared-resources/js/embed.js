@@ -61,9 +61,26 @@ Opencast.Watch = (function ()
     /**
      * @memberOf Opencast.Watch
      * @description Sets up the html page after the player and the Plugins have been initialized.
+     * @param error flag if error occured (=> display nothing, hide initialize); optional: set only if an error occured
      */
-    function continueProcessing()
+    function continueProcessing(error)
     {
+        var err = error||false;
+        if(error)
+        {
+            $('#oc_flash-player').hide();
+            $('#oc_video-player-controls').hide();
+            $('body').css('background-color', '#FFFFFF');
+            $('#initializing').css('background-color', '#FFFFFF');
+            $('#oc_embed-title-bar').css('background-color', '#FFFFFF');
+            $('#oc_flash-player-loading').css('background-color', '#FFFFFF');
+            $('#initializing').css('color', '#000000');
+            $('#initializing').html('An error occurred, the media cannot be displayed.');
+            $('#oc_flash-player-loading').css('width', '50%');
+            $('#loading-init').hide();
+            return;
+        }
+        
         $('#oc-segments').html("");
         $(".segments").css("margin-top", "-3px");
         mimetypeOne = "video/x-flv";

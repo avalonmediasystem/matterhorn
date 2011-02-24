@@ -762,21 +762,27 @@ Opencast.Initialize = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
-                var result_data = data['search-results'].result;
-                var input_string = '';
-                if (result_data.dcSeriesTitle)
+                if((data !== undefined) && (data['search-results'] !== undefined) && (data['search-results'].result !== undefined))
                 {
-                    input_string += '<div id="oc_title-1" style="border-right: 2px solid black;">' + result_data.dcSeriesTitle + '</div><h2 id="oc_title-2">' + result_data.dcTitle + '</h2>';
-                }
-                else
+                    var result_data = data['search-results'].result;
+                    var input_string = '';
+                    if (result_data.dcSeriesTitle)
+                    {
+                        input_string += '<div id="oc_title-1" style="border-right: 2px solid black;">' + result_data.dcSeriesTitle + '</div><h2 id="oc_title-2">' + result_data.dcTitle + '</h2>';
+                    }
+                    else
+                    {
+                        input_string += '<h2 id="oc_title-1">' + result_data.dcTitle + '</h2>';
+                    }
+                    if (result_data.dcCreator)
+                    {
+                        input_string += '<div id="oc_title-creator">' + result_data.dcCreator + '</h2>';
+                    }
+                    $('#oc_title').html(input_string);
+                } else
                 {
-                    input_string += '<h2 id="oc_title-1">' + result_data.dcTitle + '</h2>';
+                    $('#oc_title').html('');
                 }
-                if (result_data.dcCreator)
-                {
-                    input_string += '<div id="oc_title-creator">' + result_data.dcCreator + '</h2>';
-                }
-                $('#oc_title').html(input_string);
             }
         });
     });

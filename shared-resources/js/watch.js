@@ -74,9 +74,20 @@ Opencast.Watch = (function ()
     /**
      * @memberOf Opencast.Watch
      * @description Sets up the html page after the player and the Plugins have been initialized.
+     * @param error flag if error occured (=> display nothing, hide initialize); optional: set only if an error occured
      */
-    function continueProcessing()
+    function continueProcessing(error)
     {
+        var err = error||false;
+        if(error)
+        {
+            $('#oc_Videodisplay').hide();
+            $('#initializing').html('An error occurred, the media cannot be displayed.');
+            $('#oc_flash-player-loading').css('width', '50%');
+            $('#loading-init').hide();
+            return;
+        }
+        
         // set the title of the page
         document.title = $('#oc-title').html() + " | Opencast Matterhorn - Media Player";
         var dcExtent = parseInt($('#dc-extent').html());
