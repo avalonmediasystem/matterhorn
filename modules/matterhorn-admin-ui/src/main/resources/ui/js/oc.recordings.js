@@ -606,8 +606,10 @@ ocRecordings = new (function() {
   }
 
   this.adjustHoldActionPanelHeight = function() {
-    var height = $('#holdActionUI').contents().find('html').height();
-    $('#holdActionUI').height(height+10);
+    // IE8 error
+    //var height = $('#holdActionUI').contents().find('html').height();
+    //$('#holdActionUI').height(height+10);
+    $('#holdActionUI').height(580);
   }
 
   this.continueWorkflow = function(postData) {
