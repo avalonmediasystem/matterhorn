@@ -192,10 +192,27 @@ ocUtils.fromUTCDateStringToFormattedTime = function(UTCDate, duration) {
 /* Convert Date object to yyyy-MM-dd'T'HH:mm:ss'Z' string.
  *
  */
-ocUtils.toISODate = function(date) {
-  var out = date.getFullYear() + '-' + ocUtils.padString((date.getMonth()+1) ,'0' , 2) + '-' + ocUtils.padString(date.getDate() ,'0' , 2) + 'T' +
-            ocUtils.padString(date.getHours() ,'0' , 2) + ':' + ocUtils.padString(date.getMinutes() ,'0' , 2) + ':' + ocUtils.padString(date.getSeconds() ,'0' , 2) + 'Z';
-   return out;
+ocUtils.toISODate = function(date, utc) {
+  var out;
+  if(typeof utc == 'undefined') {
+    utc = true;
+  }
+  if(utc) {
+    out = date.getUTCFullYear() + '-' + 
+          ocUtils.padString((date.getUTCMonth()+1) ,'0' , 2) + '-' + 
+          ocUtils.padString(date.getUTCDate() ,'0' , 2) + 'T' +
+          ocUtils.padString(date.getUTCHours() ,'0' , 2) + ':' + 
+          ocUtils.padString(date.getUTCMinutes() ,'0' , 2) + ':' + 
+          ocUtils.padString(date.getUTCSeconds() ,'0' , 2) + 'Z';
+  } else {
+    out = date.getFullYear() + '-' + 
+          ocUtils.padString((date.getMonth()+1) ,'0' , 2) + '-' + 
+          ocUtils.padString(date.getDate() ,'0' , 2) + 'T' +
+          ocUtils.padString(date.getHours() ,'0' , 2) + ':' + 
+          ocUtils.padString(date.getMinutes() ,'0' , 2) + ':' + 
+          ocUtils.padString(date.getSeconds() ,'0' , 2) + 'Z';
+  }
+  return out;
 }
 
 ocUtils.padString = function(str, pad, padlen){
