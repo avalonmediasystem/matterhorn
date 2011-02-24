@@ -33,6 +33,7 @@ ocRecordings = new (function() {
   ]
 
   this.totalRecordings = 0;
+  this.currentShownRecordings = 0;
   this.numSelectedRecordings = 0;
   this.changedBulkEditFields = {};
 
@@ -424,6 +425,11 @@ ocRecordings = new (function() {
     refreshing = false;
     ocRecordings.data = data;
     ocRecordings.totalRecordings = parseInt(data.workflows.totalCount);
+    if(ocRecordings.totalRecordings >= data.workflows.count) {
+      ocRecordings.currentShownRecordings = parseInt(data.workflows.count);
+    } else {
+      ocRecordings.currentShownRecordings = ocRecordings.totalRecordings;
+    }
     var result = TrimPath.processDOMTemplate(template, makeRenderData(data));
     $( '#tableContainer' ).empty().append(result);
 
@@ -476,18 +482,18 @@ ocRecordings = new (function() {
     pageCount = pageCount == 0 ? 1 : pageCount;
     $('#pageList').text( page + " of " + pageCount);
     if (page == 1) {
-      $('.prevPage').each(function() {
-        var text = $(this).text();
-        var $elm = $('<span></span>').text(text).css('color', 'gray');
-        $(this).replaceWith($elm);
-      });
+      $('#prevButtons').hide();
+      $('#prevText').show();
+    } else {
+      $('#prevButtons').show();
+      $('#prevText').hide();
     }
     if (page == pageCount) {
-      $('.nextPage').each(function() {
-        var text = $(this).text();
-        var $elm = $('<span></span>').text(text).css('color', 'gray');
-        $(this).replaceWith($elm);
-      })
+      $('#nextButtons').hide();
+      $('#nextText').show();
+    } else {
+      $('#nextButtons').show();
+      $('#nextText').hide();
     }
 
     // When table is ready, attach event handlers

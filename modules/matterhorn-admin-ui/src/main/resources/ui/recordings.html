@@ -254,11 +254,23 @@
 
                         <!--<label for="page">Goto page: </label><input type="text" id="page" value="1" />-->
                         <span id="pageWidget" class="layout-inline">
-                            <a class="prevPage" href="javascript:ocRecordings.Configuration.page=0;ocRecordings.reload();">&lt;&lt;first</a>
-                            <a class="prevPage" href="javascript:ocRecordings.previousPage();" id="previousPage">&lt;previous</a>
+                            <span id="prevButtons">
+                              <a class="prevPage" href="javascript:ocRecordings.Configuration.page=0;ocRecordings.reload();">&lt;&lt;first</a>
+                              <a class="prevPage" href="javascript:ocRecordings.previousPage();" id="previousPage">&lt;previous</a>
+                            </span>
+                            <span id="prevText" class="ui-helper-hidden">
+                              <span>&lt;&lt;first</span>
+                              <span>&lt;previous</span>
+                            </span>
                             <span id="pageList"></span>
-                            <a class="nextPage" href="javascript:ocRecordings.nextPage();" id="nextPage">next&gt;</a>
-                            <a class="nextPage" href="javascript:ocRecordings.lastPage();" id="lastPage">last&gt;&gt;</a>
+                            <span id="nextButtons">
+                              <a class="nextPage" href="javascript:ocRecordings.nextPage();" id="nextPage">next&gt;</a>
+                              <a class="nextPage" href="javascript:ocRecordings.lastPage();" id="lastPage">last&gt;&gt;</a>
+                            </span>
+                            <span id="nextText" class="ui-helper-hidden">
+                              <span>next&gt;</span>
+                              <span>last&gt;&gt;</span>
+                            </span>
                         </span>
                     </div><!-- END #controlsFoot -->
                 </div><!-- END #stage -->
