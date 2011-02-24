@@ -119,8 +119,15 @@ Opencast.Analytics = (function ()
                     {
                         if(Opencast.segments.getSlideLength() > 0)
                         {
-                            $(".segments").css('top', '-25px');
-                            $('#oc_video-view').css('top', '-23px');
+                            if($.browser.webkit || $.browser.msie)
+                            {
+                                $(".segments").css('top', '-25px');
+                                $('#oc_video-view').css('top', '-23px');
+                            } else // if($.browser.opera)
+                            {
+                                $(".segments").css('top', '-25px');
+                                $('#oc_video-view').css('top', '-22px');                            
+                            }
                             $('#segmentstable1').css('opacity', '0.65');
                             $('#segmentstable1').css('filter', 'alpha(opacity=65)');
                             $('#oc_video-view').css('position', 'relative');
