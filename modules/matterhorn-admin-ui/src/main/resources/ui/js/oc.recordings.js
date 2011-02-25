@@ -398,7 +398,7 @@ ocRecordings = new (function() {
     //this.actions.push('publish');
     //this.actions.push('unpublish');
     } else if (this.state == 'Failed') {
-      this.actions.push('delete');
+      this.actions.push('stop');
     } else if (this.state == 'On Hold') {
       this.actions.push('ignore');
     }
@@ -854,20 +854,23 @@ ocRecordings = new (function() {
   }
 
   this.stopWorkflow = function(id) {
-    if(confirm("Do you want to stop processing this recording?")){
-      $.ajax({
-        url: WORKFLOW_URL + '/stop',
-        type: 'POST',
-        data: {
-          id : id
-        },
-        error: function(XHR,status,e){
-          alert('Could not stop Processing.');
-        },
-        success: function(){
-          ocRecordings.reload();
-        }
-      });
+    var wf = ocRecordings.getWorkflow(id);
+    if (wf) {
+      if(confirm('Are you sure you wish to delete ' + wf.title + '?')){
+        $.ajax({
+          url: WORKFLOW_URL + '/stop',
+          type: 'POST',
+          data: {
+            id : id
+          },
+          error: function(XHR,status,e){
+            alert('Could not stop Processing.');
+          },
+          success: function(){
+            ocRecordings.reload();
+          }
+        });
+      }
     }
   }
 
@@ -1242,11 +1245,11 @@ ocRecordings = new (function() {
           var mpId = workflow.mediapackage.id;
           if(ENGAGE_URL == '')
           {
-             var data = $.ajax(
+            var data = $.ajax(
             {
-                url: '/info/components.json',
-                dataType: 'json',
-                async: false
+              url: '/info/components.json',
+              dataType: 'json',
+              async: false
             }).responseText;
             data = $.parseJSON(data);
             ENGAGE_URL = data.engage;
@@ -1262,6 +1265,10 @@ ocRecordings = new (function() {
       
       } else if (action == 'ignore') {
         links.push('<a title="Remove this Recording from UI only" href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Ignore</a>');
+
+      } else if (action == 'stop') {
+        links.push('<a href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Delete</a>');
+
       }
     });
     return links.join(' \n');
