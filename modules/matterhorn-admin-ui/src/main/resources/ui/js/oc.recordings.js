@@ -460,12 +460,10 @@ ocRecordings = new (function() {
     if (ocRecordings.Configuration.filterText) {
       var countText;
       if (data.workflows.totalCount == '0') {
-        countText = 'No Recordings matching Filter';
+        countText = data.workflows.totalCount + ' found';
         $('#filterRecordingCount').css('color', 'red');
       } else {
-        countText = data.workflows.totalCount;
-        countText += parseInt(data.workflows.totalCount) > 1 ? ' Recordings' : ' Recording';
-        countText += ' matching Filter';
+        countText = data.workflows.totalCount + ' found';
         $('#filterRecordingCount').css('color', 'black');
       }
       $('#filterRecordingCount').text(countText).show();
@@ -608,9 +606,7 @@ ocRecordings = new (function() {
   }
 
   this.adjustHoldActionPanelHeight = function() {
-    // IE8 error
     //var height = $('#holdActionUI').contents().find('html').height();
-    //$('#holdActionUI').height(height+10);
     $('#holdActionUI').height(580);
   }
 

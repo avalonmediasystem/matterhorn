@@ -97,6 +97,7 @@
         }
         this.element.css('padding', '5px');
         this.element.append(dropdown);
+        this.element.append('<span id="filterRecordingCount"></span>');
       }
 
       this.element.find('.searchbox-search-icon').addClass(this.options.searchIcon)
