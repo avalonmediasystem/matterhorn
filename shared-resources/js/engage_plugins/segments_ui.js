@@ -6,7 +6,7 @@ var Opencast = Opencast || {};
  * @namespace the global Opencast namespace segments_ui
  */
 Opencast.segments_ui = (function ()
-{
+{   
     /**
      * @memberOf Opencast.segments_ui
      * @description Toggles the class segment-holder-over
@@ -21,7 +21,10 @@ Opencast.segments_ui = (function ()
         $("#segment" + segmentId).toggleClass("ui-corner-all");
         var index = segmentId;
         var imageHeight = 120;
-        $("#segment-tooltip").html('<img src="' + Opencast.segments.getSegmentPreview(index) + '" height="' + imageHeight + '"/>');
+        var nrOfSegments = Opencast.segments.getNumberOfSegments();
+        $("#segment-tooltip").html('<img src="' + Opencast.segments.getSegmentPreview(index) +
+                                   '" height="' + imageHeight +
+                                   '" alt="Slide ' + (segmentId + 1) + ' of ' + nrOfSegments + '"/>');
         if (($("#segment" + segmentId).offset() != null) &&
             ($("#segment" + segmentId).offset() != null) &&
             ($("#segment" + segmentId).width() != null) &&
@@ -29,7 +32,7 @@ Opencast.segments_ui = (function ()
         {
             var eps = 4;
             var segment0Left = $("#segment0").offset().left + eps;
-            var segmentLastRight = $("#segment" + (Opencast.segments.getNumberOfSegments() - 1)).offset().left + $("#segment" + (Opencast.segments.getNumberOfSegments() - 1)).width() - eps;
+            var segmentLastRight = $("#segment" + (nrOfSegments - 1)).offset().left + $("#segment" + (nrOfSegments - 1)).width() - eps;
             var segmentLeft = $("#segment" + segmentId).offset().left;
             var segmentTop = $("#segment" + segmentId).offset().top;
             var segmentWidth = $("#segment" + segmentId).width();
