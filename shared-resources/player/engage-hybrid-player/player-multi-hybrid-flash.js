@@ -263,6 +263,9 @@ Opencast.FlashVersion = (function ()
         var playerType = Opencast.engage.getPlayerType();
         if (playerType === "/engage/ui/embed.html")
         {
+            // check if URL parameters are duplicate. If so: reload with cleaned URL
+            Opencast.Utils.gotoCleanedURL();
+                
             var play = Opencast.Utils.getURLParameter('play');
             if ((play === null) || (play !== "true"))
             {
@@ -272,13 +275,6 @@ Opencast.FlashVersion = (function ()
                 $('#data').hide();
             } else
             {
-                var loc = window.location;
-                var newLoc = Opencast.Utils.getCleanedURL();
-                // If necessary: remove duplicate URL parameters
-                if(loc != newLoc)
-                {
-                    window.location = newLoc;
-                }
                 $('#oc_flash-player-loading').show();
                 $('#oc_player_video-dropdown').show();
             }
