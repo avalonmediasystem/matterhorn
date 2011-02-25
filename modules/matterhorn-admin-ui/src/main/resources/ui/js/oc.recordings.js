@@ -290,10 +290,11 @@ ocRecordings = new (function() {
     this.error = false;
     this.captureAgent = '';
 
+    var self = this;    // ie for $.each
+
     // ensure workflow.configuration.configurations is an array / search for capture agent name
     if (wf.configurations && wf.configurations.configuration) {
       wf.configurations.configuration = ocUtils.ensureArray(wf.configurations.configuration);
-      var self = this;
       $.each(wf.configurations.configuration, function(index, elm) {
         if (elm.key == 'schedule.location') {
           self.captureAgent = elm['$'];
@@ -363,7 +364,7 @@ ocRecordings = new (function() {
         this.operation = op.description;
       } else {
         op = ocRecordings.findFirstOperation(wf, "INSTANTIATED");    // MH-6426: it can happen that for running workflow there is no operation in state RUNNING
-        if (op) {                                                    //     in this case we search for the next INSTANTIATED operation and display is as QUEUED
+        if (op) {                                                    //     in this case we search for the next INSTANTIATED operation and display it as QUEUED
           this.operation = op.description;
         } else {
           ocUtils.log('Warning could not find current operation for worklfow ' + wf.id);
@@ -374,6 +375,19 @@ ocRecordings = new (function() {
       this.state = wf.state;
     }
 
+    // MH-6671 mark upcoming events with start date in the past
+    if (this.state == 'Upcoming') {
+      $.each(wf.configurations.configuration, function(index, elm) {
+        if (elm.key == 'schedule.start') {
+          var start = elm['$'];
+          var now = new Date().getTime();
+          if (parseInt(start) < parseInt(now)) {
+            self.error = 'Capture or Ingest Failure';
+          }
+        }
+      });
+    }
+    
     // Actions
     this.actions = ['view'];
     if (this.state == 'Upcoming') {
@@ -381,8 +395,8 @@ ocRecordings = new (function() {
       this.actions.push('delete');
     } else if (this.state == 'Finished') {
       this.actions.push('play');
-      //this.actions.push('publish');
-      //this.actions.push('unpublish');
+    //this.actions.push('publish');
+    //this.actions.push('unpublish');
     } else if (this.state == 'Failed') {
       this.actions.push('delete');
     } else if (this.state == 'On Hold') {
@@ -844,7 +858,9 @@ ocRecordings = new (function() {
       $.ajax({
         url: WORKFLOW_URL + '/stop',
         type: 'POST',
-        data: {id : id},
+        data: {
+          id : id
+        },
         error: function(XHR,status,e){
           alert('Could not stop Processing.');
         },
