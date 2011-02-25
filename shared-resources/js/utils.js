@@ -151,8 +151,8 @@ Opencast.Utils = (function ()
             link2 = link2||'=';
             for(var i = 0; i < arr.length; ++i)
             {
-                var parsedUrlAt = parseURL()[arr[i]];
-                if(parsedUrlAt !== undefined)
+                var parsedUrlAt = getURLParameter(arr[i]);
+                if((parsedUrlAt !== undefined) && (parsedUrlAt !== null))
                 {
                     var l = (i == 0) ? link11 : link12;
                     str += l + arr[i] + link2 + parseURL()[arr[i]];
