@@ -272,6 +272,13 @@ Opencast.FlashVersion = (function ()
                 $('#data').hide();
             } else
             {
+                var loc = window.location;
+                var newLoc = Opencast.Utils.getCleanedURL();
+                // If necessary: remove duplicate URL parameters
+                if(loc != newLoc)
+                {
+                    window.location = newLoc;
+                }
                 $('#oc_flash-player-loading').show();
                 $('#oc_player_video-dropdown').show();
             }

@@ -92,6 +92,74 @@ Opencast.Utils = (function ()
         }
         return vars;
     }
+   
+    /**
+     * @memberOf Opencast.Utils
+     * @description Removes the duplicates of a given array
+     * @param arr Array to remove the duplicates of
+     * @return a copy of arr wihout its duplicates
+     */     
+    function removeDuplicates(arr)
+    {
+        var newArr = [];
+        var ni = 0;
+        var dupl = false;
+        for(var i = 0; i < arr.length; ++i)
+        {
+            for(var j = i + 1; (j < arr.length) && !dupl; ++j)
+            {
+                if(arr[i] == arr[j])
+                {
+                    dupl = true;
+                }
+            }
+            if(!dupl)
+            {
+                newArr[ni] = arr[i];
+                ++ni;
+            }
+            dupl = false;
+        }
+        return newArr;
+    }
+   
+    /**
+     * @memberOf Opencast.Utils
+     * @description Returns the url array to string, connected via links
+     * @param arr URL Array (e.g. created via parseURL())
+     * @param link11 first link (e.g. comes directly after the .html: ?)
+     * @param link12 second link, connects the parameters (e.g. &)
+     * @param link2 third link, connects the first and the second value of an URL parameter (e.g. =)
+     * @return the url array to string, connected via links
+     */ 
+    function urlArrayToString(arr, link11, link12, link2)
+    {
+        var str = '';
+        for(var i = 0; i < arr.length; ++i)
+        {
+            var parsedUrlAt = parseURL()[arr[i]];
+            if(parsedUrlAt !== undefined)
+            {
+                var l = (i == 0) ? link11 : link12;
+                str += l + arr[i] + link2 + parseURL()[arr[i]];
+            }
+        }
+        return str;
+    }
+
+    /**
+     * @memberOf Opencast.Utils
+     * @description Removes the duplicate URL parameters, e.g. url?a=b&a=c&a=d => url?a=d
+     * @return a cleaned URL
+     */ 
+    function getCleanedURL()
+    {
+        var urlArr = removeDuplicates(parseURL());
+        var windLoc = window.location.href;
+        windLoc = (windLoc.indexOf('?') != -1) ? window.location.href.substring(0, window.location.href.indexOf('?')) : windLoc;
+        
+        return windLoc + urlArrayToString(urlArr, "?", "&", "=");
+    }
     
     /**
      * @memberOf Opencast.Utils
@@ -266,6 +334,9 @@ Opencast.Utils = (function ()
 	}
     
     return {
+        removeDuplicates: removeDuplicates,
+        urlArrayToString: urlArrayToString,
+        getCleanedURL: getCleanedURL,
         getTimeInMilliseconds: getTimeInMilliseconds,
         formatSeconds: formatSeconds,
         parseURL: parseURL,
