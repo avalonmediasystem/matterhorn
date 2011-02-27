@@ -68,16 +68,9 @@ Opencast.Watch = (function ()
         var err = error||false;
         if(error)
         {
-            $('#oc_flash-player').hide();
-            $('#oc_video-player-controls').hide();
             $('body').css('background-color', '#FFFFFF');
-            $('#initializing').css('background-color', '#FFFFFF');
-            $('#oc_embed-title-bar').css('background-color', '#FFFFFF');
-            $('#oc_flash-player-loading').css('background-color', '#FFFFFF');
+            $('body').html('<span id="initializing-matter">matter</span><span id="initializing-horn">horn</span><span id="initializing">&nbsp;The media is not available.</span>');
             $('#initializing').css('color', '#000000');
-            $('#initializing').html('An error occurred, the media cannot be displayed.');
-            $('#oc_flash-player-loading').css('width', '50%');
-            $('#loading-init').hide();
             return;
         }
         

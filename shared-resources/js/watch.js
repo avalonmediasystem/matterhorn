@@ -82,8 +82,8 @@ Opencast.Watch = (function ()
         if(error)
         {
             $('#oc_Videodisplay').hide();
-            $('#initializing').html('An error occurred, the media cannot be displayed.');
-            $('#oc_flash-player-loading').css('width', '50%');
+            $('#initializing').html('The media is not available.');
+            $('#oc_flash-player-loading').css('width', '60%');
             $('#loading-init').hide();
             return;
         }
