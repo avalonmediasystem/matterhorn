@@ -744,14 +744,106 @@ public class SchedulerImplTest {
   }
 
   @Test
-  public void testCaptureAgentStatusPollingDoesFireIfCaptureIsJustPast() throws IOException, ConfigurationException,
+  public void testLateCaptures() throws IOException, ConfigurationException,
           InterruptedException {
     setupThreeCaptureCalendar(-10, -1, 10);
     captureAgentImpl.activate(null);
     schedulerImpl = new SchedulerImpl(schedulerProperties, configurationManager, captureAgentImpl);
     Assert.assertEquals(2, schedulerImpl.getCaptureSchedule().length);
   }
-
+  
+  @Test
+  public void testRestartingCaptureDoesStartWithNoMediaFiles() throws IOException, ConfigurationException,
+          InterruptedException {
+    // Unused test that should test the ability of the capture agent to skip starting a capture late if there has
+    // already been captured media. 
+    setupFakeMediaPackageWithoutMediaFiles();
+    setupThreeCaptureCalendar(-10, -1, 10);
+    captureAgentImpl.activate(null);
+    schedulerImpl = new SchedulerImpl(schedulerProperties, configurationManager, captureAgentImpl);
+    Assert.assertEquals(2, schedulerImpl.getCaptureSchedule().length);
+    tearDownFakeMediaPackage();
+  }
+  
+  @Test
+  public void testRestartingCaptureDoesntOverwriteExistingCapture() throws IOException, ConfigurationException,
+          InterruptedException {
+    // Unused test that should test the ability of the capture agent to skip starting a capture late if there has
+    // already been captured media. 
+    setupFakeMediaPackageWithMediaFiles();
+    setupThreeCaptureCalendar(-10, -1, 10);
+    captureAgentImpl.activate(null);
+    schedulerImpl = new SchedulerImpl(schedulerProperties, configurationManager, captureAgentImpl);
+    Assert.assertEquals(1, schedulerImpl.getCaptureSchedule().length);
+    tearDownFakeMediaPackage();
+  }
+  
+  private XProperties loadProperties(String location) throws IOException {
+    XProperties props = new XProperties();
+    InputStream s = getClass().getClassLoader().getResourceAsStream(location);
+    if (s == null) {
+      throw new RuntimeException("Unable to load configuration file from " + location);
+    }
+    props.load(s);
+    return props;
+  }
+  
+  public void setupFakeMediaPackageWithoutMediaFiles() {
+    String directory = "scheduler-restart-test";
+    // Create the configuration manager
+    configurationManager = new ConfigurationManager();
+    // Setup the configuration manager with a tmp storage directory. 
+    Properties p;
+    try {
+      p = loadProperties("config/capture.properties");
+      
+      p.put(CaptureParameters.RECORDING_ROOT_URL,
+              new File(System.getProperty("java.io.tmpdir"), directory).getAbsolutePath());
+      p.put(CaptureParameters.RECORDING_ID, "2nd-Capture");
+      p.put("org.opencastproject.server.url", "http://localhost:8080");
+      p.put(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, -1);
+      p.put("M2_REPO", getClass().getClassLoader().getResource("m2_repo").getFile());
+      p.put(CaptureParameters.CAPTURE_DEVICE_NAMES, "capture.device.names=MOCK_SCREEN,MOCK_PRESENTER,MOCK_MICROPHONE");
+      configurationManager.updated(p);
+    } catch (IOException e) {
+      e.printStackTrace();
+      Assert.fail();
+    } catch (ConfigurationException e) {
+      e.printStackTrace();
+      Assert.fail();
+    }
+    
+    File uidFile = new File(System.getProperty("java.io.tmpdir") + directory, "2nd-Capture");
+    try {
+      FileUtils.forceMkdir(uidFile);
+      FileUtils.touch(new File(uidFile.getAbsolutePath(), "episode.xml"));
+      FileUtils.touch(new File(uidFile.getAbsolutePath(), "manifest.xml"));
+      FileUtils.touch(new File(uidFile.getAbsolutePath(), "org.opencastproject.capture.agent.properties"));
+      FileUtils.touch(new File(uidFile.getAbsolutePath(), "capture.stopped"));
+      FileUtils.touch(new File(uidFile.getAbsolutePath(), "series.xml"));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+  
+  public void setupFakeMediaPackageWithMediaFiles() {
+    String directory = "scheduler-restart-test";
+    setupFakeMediaPackageWithoutMediaFiles();
+    File uidFile = new File(System.getProperty("java.io.tmpdir") + directory, "2nd-Capture");
+    try {
+      FileUtils.forceMkdir(uidFile);
+      FileUtils.touch(new File(uidFile.getAbsolutePath(), "screen_out.mpg"));
+      FileUtils.touch(new File(uidFile.getAbsolutePath(), "camera_out.mpg"));
+      FileUtils.touch(new File(uidFile.getAbsolutePath(), "audio_out.mp3"));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+  
+  public void tearDownFakeMediaPackage() {
+    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "scheduler-restart-test"));
+  }
+  
   @Test
   public void callingRefreshBeforeUpdateDoesntCauseNullPointerException() throws IOException, ConfigurationException,
           InterruptedException {
