@@ -119,7 +119,7 @@ public final class MediaPackageImpl implements MediaPackage {
   private long startTime = 0L;
 
   /** The media package duration */
-  private long duration = -1L;
+  private long duration = 0;
 
   /** The media package's other (uncategorized) files */
   private List<MediaPackageElement> elements = new ArrayList<MediaPackageElement>();
@@ -187,7 +187,26 @@ public final class MediaPackageImpl implements MediaPackage {
    */
   @XmlAttribute(name = "duration")
   public long getDuration() {
+    if (duration <= 0 && hasTracks()) {
+      for (Track t : getTracks()) {
+        if (duration < t.getDuration())
+          duration = t.getDuration();
+      }
+    }
     return duration;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.mediapackage.MediaPackage#setDuration(long)
+   */
+  @Override
+  public void setDuration(long duration) throws IllegalStateException {
+    if (hasTracks())
+      throw new IllegalStateException(
+              "The duration is determined by the length of the tracks and cannot be set manually");
+    this.duration = duration;
   }
 
   /**
@@ -596,7 +615,13 @@ public final class MediaPackageImpl implements MediaPackage {
    * @see org.opencastproject.mediapackage.MediaPackage#hasCatalogs()
    */
   public boolean hasCatalogs() {
-    return hasCatalogs();
+    synchronized (elements) {
+      for (MediaPackageElement e : elements) {
+        if (e instanceof Catalog)
+          return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -754,7 +779,13 @@ public final class MediaPackageImpl implements MediaPackage {
    * @see org.opencastproject.mediapackage.MediaPackage#hasTracks()
    */
   public boolean hasTracks() {
-    return hasTracks();
+    synchronized (elements) {
+      for (MediaPackageElement e : elements) {
+        if (e instanceof Track)
+          return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -980,7 +1011,13 @@ public final class MediaPackageImpl implements MediaPackage {
    * @see org.opencastproject.mediapackage.MediaPackage#hasAttachments()
    */
   public boolean hasAttachments() {
-    return hasAttachments();
+    synchronized (elements) {
+      for (MediaPackageElement e : elements) {
+        if (e instanceof Attachment)
+          return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1016,6 +1053,7 @@ public final class MediaPackageImpl implements MediaPackage {
    * @see org.opencastproject.mediapackage.MediaPackage#remove(org.opencastproject.mediapackage.Track)
    */
   public void remove(Track track) {
+    duration = 0;
     removeElement(track);
   }
 
@@ -1240,6 +1278,7 @@ public final class MediaPackageImpl implements MediaPackage {
       id = createElementIdentifier("track", getTracks().length + 1);
       track.setIdentifier(id.toString());
     }
+    duration = 0;
     integrate(track);
   }
 
