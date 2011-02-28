@@ -284,6 +284,7 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
             "Start a new workflow instance");
     startEndpoint.addFormat(new Format("xml", null, null));
     startEndpoint.addStatus(org.opencastproject.util.doc.Status.ok("OK, workflow running or queued"));
+    startEndpoint.addStatus(org.opencastproject.util.doc.Status.badRequest("If required parameters are missing"));
     startEndpoint.addRequiredParam(new Param("mediapackage", Type.TEXT, generateMediaPackage(),
             "The media package upon which to perform the workflow"));
     String sampleDefinition = null;
@@ -659,13 +660,21 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
   public WorkflowInstanceImpl start(@FormParam("definition") String workflowDefinitionXml,
           @FormParam("mediapackage") MediaPackageImpl mp, @FormParam("parent") String parentWorkflowId,
           @FormParam("properties") LocalHashMap localMap) {
+    if (mp == null)
+      throw new WebApplicationException(Status.BAD_REQUEST);
+    if (StringUtils.isBlank(workflowDefinitionXml))
+      throw new WebApplicationException(Status.BAD_REQUEST);
     WorkflowDefinition workflowDefinition;
     try {
       workflowDefinition = WorkflowParser.parseWorkflowDefinition(workflowDefinitionXml);
     } catch (WorkflowParsingException e) {
       throw new WebApplicationException(e);
     }
-    Map<String, String> properties = localMap.getMap();
+    Map<String, String> properties = null;
+    if (localMap != null)
+      properties = localMap.getMap();
+    else
+      properties = new HashMap<String, String>();
     Long parentIdAsLong = null;
     if (StringUtils.isNotEmpty(parentWorkflowId)) {
       try {
