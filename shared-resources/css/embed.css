@@ -93,6 +93,22 @@ body {
 }
 /* End: Flash Player loading */
 
+#oc_current-time {
+    margin-top: 2px;
+}
+
+#oc_duration {
+    margin-top: 2px;
+}
+
+#of {
+    margin-top: 2px;
+}
+
+#oc_video-cc {
+    margin-left: 2px;
+}
+
 #scrubber-table {
     width: 100%;
     float: left;

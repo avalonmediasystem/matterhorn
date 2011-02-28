@@ -217,30 +217,19 @@ Opencast.segments = (function ()
         var margin = $('#oc_video-controls').width();
         var controlswith = 0;
         var playerWidth = $('#oc_video-player-controls').width();
-        // player size
-        if (playerWidth < 460 && playerWidth >= 380)
+        if($.browser.mozilla)
         {
-            $(".oc_btn-skip-backward").css('display', 'none');
-            $(".oc_btn-skip-forward").css('display', 'none');
-            $(".oc_btn-rewind").css('display', 'none');
-            $(".oc_btn-fast-forward").css('display', 'none');
-            $('#oc_video-controls').css('width', '20%');
-            $('#oc_video-cc').css('width', '12%');
-            $('#oc_video-time').css('width', '40%');
-            $('.oc_slider-volume-Rail').css('width', '45px');
-            controlswith = 58;
-            margin = $('#oc_video-controls').width();
-            margin = ((margin - controlswith) / 2) - 8;
-            $(".oc_btn-rewind").css("margin-left", margin + "px");
+            $('.oc_btn-cc-off').css('backgroundPosition', '-0px -179px');
+            $('.oc_btn-cc-over').css('backgroundPosition', '-0px -179px');
+            $('.oc_btn-cc-on').css('backgroundPosition', '-0px -179px');
         }
-        else if (playerWidth < 380)
+        // player size
+        if (playerWidth < 470)
         {
             $(".oc_btn-skip-backward").css('display', 'none');
             $(".oc_btn-skip-forward").css('display', 'none');
             $(".oc_btn-rewind").css('display', 'none');
             $(".oc_btn-fast-forward").css('display', 'none');
-            $("#oc_video-cc").css('display', 'none');
-            $("#oc_video-cc").css('width', '0%');
             $('#simpleEdit').css('font-size', '0.8em');
             $('#simpleEdit').css('margin-left', '1px');
             $('#oc_current-time').css('width', '50px');

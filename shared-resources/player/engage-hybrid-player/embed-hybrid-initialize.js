@@ -485,6 +485,13 @@ Opencast.Initialize = (function ()
         });
         $('#oc_btn-play-pause').mouseover(function ()
         {
+            if(Opencast.Player.isPlaying())
+            {
+                $("#oc_btn-play-pause").attr("className", "oc_btn-pause-over");
+            } else
+            {
+                $("#oc_btn-play-pause").attr("className", "oc_btn-play-over");
+            }
             Opencast.Player.PlayPauseMouseOver();
         });
         $('#oc_btn-play-pause-embed').mouseover(function ()
@@ -517,6 +524,7 @@ Opencast.Initialize = (function ()
         });
         $('#oc_btn-play-pause').mouseout(function ()
         {
+            $("#oc_btn-play-pause").attr("className", "oc_btn-play");
             Opencast.Player.PlayPauseMouseOut();
         });
         $('#oc_btn-play-pause-embed').mouseout(function ()
