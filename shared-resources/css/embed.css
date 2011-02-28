@@ -38,10 +38,10 @@ body {
     margin-bottom: 0px;
     margin-top: 0px;
     padding: 0px;
-    width: 63%;
+    /* width: 63%; */
     height: 20px;
     display: block;
-    margin-left: 37%;
+    margin-left: 10%;
     margin-right: 0 auto;
 }
 
