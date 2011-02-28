@@ -480,7 +480,11 @@ public class WorkspaceImpl implements Workspace {
    */
   @Override
   public void deleteFromCollection(String collectionId, String fileName) throws NotFoundException, IOException {
-    wfr.deleteFromCollection(collectionId, fileName);
+    try {
+      wfr.deleteFromCollection(collectionId, fileName);
+    } catch(IllegalArgumentException e) {
+      throw new NotFoundException(e);
+    }
     File f = new File(PathSupport.concat(new String[] { wsRoot, WorkingFileRepository.COLLECTION_PATH_PREFIX,
             collectionId, fileName }));
     FileUtils.deleteQuietly(f);

@@ -379,10 +379,6 @@ public class IngestRestService {
             }
           } else {
             logger.debug("Processing file item");
-            if (zipFileName != null) {
-              logger.warn("Ingest request contained more than one file attachment");
-              return Response.serverError().status(Status.BAD_REQUEST).build();
-            }
             InputStream in = item.openStream();
             try {
               zipFileUri = workspace.putInCollection(COLLECTION_ID, zipFileName, in);
@@ -412,11 +408,11 @@ public class IngestRestService {
       IOUtils.closeQuietly(zipInputStream);
       try {
         workspace.deleteFromCollection(COLLECTION_ID, zipFileName);
-      } catch (NotFoundException e) {
+      } catch (NotFoundException nfe) {
         // That's fine, we failed somewhere on the way
-        logger.debug("Error removing missing temporary ingest file " + COLLECTION_ID + "/" + zipFileName, e);
-      } catch (IOException e) {
-        logger.warn("Error removing temporary ingest file " + COLLECTION_ID + "/" + zipFileName, e);
+        logger.debug("Error removing missing temporary ingest file " + COLLECTION_ID + "/" + zipFileName, nfe);
+      } catch (IOException ioe) {
+        logger.warn("Error removing temporary ingest file " + COLLECTION_ID + "/" + zipFileName, ioe);
       }
     }
   }

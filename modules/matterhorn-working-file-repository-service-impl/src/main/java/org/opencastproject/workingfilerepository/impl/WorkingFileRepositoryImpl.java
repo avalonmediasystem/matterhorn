@@ -337,7 +337,7 @@ public class WorkingFileRepositoryImpl implements WorkingFileRepository, PathMap
 
   private File getFileFromCollection(String collectionId, String fileName) {
     File directory = getCollectionDirectory(collectionId);
-    File sourceFile = new File(directory, fileName);
+    File sourceFile = new File(directory, PathSupport.toSafeName(fileName));
     File md5File = getMd5File(sourceFile);
     if (!sourceFile.exists() || !md5File.exists()) {
       return null;
