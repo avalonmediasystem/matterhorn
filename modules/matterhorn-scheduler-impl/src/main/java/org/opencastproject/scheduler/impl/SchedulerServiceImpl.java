@@ -694,7 +694,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     String title = e.getTitle();
     for (Event event : eventList) {
       e.setEventId(event.getEventId());
-      if(eventList.size() > 1) {
+      if(eventList.size() > 1 && StringUtils.isNotEmpty(e.getTitle())) {
         e.setTitle(title + " " + String.valueOf(sequence));
       }
       updateEvent(e, true, updateWithEmptyValues);
