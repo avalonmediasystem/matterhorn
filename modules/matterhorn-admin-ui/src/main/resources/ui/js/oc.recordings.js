@@ -383,9 +383,11 @@ ocRecordings = new (function() {
           var now = new Date().getTime();
           if (parseInt(start) < parseInt(now)) {
             self.error = 'Capture or Ingest Failure';
+            self.state = 'Failed';
           }
         }
       });
+      
     }
     
     // Actions
