@@ -620,8 +620,8 @@ ocRecordings = new (function() {
   }
 
   this.adjustHoldActionPanelHeight = function() {
-    //var height = $('#holdActionUI').contents().find('html').height();
-    $('#holdActionUI').height(580);
+    var height = $('#holdActionUI').contents().find('html').height() + 10;
+    $('#holdActionUI').height(height);
   }
 
   this.continueWorkflow = function(postData) {
