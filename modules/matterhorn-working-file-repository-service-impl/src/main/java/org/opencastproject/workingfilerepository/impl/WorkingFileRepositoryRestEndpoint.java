@@ -48,6 +48,7 @@ import java.net.URI;
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -60,11 +61,9 @@ import javax.ws.rs.core.Response;
 
 @Path("/")
 public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl {
-  
-  private static final Logger logger = LoggerFactory.getLogger(WorkingFileRepositoryRestEndpoint.class);
 
-  private final MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap(getClass().getClassLoader()
-          .getResourceAsStream("mimetypes"));
+  private static final Logger logger = LoggerFactory.getLogger(WorkingFileRepositoryRestEndpoint.class);
+  private final MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap(getClass().getClassLoader().getResourceAsStream("mimetypes"));
 
   /**
    * Callback from OSGi that is called when this service is activated.
@@ -77,12 +76,11 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     docs = generateDocs(serviceUrl);
     super.activate(cc);
   }
-
   protected String docs;
   private String[] notes = {
-          "All paths above are relative to the REST endpoint base (something like http://your.server/files)",
-          "If the service is down or not working it will return a status 503, this means the the underlying service is not working and is either restarting or has failed",
-          "A status code 500 means a general failure has occurred which is not recoverable and was not anticipated. In other words, there is a bug! You should file an error report with your server logs from the time when the error occurred: <a href=\"https://issues.opencastproject.org\">Opencast Issue Tracker</a>", };
+    "All paths above are relative to the REST endpoint base (something like http://your.server/files)",
+    "If the service is down or not working it will return a status 503, this means the the underlying service is not working and is either restarting or has failed",
+    "A status code 500 means a general failure has occurred which is not recoverable and was not anticipated. In other words, there is a bug! You should file an error report with your server logs from the time when the error occurred: <a href=\"https://issues.opencastproject.org\">Opencast Issue Tracker</a>",};
 
   private String generateDocs(String serviceUrl) {
     DocRestData data = new DocRestData("workingfilerepository", "Working file repository", serviceUrl, notes);
@@ -99,6 +97,22 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     endpoint.addFormat(new Format("HTML", null, null));
     endpoint.addStatus(Status.ok("Message of successful storage with url to the stored file"));
     endpoint.addStatus(new Status(400, "No file to store, invalid file location"));
+    endpoint.setTestForm(RestTestForm.auto());
+    data.addEndpoint(RestEndpoint.Type.WRITE, endpoint);
+
+    // restPutURLEncoded
+    endpoint = new RestEndpoint("putURLEncoded", RestEndpoint.Method.POST,
+            WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX + "{mediaPackageID}/{mediaPackageElementID}/{filename}",
+            "Store a file in working repository under ./mediaPackageID/mediaPackageElementID/filename");
+    endpoint.addPathParam(new Param("mediaPackageID", Param.Type.STRING, null,
+            "ID of the media package under which file will be stored"));
+    endpoint.addPathParam(new Param("mediaPackageElementID", Param.Type.STRING, null,
+            "ID of the element under which file will be stored"));
+    endpoint.addPathParam(new Param("filename", Param.Type.STRING, null,
+            "file name under which the content will be stored"));
+    endpoint.addRequiredParam(new Param("content", Param.Type.TEXT, "", "The content to store in the file"));
+    endpoint.addFormat(new Format("HTML", null, null));
+    endpoint.addStatus(Status.ok("Message of successful storage with url to the stored file"));
     endpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.WRITE, endpoint);
 
@@ -189,8 +203,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     endpoint.addPathParam(new Param("mediaPackageID", Param.Type.STRING, null,
             "ID of the media package with desired element"));
     endpoint.addPathParam(new Param("mediaPackageElementID", Param.Type.STRING, null, "ID of desired element"));
-    endpoint
-            .addPathParam(new Param("fileName", Param.Type.STRING, null, "Name under which the file will be retrieved"));
+    endpoint.addPathParam(new Param("fileName", Param.Type.STRING, null, "Name under which the file will be retrieved"));
     // endpoint.addFormat(new Format(".*", "Data that is stored in this location", null));
     endpoint.addStatus(Status.ok("Results in a header with retrieved file"));
     endpoint.setTestForm(RestTestForm.auto());
@@ -243,13 +256,25 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     if (ServletFileUpload.isMultipartContent(request)) {
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         FileItemStream item = iter.next();
-        if (item.isFormField())
+        if (item.isFormField()) {
           continue;
+          
+        }
         URI url = this.put(mediaPackageID, mediaPackageElementID, item.getName(), item.openStream());
         return Response.ok(url.toString()).build();
       }
     }
     return Response.serverError().status(400).build();
+  }
+
+  @POST
+  @Produces(MediaType.TEXT_HTML)
+  @Path(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX + "{mediaPackageID}/{mediaPackageElementID}/{filename}")
+  public Response restPutURLEncoded(@PathParam("mediaPackageID") String mediaPackageID, @PathParam("mediaPackageElementID") String mediaPackageElementID,
+          @PathParam("filename") String filename, @FormParam("content") String content)
+          throws Exception {
+    URI url = this.put(mediaPackageID, mediaPackageElementID, filename, IOUtils.toInputStream(content));
+    return Response.ok(url.toString()).build();
   }
 
   @POST
@@ -260,8 +285,10 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     if (ServletFileUpload.isMultipartContent(request)) {
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         FileItemStream item = iter.next();
-        if (item.isFormField())
+        if (item.isFormField()) {
           continue;
+          
+        }
         URI url = this.putInCollection(collectionId, item.getName(), item.openStream());
         return Response.ok(url.toString()).build();
       }
@@ -366,8 +393,8 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
       throw new NotFoundException();
     } catch (IOException e) {
       IOUtils.closeQuietly(in);
-      logger.info("unable to get the content length for {}/{}/{}", new Object[] { mediaPackageElementID,
-              mediaPackageElementID, fileName });
+      logger.info("unable to get the content length for {}/{}/{}", new Object[]{mediaPackageElementID,
+                mediaPackageElementID, fileName});
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
   }
@@ -382,7 +409,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     try {
       contentLength = in.available();
     } catch (IOException e) {
-      logger.info("unable to get the content length for collection/{}/{}", new Object[] { collectionId, fileName });
+      logger.info("unable to get the content length for collection/{}/{}", new Object[]{collectionId, fileName});
     }
     return Response.ok().header("Content-disposition", "attachment; filename=" + fileName).header("Content-Type",
             contentType).header("Content-length", contentLength).entity(in).build();
@@ -469,7 +496,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     json.put("summary", summary);
     return Response.ok(json.toJSONString()).build();
   }
-  
+
   @GET
   @Produces(MediaType.TEXT_PLAIN)
   @Path("/baseUri")
