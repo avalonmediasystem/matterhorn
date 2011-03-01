@@ -194,6 +194,12 @@ Opencast.Watch = (function ()
         Opencast.segments_text.initialize();
         slideLength = Opencast.segments.getSlideLength();
             
+        /*
+        * 
+        * Opencast.Player.setMediaUrl sets the media, covers, resoulution, mimetype for the Videodisplay
+        * Can be used for debugging by setting the variables to point to valid data.
+        *
+        */
         Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo, PLAYERSTYLE, slideLength);
         if (mediaUrlOne !== '' && mediaUrlTwo !== '')
         {
@@ -367,7 +373,7 @@ Opencast.Watch = (function ()
      */
     function seekSegment(seconds)
     {
-        // Opencast.Player.setPlayhead(seconds);
+        //Opencast.Player.setPlayhead(seconds);
         var eventSeek = Videodisplay.seek(seconds);
     }
     
