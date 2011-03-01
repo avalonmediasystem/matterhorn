@@ -22,7 +22,7 @@ ocRecordings = new (function() {
     q : 'Any fields',
     title : 'Title',
     creator : 'Presenter',
-    seriestitle : 'Series'
+    seriestitle : 'Course/Series'
   },
   {
     contributor : 'Contributor',
