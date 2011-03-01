@@ -2,9 +2,6 @@
   <head>
     <title>Hold for review</title>
     <link rel="stylesheet" type="text/css" href="/admin/css/admin.css">
-    <link rel="stylesheet" type="text/css" href="/admin/css/oc.layout.css" />
-    <link rel="stylesheet" type="text/css" href="/admin/css/themes/oc.default.css" />
-    <link rel="stylesheet" type="text/css" href="css/pages/oc.recordings.css" />
     <style type="text/css">
       #player-container {
         clear: both;
@@ -66,7 +63,8 @@
       };
 
       var catalogUrl = '';
-      var CDmetadata = null;
+      var mediapackage = null;
+      var DCmetadata = null;
       var metadataChanged = false;
 
       var inpoint = 0;
@@ -238,7 +236,16 @@
           url: '/workflow/instance/' + id + '.xml',
           dataType: 'xml', // or XML..
           success: function(data){
-            // load metadata
+
+            // clone mediapackage for editing
+            mediapackage = ocUtils.createDoc('mediapackage', '');
+            var clone = $(data.documentElement).find("mediapackage").clone();
+            $(clone).children().appendTo($(mediapackage.documentElement));
+            $(mediapackage.documentElement).attr('id',$(clone).attr('id'));
+            $(mediapackage.documentElement).attr('start',$(clone).attr('start'));
+            $(mediapackage.documentElement).attr('duration',$(clone).attr('duration'));
+
+            // load metadata from DC xml for editing
             catalogUrl = $(data.documentElement).find("mediapackage > metadata > catalog[type='dublincore/episode'] > url").text();
             $.ajax({
               url: catalogUrl,
@@ -311,6 +318,7 @@
             });
           }
         });
+        parent.ocRecordings.adjustHoldActionPanelHeight();
       });
             
       /**
@@ -458,8 +466,9 @@
 
         if (metadataChanged) {
           if ($('#meta-title').val()) {
-            updateDCmetadata();
-            saveDCmetadata();
+            updateDCMetadata();
+            updateMediapackageMetadata();
+            saveDCMetadata();
           } else {
             alert("Field 'Title' must not be empty!");
             return;
@@ -472,6 +481,9 @@
           postData['trimin'] = getTimeInMilliseconds(trimFromData);
           //postData['trimout'] = getTimeInMilliseconds(trimToData);
           postData['newduration'] = newduration;
+          if (metadataChanged) {
+            parent.ocRecordings.Hold.changedMediaPackage = ocUtils.xmlToString(mediapackage);
+          }
           parent.ocRecordings.continueWorkflow(postData);
         }
         else {
@@ -485,23 +497,68 @@
         parent.ocRecordings.hideHoldActionUI();
       }
 
-      function updateDCmetadata() {
+      function updateDCMetadata() {
         ocUtils.log("Updating DC metadata");
-        $(DCmetadata.documentElement).children().each(function(index, elm){
-          var tagName = elm.tagName.split(/:/)[1];
-          if ($('#meta-' + tagName)) {
-            ocUtils.log('Setting ' + 'dcterms:' + tagName + ' to ' + $('#meta-' + tagName).val());
-            $(elm).text($('#meta-' + tagName).val());
+        
+        $('.oc-ui-form-field').each(function(){
+          var $field = $(this);
+          if ($field.val() != '') {
+            var $dcelm = $(DCmetadata.documentElement).find('dcterms\\:' + $field.attr('name'));
+            if ($dcelm.length != 0) {
+              ocUtils.log("updating " + $field.attr('name') + " to: " + $field.val());
+              $dcelm.text($field.val());
+            } else {
+              ocUtils.log("creating " + $field.attr('name') + " with value: " + $field.val());
+              $('<dcterms:' + $field.attr('name') + '>').text($field.val()).appendTo(DCmetadata.documentElement);
+            }
           }
         });
       }
 
-      function saveDCmetadata() {
+      // Update the MediaPackage instances metadata fields (see org.opencastproject.mediapackage.MediaPackageImpl)
+      function updateMediapackageMetadata() {
+        updateMetadataField('title','title');
+        updateMetadataField('language','language');
+        updateMetadataField('license','license');
+        updateMetadataField('subject','subject');
+        updateMetadataGroupField('creator', 'creators', 'creator');
+        updateMetadataGroupField('contributor', 'contributors', 'contributor');
+      }
+
+      function updateMetadataField(DCname, MPname) {
+        var $dcelm = $(DCmetadata.documentElement).find('dcterms\\:' + DCname);
+        if ($dcelm.length != 0) {
+          var $mpelm = $(mediapackage.documentElement).find(MPname);
+          if ($mpelm.length != 0) {
+            $mpelm.text($dcelm.text());
+          } else {
+            $('<' + MPname + '/>').text($dcelm.text()).appendTo(mediapackage.documentElement);
+          }
+        }
+      }
+
+      function updateMetadataGroupField(DCname, MPgroupname, MPname) {
+        var $dcelms = $(DCmetadata.documentElement).find('dcterms\\:' + DCname);
+        if ($dcelms.length != 0) {
+          $parent = $(mediapackage.documentElement).find(MPgroupname);
+          if ($parent.length > 0) {
+            $parent.empty();
+          } else {
+            $parent = $('<' + MPgroupname + '/>');
+            $(mediapackage.documentElement).append($parent);
+          }
+          $dcelms.each(function() {
+            $('<' + MPname + '/>').text($(this).text()).appendTo($parent);
+          });
+        }
+      }
+
+      function saveDCMetadata() {
         $.ajax({
           url: catalogUrl,
           async: false,
           type: 'post',
-          data: ocUtils.xmlToString(DCmetadata),
+          data: {content : ocUtils.xmlToString(DCmetadata)},
           error: function() {
             ocUtils.log('Failed to save DC metadata to ' + catalogUrl);
           },
@@ -558,16 +615,16 @@
       <a onclick="cancel()" title="Cancel" class="secondaryButton">Cancel</a>
     </div>
 
-    <div class="form-box layout-centered ui-widget">
+    <div class="form-box layout-centered ui-widget" style="width:680px;">
       <div class="form-box-content ui-widget-content ui-corner-all">
         <form action="">
           <ul class="oc-ui-form-list">
             <li>
-              <label class="scheduler-label" for="title" id="titleLabel"><span style="color: red;">* </span><span id="i18n_title_label">Title</span>:</label>
+              <label class="scheduler-label" for="title" id="titleLabel" style="width:15%;"><span style="color: red;">* </span><span id="i18n_title_label">Title</span>:</label>
               <input type="text" id="meta-title" name="title" class="oc-ui-form-field requiredField" maxlength="255" />
             </li>
             <li>
-              <label class="scheduler-label" for="creator" id="creatorLabel"><span id="i18n_presenter_label">Presenter</span>:</label>
+              <label class="scheduler-label" for="creator" id="creatorLabel" style="width:15%;"><span id="i18n_presenter_label">Presenter</span>:</label>
               <input type="text" class="oc-ui-form-field" name="creator" id="meta-creator" class="oc-ui-form-field"  maxlength="255"/>
             </li>
             <!-- idPartOf not in DC metadata anymore? 
@@ -577,19 +634,19 @@
               <input type="hidden" class="oc-ui-form-field" id="ispartof" name="ispartof">
             </li -->
             <li class="additionalMeta">
-              <label class="scheduler-label" for="contributor" id="contributorLabel"><span id="i18n_dept_label">Contributor</span>:</label>
+              <label class="scheduler-label" for="contributor" id="contributorLabel" style="width:15%;"><span id="i18n_dept_label">Contributor</span>:</label>
               <input type="text" class="oc-ui-form-field" name="contributor" id="meta-contributor" maxlength="255" />
             </li>
             <li class="additionalMeta">
-              <label class="scheduler-label" for="subject" id="subjectLabel"><span id="i18n_sub_label">Subject</span>:</label>
+              <label class="scheduler-label" for="subject" id="subjectLabel" style="width:15%;"><span id="i18n_sub_label">Subject</span>:</label>
               <input type="text" class="oc-ui-form-field" name="subject" id="meta-subject" maxlength="255" />
             </li>
             <li class="additionalMeta">
-              <label class="scheduler-label" for="language" id="languageLabel"><span id="i18n_lang_label">Language</span>:</label>
+              <label class="scheduler-label" for="language" id="languageLabel" style="width:15%;"><span id="i18n_lang_label">Language</span>:</label>
               <input type="text" class="oc-ui-form-field" name="language" id="meta-language" maxlength="255" />
             </li>
             <li class="additionalMeta">
-              <label class="scheduler-label" for="description" id="descriptionLabel"><span id="i18n_desc_label">Description</span>:</label>
+              <label class="scheduler-label" for="description" id="descriptionLabel" style="width:15%;"><span id="i18n_desc_label">Description</span>:</label>
               <textarea name="description" id="meta-description" class="oc-ui-form-field" rows="5" cols="10"></textarea>
             </li>
           </ul>
