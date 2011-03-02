@@ -122,11 +122,11 @@ Opencast.Analytics = (function ()
                             if($.browser.webkit || $.browser.msie)
                             {
                                 $(".segments").css('top', '-25px');
-                                $('#oc_video-view').css('top', '-23px');
-                            } else // if($.browser.opera)
+                                $('#oc_video-view').css('top', '-22px');
+                            } else
                             {
                                 $(".segments").css('top', '-25px');
-                                $('#oc_video-view').css('top', '-22px');                            
+                                $('#oc_video-view').css('top', '-21px');                            
                             }
                             $('#segmentstable1').css('opacity', '0.65');
                             $('#segmentstable1').css('filter', 'alpha(opacity=65)');
