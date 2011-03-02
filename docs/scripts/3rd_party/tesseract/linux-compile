@@ -20,18 +20,21 @@ gzip -dc "$pkg1" | tar -xv
 [ ${PIPESTATUS[0]} -ne 0 -o ${PIPESTATUS[1]} -ne 0 ] && exit 1
 mv "$dir" "${dir}-linux"
 [ $? -ne 0 ] && exit 1
-cd "${dir}-linux"
-[ $? -ne 0 ] && exit 1
-gzip -dc "../$pkg2" | tar -xv
-[ ${PIPESTATUS[0]} -ne 0 -o ${PIPESTATUS[1]} -ne 0 ] && exit 1
 #
-cp ../svutil.cpp viewer
+cd "${dir}-linux/tessdata"
+[ $? -ne 0 ] && exit 1
+cp "../../$pkg2" .
+[ $? -ne 0 ] && exit 1
+gzip -d "$pkg2"
+[ $? -ne 0 ] && exit 1
+cd ..
 [ $? -ne 0 ] && exit 1
 #
-./configure
+./configure LIBS=-lgif
 [ $? -ne 0 ] && exit 1
 make
 [ $? -ne 0 ] && exit 1
+#
 sudox make install
 [ $? -ne 0 ] && exit 1
 #
