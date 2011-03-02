@@ -81,7 +81,7 @@ public class CaptureAgentImplTest {
 
     Properties p = loadProperties("config/capture.properties");
     p.put("org.opencastproject.storage.dir",
-            new File(System.getProperty("java.io.tmpdir"), "capture-agent-test").getAbsolutePath());
+            new File("./target", "capture-agent-test").getAbsolutePath());
     p.put("org.opencastproject.server.url", "http://localhost:8080");
     p.put(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, -1);
     p.put("M2_REPO", getClass().getClassLoader().getResource("m2_repo").getFile());
@@ -111,7 +111,6 @@ public class CaptureAgentImplTest {
     config.deactivate();
     config = null;
     properties = null;
-    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "capture-agent-test"));
   }
 
   private XProperties loadProperties(String location) throws IOException {
@@ -526,7 +525,7 @@ public class CaptureAgentImplTest {
   private Properties setupConfigurationManagerProperties() throws IOException {
     Properties p = loadProperties("config/capture.properties");
     p.put("org.opencastproject.storage.dir",
-            new File(System.getProperty("java.io.tmpdir"), "capture-agent-test").getAbsolutePath());
+            new File("./target/", "capture-agent-test").getAbsolutePath());
     p.put("org.opencastproject.server.url", "http://localhost:8080");
     p.put(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, -1);
     p.put("M2_REPO", getClass().getClassLoader().getResource("m2_repo").getFile());

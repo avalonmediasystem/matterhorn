@@ -52,7 +52,7 @@ public class RecordingImplTest {
     sourceProps.load(is);
     IOUtils.closeQuietly(is);
 
-    testDir = new File(System.getProperty("java.io.tmpdir"), "recording-test");
+    testDir = new File("./target", "recording-test");
     configManager.setItem("org.opencastproject.storage.dir", testDir.getAbsolutePath());
     configManager.setItem("org.opencastproject.server.url", "http://localhost:8080");
     configManager.updated(sourceProps);

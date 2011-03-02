@@ -47,7 +47,7 @@ public class EpiphanVGA2USBV4LSubPngBinTest extends EpiphanVGA2USBV4LTest {
       return;
 
     // create fallback image mock
-    File imageMock = new File(System.getProperty("java.io.tmpdir"), "testpipe/fallback.png");
+    File imageMock = new File("./target", "testpipe/fallback.png");
     imageMock.createNewFile();
     imageMockPath = imageMock.getAbsolutePath();
 

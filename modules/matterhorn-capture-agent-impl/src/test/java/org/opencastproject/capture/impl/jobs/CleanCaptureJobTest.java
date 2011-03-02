@@ -57,7 +57,7 @@ public class CleanCaptureJobTest {
     // Define particular instances for the CleanCaptureJob required arguments
     props = new XProperties();
     props.setProperty(CaptureParameters.CAPTURE_FILESYSTEM_CAPTURE_CACHE_URL,
-            new File(System.getProperty("java.io.tmpdir"), "clean-capture-test").getCanonicalPath());
+            new File("./target", "clean-capture-test").getCanonicalPath());
     theJob = new CleanCaptureJob();
     theRecordings = new Vector<AgentRecording>();
 

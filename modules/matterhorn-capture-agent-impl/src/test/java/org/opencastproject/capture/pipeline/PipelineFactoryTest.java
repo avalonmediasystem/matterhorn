@@ -57,7 +57,7 @@ public class PipelineFactoryTest {
   private Pipeline testPipeline;
   private static boolean gstreamerInstalled;
   private Properties properties;
-  private File fakeCaptureDevice = new File(System.getProperty("java.io.tmpdir"), "fakeCapture");
+  private File fakeCaptureDevice = new File("./target", "fakeCapture");
   private int numberOfProducers;
   private String deviceNames;
 
@@ -121,7 +121,7 @@ public class PipelineFactoryTest {
   @Before
   public void setupTest() throws IOException {
     properties = new Properties();
-    File testCaptureDirectory = new File(System.getProperty("java.io.tmpdir"), "pipeline-factory-test");
+    File testCaptureDirectory = new File("./target", "pipeline-factory-test");
     FileUtils.forceMkdir(testCaptureDirectory);
     Assert.assertTrue("Can't read from test directory " + testCaptureDirectory.getAbsolutePath(),
             testCaptureDirectory.canRead());
@@ -137,8 +137,8 @@ public class PipelineFactoryTest {
   @After
   public void tearDownTest() {
     properties = null;
-    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "pipeline-factory-test"));
-    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "fakeCapture"));
+    FileUtils.deleteQuietly(new File("./target", "pipeline-factory-test"));
+    FileUtils.deleteQuietly(new File("./target", "fakeCapture"));
   }
 
   @Test
@@ -186,7 +186,7 @@ public class PipelineFactoryTest {
       Assert.fail();
     }
     p.put("org.opencastproject.storage.dir",
-            new File(System.getProperty("java.io.tmpdir"), "capture-agent-test").getAbsolutePath());
+            new File("./target", "capture-agent-test").getAbsolutePath());
     p.put("org.opencastproject.server.url", "http://localhost:8080");
     p.put(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, -1);
     p.put("M2_REPO", getClass().getClassLoader().getResource("m2_repo").getFile());

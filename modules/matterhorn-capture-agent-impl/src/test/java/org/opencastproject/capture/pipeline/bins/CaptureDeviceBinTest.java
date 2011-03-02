@@ -65,7 +65,7 @@ public class CaptureDeviceBinTest {
   /** Logging facility */
   private static final Logger logger = LoggerFactory.getLogger(CaptureDeviceBinTest.class);
 
-  private static String tempDirectory = System.getProperty("java.io.tmpdir") + "/CaptureDeviceBinTest";
+  private static String tempDirectory =  "./target/CaptureDeviceBinTest";
 
   private Properties captureDeviceProperties;
 

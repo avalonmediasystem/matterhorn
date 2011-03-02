@@ -22,7 +22,6 @@ import org.opencastproject.capture.api.ScheduledEvent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -83,8 +82,7 @@ public class SchedulerImplTest {
     // If we don't have it then the locations get turned into /tmp/valid-whatever/demo_capture_agent
     configurationManager.setItem(CaptureParameters.AGENT_NAME, "");
     configurationManager.setItem(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, "60");
-    configurationManager.setItem("org.opencastproject.storage.dir", new File(System.getProperty("java.io.tmpdir"),
-            "capture-sched-test").getAbsolutePath());
+    configurationManager.setItem("org.opencastproject.storage.dir", new File("./target", "capture-sched-test").getAbsolutePath());
     configurationManager.setItem("org.opencastproject.server.url", "http://localhost:8080");
     configurationManager.setItem("M2_REPO", getClass().getClassLoader().getResource("m2_repo").getFile());
   }
@@ -115,11 +113,6 @@ public class SchedulerImplTest {
     } catch (ConfigurationException e) {
       Assert.fail(e.getMessage());
     }
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "capture-sched-test"));
   }
 
   @After
@@ -762,7 +755,6 @@ public class SchedulerImplTest {
     captureAgentImpl.activate(null);
     schedulerImpl = new SchedulerImpl(schedulerProperties, configurationManager, captureAgentImpl);
     Assert.assertEquals(2, schedulerImpl.getCaptureSchedule().length);
-    tearDownFakeMediaPackage();
   }
   
   @Test
@@ -775,7 +767,6 @@ public class SchedulerImplTest {
     captureAgentImpl.activate(null);
     schedulerImpl = new SchedulerImpl(schedulerProperties, configurationManager, captureAgentImpl);
     Assert.assertEquals(1, schedulerImpl.getCaptureSchedule().length);
-    tearDownFakeMediaPackage();
   }
   
   private XProperties loadProperties(String location) throws IOException {
@@ -792,13 +783,12 @@ public class SchedulerImplTest {
     String directory = "scheduler-restart-test";
     // Create the configuration manager
     configurationManager = new ConfigurationManager();
-    // Setup the configuration manager with a tmp storage directory. 
+    // Setup the configuration manager with a tmp storage directory.
+    File recordingDir = new File("./target", directory);
     Properties p;
     try {
       p = loadProperties("config/capture.properties");
-      
-      p.put(CaptureParameters.RECORDING_ROOT_URL,
-              new File(System.getProperty("java.io.tmpdir"), directory).getAbsolutePath());
+      p.put(CaptureParameters.RECORDING_ROOT_URL, recordingDir.getAbsolutePath());
       p.put(CaptureParameters.RECORDING_ID, "2nd-Capture");
       p.put("org.opencastproject.server.url", "http://localhost:8080");
       p.put(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, -1);
@@ -813,7 +803,7 @@ public class SchedulerImplTest {
       Assert.fail();
     }
     
-    File uidFile = new File(System.getProperty("java.io.tmpdir") + directory, "2nd-Capture");
+    File uidFile = new File(recordingDir, "2nd-Capture");
     try {
       FileUtils.forceMkdir(uidFile);
       FileUtils.touch(new File(uidFile.getAbsolutePath(), "episode.xml"));
@@ -829,7 +819,7 @@ public class SchedulerImplTest {
   public void setupFakeMediaPackageWithMediaFiles() {
     String directory = "scheduler-restart-test";
     setupFakeMediaPackageWithoutMediaFiles();
-    File uidFile = new File(System.getProperty("java.io.tmpdir") + directory, "2nd-Capture");
+    File uidFile = new File("./target/" + directory, "2nd-Capture");
     try {
       FileUtils.forceMkdir(uidFile);
       FileUtils.touch(new File(uidFile.getAbsolutePath(), "screen_out.mpg"));
@@ -838,10 +828,6 @@ public class SchedulerImplTest {
     } catch (IOException e) {
       e.printStackTrace();
     }
-  }
-  
-  public void tearDownFakeMediaPackage() {
-    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "scheduler-restart-test"));
   }
   
   @Test

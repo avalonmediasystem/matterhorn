@@ -90,7 +90,7 @@ public abstract class EpiphanVGA2USBV4LTest {
       return;
     }
 
-    File tmpDir = new File(System.getProperty("java.io.tmpdir"), "testpipe");
+    File tmpDir = new File("./target", "testpipe");
     if (!tmpDir.exists())
       tmpDir.mkdir();
 
@@ -115,7 +115,7 @@ public abstract class EpiphanVGA2USBV4LTest {
 
     properties = null;
     captureDevice = null;
-    FileUtils.deleteQuietly(new File(System.getProperty("java.io.tmpdir"), "testpipe"));
+    FileUtils.deleteQuietly(new File("./target", "testpipe"));
   }
 
   /**
