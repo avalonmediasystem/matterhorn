@@ -217,7 +217,7 @@ install_prog() {
           esac
           ;;
         * )
-          echo "Don't know how to install $1 on `os`"
+          echo "Don't know how to install $1 on `os`" 1>&2
           return 1
           ;;
       esac
@@ -301,6 +301,16 @@ install_macports() {
   [ $? -ne 0 ] && return 1
 # sudox port -v selfupdate
 # [ $? -ne 0 -a $? -ne 25 ] && return 1
+  return 0
+}
+#
+macports_version() {
+  port version | awk '{ n = split($2, a, "."); v = 0;
+    if (n == 1) { v = a[1] * 100; }
+    else if (n == 2) { v = a[1] * 100 + a[2] * 10; }
+    else if (n == 3) { v = a[1] * 100 + a[2] * 10 + a[3]; }
+    print v }'
+  [ ${PIPESTATUS[0]} -ne 0 -o ${PIPESTATUS[1]} -ne 0 ] && return 1
   return 0
 }
 #
@@ -448,6 +458,10 @@ check_prereq() {
       ;;
     MacOS )
       chkprog port  || install_macports   || return 1
+      if [ `macports_version` -lt 192 ]; then
+        echo "Mac ports version is too old - should be at least 1.9.2 or greater" 1>&2
+        return 1
+      fi
       #
       LOGFILE=`mktemp /tmp/${0##*/}-patch.log.XXXXX`
       sudox patch -N /opt/local/etc/macports/sources.conf "${HOME3P}/sources.conf.patch" 2>&1 | tee $LOGFILE
@@ -623,7 +637,7 @@ fix_libs() {
 EOF
         [ $? -ne 0 ] && return 1
         if [ -s /etc/ld.so.conf.d/local.conf ]; then
-          echo "File /etc/ld.so.conf.d/local.conf already exists"
+          echo "File /etc/ld.so.conf.d/local.conf already exists" 1>&2
           rm -f local.conf
           return 1
         fi
@@ -691,7 +705,7 @@ EOF
 EOF
         [ $? -ne 0 ] && return 1
         if [ -s /etc/ld.so.conf.d/local.conf ]; then
-          echo "File /etc/ld.so.conf.d/local.conf already exists"
+          echo "File /etc/ld.so.conf.d/local.conf already exists" 1>&2
           rm -f local.conf
           return 1
         fi
@@ -719,7 +733,7 @@ case `os` in
   CentOS | RHEL | Ubuntu | Debian | openSUSE | Amazon | MacOS )
     ;;
   * )
-    echo "Unsupported operating system: `os`"
+    echo "Unsupported operating system: `os`" 1>&2
     exit 1
     ;;
 esac
@@ -728,7 +742,7 @@ case `arch` in
   i386 | x86_64 )
     ;;
   * )
-    echo "Unsupported architecture: `arch`"
+    echo "Unsupported architecture: `arch`" 1>&2
     exit 1
     ;;
 esac

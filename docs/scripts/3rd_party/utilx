@@ -87,7 +87,7 @@ os() {
 chkprog() {
   which "$1" >/dev/null 2>&1
   if [ $? -ne 0 ]; then
-    echo "$1 is missing"
+    echo "$1 is missing" 1>&2
     return 1
   fi
   return 0
@@ -110,13 +110,13 @@ chklib() {
       for dir in /lib64 /usr/lib64 /lib64/tls /lib64/i686 /lib64/tls/i686 /usr/lib64/sse2 /usr/lib64/tls; do
         [ -s "$dir/lib$1.so" ] && return 0
       done
-      echo "lib$1.so is missing"
+      echo "lib$1.so is missing" 1>&2
       ;;
     Darwin )
       for dir in /lib /usr/lib /opt/local/lib /usr/local/lib ~/lib; do
         [ -s "$dir/lib$1.dylib" ] && return 0
       done
-      echo "lib$1.dylib is missing"
+      echo "lib$1.dylib is missing" 1>&2
       ;;
   esac
   return 1
@@ -228,7 +228,7 @@ copypkg() {
 chkpkg() {
   set +x
   if [ ! -s "$1" ]; then
-    echo "File $1 is missing - download it first!"
+    echo "File $1 is missing - download it first!" 1>&2
     set -x
     return 1
   fi
@@ -253,7 +253,7 @@ download() {
         for url in `getcfg URL${ii}:`; do
           pkg=`getcfg PKG${ii}:`
           if [ -z "$pkg" ]; then
-            echo "PKG${ii} not defined for URL${ii}: $url"
+            echo "PKG${ii} not defined for URL${ii}: $url" 1>&2
             continue
           fi
           if [ ! -f "$pkg" ]; then
@@ -270,7 +270,7 @@ download() {
           if [ -n "$sha" ]; then
             shax=`shasumx "$pkg"`
             if [ "$shax" != "$sha" ]; then
-              echo "Error transferring PKG${ii}: $pkg"
+              echo "Error transferring PKG${ii}: $pkg" 1>&2
               return 1
             fi
           fi
@@ -345,7 +345,7 @@ compile() {
     MacOS-mac ) ;;
     MacOS-ports ) ;;
     * )
-      echo "Don't know how to compile $1 for \"$2\" on $OS"
+      echo "Don't know how to compile $1 for \"$2\" on $OS" 1>&2
       set -x
       return 1
       ;;
