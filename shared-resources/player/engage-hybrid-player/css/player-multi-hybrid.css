@@ -625,16 +625,16 @@ option:hover
 .progress-segment
 {
   border-bottom-color:      #BDBDBD;
-  border-bottom-style:      solid;
+  border-bottom-style:      none;
   border-bottom-width:      1px;
   border-top-color:         #EAEAEA;
-  border-top-style:         solid;
+  border-top-style:         none;
   border-top-width:         1px;
   border-left-color:        #EAEAEA;
-  border-left-style:        solid;
+  border-left-style:        none;
   border-left-width:        1px;
   border-right-color:       #EAEAEA;
-  border-right-style:       solid;
+  border-right-style:       none;
   border-right-width:       1px;
   border-left-color-ltr-source:physical;
   border-left-color-rtl-source:physical;
@@ -677,9 +677,17 @@ option:hover
   margin-left:              -4px;
 }
 
-#draggable:focus
+img
 {
-	outline: 2px solid #FA6E23;
+    border: none;
+}
+
+#draggable :focus
+{
+	/* outline: 2px solid #FA6E23; */
+	border: none;
+	outline: none;
+    -moz-outline-style: none;
 }
 
 #divToolTip
@@ -754,6 +762,7 @@ option:hover
 {
   background-color:         #FFFFFF;
   height:                   6px;
+  margin-top:               -1px;
 }
 
 .load-progress

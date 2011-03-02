@@ -354,6 +354,12 @@ table
   z-index:                  2;
   margin-left:              -4px;
   left:                     0;
+  display:                  none;
+}
+
+img
+{
+    border: none;
 }
 
 #draggable 
@@ -368,6 +374,14 @@ table
   z-index:                  3;
   margin-left:              -4px;
   left:                     0;
+}
+
+#draggable :focus
+{
+	/* outline: 2px solid #FA6E23; */
+	border: none;
+	outline: none;
+    -moz-outline-style: none;
 }
 
 .progress-segment 
@@ -397,6 +411,7 @@ table
 {
   background-color:         #FFFFFF;
   height:                   6px;
+  margin-top:               -1px;
 }
 
 .load-progress 
