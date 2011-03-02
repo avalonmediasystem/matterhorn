@@ -37,6 +37,9 @@ make
 #
 sudox make install
 [ $? -ne 0 ] && exit 1
+# Needed for tesseract shared libs
+sudox /sbin/ldconfig
+[ $? -ne 0 ] && exit 1
 #
 touch ../.done-linux
 [ $? -ne 0 ] && exit 1
