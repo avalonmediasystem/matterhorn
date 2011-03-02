@@ -18,8 +18,8 @@ package org.opencastproject.analysis.text;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.opencastproject.textanalyzer.impl.ocropus.OcropusTextAnalyzer;
-import org.opencastproject.textanalyzer.impl.ocropus.OcropusTextFrame;
+import org.opencastproject.textextractor.ocropus.OcropusTextExtractor;
+import org.opencastproject.textextractor.ocropus.OcropusTextFrame;
 import org.opencastproject.util.IoSupport;
 import org.opencastproject.util.StreamHelper;
 
@@ -35,9 +35,9 @@ import java.io.File;
 import java.net.URL;
 
 /**
- * Test case for class {@link OcropusTextAnalyzer}.
+ * Test case for class {@link OcropusTextExtractor}.
  */
-public class OcropusTextAnalyzerTest {
+public class OcropusTextExtractorTest {
 
   /** Path to the test image */
   protected String testPath = "/image.jpg";
@@ -46,10 +46,10 @@ public class OcropusTextAnalyzerTest {
   protected File testFile = null;
 
   /** Path to the ocropus binary */
-  protected static String ocropusbinary = OcropusTextAnalyzer.OCROPUS_BINARY_DEFAULT;
+  protected static String ocropusbinary = OcropusTextExtractor.OCROPUS_BINARY_DEFAULT;
 
   /** The ocropus text analyzer */
-  protected OcropusTextAnalyzer analyzer = null;
+  protected OcropusTextExtractor extractor = null;
   
   /** The text without punctuation */
   protected String text = "Land and Vegetation Key players on the";
@@ -58,7 +58,7 @@ public class OcropusTextAnalyzerTest {
   private static boolean ocropusInstalled = true;
   
   /** Logging facility */
-  private static final Logger logger = LoggerFactory.getLogger(OcropusTextAnalyzerTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(OcropusTextExtractorTest.class);
 
   @BeforeClass
   public static void testOcropus() {
@@ -89,7 +89,7 @@ public class OcropusTextAnalyzerTest {
     URL imageUrl = this.getClass().getResource(testPath);
     testFile = File.createTempFile("ocrtest", ".jpg");
     FileUtils.copyURLToFile(imageUrl, testFile);
-    analyzer = new OcropusTextAnalyzer(ocropusbinary);
+    extractor = new OcropusTextExtractor(ocropusbinary);
   }
 
   /**
@@ -101,15 +101,15 @@ public class OcropusTextAnalyzerTest {
   }
 
   /**
-   * Test method for {@link org.opencastproject.textanalyzer.impl.ocropus.OcropusTextAnalyzer#getBinary()}.
+   * Test method for {@link org.opencastproject.textextractor.ocropus.OcropusTextExtractor#getBinary()}.
    */
   @Test
   public void testGetBinary() {
-    assertEquals(ocropusbinary, analyzer.getBinary());
+    assertEquals(ocropusbinary, extractor.getBinary());
   }
 
   /**
-   * Test method for {@link org.opencastproject.textanalyzer.impl.ocropus.OcropusTextAnalyzer#analyze(java.io.File)}.
+   * Test method for {@link org.opencastproject.textextractor.ocropus.OcropusTextExtractor#analyze(java.io.File)}.
    */
   @Test
   public void testAnalyze() throws Exception {
@@ -118,7 +118,7 @@ public class OcropusTextAnalyzerTest {
     
     if (!new File(ocropusbinary).exists())
       return;
-    OcropusTextFrame frame = analyzer.analyze(testFile);
+    OcropusTextFrame frame = extractor.extract(testFile);
     assertTrue(frame.hasText());
     assertEquals(text, frame.getLines()[0].getText());
   }

@@ -13,7 +13,9 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.textanalyzer.impl.ocropus;
+package org.opencastproject.textextractor.ocropus;
+
+import org.opencastproject.textextractor.api.TextFrame;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -33,13 +35,13 @@ import java.util.regex.Pattern;
  * This class represents an ocropus output frame that holds a number of lines found on an image along with several
  * formatting information for priority calculation.
  */
-public class OcropusTextFrame {
+public class OcropusTextFrame implements TextFrame {
 
   /** Logging facility */
   private static final Logger logger = LoggerFactory.getLogger(OcropusTextFrame.class);
 
   /** Words found on an output frame */
-  protected ArrayList<OcropusLine> lines = new ArrayList<OcropusLine>();
+  protected ArrayList<OcropusTextLine> lines = new ArrayList<OcropusTextLine>();
 
   /**
    * Parses the ocropus output file and extracts the text information contained therein.
@@ -86,7 +88,7 @@ public class OcropusTextFrame {
       if (words.size() == 0) {
         continue;
       }
-      OcropusLine ocrLine = new OcropusLine(words.toArray(new String[words.size()]), textBoundaries);
+      OcropusTextLine ocrLine = new OcropusTextLine(words.toArray(new String[words.size()]), textBoundaries);
       textFrame.lines.add(ocrLine);
     }
 
@@ -107,8 +109,8 @@ public class OcropusTextFrame {
    * 
    * @return the lines
    */
-  public OcropusLine[] getLines() {
-    return lines.toArray(new OcropusLine[lines.size()]);
+  public OcropusTextLine[] getLines() {
+    return lines.toArray(new OcropusTextLine[lines.size()]);
   }
 
 }

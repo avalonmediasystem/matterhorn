@@ -13,7 +13,9 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.textanalyzer.impl.ocropus;
+package org.opencastproject.textextractor.ocropus;
+
+import org.opencastproject.textextractor.api.TextLine;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -22,7 +24,7 @@ import java.awt.Rectangle;
 /**
  * Representation of a line of text extracted from an image.
  */
-public class OcropusLine {
+public class OcropusTextLine implements TextLine {
 
   /** The text */
   protected String text = null;
@@ -38,7 +40,7 @@ public class OcropusLine {
    * @param box
    *          the text's location and boundaries
    */
-  public OcropusLine(String word, Rectangle box) {
+  public OcropusTextLine(String word, Rectangle box) {
     this.text = word;
     this.boundingBox = box;
   }
@@ -51,7 +53,7 @@ public class OcropusLine {
    * @param box
    *          the line's location and boundaries
    */
-  public OcropusLine(String[] words, Rectangle box) {
+  public OcropusTextLine(String[] words, Rectangle box) {
     this(StringUtils.join(words, ' '), box);
   }
 
@@ -73,6 +75,16 @@ public class OcropusLine {
    */
   public Rectangle getBoundaries() {
     return boundingBox;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see java.lang.Object#toString()
+   */
+  @Override
+  public String toString() {
+    return text;
   }
 
 }

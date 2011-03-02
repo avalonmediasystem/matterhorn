@@ -19,46 +19,31 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.opencastproject.textanalyzer.impl.ocropus.OcropusTextFrame;
+import org.opencastproject.textextractor.api.TextFrame;
+import org.opencastproject.textextractor.tesseract.TesseractTextFrame;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.awt.Rectangle;
 import java.io.InputStream;
 
 /**
- * Test case for class {@link OcropusTextFrame}.
+ * Test case for class {@link TesseractTextFrame}.
  */
-public class OcropusTextFrameTest {
+public class TesseractTextFrameTest {
 
   /** Path to the test frame */
-  protected String testFile = "/ocropus.html";
+  protected String testFile = "/image.txt";
 
   /** The test frame */
-  protected OcropusTextFrame textFrame = null;
+  protected TextFrame textFrame = null;
   
   /** The text without punctuation */
   protected String text = "Land and Vegetation Key players on the";
   
   /** Number of lines on the frame */
   protected int linesOnFrame = 2;
-  
-  /** Top boundary coordinate */
-  protected int top = 46;
-
-  /** Left boundary coordinate */
-  protected int left = 5;
-
-  /** Boundary width */
-  protected int width = 291;
-
-  /** Boundary height */
-  protected int height = 20;
-
-  /** Text boundaries */
-  protected Rectangle textBoundaries = new Rectangle(left, top, width, height);
   
   /**
    * @throws java.lang.Exception
@@ -68,29 +53,28 @@ public class OcropusTextFrameTest {
     InputStream is = null;
     try {
       is = getClass().getResourceAsStream(testFile);
-      textFrame = OcropusTextFrame.parse(is);
+      textFrame = TesseractTextFrame.parse(is);
     } finally {
       IOUtils.closeQuietly(is);
     }
   }
 
   /**
-   * Test method for {@link org.opencastproject.textanalyzer.impl.ocropus.OcropusTextFrame#getLines()}.
+   * Test method for {@link org.opencastproject.textextractor.tesseract.TesseractTextFrame#getLines()}.
    */
   @Test
   public void testGetText() {
     assertEquals(linesOnFrame, textFrame.getLines().length);
     assertEquals(text, textFrame.getLines()[0].getText());
-    assertEquals(textBoundaries, textFrame.getLines()[0].getBoundaries());
   }
 
   /**
-   * Test method for {@link org.opencastproject.textanalyzer.impl.ocropus.OcropusTextFrame#hasText()}.
+   * Test method for {@link org.opencastproject.textextractor.tesseract.TesseractTextFrame#hasText()}.
    */
   @Test
   public void testHasText() {
     assertTrue(textFrame.hasText());
-    assertFalse((new OcropusTextFrame()).hasText());
+    assertFalse((new TesseractTextFrame()).hasText());
   }
 
 }

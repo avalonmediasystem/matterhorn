@@ -17,61 +17,37 @@ package org.opencastproject.analysis.text;
 
 import static org.junit.Assert.assertEquals;
 
-import org.opencastproject.textanalyzer.impl.ocropus.OcropusLine;
+import org.opencastproject.textextractor.api.TextLine;
+import org.opencastproject.textextractor.tesseract.TesseractLine;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import java.awt.Rectangle;
-
 /**
- * Test case for class {@link OcropusLine}.
+ * Test case for class {@link TesseractLine}.
  */
-public class OcropusTextTest {
+public class TesseractTextLineTest {
 
   /** The text item */
-  protected OcropusLine textItem = null;
-  
+  protected TextLine textItem = null;
+
   /** The text */
   protected String text = "Hello world";
-  
-  /** Top boundary coordinate */
-  protected int top = 10;
-
-  /** Left boundary coordinate */
-  protected int left = 20;
-
-  /** Boundary width */
-  protected int width = 110;
-
-  /** Boundary height */
-  protected int height = 60;
-
-  /** Text boundaries */
-  protected Rectangle textBoundaries = new Rectangle(left, top, width, height);
 
   /**
    * @throws java.lang.Exception
    */
   @Before
   public void setUp() throws Exception {
-    textItem = new OcropusLine(text, textBoundaries);
+    textItem = new TesseractLine(text);
   }
 
   /**
-   * Test method for {@link org.opencastproject.textanalyzer.impl.ocropus.OcropusLine#getText()}.
+   * Test method for {@link org.opencastproject.textextractor.tesseract.TesseractLine#getText()}.
    */
   @Test
   public void testGetText() {
     assertEquals(text, textItem.getText());
-  }
-
-  /**
-   * Test method for {@link org.opencastproject.textanalyzer.impl.ocropus.OcropusLine#getBoundaries()}.
-   */
-  @Test
-  public void testGetBoundaries() {
-    assertEquals(textBoundaries, textItem.getBoundaries());
   }
 
 }

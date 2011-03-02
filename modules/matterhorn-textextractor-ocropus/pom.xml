@@ -2,9 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.opencastproject</groupId>
-  <artifactId>matterhorn-textanalyzer-api</artifactId>
+  <artifactId>matterhorn-textextractor-ocropus</artifactId>
   <packaging>bundle</packaging>
-  <name>matterhorn-textanalyzer-api</name>
+  <name>matterhorn-textextractor-ocropus</name>
   <version>1.1-SNAPSHOT</version>
   <parent>
     <groupId>org.opencastproject</groupId>
@@ -17,25 +17,58 @@
     <checkstyle.skip>false</checkstyle.skip>
   </properties>
   <dependencies>
+
+    <!-- Matterhorn dependencies -->
+
     <dependency>
       <groupId>org.opencastproject</groupId>
-      <artifactId>matterhorn-common</artifactId>
+      <artifactId>matterhorn-textanalyzer-api</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!--  Thirdparty dependencies -->
+
     <dependency>
-      <groupId>org.opencastproject</groupId>
-      <artifactId>matterhorn-mpeg7</artifactId>
-      <version>${project.version}</version>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>2.5.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
+    </dependency>
+
+    <!-- Testing -->
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
+
   </dependencies>
   <build>
     <plugins>
@@ -48,9 +81,11 @@
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Export-Package>
-              org.opencastproject.textanalyzer.api;version=${project.version},
-              org.opencastproject.textextractor.api;version=${project.version}
+              org.opencastproject.textextractor.ocropus;version=${project.version}
             </Export-Package>
+            <Service-Component>
+              OSGI-INF/ocropus.xml
+            </Service-Component>
           </instructions>
         </configuration>
       </plugin>

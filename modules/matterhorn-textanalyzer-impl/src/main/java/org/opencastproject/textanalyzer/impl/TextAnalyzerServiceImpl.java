@@ -41,14 +41,14 @@ import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.textanalyzer.api.TextAnalyzerException;
 import org.opencastproject.textanalyzer.api.TextAnalyzerService;
-import org.opencastproject.textanalyzer.impl.ocropus.OcropusLine;
-import org.opencastproject.textanalyzer.impl.ocropus.OcropusTextAnalyzer;
-import org.opencastproject.textanalyzer.impl.ocropus.OcropusTextFrame;
+import org.opencastproject.textextractor.api.TextExtractor;
+import org.opencastproject.textextractor.api.TextExtractorException;
+import org.opencastproject.textextractor.api.TextFrame;
+import org.opencastproject.textextractor.api.TextLine;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workspace.api.Workspace;
 
 import org.apache.commons.lang.StringUtils;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +75,9 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
   /** Resulting collection in the working file repository */
   public static final String COLLECTION_ID = "ocrtext";
 
+  /** The text extraction implemenetation */
+  private TextExtractor textExtractor = null;
+
   /** Reference to the receipt service */
   private ServiceRegistry serviceRegistry = null;
 
@@ -87,19 +90,11 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
   /** The dictionary service */
   protected DictionaryService dictionaryService;
 
-  /** Path to the ocropus binary */
-  private String ocropusbinary = OcropusTextAnalyzer.OCROPUS_BINARY_DEFAULT;
-
   /**
    * Creates a new instance of the text analyzer service.
    */
   public TextAnalyzerServiceImpl() {
     super(JOB_TYPE);
-  }
-
-  protected void activate(ComponentContext cc) {
-    if (cc.getBundleContext().getProperty("org.opencastproject.textanalyzer.ocrocmd") != null)
-      ocropusbinary = (String) cc.getBundleContext().getProperty("org.opencastproject.textanalyzer.ocrocmd");
   }
 
   /**
@@ -200,7 +195,7 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
   protected String process(Job job) throws Exception {
     Operation op = null;
     String operation = job.getOperation();
-    List<String> arguments = job.getArguments(); 
+    List<String> arguments = job.getArguments();
     try {
       op = Operation.valueOf(operation);
       switch (op) {
@@ -241,10 +236,19 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
     }
 
     List<VideoText> videoTexts = new ArrayList<VideoText>();
-    OcropusTextAnalyzer analyzer = new OcropusTextAnalyzer(ocropusbinary);
-    OcropusTextFrame textFrame = analyzer.analyze(imageFile);
+    TextFrame textFrame = null;
+    try {
+      textFrame = textExtractor.extract(imageFile);
+    } catch (IOException e) {
+      logger.warn("Error reading image file {}: {}", imageFile, e.getMessage());
+      throw new TextAnalyzerException(e);
+    } catch (TextExtractorException e) {
+      logger.warn("Error extracting text from {}: {}", imageFile, e.getMessage());
+      throw new TextAnalyzerException(e);
+    }
+    
     int i = 1;
-    for (OcropusLine line : textFrame.getLines()) {
+    for (TextLine line : textFrame.getLines()) {
       VideoText videoText = new VideoTextImpl(id + "-" + i++);
       videoText.setBoundary(line.getBoundaries());
       Textual text = null;
@@ -305,6 +309,16 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
   @Override
   protected ServiceRegistry getServiceRegistry() {
     return serviceRegistry;
+  }
+
+  /**
+   * Sets the text extractor.
+   * 
+   * @param textExtractor
+   *          a text extractor implementation
+   */
+  protected void setTextExtractor(TextExtractor textExtractor) {
+    this.textExtractor = textExtractor;
   }
 
   /**
