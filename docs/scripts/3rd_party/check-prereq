@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x
-source  "${HOME3P}/utilx"
+source "${HOME3P}/utilx"
 [ $? -ne 0 ] && exit 1
 #
 install_rpms() {
