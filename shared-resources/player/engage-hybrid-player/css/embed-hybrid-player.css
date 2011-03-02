@@ -376,12 +376,11 @@ img
   left:                     0;
 }
 
-#draggable :focus
+button::-moz-focus-inner,
+input::-moz-focus-inner,
+#draggable::-moz-focus-inner
 {
-	/* outline: 2px solid #FA6E23; */
-	border: none;
-	outline: none;
-    -moz-outline-style: none;
+    border: none;
 }
 
 .progress-segment 

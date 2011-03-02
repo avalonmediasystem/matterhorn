@@ -677,17 +677,11 @@ option:hover
   margin-left:              -4px;
 }
 
-img
+button::-moz-focus-inner,
+input::-moz-focus-inner,
+#draggable::-moz-focus-inner
 {
     border: none;
-}
-
-#draggable :focus
-{
-	/* outline: 2px solid #FA6E23; */
-	border: none;
-	outline: none;
-    -moz-outline-style: none;
 }
 
 #divToolTip
