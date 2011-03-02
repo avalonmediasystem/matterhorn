@@ -1,9 +1,16 @@
 # HOME3P must already be defined
-uname -smr
 case `uname` in
-  Linux )  export LOCAL_PREFIX=/usr/local ;;
-  Darwin ) export LOCAL_PREFIX=/opt/local ;; # if compiling with MacPorts
-# Darwin ) export LOCAL_PREFIX=/usr/local ;;
+  Linux )
+    [ -s /etc/issue ] && head -1 /etc/issue
+    uname -smr
+    export LOCAL_PREFIX=/usr/local
+    ;;
+  Darwin )
+    sw_vers
+    uname -smr
+#   export LOCAL_PREFIX=/usr/local
+    export LOCAL_PREFIX=/opt/local # if compiling with MacPorts
+    ;;
 esac
 export MACPORTS_SVN=http://svn.macports.org/repository/macports/trunk/dports
 export MINGW32=i686-pc-mingw32

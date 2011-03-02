@@ -16,11 +16,15 @@ source "${HOME3P}/utilx"
 #
 case `uname` in
   Linux )
-    ./linux-compile
+    ./win32-compile
     [ $? -ne 0 ] && exit 1
-    ;;
-  Darwin )
-    ./ports-compile
+    #
+    cd "$HOME3P"
+    [ $? -ne 0 ] && exit 1
+    rm -f 3rd_party_windows.zip
+    zip -r 3rd_party_windows.zip usr
+    [ $? -ne 0 ] && exit 1
+    cp ffmpeg/_ffmpeg.zip .
     [ $? -ne 0 ] && exit 1
     ;;
 esac

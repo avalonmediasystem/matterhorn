@@ -29,6 +29,7 @@ while [ true ]; do
   echo "  4) compile for Mac"
   echo "  5) compile for Mac with MacPorts"
   echo "  a) do all for current platform"
+  echo "  w) do all for Windows"
   echo "  l) view log of last action"
   echo "  r) reset intermediate marks"
   echo "  c) clean up build directories"
@@ -127,6 +128,16 @@ while [ true ]; do
         else
           LOGFILE=`mktemp /tmp/${0##*/}-all.log.XXXXX`
           time ./do-all 2>&1 | tee $LOGFILE
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then ERRTXT=" (FAILED)..."; ACT=l
+          else ERRTXT=" (success)..."; ACT=q; fi
+        fi
+        ;;
+    w ) # do all for Windows
+        chksudo
+        if [ $? -ne 0 ]; then ERRTXT=" (FAILED)..."; ACT=l
+        else
+          LOGFILE=`mktemp /tmp/${0##*/}-all-win32.log.XXXXX`
+          time ./do-all-win32 2>&1 | tee $LOGFILE
           if [ ${PIPESTATUS[0]} -ne 0 ]; then ERRTXT=" (FAILED)..."; ACT=l
           else ERRTXT=" (success)..."; ACT=q; fi
         fi
