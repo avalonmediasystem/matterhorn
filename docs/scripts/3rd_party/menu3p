@@ -13,8 +13,6 @@ chkprog $PAGER || PAGER=more
 chkprog java  || exit 1
 chkprog gzip  || exit 1
 chkprog bzip2 || exit 1
-chkprog unzip || exit 1
-chkprog zip   || exit 1
 #
 ACT=0
 while [ true ]; do

@@ -79,6 +79,8 @@ the following newly installed operating systems:
 - 64-bit Linux
   CentOS 5.5, Red Hat Enterprise Linux Server 5.5, Ubuntu 10.04.x
 
+- Mac OS X Snow Leopard 10.6.* with Xcode 3.2.*
+
 All necessary prerequisites are downloaded and installed
 automatically, except for the following utilities, which should
 already be installed on the system:
@@ -86,8 +88,6 @@ already be installed on the system:
 - java
 - gzip
 - bzip2
-- unzip
-- zip
 
 
 Description of interactive run

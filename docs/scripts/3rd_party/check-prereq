@@ -70,6 +70,30 @@ install_prog() {
             fi
           fi
           ;;
+        zip )
+          case `arch` in
+            i386 )
+              URL=http://mirror.centos.org/centos/5/os/i386/CentOS
+              rpms="zip-2.31-2.el5.i386.rpm"
+              ;;
+            x86_64 )
+              URL=http://mirror.centos.org/centos/5/os/x86_64/CentOS
+              rpms="zip-2.31-2.el5.x86_64.rpm"
+              ;;
+          esac
+          ;;
+        unzip )
+          case `arch` in
+            i386 )
+              URL=http://mirror.centos.org/centos/5/os/i386/CentOS
+              rpms="unzip-5.52-3.el5.i386.rpm"
+              ;;
+            x86_64 )
+              URL=http://mirror.centos.org/centos/5/os/x86_64/CentOS
+              rpms="unzip-5.52-3.el5.x86_64.rpm"
+              ;;
+          esac
+          ;;
         xz )
           case `arch` in
             i386 )
@@ -386,6 +410,8 @@ check_prereq() {
   case `os` in
     CentOS | RHEL )
       chkprog wget    || install_prog wget     || return 1
+      chkprog zip     || install_prog zip      || return 1
+      chkprog unzip   || install_prog unzip    || return 1
       chkprog xz      || install_prog xz       || return 1
       chkprog yacc    || install_prog yacc     || return 1
       # this was reported as missing on some systems and is needed by git
@@ -419,6 +445,8 @@ check_prereq() {
       sudox apt-get update || return 1
       #
       chkprog wget    || install_prog wget     || return 1
+      chkprog zip     || install_prog zip      || return 1
+      chkprog unzip   || install_prog unzip    || return 1
       chkprog alien   || install_prog alien    || return 1
       chkprog g++     || install_prog g++      || return 1
       chkprog yacc    || install_prog yacc     || return 1
