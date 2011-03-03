@@ -25,6 +25,8 @@ cd "${dir}-linux/tessdata"
 [ $? -ne 0 ] && exit 1
 cp "../../$pkg2" .
 [ $? -ne 0 ] && exit 1
+chmod 644 "$pkg2"
+[ $? -ne 0 ] && exit 1
 gzip -d "$pkg2"
 [ $? -ne 0 ] && exit 1
 cd ..
@@ -37,8 +39,19 @@ make
 #
 sudox make install
 [ $? -ne 0 ] && exit 1
-# Needed for tesseract shared libs
+# Needed for tesseract's shared libs
 sudox /sbin/ldconfig
+[ $? -ne 0 ] && exit 1
+#
+OLDCD=`pwd`
+[ $? -ne 0 ] && exit 1
+sudox cp "../$pkg2" ${LOCAL_PREFIX}/share/tessdata
+[ $? -ne 0 ] && exit 1
+cd ${LOCAL_PREFIX}/share/tessdata
+[ $? -ne 0 ] && exit 1
+sudox gzip -d "$pkg2"
+[ $? -ne 0 ] && exit 1
+cd "$OLDCD"
 [ $? -ne 0 ] && exit 1
 #
 touch ../.done-linux
