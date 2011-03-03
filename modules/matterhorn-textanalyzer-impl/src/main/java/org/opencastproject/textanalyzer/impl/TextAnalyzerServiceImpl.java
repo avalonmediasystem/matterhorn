@@ -48,7 +48,6 @@ import org.opencastproject.textextractor.api.TextLine;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workspace.api.Workspace;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -246,27 +245,19 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
       logger.warn("Error extracting text from {}: {}", imageFile, e.getMessage());
       throw new TextAnalyzerException(e);
     }
-    
+
     int i = 1;
     for (TextLine line : textFrame.getLines()) {
       VideoText videoText = new VideoTextImpl(id + "-" + i++);
       videoText.setBoundary(line.getBoundaries());
       Textual text = null;
       if (languagesInstalled) {
-        String[] potentialWords = StringUtils.split(line.getText());
+        String[] potentialWords = line.getText() == null ? new String[0] : line.getText().split("\\W");
         String[] languages = dictionaryService.detectLanguage(potentialWords);
         if (languages.length == 0) {
-          StringBuilder potentialWordsBuilder = new StringBuilder();
-          for (int j = 0; j < potentialWords.length; j++) {
-            if (potentialWordsBuilder.length() > 0) {
-              potentialWordsBuilder.append(" ");
-            }
-            potentialWordsBuilder.append(potentialWords[j]);
-          }
-          logger.warn(
-                  "Unable to determine the language for these words: '{}'.  Perhaps the language pack(s) are missing.",
-                  potentialWordsBuilder.toString());
-          text = new TextualImpl(line.getText());
+          // There are languages installed, but these words are part of one of those languages
+          logger.debug("No languages found for '{}'.", line.getText());
+          continue;
         } else {
           String language = languages[0];
           DICT_TOKEN[] tokens = dictionaryService.cleanText(potentialWords, language);
@@ -283,6 +274,7 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
           text = new TextualImpl(cleanLine.toString(), language);
         }
       } else {
+        logger.info("No languages installed.  For better results, please install at least one language pack");
         text = new TextualImpl(line.getText());
       }
       videoText.setText(text);
