@@ -15,7 +15,6 @@
  */
 package org.opencastproject.workflow.impl;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.opencastproject.workflow.api.WorkflowInstance.WorkflowState.FAILED;
 import static org.opencastproject.workflow.api.WorkflowInstance.WorkflowState.FAILING;
@@ -1138,7 +1137,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   }
 
   /**
-   * Reads the available metadata from the dublin core catalog (if there is one).
+   * Reads the available metadata from the dublin core catalog (if there is one) and updates the mediapackage.
    * 
    * @param mp
    *          the media package
@@ -1153,34 +1152,44 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       if (metadata != null) {
 
         // Series identifier
-        if (isBlank(mp.getSeries()) && isNotBlank(metadata.getSeriesIdentifier())) {
+        if (isNotBlank(metadata.getSeriesIdentifier())) {
           mp.setSeries(metadata.getSeriesIdentifier());
         }
 
         // Series title
-        if (isBlank(mp.getSeriesTitle()) && isNotBlank(metadata.getSeriesTitle())) {
+        if (isNotBlank(metadata.getSeriesTitle())) {
           mp.setSeriesTitle(metadata.getSeriesTitle());
         }
 
         // Episode title
-        if (isBlank(mp.getTitle()) && isNotBlank(metadata.getTitle())) {
+        if (isNotBlank(metadata.getTitle())) {
           mp.setTitle(metadata.getTitle());
         }
 
         // Episode date
-        if (mp.getDate().getTime() == 0 && metadata.getDate() != null) {
+        if (metadata.getDate() != null) {
           mp.setDate(metadata.getDate());
         }
 
         // Episode subjects
-        if (mp.getSubjects().length == 0 && metadata.getSubjects().length > 0) {
+        if (metadata.getSubjects().length > 0) {
+          if (mp.getSubjects() != null) {
+            for (String subject : mp.getSubjects()) {
+              mp.removeSubject(subject);
+            }
+          }
           for (String subject : metadata.getSubjects()) {
             mp.addSubject(subject);
           }
         }
 
         // Episode contributers
-        if (mp.getContributors().length == 0 && metadata.getContributors().length > 0) {
+        if (metadata.getContributors().length > 0) {
+          if (mp.getContributors() != null) {
+            for (String contributor : mp.getContributors()) {
+              mp.removeContributor(contributor);
+            }
+          }
           for (String contributor : metadata.getContributors()) {
             mp.addContributor(contributor);
           }
@@ -1188,18 +1197,23 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
 
         // Episode creators
         if (mp.getCreators().length == 0 && metadata.getCreators().length > 0) {
+          if (mp.getCreators() != null) {
+            for (String creator : mp.getCreators()) {
+              mp.removeCreator(creator);
+            }
+          }
           for (String creator : metadata.getCreators()) {
             mp.addCreator(creator);
           }
         }
 
         // Episode license
-        if (isBlank(mp.getLicense()) && isNotBlank(metadata.getLicense())) {
+        if (isNotBlank(metadata.getLicense())) {
           mp.setLicense(metadata.getLicense());
         }
 
         // Episode language
-        if (isBlank(mp.getLanguage()) && isNotBlank(metadata.getLanguage())) {
+        if (isNotBlank(metadata.getLanguage())) {
           mp.setLanguage(metadata.getLanguage());
         }
 

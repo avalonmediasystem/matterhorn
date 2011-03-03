@@ -63,7 +63,8 @@ import javax.ws.rs.core.Response;
 public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl {
 
   private static final Logger logger = LoggerFactory.getLogger(WorkingFileRepositoryRestEndpoint.class);
-  private final MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap(getClass().getClassLoader().getResourceAsStream("mimetypes"));
+  private final MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap(getClass().getClassLoader()
+          .getResourceAsStream("mimetypes"));
 
   /**
    * Callback from OSGi that is called when this service is activated.
@@ -76,11 +77,12 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     docs = generateDocs(serviceUrl);
     super.activate(cc);
   }
+
   protected String docs;
   private String[] notes = {
-    "All paths above are relative to the REST endpoint base (something like http://your.server/files)",
-    "If the service is down or not working it will return a status 503, this means the the underlying service is not working and is either restarting or has failed",
-    "A status code 500 means a general failure has occurred which is not recoverable and was not anticipated. In other words, there is a bug! You should file an error report with your server logs from the time when the error occurred: <a href=\"https://issues.opencastproject.org\">Opencast Issue Tracker</a>",};
+          "All paths above are relative to the REST endpoint base (something like http://your.server/files)",
+          "If the service is down or not working it will return a status 503, this means the the underlying service is not working and is either restarting or has failed",
+          "A status code 500 means a general failure has occurred which is not recoverable and was not anticipated. In other words, there is a bug! You should file an error report with your server logs from the time when the error occurred: <a href=\"https://issues.opencastproject.org\">Opencast Issue Tracker</a>", };
 
   private String generateDocs(String serviceUrl) {
     DocRestData data = new DocRestData("workingfilerepository", "Working file repository", serviceUrl, notes);
@@ -258,7 +260,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
         FileItemStream item = iter.next();
         if (item.isFormField()) {
           continue;
-          
+
         }
         URI url = this.put(mediaPackageID, mediaPackageElementID, item.getName(), item.openStream());
         return Response.ok(url.toString()).build();
@@ -270,9 +272,9 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
   @POST
   @Produces(MediaType.TEXT_HTML)
   @Path(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX + "{mediaPackageID}/{mediaPackageElementID}/{filename}")
-  public Response restPutURLEncoded(@PathParam("mediaPackageID") String mediaPackageID, @PathParam("mediaPackageElementID") String mediaPackageElementID,
-          @PathParam("filename") String filename, @FormParam("content") String content)
-          throws Exception {
+  public Response restPutURLEncoded(@PathParam("mediaPackageID") String mediaPackageID,
+          @PathParam("mediaPackageElementID") String mediaPackageElementID, @PathParam("filename") String filename,
+          @FormParam("content") String content) throws Exception {
     URI url = this.put(mediaPackageID, mediaPackageElementID, filename, IOUtils.toInputStream(content));
     return Response.ok(url.toString()).build();
   }
@@ -280,14 +282,14 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
   @POST
   @Produces(MediaType.TEXT_HTML)
   @Path(WorkingFileRepository.COLLECTION_PATH_PREFIX + "{collectionId}")
-  public Response restPutInCollection(@PathParam("collectionId") String collectionId, @Context HttpServletRequest request)
-          throws Exception {
+  public Response restPutInCollection(@PathParam("collectionId") String collectionId,
+          @Context HttpServletRequest request) throws Exception {
     if (ServletFileUpload.isMultipartContent(request)) {
       for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
         FileItemStream item = iter.next();
         if (item.isFormField()) {
           continue;
-          
+
         }
         URI url = this.putInCollection(collectionId, item.getName(), item.openStream());
         return Response.ok(url.toString()).build();
@@ -381,20 +383,20 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
       String md5 = this.hashMediaPackageElement(mediaPackageID, mediaPackageElementID);
       if (md5.equals(ifNoneMatch)) {
         IOUtils.closeQuietly(in);
-        return Response.notModified().build();
+        return Response.notModified(md5).build();
       }
       String contentType = mimeMap.getContentType(fileName);
       int contentLength = 0;
       contentLength = in.available();
-      return Response.ok().header("Content-disposition", "attachment; filename=" + fileName).header("Content-Type",
-              contentType).header("Content-length", contentLength).entity(in).build();
+      return Response.ok().header("Content-disposition", "attachment; filename=" + fileName)
+              .header("Content-Type", contentType).header("Content-length", contentLength).tag(md5).entity(in).build();
     } catch (IllegalStateException e) {
       IOUtils.closeQuietly(in);
       throw new NotFoundException();
     } catch (IOException e) {
       IOUtils.closeQuietly(in);
-      logger.info("unable to get the content length for {}/{}/{}", new Object[]{mediaPackageElementID,
-                mediaPackageElementID, fileName});
+      logger.info("unable to get the content length for {}/{}/{}", new Object[] { mediaPackageElementID,
+              mediaPackageElementID, fileName });
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
   }
@@ -409,10 +411,10 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
     try {
       contentLength = in.available();
     } catch (IOException e) {
-      logger.info("unable to get the content length for collection/{}/{}", new Object[]{collectionId, fileName});
+      logger.info("unable to get the content length for collection/{}/{}", new Object[] { collectionId, fileName });
     }
-    return Response.ok().header("Content-disposition", "attachment; filename=" + fileName).header("Content-Type",
-            contentType).header("Content-length", contentLength).entity(in).build();
+    return Response.ok().header("Content-disposition", "attachment; filename=" + fileName)
+            .header("Content-Type", contentType).header("Content-length", contentLength).entity(in).build();
   }
 
   @GET
