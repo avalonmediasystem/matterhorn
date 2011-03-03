@@ -87,7 +87,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
@@ -143,17 +142,11 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /** The data access object responsible for storing and retrieving workflow instances */
   protected WorkflowServiceIndex index;
 
-  /** Whether to index workflows synchronously as they are stored */
-  protected boolean synchronousIndexing;
-
   /** The list of workflow listeners */
   private List<WorkflowListener> listeners = new CopyOnWriteArrayList<WorkflowListener>();
 
   /** The thread pool to use for firing listeners and handling dispatched jobs */
   protected ThreadPoolExecutor executorService;
-
-  /** The thread pool to use in asynchronous indexing */
-  protected ExecutorService indexingExecutor;
 
   /** The service registry */
   protected ServiceRegistry serviceRegistry = null;
@@ -176,9 +169,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   }
 
   /**
-   * Activate this service implementation via the OSGI service component runtime. The search indexing behavior can be
-   * set using component context properties. <code>synchronousIndexing=true|false</code> determines whether threads
-   * performing workflow updates block on adding the workflow instances to the search index.
+   * Activate this service implementation via the OSGI service component runtime.
    * 
    * @param componentContext
    *          the component context
@@ -186,20 +177,6 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   public void activate(ComponentContext componentContext) {
     this.componentContext = componentContext;
     executorService = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-    if (componentContext == null) {
-      this.synchronousIndexing = true;
-    } else {
-      Object syncIndexingConfig = componentContext.getProperties().get("synchronousIndexing");
-      if (syncIndexingConfig != null && (syncIndexingConfig instanceof Boolean)) {
-        this.synchronousIndexing = (Boolean) syncIndexingConfig;
-      }
-    }
-    if (this.synchronousIndexing) {
-      logger.debug("Workflows will be added to the search index synchronously");
-    } else {
-      logger.debug("Workflows will be added to the search index asynchronously");
-      indexingExecutor = Executors.newSingleThreadExecutor();
-    }
   }
 
   /**
@@ -987,19 +964,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    */
   protected void index(final WorkflowInstance workflowInstance) throws WorkflowDatabaseException {
     // Update the search index
-    if (synchronousIndexing) {
-      index.update(workflowInstance);
-    } else {
-      indexingExecutor.submit(new Runnable() {
-        public void run() {
-          try {
-            index.update(workflowInstance);
-          } catch (WorkflowDatabaseException e) {
-            WorkflowServiceImpl.logger.warn("Unable to index {}: {}", workflowInstance, e);
-          }
-        }
-      });
-    }
+    index.update(workflowInstance);
   }
 
   /**
@@ -1472,13 +1437,13 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   }
 
   /**
-   * Sets the DAO implementation to use in this service.
+   * Sets the search indexer to use in this service.
    * 
-   * @param dao
-   *          The dao to use for persistence
+   * @param index
+   *          The search index
    */
-  protected void setDao(WorkflowServiceIndex dao) {
-    this.index = dao;
+  protected void setDao(WorkflowServiceIndex index) {
+    this.index = index;
   }
 
   /**

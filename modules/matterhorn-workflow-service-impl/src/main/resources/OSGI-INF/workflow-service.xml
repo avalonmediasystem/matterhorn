@@ -3,7 +3,6 @@
   immediate="true" activate="activate">
   <implementation class="org.opencastproject.workflow.impl.WorkflowServiceImpl" />
   <property name="service.description" value="Workflow Service" />
-  <property name="synchronousIndexing" value="false" />
   <service>
     <provide interface="org.osgi.service.cm.ManagedService" />
     <provide interface="org.opencastproject.workflow.api.WorkflowService" />

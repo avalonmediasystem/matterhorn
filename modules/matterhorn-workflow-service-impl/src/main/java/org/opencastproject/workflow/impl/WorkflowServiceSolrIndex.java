@@ -65,6 +65,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Provides data access to the workflow service through file storage in the workspace, indexed via solr.
@@ -143,6 +145,12 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
   /** The service registry, managing jobs */
   private ServiceRegistry serviceRegistry = null;
 
+  /** Whether to index workflows synchronously as they are stored */
+  protected boolean synchronousIndexing = true;
+
+  /** The thread pool to use in asynchronous indexing */
+  protected ExecutorService indexingExecutor;
+
   /**
    * Callback for the OSGi environment to register with the <code>ServiceRegistry</code>.
    * 
@@ -154,7 +162,9 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
   }
 
   /**
-   * Callback from the OSGi environment on component registration.
+   * Callback from the OSGi environment on component registration. The indexing behavior can be set using component
+   * context properties. <code>synchronousIndexing=true|false</code> determines whether threads performing workflow
+   * updates block on adding the workflow instances to the search index.
    * 
    * @param cc
    *          the component context
@@ -174,6 +184,16 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
       if (storageDir == null)
         throw new IllegalStateException("Storage dir must be set (org.opencastproject.storage.dir)");
       solrRoot = PathSupport.concat(storageDir, "workflow");
+    }
+    Object syncIndexingConfig = cc.getProperties().get("synchronousIndexing");
+    if (syncIndexingConfig != null && (syncIndexingConfig instanceof Boolean)) {
+      this.synchronousIndexing = (Boolean) syncIndexingConfig;
+    }
+    if (this.synchronousIndexing) {
+      logger.debug("Workflows will be added to the search index synchronously");
+    } else {
+      logger.debug("Workflows will be added to the search index asynchronously");
+      indexingExecutor = Executors.newSingleThreadExecutor();
     }
     activate();
   }
@@ -296,15 +316,34 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     }
   }
 
-  public void index(WorkflowInstance instance) throws WorkflowDatabaseException {
-    try {
-      SolrInputDocument doc = createDocument(instance);
-      synchronized (solrServer) {
-        solrServer.add(doc);
-        solrServer.commit();
+  public void index(final WorkflowInstance instance) throws WorkflowDatabaseException {
+    if (synchronousIndexing) {
+      try {
+        SolrInputDocument doc = createDocument(instance);
+        synchronized (solrServer) {
+          solrServer.add(doc);
+          solrServer.commit();
+        }
+      } catch (Exception e) {
+        throw new WorkflowDatabaseException("Unable to index workflow", e);
       }
-    } catch (Exception e) {
-      throw new WorkflowDatabaseException("Unable to index workflow", e);
+    } else {
+      indexingExecutor.submit(new Runnable() {
+        public void run() {
+          try {
+            SolrInputDocument doc = createDocument(instance);
+            synchronized (solrServer) {
+              solrServer.add(doc);
+              // Use solr's autoCommit feature instead of committing on each document addition.
+              // See http://opencast.jira.com/browse/MH-7040 and
+              // http://osdir.com/ml/solr-user.lucene.apache.org/2009-09/msg00744.html
+              // solrServer.commit();
+            }
+          } catch (Exception e) {
+            WorkflowServiceSolrIndex.logger.warn("Unable to index {}: {}", instance, e);
+          }
+        }
+      });
     }
   }
 
@@ -789,7 +828,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
       ORDER order = query.isSortAscending() ? ORDER.asc : ORDER.desc;
       solrQuery.addSortField(getSortField(query.getSort()) + "_sort", order);
     }
-    
+
     if (!Sort.DATE_CREATED.equals(query.getSort())) {
       solrQuery.addSortField(getSortField(Sort.DATE_CREATED) + "_sort", ORDER.desc);
     }
