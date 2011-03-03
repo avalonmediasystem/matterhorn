@@ -1,6 +1,8 @@
 <html>
   <head>
     <title>Hold for review</title>
+    <link rel="stylesheet" type="text/css" href="/admin/css/jquery-ui-1.8.6.custom.css" />
+    <link rel="stylesheet" type="text/css" href="/admin/css/jquery-ui-opencast-admin/jquery-ui-opencast-admin.css" />
     <link rel="stylesheet" type="text/css" href="/admin/css/admin.css">
     <style type="text/css">
       #player-container {
@@ -21,6 +23,7 @@
 
       #actions {
         margin: 0 auto;
+        margin-top:16px;
         text-align: center;
         width: 100%;
       }
@@ -47,13 +50,10 @@
         margin-right: 5px;
       }
     </style>
-    <script type="text/javascript" src="/admin/jquery/jquery-1.4.2.min.js">
-    </script>
-    <script type="text/javascript" src="/admin/jquery/jquery-ui-1.8.5.custom.min.js">
-    </script>
+
+    <script type="text/javascript" src="/admin/jquery/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="/admin/jquery/jquery-ui-1.8.9.custom.min.js"></script>
     <script type="text/javascript" src="/admin/js/oc.utils.js"></script>
-    <!--<script src="engage-hybrid-player/bridge/lib/FABridge.js" type="text/javascript"></script>
-    <script src="engage-hybrid-player/bridge/Videodisplay.js" type="text/javascript"></script>-->
     <script type="text/javascript">
             
       var PLAYER_URL = '/admin/embed.html';
@@ -318,6 +318,25 @@
             });
           }
         });
+
+        // Event: collapsable title clicked, de-/collapse collapsables
+        $('.collapse-control2').click(function() {
+          $('#ui-icon').toggleClass('ui-icon-triangle-1-e');
+          $('#ui-icon').toggleClass('ui-icon-triangle-1-s');
+          $(this).next('.collapsable').toggle();
+          parent.ocRecordings.adjustHoldActionPanelHeight();
+        });
+
+        $('#series').autocomplete({
+          source: '/series/search',
+          select: function(event, ui){
+            $('#ispartof').val(ui.item.id);
+          },
+          search: function(){
+            $('#ispartof').val('');
+          }
+        });
+
         parent.ocRecordings.adjustHoldActionPanelHeight();
       });
             
@@ -464,6 +483,7 @@
         var trimToData = $('#outPoint').val();
         trimToData = ((trimToData == '') || (trimToData == null)) ? videoDurationData : trimToData;
 
+        // if metadata was changed update DC catalog and mediapackage instance
         if (metadataChanged) {
           if ($('#meta-title').val()) {
             updateDCMetadata();
@@ -482,7 +502,9 @@
           //postData['trimout'] = getTimeInMilliseconds(trimToData);
           postData['newduration'] = newduration;
           if (metadataChanged) {
-            parent.ocRecordings.Hold.changedMediaPackage = ocUtils.xmlToString(mediapackage);
+            var mp = ocUtils.xmlToString(mediapackage);
+            mp = mp.replace(/ xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g,'');     // no luck with $(mediapackage.documentElement).find(MPname).removeAttr('xmlns');
+            parent.ocRecordings.Hold.changedMediaPackage = mp;
           }
           parent.ocRecordings.continueWorkflow(postData);
         }
@@ -497,10 +519,27 @@
         parent.ocRecordings.hideHoldActionUI();
       }
 
+      function createSeriesFromSearchText(){
+        var seriesXml = '<series><additionalMetadata><metadata><key>title</key><value>' + $('#series').val() + '</value></metadata></additionalMetadata></series>';
+        var creationSucceeded = false;
+        $.ajax({
+          async: false,
+          type: 'PUT',
+          url: '/series',
+          data: { series: seriesXml },
+          dataType : 'json',
+          success: function(data){
+            creationSucceeded = true;
+            $('#ispartof').val(data.series.id);
+          }
+        });
+        return creationSucceeded;
+      }
+
       function updateDCMetadata() {
         ocUtils.log("Updating DC metadata");
         
-        $('.oc-ui-form-field').each(function(){
+        $('.dcMetaField').each(function(){
           var $field = $(this);
           if ($field.val() != '') {
             var $dcelm = $(DCmetadata.documentElement).find('dcterms\\:' + $field.attr('name'));
@@ -523,17 +562,33 @@
         updateMetadataField('subject','subject');
         updateMetadataGroupField('creator', 'creators', 'creator');
         updateMetadataGroupField('contributor', 'contributors', 'contributor');
+
+        // update series
+        if ($('#series').val() != '') {
+          if ($('#ispartof').val() == '') {
+            createSeriesFromSearchText();
+          }
+          updateMPElement('seriestitle', $('#series').val());
+          updateMPElement('series', $('#ispartof').val());  
+        }
+      }
+
+      function updateMPElement(MPname, value) {
+        var $mpelm = $(mediapackage.documentElement).find(MPname);
+        if ($mpelm.length != 0) {
+          ocUtils.log('Updating ' + MPname + ' in MediaPackage to ' + value);
+          $mpelm.text(value);
+        } else {
+          ocUtils.log('Creating ' + MPname + ' in MediaPackage with value ' + value);
+          $newelm = $('<' + MPname + '/>').text(value);
+          $newelm.appendTo(mediapackage.documentElement);
+        }
       }
 
       function updateMetadataField(DCname, MPname) {
         var $dcelm = $(DCmetadata.documentElement).find('dcterms\\:' + DCname);
         if ($dcelm.length != 0) {
-          var $mpelm = $(mediapackage.documentElement).find(MPname);
-          if ($mpelm.length != 0) {
-            $mpelm.text($dcelm.text());
-          } else {
-            $('<' + MPname + '/>').text($dcelm.text()).appendTo(mediapackage.documentElement);
-          }
+          updateMPElement(MPname, $dcelm.text());
         }
       }
 
@@ -574,23 +629,58 @@
     <center>
       <iframe id="player-container">
       </iframe>
+      <div>
+      <label>
+        <span id="i18n_files_label">File(s)</span>:
+      </label>
+      <span id="files"></span>
+      </div>
     </center>
-    <center>
-      <!-- span>Video URL:<a id="video-url-container" href=""></a></span -->
-      <br>
-    </center>
-    <div id="metadata-container">
-      <ul class="no-bullets formField-list">
-        <!-- field: File -->
-        <li class="ui-helper-clearfix">
-          <label>
-            <span id="i18n_files_label">File(s)</span>:
-          </label>
-          <span id="files"></span>
-        </li>
-      </ul>
+
+    <div class="form-box layout-centered ui-widget oc-ui-collapsible-widget" style="width:680px;">
+      <div class="form-box-head ui-widget-header ui-corner-top oc-ui-cursor collapse-control2">
+        <div id="additional_icon" class="ui-icon ui-icon-triangle-1-e"></div>
+        <div id="i18n_additional">Edit Metadata of this Recording</div>
+        <div class="clear"></div>
+      </div>
+      <div class="form-box-content ui-widget-content ui-corner-bottom collapsable">
+        <form action="">
+          <ul class="oc-ui-form-list">
+            <li>
+              <label class="scheduler-label" for="title" id="titleLabel" style="width:15%;"><span style="color: red;">* </span><span id="i18n_title_label">Title</span>:</label>
+              <input type="text" id="meta-title" name="title" class="oc-ui-form-field requiredField dcMetaField" maxlength="255" />
+            </li>
+            <li>
+              <label class="scheduler-label" for="creator" id="creatorLabel" style="width:15%;"><span id="i18n_presenter_label">Presenter</span>:</label>
+              <input type="text" name="creator" id="meta-creator" class="oc-ui-form-field dcMetaField"  maxlength="255"/>
+            </li>
+            <li id="seriesContainer">
+              <label class="scheduler-label" for="series" id="seriesLabel" style="width:15%;"><span id="i18n_series_label">Course/Series</span>:</label>
+              <input type="text" class="oc-ui-form-field" id="series" name="series" maxlength="255">
+              <input type="hidden" class="oc-ui-form-field" id="ispartof" name="ispartof">
+            </li>
+            <li class="additionalMeta">
+              <label class="scheduler-label" for="contributor" id="contributorLabel" style="width:15%;"><span id="i18n_dept_label">Contributor</span>:</label>
+              <input type="text" class="oc-ui-form-field dcMetaField" name="contributor" id="meta-contributor" maxlength="255" />
+            </li>
+            <li class="additionalMeta">
+              <label class="scheduler-label" for="subject" id="subjectLabel" style="width:15%;"><span id="i18n_sub_label">Subject</span>:</label>
+              <input type="text" class="oc-ui-form-field dcMetaField" name="subject" id="meta-subject" maxlength="255" />
+            </li>
+            <li class="additionalMeta">
+              <label class="scheduler-label" for="language" id="languageLabel" style="width:15%;"><span id="i18n_lang_label">Language</span>:</label>
+              <input type="text" class="oc-ui-form-field dcMetaField" name="language" id="meta-language" maxlength="255" />
+            </li>
+            <li class="additionalMeta">
+              <label class="scheduler-label" for="description" id="descriptionLabel" style="width:15%;"><span id="i18n_desc_label">Description</span>:</label>
+              <textarea name="description" id="meta-description" class="oc-ui-form-field dcMetaField" rows="5" cols="10"></textarea>
+            </li>
+          </ul>
+        </form>
+      </div>
     </div>
-    <div id="actions">
+
+    <div id="actions"">
       <!-- control buttons -->
       <label for="inPoint" style="padding-left: 10px">
         In point
@@ -615,43 +705,5 @@
       <a onclick="cancel()" title="Cancel" class="secondaryButton">Cancel</a>
     </div>
 
-    <div class="form-box layout-centered ui-widget" style="width:680px;">
-      <div class="form-box-content ui-widget-content ui-corner-all">
-        <form action="">
-          <ul class="oc-ui-form-list">
-            <li>
-              <label class="scheduler-label" for="title" id="titleLabel" style="width:15%;"><span style="color: red;">* </span><span id="i18n_title_label">Title</span>:</label>
-              <input type="text" id="meta-title" name="title" class="oc-ui-form-field requiredField" maxlength="255" />
-            </li>
-            <li>
-              <label class="scheduler-label" for="creator" id="creatorLabel" style="width:15%;"><span id="i18n_presenter_label">Presenter</span>:</label>
-              <input type="text" class="oc-ui-form-field" name="creator" id="meta-creator" class="oc-ui-form-field"  maxlength="255"/>
-            </li>
-            <!-- idPartOf not in DC metadata anymore? 
-            <li id="seriesContainer">
-              <label class="scheduler-label" for="series" id="seriesLabel"><span id="i18n_series_label">Course/Series</span>:</label>
-              <input type="text" class="oc-ui-form-field" id="meta-series" name="series" maxlength="255">
-              <input type="hidden" class="oc-ui-form-field" id="ispartof" name="ispartof">
-            </li -->
-            <li class="additionalMeta">
-              <label class="scheduler-label" for="contributor" id="contributorLabel" style="width:15%;"><span id="i18n_dept_label">Contributor</span>:</label>
-              <input type="text" class="oc-ui-form-field" name="contributor" id="meta-contributor" maxlength="255" />
-            </li>
-            <li class="additionalMeta">
-              <label class="scheduler-label" for="subject" id="subjectLabel" style="width:15%;"><span id="i18n_sub_label">Subject</span>:</label>
-              <input type="text" class="oc-ui-form-field" name="subject" id="meta-subject" maxlength="255" />
-            </li>
-            <li class="additionalMeta">
-              <label class="scheduler-label" for="language" id="languageLabel" style="width:15%;"><span id="i18n_lang_label">Language</span>:</label>
-              <input type="text" class="oc-ui-form-field" name="language" id="meta-language" maxlength="255" />
-            </li>
-            <li class="additionalMeta">
-              <label class="scheduler-label" for="description" id="descriptionLabel" style="width:15%;"><span id="i18n_desc_label">Description</span>:</label>
-              <textarea name="description" id="meta-description" class="oc-ui-form-field" rows="5" cols="10"></textarea>
-            </li>
-          </ul>
-        </form>
-      </div>
-    </div>
   </body>
 </html>
