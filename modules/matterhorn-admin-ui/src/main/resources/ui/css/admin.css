@@ -67,6 +67,7 @@ table tr:hover a { color: black!important; text-decoration: underline!important;
 
 
 #searchBox { width: 350px; float: right; }
+#search-result { width: 360px; float: right;}
 .searchbox-text-input:focus { outline: none; border: none;}
 #controlsTop { width: 60%; float: left; }
 #runningStatesContainer, #notRunningStatesContainer, .IE_buffer { float: left;}

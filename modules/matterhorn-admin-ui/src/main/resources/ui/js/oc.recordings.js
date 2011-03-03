@@ -474,15 +474,12 @@ ocRecordings = new (function() {
 
     // display number of matches if filtered
     if (ocRecordings.Configuration.filterText) {
-      var countText;
       if (data.workflows.totalCount == '0') {
-        countText = data.workflows.totalCount + ' found';
         $('#filterRecordingCount').css('color', 'red');
       } else {
-        countText = data.workflows.totalCount + ' found';
         $('#filterRecordingCount').css('color', 'black');
       }
-      $('#filterRecordingCount').text(countText).show();
+      $('#filterRecordingCount').text(data.workflows.totalCount + ' found').show();
     } else {
       $('#filterRecordingCount').hide();
     }
