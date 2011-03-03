@@ -1278,6 +1278,17 @@
       </roles>
       <timezone>+1</timezone>
     </developer>
+    <developer>
+      <id>mmoorman</id>
+      <name>Markus Moormann</name>
+      <email>mmoorman@uni-osnabrueck.de</email>
+      <organization>University of Osnabrueck</organization>
+      <organizationUrl>http://www.uni-osnabrueck.de/</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
   </developers>
 
   <contributors><!-- TODO? -->
