@@ -89,42 +89,11 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   /** Default delay between job dispatching attempts, in milliseconds */
   static final long DEFAULT_DISPATCH_PERIOD = 5000;
 
-  /**
-   * A static list of statuses that influence how load balancing is calculated
-   */
-  protected static final List<Status> JOB_STATUSES_INFLUENCING_LOAD_BALANCING;
-
-  static {
-    JOB_STATUSES_INFLUENCING_LOAD_BALANCING = new ArrayList<Status>();
-    JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.DISPATCHING);
-    JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.RUNNING);
-  }
-
   /** The JPA provider */
   protected PersistenceProvider persistenceProvider;
 
   /** This host's base URL */
   protected String hostName;
-
-  /**
-   * @param persistenceProvider
-   *          the persistenceProvider to set
-   */
-  public void setPersistenceProvider(PersistenceProvider persistenceProvider) {
-    this.persistenceProvider = persistenceProvider;
-  }
-
-  @SuppressWarnings("rawtypes")
-  protected Map persistenceProperties;
-
-  /**
-   * @param persistenceProperties
-   *          the persistenceProperties to set
-   */
-  @SuppressWarnings("rawtypes")
-  public void setPersistenceProperties(Map persistenceProperties) {
-    this.persistenceProperties = persistenceProperties;
-  }
 
   /** The factory used to generate the entity manager */
   protected EntityManagerFactory emf = null;
@@ -137,6 +106,37 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
 
   /** The thread pool to use for dispatching queued jobs. */
   protected ScheduledExecutorService dispatcher = Executors.newScheduledThreadPool(1);
+
+  @SuppressWarnings("rawtypes")
+  protected Map persistenceProperties;
+
+  /**
+   * A static list of statuses that influence how load balancing is calculated
+   */
+  protected static final List<Status> JOB_STATUSES_INFLUENCING_LOAD_BALANCING;
+
+  static {
+    JOB_STATUSES_INFLUENCING_LOAD_BALANCING = new ArrayList<Status>();
+    JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.DISPATCHING);
+    JOB_STATUSES_INFLUENCING_LOAD_BALANCING.add(Status.RUNNING);
+  }
+
+  /**
+   * @param persistenceProvider
+   *          the persistenceProvider to set
+   */
+  public void setPersistenceProvider(PersistenceProvider persistenceProvider) {
+    this.persistenceProvider = persistenceProvider;
+  }
+
+  /**
+   * @param persistenceProperties
+   *          the persistenceProperties to set
+   */
+  @SuppressWarnings("rawtypes")
+  public void setPersistenceProperties(Map persistenceProperties) {
+    this.persistenceProperties = persistenceProperties;
+  }
 
   public void activate(ComponentContext cc) {
     logger.debug("activate");
@@ -1270,12 +1270,17 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         List<Job> jobsToDispatch = getDispatchableJobs();
         Map<String, Integer> hostLoads = getHostLoads(true);
         List<ServiceRegistration> serviceRegistrations = getServiceRegistrations();
-
+        List<String> busyServices = new ArrayList<String>();
         for (Job job : jobsToDispatch) {
+          if (busyServices.contains(job.getJobType())) {
+            logger.debug("Skipping {}, since all available service have been tried before and seem busy", job);
+            continue;
+          }
           try {
             String hostAcceptingJob = dispatchJob(job,
                     filterAndSortServiceRegistrations(serviceRegistrations, job.getJobType(), hostLoads));
             if (hostAcceptingJob == null) {
+              busyServices.add(job.getJobType());
               ServiceRegistryJpaImpl.logger.debug("Job {} could not be dispatched and is put back into queue",
                       job.getId());
             } else {
