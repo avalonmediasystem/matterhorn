@@ -63,7 +63,7 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   protected PersistenceProvider persistenceProvider;
   protected Map<String, Object> persistenceProperties;
   protected EntityManagerFactory emf = null;
-  
+
   public SeriesServiceImpl() {
     logger.info("Series Service instantiated");
   }
@@ -125,8 +125,11 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
    * @see org.opencastproject.series.api.SeriesService#addOrUpdate(org.opencastproject.metadata.dublincore.DublinCoreCatalog)
    */
   @Override
-  public Series addOrUpdate(DublinCoreCatalog dcCatalog) throws SeriesException{
-    String id = dcCatalog.get(DublinCoreCatalog.PROPERTY_IDENTIFIER).get(0).getValue();
+  public Series addOrUpdate(DublinCoreCatalog dcCatalog) throws SeriesException {
+    String id = dcCatalog.getFirst(DublinCoreCatalog.PROPERTY_IDENTIFIER);
+    if (id == null) {
+      throw new IllegalArgumentException("Can not add a series without an identifier");
+    }
     SeriesImpl existingSeries;
     try {
       existingSeries = (SeriesImpl) getSeries(id);
@@ -252,7 +255,7 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   public void updated(Dictionary properties) throws ConfigurationException {
     this.properties = properties;
   }
-  
+
   @SuppressWarnings("unchecked")
   @Override
   public List<Series> searchSeries(String pattern) throws NotFoundException {

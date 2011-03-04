@@ -190,8 +190,6 @@ public class DublinCoreCatalogImpl extends XMLCatalogImpl implements DublinCoreC
     } catch (Exception e) {
       throw new IllegalStateException("Unable to load dc catalog data:" + e.getMessage(), e);
     }
-    if (getFirstValue(PROPERTY_IDENTIFIER) == null)
-      throw new IllegalStateException("Unable to load invalid dc catalog data: missing identifier");
   }
 
   /**
