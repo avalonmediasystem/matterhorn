@@ -383,24 +383,28 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    */
   @Override
   public Job updateJob(Job job) throws ServiceRegistryException {
+    EntityManager em = emf.createEntityManager();
     try {
-      return updateInternal(job);
+      return updateInternal(em, job);
     } catch (PersistenceException e) {
       throw new ServiceRegistryException(e);
+    } finally {
+      em.close();
     }
   }
 
   /**
    * Internal method to update a job, throwing unwrapped JPA exceptions.
    * 
+   * @param em
+   *          the current entity manager
    * @param job
    *          the job to update
    * @return the updated job
    * @throws PersistenceException
    *           if there is an exception thrown while persisting the job via JPA
    */
-  protected Job updateInternal(Job job) throws PersistenceException {
-    EntityManager em = emf.createEntityManager();
+  protected Job updateInternal(EntityManager em, Job job) throws PersistenceException {
     EntityTransaction tx = em.getTransaction();
     try {
       tx.begin();
@@ -418,8 +422,6 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       if (tx.isActive())
         tx.rollback();
       throw e;
-    } finally {
-      em.close();
     }
   }
 
@@ -736,15 +738,26 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    * 
    * @see org.opencastproject.serviceregistry.api.ServiceRegistry#getServiceRegistrations()
    */
-  @SuppressWarnings("unchecked")
   @Override
   public List<ServiceRegistration> getServiceRegistrations() {
     EntityManager em = emf.createEntityManager();
     try {
-      return em.createNamedQuery("ServiceRegistration.getAll").getResultList();
+      return getServiceRegistrations(em);
     } finally {
       em.close();
     }
+  }
+
+  /**
+   * Gets all service registrations.
+   * 
+   * @param em
+   *          the current entity manager
+   * @return the list of service registrations
+   */
+  @SuppressWarnings("unchecked")
+  protected List<ServiceRegistration> getServiceRegistrations(EntityManager em) {
+    return em.createNamedQuery("ServiceRegistration.getAll").getResultList();
   }
 
   /**
@@ -784,23 +797,21 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   /**
    * Gets jobs of all types that are in the {@value Status#QUEUED} state and are dispatchable.
    * 
+   * @param em
+   *          the entity manager
    * @return the list of jobs waiting for dispatch
    * @throws ServiceRegistryException
    *           if there is a problem communicating with the jobs database
    */
   @SuppressWarnings("unchecked")
-  protected List<Job> getDispatchableJobs() throws ServiceRegistryException {
+  protected List<Job> getDispatchableJobs(EntityManager em) throws ServiceRegistryException {
     Query query = null;
-    EntityManager em = null;
     try {
-      em = emf.createEntityManager();
       query = em.createNamedQuery("Job.dispatchable.status");
       query.setParameter("status", Status.QUEUED);
       return query.getResultList();
     } catch (Exception e) {
       throw new ServiceRegistryException(e);
-    } finally {
-      em.close();
     }
   }
 
@@ -978,52 +989,54 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    */
   @Override
   public List<ServiceRegistration> getServiceRegistrationsByLoad(String serviceType) throws ServiceRegistryException {
-    Map<String, Integer> loadByHost = getHostLoads(true);
-    List<ServiceRegistration> serviceRegistrations = getServiceRegistrationsByType(serviceType);
-    return filterAndSortServiceRegistrations(serviceRegistrations, serviceType, loadByHost);
+    EntityManager em = emf.createEntityManager();
+    try {
+      Map<String, Integer> loadByHost = getHostLoads(em, true);
+      List<ServiceRegistration> serviceRegistrations = getServiceRegistrationsByType(serviceType);
+      return filterAndSortServiceRegistrations(serviceRegistrations, serviceType, loadByHost);
+    } finally {
+      em.close();
+    }
   }
 
   /**
    * Gets a map of hosts to the number of jobs currently loading that host
    * 
+   * @param em
+   *          the entity manager
    * @param activeOnly
    *          if true, the map will include only hosts that are online and have non-maintenance mode services
    * @return the map of hosts to job counts
    */
-  protected Map<String, Integer> getHostLoads(boolean activeOnly) {
-    EntityManager em = emf.createEntityManager();
-    try {
-      Query q = em.createNamedQuery("ServiceRegistration.hostload");
-      Map<String, Integer> loadByHost = new HashMap<String, Integer>();
+  protected Map<String, Integer> getHostLoads(EntityManager em, boolean activeOnly) {
+    Query q = em.createNamedQuery("ServiceRegistration.hostload");
+    Map<String, Integer> loadByHost = new HashMap<String, Integer>();
 
-      // Accumulate the numbers for relevant job statuses per host
-      for (Object result : q.getResultList()) {
-        Object[] resultArray = (Object[]) result;
-        ServiceRegistrationJpaImpl service = (ServiceRegistrationJpaImpl) resultArray[0];
-        Job.Status status = (Status) resultArray[1];
-        int count = ((Number) resultArray[2]).intValue();
+    // Accumulate the numbers for relevant job statuses per host
+    for (Object result : q.getResultList()) {
+      Object[] resultArray = (Object[]) result;
+      ServiceRegistrationJpaImpl service = (ServiceRegistrationJpaImpl) resultArray[0];
+      Job.Status status = (Status) resultArray[1];
+      int count = ((Number) resultArray[2]).intValue();
 
-        if (activeOnly && (service.isInMaintenanceMode() || !service.isOnline())) {
-          continue;
-        }
-
-        // Only queued and running jobs are adding to the load, so every other status is discarded
-        if (status == null || !JOB_STATUSES_INFLUENCING_LOAD_BALANCING.contains(status)) {
-          count = 0;
-        }
-
-        // Add the service registration
-        if (loadByHost.containsKey(service.getHost())) {
-          Integer previousServiceLoad = loadByHost.get(service.getHost());
-          loadByHost.put(service.getHost(), previousServiceLoad + count);
-        } else {
-          loadByHost.put(service.getHost(), count);
-        }
+      if (activeOnly && (service.isInMaintenanceMode() || !service.isOnline())) {
+        continue;
       }
-      return loadByHost;
-    } finally {
-      em.close();
+
+      // Only queued and running jobs are adding to the load, so every other status is discarded
+      if (status == null || !JOB_STATUSES_INFLUENCING_LOAD_BALANCING.contains(status)) {
+        count = 0;
+      }
+
+      // Add the service registration
+      if (loadByHost.containsKey(service.getHost())) {
+        Integer previousServiceLoad = loadByHost.get(service.getHost());
+        loadByHost.put(service.getHost(), previousServiceLoad + count);
+      } else {
+        loadByHost.put(service.getHost(), count);
+      }
     }
+    return loadByHost;
   }
 
   /**
@@ -1162,6 +1175,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    * Dispatches the job to the least loaded service that will accept the job, or throws a
    * <code>ServiceUnavailableException</code> if there is no such service.
    * 
+   * @param em
+   *          the current entity manager
    * @param job
    *          the job to dispatch
    * @param hostLoads
@@ -1170,7 +1185,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
    * @throws ServiceRegistryException
    *           if the service registrations are unavailable
    */
-  protected String dispatchJob(Job job, List<ServiceRegistration> services) throws ServiceRegistryException {
+  protected String dispatchJob(EntityManager em, Job job, List<ServiceRegistration> services)
+          throws ServiceRegistryException {
 
     if (services.size() == 0) {
       logger.debug("No service is available to handle jobs of type '" + job.getJobType() + "'");
@@ -1185,7 +1201,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     for (ServiceRegistration registration : services) {
       jpaJob.setProcessorServiceRegistration((ServiceRegistrationJpaImpl) registration);
       try {
-        updateInternal(jpaJob);
+        updateInternal(em, jpaJob);
       } catch (Exception e) {
         // In theory, we should catch javax.persistence.OptimisticLockException. Unfortunately, eclipselink throws
         // org.eclipse.persistence.exceptions.OptimisticLockException. In order to avoid importing the implementation
@@ -1266,10 +1282,11 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
      */
     @Override
     public void run() {
+      EntityManager em = emf.createEntityManager();
       try {
-        List<Job> jobsToDispatch = getDispatchableJobs();
-        Map<String, Integer> hostLoads = getHostLoads(true);
-        List<ServiceRegistration> serviceRegistrations = getServiceRegistrations();
+        List<Job> jobsToDispatch = getDispatchableJobs(em);
+        Map<String, Integer> hostLoads = getHostLoads(em, true);
+        List<ServiceRegistration> serviceRegistrations = getServiceRegistrations(em);
         List<String> busyServices = new ArrayList<String>();
         for (Job job : jobsToDispatch) {
           if (busyServices.contains(job.getJobType())) {
@@ -1277,7 +1294,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
             continue;
           }
           try {
-            String hostAcceptingJob = dispatchJob(job,
+            String hostAcceptingJob = dispatchJob(em, job,
                     filterAndSortServiceRegistrations(serviceRegistrations, job.getJobType(), hostLoads));
             if (hostAcceptingJob == null) {
               busyServices.add(job.getJobType());
@@ -1299,6 +1316,8 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         }
       } catch (Throwable t) {
         ServiceRegistryJpaImpl.logger.warn("Error dispatching jobs", t);
+      } finally {
+        em.close();
       }
     }
   }
