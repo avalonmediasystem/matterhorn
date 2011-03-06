@@ -1287,9 +1287,9 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         List<Job> jobsToDispatch = getDispatchableJobs(em);
         Map<String, Integer> hostLoads = getHostLoads(em, true);
         List<ServiceRegistration> serviceRegistrations = getServiceRegistrations(em);
-        List<String> busyServices = new ArrayList<String>();
+        List<String> busyOperations = new ArrayList<String>();
         for (Job job : jobsToDispatch) {
-          if (busyServices.contains(job.getJobType())) {
+          if (busyOperations.contains(getJobTypeAndOperation(job))) {
             logger.debug("Skipping {}, since all available service have been tried before and seem busy", job);
             continue;
           }
@@ -1297,11 +1297,10 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
             String hostAcceptingJob = dispatchJob(em, job,
                     filterAndSortServiceRegistrations(serviceRegistrations, job.getJobType(), hostLoads));
             if (hostAcceptingJob == null) {
-              busyServices.add(job.getJobType());
-              ServiceRegistryJpaImpl.logger.debug("Job {} could not be dispatched and is put back into queue",
-                      job.getId());
+              busyOperations.add(getJobTypeAndOperation(job));
+              ServiceRegistryJpaImpl.logger.debug("{} could not be dispatched and is put back into queue", job);
             } else {
-              ServiceRegistryJpaImpl.logger.debug("Job {} dispatched to {}", job.getId(), hostAcceptingJob);
+              ServiceRegistryJpaImpl.logger.debug("{} dispatched to {}", job, hostAcceptingJob);
               if (hostLoads.containsKey(hostAcceptingJob)) {
                 Integer previousServiceLoad = hostLoads.get(hostAcceptingJob);
                 hostLoads.put(hostAcceptingJob, ++previousServiceLoad);
@@ -1319,6 +1318,17 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       } finally {
         em.close();
       }
+    }
+
+    /**
+     * Returns a string representing a job's type plus operation.
+     * 
+     * @param job
+     *          the job
+     * @return the job's type and operation tuple
+     */
+    protected String getJobTypeAndOperation(Job job) {
+      return job.getJobType() + ":" + job.getOperation();
     }
   }
 
