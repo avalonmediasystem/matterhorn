@@ -107,8 +107,7 @@ public class JsonpFilter implements Filter {
       }
 
       // Write the padded response
-      String preWrapper = callbackValue + "(";
-      HttpServletResponseContentWrapper wrapper = new HttpServletResponseContentWrapper(originalResponse, preWrapper);
+      HttpServletResponseContentWrapper wrapper = new HttpServletResponseContentWrapper(originalResponse, callbackValue);
       chain.doFilter(request, wrapper);
       wrapper.flushWrapper();
     }
@@ -125,9 +124,9 @@ public class JsonpFilter implements Filter {
     protected boolean enableWrapping = false;
     protected String preWrapper;
 
-    public HttpServletResponseContentWrapper(HttpServletResponse response, String preWrapper) {
+    public HttpServletResponseContentWrapper(HttpServletResponse response, String callback) {
       super(response);
-      this.preWrapper = preWrapper;
+      this.preWrapper = callback + "(";
       this.buffer = new ByteArrayServletOutputStream();
     }
 
@@ -137,21 +136,21 @@ public class JsonpFilter implements Filter {
           bufferWriter.close();
         if (buffer != null)
           buffer.close();
-        byte[] content = wrap(buffer.toByteArray());
+        String content = wrap(buffer.toByteArray());
         getResponse().setContentType(JS_CONTENT_TYPE);
-        getResponse().setContentLength(content.length);
+        getResponse().setContentLength(content.length());
         getResponse().setCharacterEncoding(CHARACTER_ENCODING);
-        getResponse().getOutputStream().write(content);
+        getResponse().getWriter().write(content);
         getResponse().flushBuffer();
         committed = true;
       }
     }
 
-    public byte[] wrap(byte[] content) throws IOException {
+    public String wrap(byte[] content) throws IOException {
       StringBuilder sb = new StringBuilder(preWrapper);
       sb.append(new String(content, CHARACTER_ENCODING));
       sb.append(POST_PADDING);
-      return sb.toString().getBytes(CHARACTER_ENCODING);
+      return sb.toString();
     }
 
     @Override
