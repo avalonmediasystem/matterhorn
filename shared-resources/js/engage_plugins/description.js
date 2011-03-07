@@ -78,7 +78,7 @@ Opencast.Description = (function ()
                     // Request JSONP data (Stats)
                     $.ajax(
                     {
-                        url: '../../usertracking/stats.json?id=',
+                        url: '../../usertracking/stats.json',
                         data: 'id=' + mediaPackageId,
                         dataType: 'jsonp',
                         jsonp: 'jsonp',
