@@ -61,6 +61,17 @@
       <artifactId>com.springsource.org.cyberneko.html</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.jboss.security</groupId>
+      <artifactId>jboss-xacml</artifactId>
+      <version>2.0.5.final</version>
+      <exclusions>
+        <exclusion>
+          <groupId>apache-xerces</groupId>
+          <artifactId>xml-apis</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
     </dependency>
@@ -88,6 +99,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>2.5.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
@@ -103,7 +120,10 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName> ${project.artifactId} </Bundle-SymbolicName>
-            <Embed-Dependency>spring-security-oauth;inline=true</Embed-Dependency>
+            <Embed-Dependency>
+              spring-security-oauth;inline=true,
+              jboss-xacml;inline=true
+            </Embed-Dependency>
             <Import-Package>
               javax.servlet,
               javax.management,
