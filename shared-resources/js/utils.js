@@ -114,6 +114,41 @@ Opencast.Utils = (function ()
         return (h + timeSeparator + m);
     }
     
+    /**
+     * @memberOf Opencast.Utils
+     * @description Converts a UTC date string to date
+     * @param dcc UTC date string, e.g. dcc = 2011-03-07T00:00:00+01:00
+     * @return date
+     */
+    function dateStringToDate(dcc)
+    {
+        var date = new Date(0);
+        if(dcc.indexOf('T') != -1)
+        {
+            var dateTime = dcc.slice(0,-1).split("T");
+            
+            if(dateTime.length >= 2)
+            {
+                var ymd = dateTime[0].split("-");
+                if(ymd.length >= 3)
+                {
+                    date.setUTCFullYear(parseInt(ymd[0], 10));
+                    date.setUTCMonth(parseInt(ymd[1], 10) - 1);
+                    date.setUTCDate(parseInt(ymd[2], 10));
+                }
+                
+                var hms = dateTime[1].split(":");
+                if(hms.length >= 3)
+                {
+                    date.setUTCMilliseconds(0);
+                    date.setUTCHours(parseInt(hms[0], 10));
+                    date.setUTCMinutes(parseInt(hms[1], 10));
+                    date.setUTCSeconds(parseInt(hms[2], 10));
+                }
+            }
+        }
+        return date;
+    }
     
     /**
      * @memberOf Opencast.Utils
@@ -411,6 +446,7 @@ Opencast.Utils = (function ()
         gotoCleanedURL: gotoCleanedURL,
         getDateString: getDateString,
         getTimeString: getTimeString,
+        dateStringToDate: dateStringToDate,
         getTimeInMilliseconds: getTimeInMilliseconds,
         formatSeconds: formatSeconds,
         parseURL: parseURL,

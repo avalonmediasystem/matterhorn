@@ -10,6 +10,7 @@ Opencast.Description = (function ()
     var mediaPackageId, duration;
     var DESCRIPTION = "Description",
         DESCRIPTION_HIDE = "Hide Description";
+    var defaultChar = '-';
         
     /**
      * @memberOf Opencast.Description
@@ -58,22 +59,20 @@ Opencast.Description = (function ()
                     
                     // Process data
                     // Trimpath throws (no) errors if a variable is not defined => assign default value
-                    var defaultChar = '-';
+                    data['search-results'].defaultChar = defaultChar;
                     
                     data['search-results'].result.dcSeriesTitle = checkForNullUndef(data['search-results'].result.mediapackage.seriestitle, defaultChar);
                     data['search-results'].result.dcContributor = checkForNullUndef(data['search-results'].result.dcContributor, defaultChar);
                     data['search-results'].result.dcLanguage = checkForNullUndef(data['search-results'].result.dcLanguage, defaultChar);
                     data['search-results'].result.dcCreator = checkForNullUndef(data['search-results'].result.dcCreator, defaultChar);
+                    data['search-results'].result.dcViews = checkForNullUndef(data['search-results'].result.dcViews, defaultChar);
                     
-                    // format date if date is available
                     data['search-results'].result.dcCreated = checkForNullUndef(data['search-results'].result.dcCreated, defaultChar);
+                    // format date if date is available
                     if (data['search-results'].result.dcCreated != defaultChar)
                     {
-                        var timeDate = data['search-results'].result.dcCreated;
-                        var sd = new Date();
-                        sd.setMinutes(parseInt(timeDate.substring(14, 16), 10));
-                        sd.setSeconds(parseInt(timeDate.substring(17, 19), 10));
-                        data['search-results'].result.dcCreated = Opencast.Utils.getDateString(sd) + ' - ' + Opencast.Utils.getTimeString(sd); // sd.toLocaleString();
+                        var sd = Opencast.Utils.dateStringToDate(data['search-results'].result.dcCreated);
+                        data['search-results'].result.dcCreated = Opencast.Utils.getDateString(sd) + ' - ' + Opencast.Utils.getTimeString(sd);
                     }
                     
                     // Request JSONP data (Stats)
@@ -91,7 +90,6 @@ Opencast.Description = (function ()
                                 data['search-results'].result.dcViews = result.stats.views;
                             }
                             // Create Trimpath Template
-                            data['search-results'].defaultChar = defaultChar;
                             var descriptionSet = Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
                             if (!descriptionSet)
                             {
@@ -120,6 +118,13 @@ Opencast.Description = (function ()
         }
     }
     
+    /**
+     * @memberOf Opencast.Description
+     * @description Checks an Object for null and undefined
+     * @param toCheck Object to check
+     * @param char default character to return if toCheck is null or undefined
+     * @return char if object if null or undefined, toCheck else
+     */
     function checkForNullUndef(toCheck, char)
     {
         if(!toCheck || (toCheck === null) || (toCheck === undefined))
