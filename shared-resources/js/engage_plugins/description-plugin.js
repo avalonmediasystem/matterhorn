@@ -9,15 +9,20 @@ Opencast.Description_Plugin = (function ()
 {
     // The Template to process
     var template =  '<div style="float: left;">' +
-                        'Date: <span style="color:grey;">${result.dcCreated}</span><br />' +
-                        'Department: <span style="color:grey;">${result.dcContributor}</span><br />' +
-                        'Language: <span style="color:grey;">${result.dcLanguage}</span><br />' +
-                        'Views: <span style="color:grey;">${result.dcViews}</span><br />' +
+                        'Date:&nbsp;<span style="color:grey;">${result.dcCreated}</span><br />' +
+                        'Department:&nbsp;<span style="color:grey;">${result.dcContributor}</span><br />' +
+                        'Language:&nbsp;<span style="color:grey;">${result.dcLanguage}</span><br />' +
+                        'Views:&nbsp;<span style="color:grey;">${result.dcViews}</span><br />' +
                     '</div>' +
                     '<div style="float: right; margin-right: 300px;">' +
                         // 'See related Videos: <span style="color:grey;"></span><br />' +
-                        'Series: ${result.dcSeriesTitle}<br />' +
-                        'Presenter: <a href="../../engage/ui/index.html?q=${result.dcCreator}">${result.dcCreator}</a></span><br />' +
+                        'Series:&nbsp;<span style="color:grey;">${result.dcSeriesTitle}</span><br />' +
+                        'Presenter:&nbsp;' +
+                        '{if result.dcCreator != defaultChar}' +
+                            '<a href="../../engage/ui/index.html?q=${result.dcCreator}">${result.dcCreator}</a><br />' +
+                        '{else}' +
+                            '<span style="color:grey;">${result.dcCreator}</span><br />' +
+                        '{/if}' +
                         // 'Contents: <br />' +
                     '</div>' +
                     '<div style="clear: both">' + 

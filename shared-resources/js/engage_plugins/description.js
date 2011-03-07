@@ -57,21 +57,23 @@ Opencast.Description = (function ()
                     }
                     
                     // Process data
-                    var defaultChar = '-';
                     // Trimpath throws (no) errors if a variable is not defined => assign default value
-                    data['search-results'].result.dcCreated = data['search-results'].result.dcCreated || defaultChar;
-                    data['search-results'].result.dcSeriesTitle = data['search-results'].result.mediapackage.seriestitle || defaultChar;
-                    data['search-results'].result.dcContributor = data['search-results'].result.dcContributor || defaultChar;
-                    data['search-results'].result.dcLanguage = data['search-results'].result.dcLanguage || defaultChar;
-                    data['search-results'].result.dcViews = data['search-results'].result.dcViews || defaultChar;
-                    data['search-results'].result.dcCreator = data['search-results'].result.dcCreator || defaultChar;
+                    var defaultChar = '-';
+                    
+                    data['search-results'].result.dcSeriesTitle = checkForNullUndef(data['search-results'].result.mediapackage.seriestitle, defaultChar);
+                    data['search-results'].result.dcContributor = checkForNullUndef(data['search-results'].result.dcContributor, defaultChar);
+                    data['search-results'].result.dcLanguage = checkForNullUndef(data['search-results'].result.dcLanguage, defaultChar);
+                    data['search-results'].result.dcCreator = checkForNullUndef(data['search-results'].result.dcCreator, defaultChar);
+                    
+                    // format date if date is available
+                    data['search-results'].result.dcCreated = checkForNullUndef(data['search-results'].result.dcCreated, defaultChar);
                     if (data['search-results'].result.dcCreated != defaultChar)
                     {
                         var timeDate = data['search-results'].result.dcCreated;
                         var sd = new Date();
                         sd.setMinutes(parseInt(timeDate.substring(14, 16), 10));
                         sd.setSeconds(parseInt(timeDate.substring(17, 19), 10));
-                        data['search-results'].result.dcCreated = sd.toLocaleString();
+                        data['search-results'].result.dcCreated = Opencast.Utils.getDateString(sd) + ' - ' + Opencast.Utils.getTimeString(sd); // sd.toLocaleString();
                     }
                     
                     // Request JSONP data (Stats)
@@ -83,8 +85,13 @@ Opencast.Description = (function ()
                         jsonp: 'jsonp',
                         success: function (result)
                         {
-                            data['search-results'].result.dcViews = result.stats.views;
+                            var views = checkForNullUndef(result.stats.views);
+                            if((result.stats.views == 0) || (views != defaultChar))
+                            {
+                                data['search-results'].result.dcViews = result.stats.views;
+                            }
                             // Create Trimpath Template
+                            data['search-results'].defaultChar = defaultChar;
                             var descriptionSet = Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
                             if (!descriptionSet)
                             {
@@ -111,6 +118,15 @@ Opencast.Description = (function ()
                 }
             });
         }
+    }
+    
+    function checkForNullUndef(toCheck, char)
+    {
+        if(!toCheck || (toCheck === null) || (toCheck === undefined))
+        {
+            return char;
+        }
+        return toCheck;
     }
     
     /**

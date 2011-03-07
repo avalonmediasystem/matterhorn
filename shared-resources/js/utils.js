@@ -76,6 +76,47 @@ Opencast.Utils = (function ()
     
     /**
      * @memberOf Opencast.Utils
+     * @description Converts a date to a human readable date string
+     * @param date
+     * @return formatted date string
+     */
+    function getDateString(date)
+    {
+        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var daySeparator = ", ";
+        var dateSeparator = " ";
+        var yearSeparator = " ";
+        var d = date;
+        var datestring = days[(d.getDate() + 1) % 7];
+        datestring += daySeparator;
+        datestring += months[d.getMonth() % 12];
+        datestring += dateSeparator;
+        datestring += (d.getDate() >= 10) ? d.getDate() : "0".concat(d.getDate());
+        datestring += yearSeparator;
+        datestring += d.getFullYear();
+        return datestring;
+    }
+    
+    /**
+     * @memberOf Opencast.Utils
+     * @description Converts a date to a human readable time string
+     * @param date
+     * @return formatted time string
+     */
+    function getTimeString(date)
+    {
+        var timeSeparator = ":";
+        var d = date;
+        var h = (d.getHours() >= 10) ? d.getHours() : "0".concat(d.getHours());
+        var m = (d.getMinutes() >= 10) ? d.getMinutes() : "0".concat(d.getMinutes());
+        var s = (d.getSeconds() >= 10) ? d.getSeconds() : "0".concat(d.getSeconds());
+        return (h + timeSeparator + m);
+    }
+    
+    
+    /**
+     * @memberOf Opencast.Utils
      * @description Returns an Array of URL Arguments
      * @return an Array of URL Arguments if successful, [] else
      */
@@ -368,6 +409,8 @@ Opencast.Utils = (function ()
         urlArrayToString: urlArrayToString,
         getCleanedURL: getCleanedURL,
         gotoCleanedURL: gotoCleanedURL,
+        getDateString: getDateString,
+        getTimeString: getTimeString,
         getTimeInMilliseconds: getTimeInMilliseconds,
         formatSeconds: formatSeconds,
         parseURL: parseURL,
