@@ -9,11 +9,13 @@ Opencast.search = (function ()
 {
     // Variable for the storage of the processed jsonp-Data
     var dataStor, staticInputElem, mediaPackageId;
-    var staticImg = 'url("../img/jquery/ui-bg_flat_75_fde7ce_40x100.png") repeat-x scroll 50% 50% #FDE7CE';
+    var staticImg = 'url("../../img/jquery/ui-bg_flat_75_fde7ce_40x100.png") repeat-x scroll 50% 50% #FDE7CE';
     var SEARCH = 'Search this Recording';
     var colorFirst = '#C0C0C0';
     var colorSecond = '#ADD8E6';
     var colorThird = '#90EE90';
+    var foundAlready = false; // flag if something has already been found
+    var lastHit = ''; // storage for latest successful search hit
     
     /**
      * @memberOf Opencast.search
@@ -206,38 +208,92 @@ Opencast.search = (function ()
                     prepareData(searchValue);
                     // Create Trimpath Template nd add it to the HTML
                     var seaPlug = Opencast.search_Plugin.addAsPlugin($('#oc-search-result'), dataStor['search-results'].result.segments, searchValue);
-                    if(!seaPlug)
+                    if(!seaPlug && !foundAlready)
                     {
-                        $('#oc-search-result').html('No Segment Data available');
+                        setNoSegmentDataAvailable();
+                    } else
+                    {
+                        foundAlready = true;
+                        lastHit = searchValue;
                     }
                     // Make visible
                     $('.oc-segments-preview').css('display', 'block');
                 }
                 else
                 {
-                    // If no Segment Data is available
-                    $('#oc-search-result').html('No Segment Data available');
+                    if(!foundAlready)
+                    {
+                        setNoSegmentDataAvailable();
+                    } else
+                    {
+                        setNoActualResultAvailable(searchValue);
+                    }
                 }
-                $('#oc_search-segment').show();
-                $('#search-loading').hide();
-                $('#oc-search-result').show();
+                displayResult();
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                $('#oc-search-result').html('No Segment Data available');
-                $('#search-loading').hide();
-                $('#oc-search-result').show();
+                if(!foundAlready)
+                {
+                    setNoSegmentDataAvailable();
+                } else
+                {
+                    setNoActualResultAvailable(searchValue);
+                }
+                displayResult();
             }
         });
         // If the Search Result Field contains nothing: Clear and display a Message
         if($('#oc-search-result').empty)
         {
-            $('#oc-search-result').html('No Search Result available');
-            $('#oc_search-segment').show();
-            $('#search-loading').hide();
-            $('#oc-search-result').show();
+            if(!foundAlready)
+            {
+                setNoSearchResultAvailable();
+            } else
+            {
+                setNoActualResultAvailable(searchValue);
+            }
+            displayResult();
         }
+    }
+    
+    /**
+     * @memberOf Opencast.search
+     * @description Sets the search result to an error message
+     */
+    function setNoSegmentDataAvailable()
+    {
+        $('#oc-search-result').html('No Segment Data available');
+    }
+    
+    /**
+     * @memberOf Opencast.search
+     * @description Sets the search result to an error message
+     */
+    function setNoSearchResultAvailable()
+    {
+        $('#oc-search-result').html('No Search Result available');
+    }
+    
+    /**
+     * @memberOf Opencast.search
+     * @description Sets the search value display to indicate that the latest hit is displayed and that for the current search value no results exist
+     */
+    function setNoActualResultAvailable(sVal)
+    {
+        $('#searchValueDisplay').html('Results for &quot;' + unescape(lastHit) + '&quot; (no actual results for &quot;' + unescape(sVal) + '&quot; found)');
+    }
+    
+    /**
+     * @memberOf Opencast.search
+     * @description displays the search value and its result(s)
+     */
+    function displayResult()
+    {
+        $('#oc_search-segment').show();
+        $('#search-loading').hide();
+        $('#oc-search-result').show();
     }
     
     /**
