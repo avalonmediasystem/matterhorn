@@ -387,12 +387,12 @@ public class SecurityServiceSpringImpl implements SecurityService {
    * 
    * @param mediapackage
    *          the mediapackage
-   * @param roleActions
+   * @param accessControlList
    *          the tuples of roles to actions
    * @return
    * @throws JAXBException
    */
-  protected String getXacml(MediaPackage mediapackage, List<AccessControlEntry> roleActions) throws JAXBException {
+  protected String getXacml(MediaPackage mediapackage, List<AccessControlEntry> accessControlList) throws JAXBException {
     ObjectFactory jbossXacmlObjectFactory = new ObjectFactory();
     PolicyType policy = new PolicyType();
     policy.setPolicyId(mediapackage.getIdentifier().toString());
@@ -421,11 +421,11 @@ public class SecurityServiceSpringImpl implements SecurityService {
     policy.setTarget(policyTarget);
 
     // Loop over roleActions and add a rule for each
-    for (AccessControlEntry roleActionTuple : roleActions) {
-      boolean allow = roleActionTuple.isAllow();
+    for (AccessControlEntry ace : accessControlList) {
+      boolean allow = ace.isAllow();
 
       RuleType rule = new RuleType();
-      rule.setRuleId(roleActionTuple.getRole() + (allow ? "_Permit" : "_Deny"));
+      rule.setRuleId(ace.getRole() + "_" + ace.getAction() + "_" + (allow ? "_Permit" : "_Deny"));
       if (allow) {
         rule.setEffect(EffectType.PERMIT);
       } else {
@@ -439,7 +439,7 @@ public class SecurityServiceSpringImpl implements SecurityService {
       actionMatch.setMatchId(XACML_STRING_EQUAL);
       AttributeValueType attributeValue = new AttributeValueType();
       attributeValue.setDataType(W3C_STRING);
-      attributeValue.getContent().add(roleActionTuple.getAction());
+      attributeValue.getContent().add(ace.getAction());
       AttributeDesignatorType designator = new AttributeDesignatorType();
       designator.setAttributeId(ACTION_IDENTIFIER);
       designator.setDataType(W3C_STRING);
@@ -458,7 +458,7 @@ public class SecurityServiceSpringImpl implements SecurityService {
 
       AttributeValueType conditionAttributeValue = new AttributeValueType();
       conditionAttributeValue.setDataType(W3C_STRING);
-      conditionAttributeValue.getContent().add(roleActionTuple.getRole());
+      conditionAttributeValue.getContent().add(ace.getRole());
 
       SubjectAttributeDesignatorType subjectDesignator = new SubjectAttributeDesignatorType();
       subjectDesignator.setDataType(W3C_STRING);
