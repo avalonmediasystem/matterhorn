@@ -99,7 +99,7 @@ public class XacmlSecurityTest {
     acl.add(new AccessControlEntry(SecurityService.ANONYMOUS[0], "comment", false));
 
     String xacml = securityService.getXacml(mediapackage, acl);
-    logger.info("XACML contents: {}", xacml);
+    logger.debug("XACML contents: {}", xacml);
     
     // Add the security policy to the mediapackage
     mediapackage = securityService.setAccessControl(mediapackage, acl);

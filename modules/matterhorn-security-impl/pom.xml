@@ -104,6 +104,40 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.jpa</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.asm</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.antlr</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>c3p0</groupId>
+      <artifactId>c3p0</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
       <version>2.5.1</version>
@@ -129,9 +163,14 @@
               spring-security-oauth;inline=true,
               jboss-xacml;inline=true
             </Embed-Dependency>
+            <Private-Package>
+              org.jboss.security.xacml.core,
+              org.jboss.security.xacml.core.model.policy
+            </Private-Package>
             <Import-Package>
               javax.servlet,
               javax.management,
+              javax.xml.namespace;version=0,
               org.jasig.cas.client.authentication;resolution:=optional,
               org.jasig.cas.client.proxy;resolution:=optional,
               org.jasig.cas.client.session;resolution:=optional,
@@ -178,8 +217,10 @@
             <Service-Component>
               OSGI-INF/http-client.xml,
               OSGI-INF/security-service.xml,
+              OSGI-INF/userdetail-service.xml,
               OSGI-INF/security-config-scanner.xml
             </Service-Component>
+            <JPA-PersistenceUnits>org.opencastproject.security</JPA-PersistenceUnits>
           </instructions>
         </configuration>
       </plugin>
