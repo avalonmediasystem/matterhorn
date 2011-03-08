@@ -58,6 +58,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -67,9 +69,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 /**
@@ -100,7 +102,7 @@ public class SecurityServiceSpringImpl implements SecurityService {
 
   /** W3C String data type */
   public static final String W3C_STRING = "http://www.w3.org/2001/XMLSchema#string";
-  
+
   /** The policy assertion issuer */
   public static final String ISSUER = "matterhorn";
 
@@ -183,6 +185,74 @@ public class SecurityServiceSpringImpl implements SecurityService {
   /**
    * {@inheritDoc}
    * 
+   * @see org.opencastproject.security.api.SecurityService#getAccessControlList(org.opencastproject.mediapackage.MediaPackage)
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public List<AccessControlEntry> getAccessControlList(MediaPackage mediapackage) {
+    List<AccessControlEntry> acl = new ArrayList<SecurityService.AccessControlEntry>();
+    Attachment[] xacmlAttachments = mediapackage.getAttachments(MediaPackageElements.XACML_POLICY);
+    if (xacmlAttachments.length == 0) {
+      logger.warn("No XACML attachment found in {}", mediapackage);
+      return acl;
+    } else if (xacmlAttachments.length > 1) {
+      logger.warn("More than one XACML policy is attached to {}", mediapackage);
+      return acl;
+    }
+    File xacmlPolicyFile = null;
+    try {
+      xacmlPolicyFile = workspace.get(xacmlAttachments[0].getURI());
+    } catch (NotFoundException e) {
+      logger.warn("XACML policy file not found", e);
+    } catch (IOException e) {
+      logger.warn("Unable to access XACML policy file {}", xacmlPolicyFile, e);
+    }
+
+    FileInputStream in;
+    try {
+      in = new FileInputStream(xacmlPolicyFile);
+    } catch (FileNotFoundException e) {
+      throw new IllegalStateException("Unable to find file in the workspace: " + xacmlPolicyFile);
+    }
+
+    PolicyType policy = null;
+    try {
+      policy = ((JAXBElement<PolicyType>) jBossXacmlJaxbContext.createUnmarshaller().unmarshal(in)).getValue();
+    } catch (JAXBException e) {
+      throw new IllegalStateException("Unable to unmarshall xacml document" + xacmlPolicyFile);
+    }
+    for (Object object : policy.getCombinerParametersOrRuleCombinerParametersOrVariableDefinition()) {
+      if (object instanceof RuleType) {
+        RuleType rule = (RuleType) object;
+        if (rule.getTarget() == null) {
+          continue;
+        }
+        ActionType action = rule.getTarget().getActions().getAction().get(0);
+        String actionForAce = (String) action.getActionMatch().get(0).getAttributeValue().getContent().get(0);
+        String role = null;
+        JAXBElement<ApplyType> apply = (JAXBElement<ApplyType>) rule.getCondition().getExpression();
+        for (JAXBElement<?> element : apply.getValue().getExpression()) {
+          if (element.getValue() instanceof AttributeValueType) {
+            role = (String) ((AttributeValueType) element.getValue()).getContent().get(0);
+            break;
+          }
+        }
+        if (role == null) {
+          logger.warn("Unable to find a role in rule {}", rule);
+          continue;
+        }
+        AccessControlEntry ace = new AccessControlEntry(role, actionForAce, rule.getEffect().equals(EffectType.PERMIT));
+        acl.add(ace);
+      } else {
+        logger.debug("Skipping {}", object);
+      }
+    }
+    return acl;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
    * @see org.opencastproject.security.api.SecurityService#hasPermission(org.opencastproject.mediapackage.MediaPackage,
    *      java.lang.String)
    */
@@ -244,38 +314,46 @@ public class SecurityServiceSpringImpl implements SecurityService {
       return false;
     }
 
-    // Build a JBoss PDP configuration.  This is a custom jboss format, so we're just hacking it together here
-    PolicyDecisionPoint pdp = null;
+    PolicyDecisionPoint pdp = getPolicyDecisionPoint(xacmlPolicyFile);
+
+    return pdp.evaluate(requestCtx).getDecision() == XACMLConstants.DECISION_PERMIT;
+  }
+
+  /**
+   * @param xacmlAttachment
+   * @return
+   */
+  private PolicyDecisionPoint getPolicyDecisionPoint(File xacmlFile) {
+    // Build a JBoss PDP configuration. This is a custom jboss format, so we're just hacking it together here
     StringBuilder sb = new StringBuilder();
     sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
     sb.append("<ns:jbosspdp xmlns:ns=\"urn:jboss:xacml:2.0\">");
     sb.append("<ns:Policies><ns:Policy><ns:Location>");
-    sb.append(xacmlAttachments[0].getURI().toString());
+    sb.append(xacmlFile.toURI().toString());
     sb.append("</ns:Location></ns:Policy></ns:Policies><ns:Locators>");
     sb.append("<ns:Locator Name=\"org.jboss.security.xacml.locators.JBossPolicyLocator\">");
     sb.append("</ns:Locator></ns:Locators></ns:jbosspdp>");
     InputStream is = null;
     try {
       is = IOUtils.toInputStream(sb.toString(), "UTF-8");
-      pdp = new JBossPDP(is);
+      return new JBossPDP(is);
     } catch (IOException e) {
-      logger.warn("Unable to build a pdp configuration", e);
-      return false;
+      // Only happens if 'UTF-8' is an invalid encoding, which it isn't
+      throw new IllegalStateException("Unable to transform a string into a stream");
     } finally {
       IOUtils.closeQuietly(is);
     }
-
-    return pdp.evaluate(requestCtx).getDecision() == XACMLConstants.DECISION_PERMIT;
   }
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.security.api.SecurityService#setPolicy(org.opencastproject.mediapackage.MediaPackage,
+   * @see org.opencastproject.security.api.SecurityService#setAccessControl(org.opencastproject.mediapackage.MediaPackage,
    *      java.util.Set)
    */
   @Override
-  public MediaPackage setPolicy(MediaPackage mediapackage, Set<RoleAction> roleActions) throws MediaPackageException {
+  public MediaPackage setAccessControl(MediaPackage mediapackage, List<AccessControlEntry> roleActions)
+          throws MediaPackageException {
     // Get XACML representation of these role + action tuples
     String xacmlContent = null;
     try {
@@ -314,7 +392,7 @@ public class SecurityServiceSpringImpl implements SecurityService {
    * @return
    * @throws JAXBException
    */
-  protected String getXacml(MediaPackage mediapackage, Set<RoleAction> roleActions) throws JAXBException {
+  protected String getXacml(MediaPackage mediapackage, List<AccessControlEntry> roleActions) throws JAXBException {
     ObjectFactory jbossXacmlObjectFactory = new ObjectFactory();
     PolicyType policy = new PolicyType();
     policy.setPolicyId(mediapackage.getIdentifier().toString());
@@ -343,7 +421,7 @@ public class SecurityServiceSpringImpl implements SecurityService {
     policy.setTarget(policyTarget);
 
     // Loop over roleActions and add a rule for each
-    for (RoleAction roleActionTuple : roleActions) {
+    for (AccessControlEntry roleActionTuple : roleActions) {
       boolean allow = roleActionTuple.isAllow();
 
       RuleType rule = new RuleType();

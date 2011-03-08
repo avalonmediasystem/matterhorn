@@ -18,7 +18,7 @@ package org.opencastproject.security.api;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageException;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Provides access to the current user's username and roles, if any, and provides generation and interpretation of XACML
@@ -55,27 +55,36 @@ public interface SecurityService {
   boolean hasPermission(MediaPackage mediapackage, String action);
 
   /**
+   * Gets the permissions associated with this mediapackage, as specified by its XACML attachment.
+   * 
+   * @param mediapackage
+   *          the mediapackage
+   * @return the set of permissions and explicit denials
+   */
+  List<AccessControlEntry> getAccessControlList(MediaPackage mediapackage);
+
+  /**
    * Attaches the provided policies to a mediapackage as a XACML attachment.
    * 
    * @param mediapackage
    *          the mediapackage
-   * @param roleActions
+   * @param accessControlList
    *          the tuples of roles to actions
    * @return the mediapackage with attached XACML policy
    * @throws MediaPackageException
    *           if the policy can not be attached to the mediapackage
    */
-  MediaPackage setPolicy(MediaPackage mediapackage, Set<RoleAction> roleActions) throws MediaPackageException;
+  MediaPackage setAccessControl(MediaPackage mediapackage, List<AccessControlEntry> accessControlList) throws MediaPackageException;
 
   /**
    * A tuple of role, action, and whether the combination is to be allowed.
    */
-  final class RoleAction {
+  final class AccessControlEntry {
     private String role = null;
     private String action = null;
     private boolean allow = false;
 
-    public RoleAction(String role, String action, boolean allow) {
+    public AccessControlEntry(String role, String action, boolean allow) {
       this.role = role;
       this.action = action;
       this.allow = allow;
@@ -100,6 +109,31 @@ public interface SecurityService {
      */
     public boolean isAllow() {
       return allow;
+    }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+      if(obj instanceof AccessControlEntry) {
+        AccessControlEntry other = (AccessControlEntry) obj;
+        return this.allow == other.allow && this.role.equals(other.role) && this.action.equals(other.action);
+      } else {
+        return false;
+      }
+    }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+      return (role + action + Boolean.toString(allow)).hashCode();
     }
   }
 }

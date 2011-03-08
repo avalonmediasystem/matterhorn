@@ -18,7 +18,7 @@ package org.opencastproject.security;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
 import org.opencastproject.security.api.SecurityService;
-import org.opencastproject.security.api.SecurityService.RoleAction;
+import org.opencastproject.security.api.SecurityService.AccessControlEntry;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workspace.api.Workspace;
 
@@ -37,9 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Tests XACML features of the security service
@@ -90,21 +88,21 @@ public class XacmlSecurityTest {
     // Create a mediapackage and some role/action tuples
     MediaPackage mediapackage = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder().createNew();
 
-    Set<RoleAction> roleActions = new HashSet<SecurityService.RoleAction>();
-    roleActions.add(new RoleAction("admin", "delete", true));
-    roleActions.add(new RoleAction("admin", "read", true));
+    List<AccessControlEntry> acl = new ArrayList<SecurityService.AccessControlEntry>();
+    acl.add(new AccessControlEntry("admin", "delete", true));
+    acl.add(new AccessControlEntry("admin", "read", true));
 
-    roleActions.add(new RoleAction("student", "read", true));
-    roleActions.add(new RoleAction("student", "comment", true));
+    acl.add(new AccessControlEntry("student", "read", true));
+    acl.add(new AccessControlEntry("student", "comment", true));
 
-    roleActions.add(new RoleAction(SecurityService.ANONYMOUS[0], "read", true));
-    roleActions.add(new RoleAction(SecurityService.ANONYMOUS[0], "comment", false));
+    acl.add(new AccessControlEntry(SecurityService.ANONYMOUS[0], "read", true));
+    acl.add(new AccessControlEntry(SecurityService.ANONYMOUS[0], "comment", false));
 
-    String xacml = securityService.getXacml(mediapackage, roleActions);
-    logger.debug("XACML contents:", xacml);
+    String xacml = securityService.getXacml(mediapackage, acl);
+    logger.info("XACML contents: {}", xacml);
     
     // Add the security policy to the mediapackage
-    mediapackage = securityService.setPolicy(mediapackage, roleActions);
+    mediapackage = securityService.setAccessControl(mediapackage, acl);
     
     // Ensure that the permissions specified are respected by the security service
     currentRoles.clear();
@@ -113,6 +111,11 @@ public class XacmlSecurityTest {
     Assert.assertTrue(securityService.hasPermission(mediapackage, "read"));
     Assert.assertFalse(securityService.hasPermission(mediapackage, "comment"));
 
+    List<AccessControlEntry> computedAcl = securityService.getAccessControlList(mediapackage);
+    Assert.assertTrue("ACLs are the same size?", computedAcl.size() == acl.size());
+    Assert.assertTrue("ACLs contain the same ACEs?", computedAcl.containsAll(acl));
+    
+    
     currentRoles.clear();
     currentRoles.add("student");
     Assert.assertFalse(securityService.hasPermission(mediapackage, "delete"));
@@ -124,6 +127,7 @@ public class XacmlSecurityTest {
     Assert.assertFalse(securityService.hasPermission(mediapackage, "delete"));
     Assert.assertTrue(securityService.hasPermission(mediapackage, "read"));
     Assert.assertFalse(securityService.hasPermission(mediapackage, "comment"));
+    
   }
   
   static class WorkspaceStub implements Workspace {
