@@ -532,11 +532,11 @@ install_mingw32() {
       case `arch` in
         i386 )
           URL=ftp://mirror.switch.ch/pool/1/mirror/epel/5/i386
-          rpms="mingw32-gcc-4.3.2-12.el5.i386.rpm mingw32-binutils-2.19-3.el5.i386.rpm mingw32-cpp-4.3.2-12.el5.i386.rpm mingw32-filesystem-56-1.el5.noarch.rpm mingw32-runtime-3.15.1-10.el5.noarch.rpm mingw32-w32api-3.12-8.el5.noarch.rpm rpmlint-0.91-1.el5.noarch.rpm"
+          rpms="mingw32-gcc-4.3.2-12.el5.i386.rpm mingw32-binutils-2.19-3.el5.i386.rpm mingw32-cpp-4.3.2-12.el5.i386.rpm mingw32-filesystem-56-1.el5.noarch.rpm mingw32-runtime-3.15.1-10.el5.noarch.rpm mingw32-w32api-3.12-8.el5.noarch.rpm rpmlint-0.94-2.el5.noarch.rpm"
           ;;
         x86_64 )
           URL=ftp://mirror.switch.ch/pool/1/mirror/epel/5/x86_64
-          rpms="mingw32-gcc-4.3.2-12.el5.x86_64.rpm mingw32-binutils-2.19-3.el5.x86_64.rpm mingw32-cpp-4.3.2-12.el5.x86_64.rpm mingw32-filesystem-56-1.el5.noarch.rpm mingw32-runtime-3.15.1-10.el5.noarch.rpm mingw32-w32api-3.12-8.el5.noarch.rpm rpmlint-0.91-1.el5.noarch.rpm"
+          rpms="mingw32-gcc-4.3.2-12.el5.x86_64.rpm mingw32-binutils-2.19-3.el5.x86_64.rpm mingw32-cpp-4.3.2-12.el5.x86_64.rpm mingw32-filesystem-56-1.el5.noarch.rpm mingw32-runtime-3.15.1-10.el5.noarch.rpm mingw32-w32api-3.12-8.el5.noarch.rpm rpmlint-0.94-2.el5.noarch.rpm"
           ;;
       esac
       for rpm in $rpms; do
