@@ -134,7 +134,7 @@ Opencast.Bookmarks = (function ()
             success: function (xml)
             {
                 // The BOOKMARK has been saved
-                var unencoded = Javascript.Utils.formatSeconds(curPosition) + " " + value;
+                var unencoded = Opencast.Utils.formatSeconds(curPosition) + " " + value;
                 encoded = $('<div/>').text(unencoded).html();
                 var option = $('<option/>').val(encoded).addClass("oc_option-myBookmark").attr("title", encoded).text(unencoded);
                 $('#oc_bookmarkSelect').prepend(option);
