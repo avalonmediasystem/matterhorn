@@ -71,8 +71,7 @@
     <sec:logout />
   </sec:http>
 
-  <!-- Replace this with a user details service for your institution -->
-
+  <!-- Obtain a user details service from the OSGI service registry -->
   <osgi:reference id="userDetailsService" cardinality="1..1"
     interface="org.springframework.security.core.userdetails.UserDetailsService" />
     

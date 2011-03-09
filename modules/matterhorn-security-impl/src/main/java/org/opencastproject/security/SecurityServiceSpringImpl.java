@@ -425,7 +425,7 @@ public class SecurityServiceSpringImpl implements SecurityService {
       boolean allow = ace.isAllow();
 
       RuleType rule = new RuleType();
-      rule.setRuleId(ace.getRole() + "_" + ace.getAction() + "_" + (allow ? "_Permit" : "_Deny"));
+      rule.setRuleId(ace.getRole() + "_" + ace.getAction() + (allow ? "_Permit" : "_Deny"));
       if (allow) {
         rule.setEffect(EffectType.PERMIT);
       } else {
