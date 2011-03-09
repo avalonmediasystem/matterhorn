@@ -28,9 +28,11 @@ Opencast.FlashVersion = (function ()
     var requiredMinorVersion = 0;
     // Minor version of Flash required
     var requiredRevision = 0;
-    var isIE = (navigator.appVersion.indexOf("MSIE") != -1) ? true : false;
-    var isWin = (navigator.appVersion.toLowerCase().indexOf("win") != -1) ? true : false;
-    var isOpera = (navigator.userAgent.indexOf("Opera") != -1) ? true : false;
+    // Browser detection
+    var isIE = $.browser.msie||false;        // Internet Explorer
+    var isOpera = $.browser.opera||false;    // Opera
+    // Operating system detection
+    var isWin = (navigator.appVersion.toLowerCase().indexOf("win") != -1) ? true : false; // Windows
     
     /**
      @memberOf Opencast.FlashVersion
