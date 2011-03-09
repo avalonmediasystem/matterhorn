@@ -24,7 +24,7 @@ Opencast.Description_Plugin = (function ()
     // The Template to process
     var template =  '<div style="float: left;">' +
                         'Date:&nbsp;<span style="color:grey;">${result.dcCreated}</span><br />' +
-                        'Department:&nbsp;<span style="color:grey;">${result.dcContributor}</span><br />' +
+                        'Contributor:&nbsp;<span style="color:grey;">${result.dcContributor}</span><br />' +
                         'Language:&nbsp;<span style="color:grey;">${result.dcLanguage}</span><br />' +
                         'Views:&nbsp;<span style="color:grey;">${result.dcViews}</span><br />' +
                     '</div>' +
