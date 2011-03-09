@@ -1,8 +1,23 @@
-/*global $, Videodisplay, Opencast, fluid*/
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, onevar: false */
+/**
+ *  Copyright 2009-2011 The Regents of the University of California
+ *  Licensed under the Educational Community License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance
+ *  with the License. You may obtain a copy of the License at
+ *
+ *  http://www.osedu.org/licenses/ECL-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an "AS IS"
+ *  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *  or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ *
+ */
+ 
+var Opencast = Opencast || {};
 
 /**
- * @namespace the global Opencast namespace watch
+ * @namespace the global Opencast namespace Watch
  */
 Opencast.Watch = (function ()
 {
@@ -23,7 +38,7 @@ Opencast.Watch = (function ()
         timeoutTime = 400,
         duration = 0,
         mediaPackageIdAvailable = true;
-    
+        
     /**
      * @memberOf Opencast.Watch
      * @description Sets up the Plugins if a MediaPackage-ID is available, otherwise continues the Processing
@@ -62,18 +77,17 @@ Opencast.Watch = (function ()
      * @memberOf Opencast.Watch
      * @description Sets up the html page after the player and the Plugins have been initialized.
      * @param error flag if error occured (=> display nothing, hide initialize); optional: set only if an error occured
-     */
+     */     
     function continueProcessing(error)
     {
-        var err = error||false;
-        if(error)
+        var err = error || false;
+        if (error)
         {
             $('body').css('background-color', '#FFFFFF');
             $('body').html('<span id="initializing-matter">matter</span><span id="initializing-horn">horn</span><span id="initializing">&nbsp;The media is not available.</span>');
             $('#initializing').css('color', '#000000');
             return;
         }
-        
         $('#oc-segments').html("");
         $(".segments").css("margin-top", "-3px");
         mimetypeOne = "video/x-flv";
@@ -83,10 +97,9 @@ Opencast.Watch = (function ()
         mediaUrlTwo = Opencast.Utils.getURLParameter('videoUrl2');
         coverUrlOne = $('#oc-cover-presenter').html();
         coverUrlTwo = $('#oc-cover-presentation').html();
-        
         // If URL Parameter display exists and is set to revert
         var display = Opencast.Utils.getURLParameter('display');
-        if((display != null) && (display.toLowerCase() == 'invert'))
+        if ((display != null) && (display.toLowerCase() == 'invert'))
         {
             // Switch the displays and its covers
             var tmpMediaURLOne = mediaUrlOne;
@@ -99,7 +112,6 @@ Opencast.Watch = (function ()
             coverUrlTwo = tmpCoverURLOne;
             mimetypeTwo = tmpMimetypeOne;
         }
-        
         if (coverUrlOne === null)
         {
             coverUrlOne = coverUrlTwo;
@@ -224,18 +236,16 @@ Opencast.Watch = (function ()
             Opencast.Player.stopFastForward();
         });
         getClientShortcuts();
-        
         // Hide loading indicators
         $('#oc_flash-player-loading').hide();
         // Show video controls and data
         $('#data').show();
-        
         // Set Duration
         var durDiv = $('#dc-extent').html();
-        if((durDiv !== undefined) && (durDiv !== null) && (durDiv != ''))
+        if ((durDiv !== undefined) && (durDiv !== null) && (durDiv != ''))
         {
             duration = parseInt(parseInt(durDiv) / 1000);
-            if((!isNaN(duration)) && (duration > 0))
+            if ((!isNaN(duration)) && (duration > 0))
             {
                 Opencast.Player.setDuration(duration);
             }
@@ -255,28 +265,26 @@ Opencast.Watch = (function ()
         var playParam = Opencast.Utils.getURLParameter('play');
         var timeParam = Opencast.Utils.getURLParameter('t');
         var durTextSet = ($('#oc_duration').text() != 'Initializing');
-        
         var autoplay = (playParam !== null) && (playParam.toLowerCase() == 'true');
         var time = (timeParam === null) ? 0 : Opencast.Utils.parseSeconds(timeParam);
         time = (time < 0) ? 0 : time;
-        
         var rdy = false;
         // duration set
-        if(durTextSet)
+        if (durTextSet)
         {
             // autoplay and jump to time OR autoplay and not jump to time
-            if((autoplay && (time != 0 )) || (autoplay && (time == 0 )))
+            if ((autoplay && (time != 0)) || (autoplay && (time == 0)))
             {
                 // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
-                if(Opencast.Player.doPlay() && jumpToTime(time))
+                if (Opencast.Player.doPlay() && jumpToTime(time))
                 {
                     rdy = true;
                 }
             }
             // not autoplay and jump to time
-            else if(!autoplay && (time != 0 ))
+            else if (!autoplay && (time != 0))
             {
-                if(jumpToTime(time))
+                if (jumpToTime(time))
                 {
                     rdy = true;
                 }
@@ -286,15 +294,15 @@ Opencast.Watch = (function ()
             {
                 rdy = true;
             }
-        } else
+        }
+        else
         {
             rdy = false;
         }
-        
-        if(!rdy)
+        if (!rdy)
         {
             // If duration time not set, yet: set a timeout and call again
-            setTimeout(function()
+            setTimeout(function ()
             {
                 Opencast.Watch.durationSet();
             }, timeoutTime);
@@ -313,7 +321,8 @@ Opencast.Watch = (function ()
         {
             Videodisplay.seek(time);
             success = true;
-        } catch(err)
+        }
+        catch (err)
         {
             success = false;
         }

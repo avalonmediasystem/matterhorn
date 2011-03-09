@@ -1,5 +1,19 @@
-/*global $, Opencast*/
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, onevar: false */
+/**
+ *  Copyright 2009-2011 The Regents of the University of California
+ *  Licensed under the Educational Community License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance
+ *  with the License. You may obtain a copy of the License at
+ *
+ *  http://www.osedu.org/licenses/ECL-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an "AS IS"
+ *  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *  or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ *
+ */
+ 
 var Opencast = Opencast || {};
 
 /**
@@ -8,8 +22,8 @@ var Opencast = Opencast || {};
 Opencast.segments_text = (function ()
 {
     var mediaPackageId;
-    var staticBool_hide = true;
-    var SEGMENTS_TEXT = "Segment Text",
+    var staticBool_hide = true,
+        SEGMENTS_TEXT = "Segment Text",
         SEGMENTS_TEXT_HIDE = "Hide Segment Text";
         
     /**
@@ -43,16 +57,16 @@ Opencast.segments_text = (function ()
         $('#segments_text-loading').show();
         $('#oc-segments_text').hide();
         $('.oc-segments-preview').css('display', 'block');
-        
         // If cashed data are available
-        if(Opencast.segments_text_Plugin.createSegmentsTextFromCashe())
+        if (Opencast.segments_text_Plugin.createSegmentsTextFromCashe())
         {
             // Make visible
             $('#oc_slidetext').show();
             $('#segments_text-loading').hide();
             $('#oc-segments_text').show();
             $('.oc-segments-preview').css('display', 'block');
-        } else
+        }
+        else
         {
             // Request JSONP data
             $.ajax(

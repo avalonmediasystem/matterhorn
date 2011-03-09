@@ -1,7 +1,5 @@
-/*global $, Player, window, Videodisplay, Scrubber*/
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, onevar: false */
 /**
- *  Copyright 2009 The Regents of the University of California
+ *  Copyright 2009-2011 The Regents of the University of California
  *  Licensed under the Educational Community License, Version 2.0
  *  (the "License"); you may not use this file except in compliance
  *  with the License. You may obtain a copy of the License at
@@ -15,14 +13,11 @@
  *  permissions and limitations under the License.
  *
  */
-
-/**
- @namespace the global Opencast namespace
- */
+ 
 var Opencast = Opencast || {};
 
 /**
- @namespace Opencast namespace Player
+ * @namespace the global Opencast namespace Player
  */
 Opencast.Player = (function ()
 {

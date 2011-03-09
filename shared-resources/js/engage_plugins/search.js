@@ -1,5 +1,19 @@
-/*global $, Opencast*/
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, onevar: false */
+/**
+ *  Copyright 2009-2011 The Regents of the University of California
+ *  Licensed under the Educational Community License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance
+ *  with the License. You may obtain a copy of the License at
+ *
+ *  http://www.osedu.org/licenses/ECL-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an "AS IS"
+ *  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *  or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ *
+ */
+ 
 var Opencast = Opencast || {};
 
 /**
@@ -184,8 +198,7 @@ Opencast.search = (function ()
                 // dataStor = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
                 dataStor = data;
                 var segmentsAvailable = true;
-                
-                if((dataStor === undefined) || (dataStor['search-results'] === undefined) || (dataStor['search-results'].result === undefined))
+                if ((dataStor === undefined) || (dataStor['search-results'] === undefined) || (dataStor['search-results'].result === undefined))
                 {
                     segmentsAvailable = false;
                 }
@@ -208,10 +221,11 @@ Opencast.search = (function ()
                     prepareData(searchValue);
                     // Create Trimpath Template nd add it to the HTML
                     var seaPlug = Opencast.search_Plugin.addAsPlugin($('#oc-search-result'), dataStor['search-results'].result.segments, searchValue);
-                    if(!seaPlug && !foundAlready)
+                    if (!seaPlug && !foundAlready)
                     {
                         setNoSegmentDataAvailable();
-                    } else
+                    }
+                    else
                     {
                         foundAlready = true;
                         lastHit = searchValue;
@@ -221,10 +235,11 @@ Opencast.search = (function ()
                 }
                 else
                 {
-                    if(!foundAlready)
+                    if (!foundAlready)
                     {
                         setNoSegmentDataAvailable();
-                    } else
+                    }
+                    else
                     {
                         setNoActualResultAvailable(searchValue);
                     }
@@ -234,10 +249,11 @@ Opencast.search = (function ()
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                if(!foundAlready)
+                if (!foundAlready)
                 {
                     setNoSegmentDataAvailable();
-                } else
+                }
+                else
                 {
                     setNoActualResultAvailable(searchValue);
                 }
@@ -245,12 +261,13 @@ Opencast.search = (function ()
             }
         });
         // If the Search Result Field contains nothing: Clear and display a Message
-        if($('#oc-search-result').empty)
+        if ($('#oc-search-result').empty)
         {
-            if(!foundAlready)
+            if (!foundAlready)
             {
                 setNoSearchResultAvailable();
-            } else
+            }
+            else
             {
                 setNoActualResultAvailable(searchValue);
             }

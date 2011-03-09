@@ -1,5 +1,19 @@
-/*global $, Opencast*/
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, onevar: false */
+/**
+ *  Copyright 2009-2011 The Regents of the University of California
+ *  Licensed under the Educational Community License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance
+ *  with the License. You may obtain a copy of the License at
+ *
+ *  http://www.osedu.org/licenses/ECL-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an "AS IS"
+ *  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *  or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ *
+ */
+ 
 var Opencast = Opencast || {};
 
 /**
@@ -16,7 +30,7 @@ Opencast.Utils = (function ()
      */
     function getTimeInMilliseconds(data)
     {
-        if((data!== null) && (data.indexOf(':') != -1))
+        if ((data !== null) && (data.indexOf(':') != -1))
         {
             var values = data.split(':');
             // If the Format is correct
@@ -49,7 +63,7 @@ Opencast.Utils = (function ()
      */
     function formatSeconds(seconds)
     {
-        if(seconds === null)
+        if (seconds === null)
         {
             seconds = 0;
         }
@@ -123,22 +137,20 @@ Opencast.Utils = (function ()
     function dateStringToDate(dcc)
     {
         var date = new Date(0);
-        if(dcc.indexOf('T') != -1)
+        if (dcc.indexOf('T') != -1)
         {
-            var dateTime = dcc.slice(0,-1).split("T");
-            
-            if(dateTime.length >= 2)
+            var dateTime = dcc.slice(0, -1).split("T");
+            if (dateTime.length >= 2)
             {
                 var ymd = dateTime[0].split("-");
-                if(ymd.length >= 3)
+                if (ymd.length >= 3)
                 {
                     date.setUTCFullYear(parseInt(ymd[0], 10));
                     date.setUTCMonth(parseInt(ymd[1], 10) - 1);
                     date.setUTCDate(parseInt(ymd[2], 10));
                 }
-                
                 var hms = dateTime[1].split(":");
-                if(hms.length >= 3)
+                if (hms.length >= 3)
                 {
                     date.setUTCMilliseconds(0);
                     date.setUTCHours(parseInt(hms[0], 10));
@@ -160,7 +172,7 @@ Opencast.Utils = (function ()
         var vars = [],
             hash;
         var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-        if($.isArray(hashes))
+        if ($.isArray(hashes))
         {
             for (var i = 0; i < hashes.length; i++)
             {
@@ -171,31 +183,32 @@ Opencast.Utils = (function ()
         }
         return vars;
     }
-   
+    
     /**
      * @memberOf Opencast.Utils
      * @description Removes the duplicates of a given array
      * @param arr Array to remove the duplicates of
      * @return a copy of arr wihout its duplicates if arr is a valid array, [] else
-     */     
+     */
     function removeDuplicates(arr)
     {
         var newArr = [];
         // check whether arr is an Array
-        if($.isArray(arr))
+        if ($.isArray(arr))
         {
             var ni = 0;
             var dupl = false;
-            for(var i = 0; i < arr.length; ++i)
+            for (var i = 0; i < arr.length; ++i)
             {
-                for(var j = i + 1; (j < arr.length) && !dupl; ++j)
+                for (var j = i + 1;
+                (j < arr.length) && !dupl; ++j)
                 {
-                    if(arr[i] == arr[j])
+                    if (arr[i] == arr[j])
                     {
                         dupl = true;
                     }
                 }
-                if(!dupl)
+                if (!dupl)
                 {
                     newArr[ni] = arr[i];
                     ++ni;
@@ -205,7 +218,7 @@ Opencast.Utils = (function ()
         }
         return newArr;
     }
-   
+    
     /**
      * @memberOf Opencast.Utils
      * @description Returns the url array to string, connected via links
@@ -214,21 +227,21 @@ Opencast.Utils = (function ()
      * @param link12 second link, connects the parameters (e.g. &)
      * @param link2 third link, connects the first and the second value of an URL parameter (e.g. =)
      * @return the url array to string, connected via links, if arr is a valid array, '' else
-     */ 
+     */
     function urlArrayToString(arr, link11, link12, link2)
     {
         var str = '';
         // check whether arr is an Array
-        if($.isArray(arr))
+        if ($.isArray(arr))
         {
             // Set default values if nothings given
-            link11 = link11||'?';
-            link12 = link12||'&';
-            link2 = link2||'=';
-            for(var i = 0; i < arr.length; ++i)
+            link11 = link11 || '?';
+            link12 = link12 || '&';
+            link2 = link2 || '=';
+            for (var i = 0; i < arr.length; ++i)
             {
                 var parsedUrlAt = getURLParameter(arr[i]);
-                if((parsedUrlAt !== undefined) && (parsedUrlAt !== null))
+                if ((parsedUrlAt !== undefined) && (parsedUrlAt !== null))
                 {
                     var l = (i == 0) ? link11 : link12;
                     str += l + arr[i] + link2 + parseURL()[arr[i]];
@@ -237,31 +250,30 @@ Opencast.Utils = (function ()
         }
         return str;
     }
-
+    
     /**
      * @memberOf Opencast.Utils
      * @description Removes the duplicate URL parameters, e.g. url?a=b&a=c&a=d => url?a=d
      * @return a cleaned URL
-     */ 
+     */
     function getCleanedURL()
     {
         var urlArr = removeDuplicates(parseURL());
         var windLoc = window.location.href;
         windLoc = (windLoc.indexOf('?') != -1) ? window.location.href.substring(0, window.location.href.indexOf('?')) : windLoc;
-        
         return windLoc + urlArrayToString(urlArr, "?", "&", "=");
     }
-
+    
     /**
      * @memberOf Opencast.Utils
      * @description Checks if URL parameters are duplicate and cleans it if appropriate (clean => page reload)
-     */ 
+     */
     function gotoCleanedURL()
     {
         var loc = window.location;
         var newLoc = Opencast.Utils.getCleanedURL();
         // If necessary: remove duplicate URL parameters
-        if(loc != newLoc)
+        if (loc != newLoc)
         {
             window.location = newLoc;
         }
@@ -296,7 +308,7 @@ Opencast.Utils = (function ()
     function getURLParameter(name)
     {
         var urlParam = parseURL()[name];
-        if((urlParam === undefined) || (urlParam === ''))
+        if ((urlParam === undefined) || (urlParam === ''))
         {
             return null;
         }
@@ -393,7 +405,6 @@ Opencast.Utils = (function ()
         return 0;
     }
     
-    
     /**
      * @memberOf Opencast.Utils
      * @description create date in format MM/DD/YYYY
@@ -411,18 +422,19 @@ Opencast.Utils = (function ()
      * @param max Max Value
      * @return a random Number in between [min, max]
      */
-    function getRandom(min, max) {
-	    if(min > max)
-	    {
-		    return max;
-	    }
-	    if(min == max)
-	    {
-		    return min;
-	    }
-	    return(min + parseInt(Math.random() * (max - min + 1)));
-	}
-	
+    function getRandom(min, max)
+    {
+        if (min > max)
+        {
+            return max;
+        }
+        if (min == max)
+        {
+            return min;
+        }
+        return (min + parseInt(Math.random() * (max - min + 1)));
+    }
+    
     /**
      * @memberOf Opencast.Utils
      * @description Returns if 'haystack' starts with 'start'
@@ -430,14 +442,14 @@ Opencast.Utils = (function ()
      * @param start String to search for
      * @return true if 'haystack' starts with 'start', false else
      */
-	function startsWith(haystack, start)
-	{
-	    if((typeof(haystack) == 'string') && (typeof(start) == 'string'))
-	    {
-	        return (haystack.substring(0, start.length).indexOf(start) != -1);
-	    }
-	    return false;
-	}
+    function startsWith(haystack, start)
+    {
+        if ((typeof(haystack) == 'string') && (typeof(start) == 'string'))
+        {
+            return (haystack.substring(0, start.length).indexOf(start) != -1);
+        }
+        return false;
+    }
     
     return {
         removeDuplicates: removeDuplicates,

@@ -1,5 +1,19 @@
-/*global $, Opencast*/
-/*jslint browser: true, white: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, newcap: true, immed: true, onevar: false */
+/**
+ *  Copyright 2009-2011 The Regents of the University of California
+ *  Licensed under the Educational Community License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance
+ *  with the License. You may obtain a copy of the License at
+ *
+ *  http://www.osedu.org/licenses/ECL-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an "AS IS"
+ *  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *  or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ *
+ */
+ 
 var Opencast = Opencast || {};
 
 /**
@@ -11,7 +25,7 @@ Opencast.Description = (function ()
     var DESCRIPTION = "Description",
         DESCRIPTION_HIDE = "Hide Description";
     var defaultChar = '-';
-        
+    
     /**
      * @memberOf Opencast.Description
      * @description Displays the Description Tab
@@ -33,14 +47,14 @@ Opencast.Description = (function ()
         $('#oc_description').show();
         $('#description-loading').show();
         $('#oc-description').hide();
-        
         // If cashed data are available
-        if(Opencast.Description_Plugin.createDescriptionFromCashe())
+        if (Opencast.Description_Plugin.createDescriptionFromCashe())
         {
             // Make visible
             $('#description-loading').hide();
             $('#oc-description').show();
-        } else
+        }
+        else
         {
             // Request JSONP data
             $.ajax(
@@ -56,17 +70,14 @@ Opencast.Description = (function ()
                         displayNoDescriptionAvailable("No data defined (1)");
                         return;
                     }
-                    
                     // Process data
                     // Trimpath throws (no) errors if a variable is not defined => assign default value
                     data['search-results'].defaultChar = defaultChar;
-                    
                     data['search-results'].result.dcSeriesTitle = checkForNullUndef(data['search-results'].result.mediapackage.seriestitle, defaultChar);
                     data['search-results'].result.dcContributor = checkForNullUndef(data['search-results'].result.dcContributor, defaultChar);
                     data['search-results'].result.dcLanguage = checkForNullUndef(data['search-results'].result.dcLanguage, defaultChar);
                     data['search-results'].result.dcCreator = checkForNullUndef(data['search-results'].result.dcCreator, defaultChar);
                     data['search-results'].result.dcViews = checkForNullUndef(data['search-results'].result.dcViews, defaultChar);
-                    
                     data['search-results'].result.dcCreated = checkForNullUndef(data['search-results'].result.dcCreated, defaultChar);
                     // format date if date is available
                     if (data['search-results'].result.dcCreated != defaultChar)
@@ -74,7 +85,6 @@ Opencast.Description = (function ()
                         var sd = Opencast.Utils.dateStringToDate(data['search-results'].result.dcCreated);
                         data['search-results'].result.dcCreated = Opencast.Utils.getDateString(sd) + ' - ' + Opencast.Utils.getTimeString(sd);
                     }
-                    
                     // Request JSONP data (Stats)
                     $.ajax(
                     {
@@ -85,7 +95,7 @@ Opencast.Description = (function ()
                         success: function (result)
                         {
                             var views = checkForNullUndef(result.stats.views);
-                            if((result.stats.views == 0) || (views != defaultChar))
+                            if ((result.stats.views == 0) || (views != defaultChar))
                             {
                                 data['search-results'].result.dcViews = result.stats.views;
                             }
@@ -127,7 +137,7 @@ Opencast.Description = (function ()
      */
     function checkForNullUndef(toCheck, char)
     {
-        if(!toCheck || (toCheck === null) || (toCheck === undefined))
+        if (!toCheck || (toCheck === null) || (toCheck === undefined))
         {
             return char;
         }
