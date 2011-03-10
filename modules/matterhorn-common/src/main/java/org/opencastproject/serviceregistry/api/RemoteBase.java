@@ -116,7 +116,7 @@ public class RemoteBase {
       return null;
     }
 
-    if(remoteServices.size() == 0) {
+    if (remoteServices.size() == 0) {
       logger.warn("No services of type '{}' are currently available", serviceType);
       return null;
     }
