@@ -122,6 +122,12 @@ public class RemoteBase {
     if (originalUri != null && StringUtils.isNotBlank(originalUri.toString())) {
       uriSuffix = originalUri.toString();
     }
+    
+    if(remoteServices.size() == 0) {
+      logger.warn("No services of type '{}' are currently available", serviceType);
+      return null;
+    }
+    
     for (ServiceRegistration remoteService : remoteServices) {
       HttpResponse response = null;
       try {
