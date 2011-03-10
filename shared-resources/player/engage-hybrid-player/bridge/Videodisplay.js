@@ -114,11 +114,12 @@ Videodisplay = (function ()
             if (initialized())
             {
                 var v = b_Videodisplay_root.play();
+                return v;
             }
-            return v;
         }
         catch (err)
         {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
         return false;
     };
@@ -126,110 +127,200 @@ Videodisplay = (function ()
     /**
      * @memberOf Videodisplay
      * @description stop
+     * @return false if something went wrong
      */
     function stop()
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.stop();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.stop();
+                return v;
+            } 
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description pause
+     * @return false if something went wrong
      */
     function pause()
     {
-        if (initialized())
+        try
         {
-            return b_Videodisplay_root.pause();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.pause();
+                return v;
+            } 
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description skipBackward
+     * @return false if something went wrong
      */
     function skipBackward()
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.skipBackward();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.skipBackward();
+                return v;
+            }
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description rewind
+     * @return false if something went wrong
      */
     function rewind()
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.rewind();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.rewind();
+                return v;
+            } 
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description stopRewind
+     * @return false if something went wrong
      */
     function stopRewind()
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.stopRewind();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.stopRewind();
+                return v;
+            }
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description fastForward
+     * @return false if something went wrong
      */
     function fastForward()
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.fastForward();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.fastForward();
+                return v;
+            }
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description stopFastForward
+     * @return false if something went wrong
      */
     function stopFastForward()
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.stopFastForward();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.stopFastForward();
+                return v;
+            } 
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description skipForward
+     * @return false if something went wrong
      */
     function skipForward()
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.skipForward();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.skipForward();
+                return v;
+            }
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description passCharCode
      * @param argInt
+     * @return false if something went wrong
      */
     function passCharCode(argInt)
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.passCharCode(argInt);
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.passCharCode(argInt);
+                return v;
+            }
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
     
     /**
@@ -241,53 +332,40 @@ Videodisplay = (function ()
      */
     function seek(argNumber)
     {
-        if (initialized())
+        try
         {
-            var progress = Opencast.engage.getLoadProgress();
-            if (progress === -1)
+            if (initialized())
             {
-                // red5 pause/resume bug
-                if (Opencast.Player.isPlaying())
+                var progress = Opencast.engage.getLoadProgress();
+                // streaming
+                if (progress === -1)
                 {
-                    try
+                    // red5 pause/resume bug
+                    if (Opencast.Player.isPlaying())
                     {
-                        // if playing seek ok
                         var v = b_Videodisplay_root.seek(argNumber);
                         return v;
                     }
-                    catch (err)
-                    {
-                    }
-                }
-                else
-                {
-                    try
+                    else
                     {
                         // player in pause mode
                         b_Videodisplay_root.play();
-                        // if playing seek ok
                         var v = b_Videodisplay_root.seek(argNumber);
                         return v;
                     }
-                    catch (err)
-                    {
-                    }
                 }
-            }
-            else
-            {
                 // progressive download
-                var seekValue = Math.min(argNumber, progress);
-                try
+                else
                 {
-                    // if playing seek ok
+                    var seekValue = Math.min(argNumber, progress);
                     var v = b_Videodisplay_root.seek(seekValue);
                     return v;
                 }
-                catch (err)
-                {
-                }
             }
+        }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
         return false;
     };
@@ -295,65 +373,104 @@ Videodisplay = (function ()
     /**
      * @memberOf Videodisplay
      * @description mute
-     * @return mute
+     * @return false if something went wrong
      */
     function mute()
     {
-        if (initialized())
+        try
         {
-            return b_Videodisplay_root.mute();
+            if (initialized())
+            {
+                var v =  b_Videodisplay_root.mute();
+                return v;
+            } 
         }
+        catch (err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
+        }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description setVolumeSlider
      * @param argNumber
+     * @return false if something went wrong
      */
     function setVolumeSlider(argNumber)
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.setVolumeSlider(argNumber);
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.setVolumeSlider(argNumber);
+                return v;
+            }
+            else
+            {
+                volSliderArgs = argNumber;
+            } 
         }
-        else
+        catch (err)
         {
-            volSliderArgs = argNumber;
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description setVolumePlayer
      * @param argNumber
+     * @return false if something went wrong
      */
     function setVolumePlayer(argNumber)
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.setVolumePlayer(argNumber);
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.setVolumePlayer(argNumber);
+                return v;
+            }
+            else
+            {
+                volPlayerArgs = argNumber;
+            }
         }
-        else
+        catch (err)
         {
-            volPlayerArgs = argNumber;
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description closedCaptions
      * @param argNumber
+     * @return false if something went wrong
      */
     function closedCaptions()
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.closedCaptions();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.closedCaptions();
+                return v;
+            }
+            else
+            {
+                closedCap = true;
+            }
         }
-        else
+        catch (err)
         {
-            closedCap = true;
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
+        return false;
     };
 
     /**
@@ -367,41 +484,61 @@ Videodisplay = (function ()
      * @param argMimetypeTwo
      * @param argPlayerstyle
      * @param slideLength
+     * @return false if something went wrong
      */
     function setMediaURL(argCoverOne, argCoverTwo, argStringOne, argStringTwo, argMimetypeOne, argMimetypeTwo, argPlayerstyle, slideLength)
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.setMediaURL(argCoverOne, argCoverTwo, argStringOne, argStringTwo, argMimetypeOne, argMimetypeTwo, argPlayerstyle, slideLength);
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.setMediaURL(argCoverOne, argCoverTwo, argStringOne, argStringTwo, argMimetypeOne, argMimetypeTwo, argPlayerstyle, slideLength);
+                return v;
+            }
+            else
+            {
+                covOne = argCoverOne;
+                covTwo = argCoverTwo;
+                strOne = argStringOne;
+                strTwo = argStringTwo;
+                mimOne = argMimetypeOne;
+                mimTwo = argMimetypeTwo;
+                plStyle = argPlayerstyle;
+                slideLen = slideLength;
+            }
         }
-        else
+        catch (err)
         {
-            covOne = argCoverOne;
-            covTwo = argCoverTwo;
-            strOne = argStringOne;
-            strTwo = argStringTwo;
-            mimOne = argMimetypeOne;
-            mimTwo = argMimetypeTwo;
-            plStyle = argPlayerstyle;
-            slideLen = slideLength;
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description setCaptionsURL
      * @param argString
+     * @return false if something went wrong
      */
     function setCaptionsURL(argString)
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.setCaptionsURL(argString);
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.setCaptionsURL(argString);
+                return v;
+            }
+            else
+            {
+                capURL = argString;
+            }
         }
-        else
+        catch (err)
         {
-            capURL = argString;
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
+        return false;
     };
 
     /**
@@ -409,32 +546,49 @@ Videodisplay = (function ()
      * @description videoSizeControl
      * @param argSizeLeft
      * @param argSizeRight
+     * @return false if something went wrong
      */
     function videoSizeControl(argSizeLeft, argSizeRight)
     {
-        if (initialized())
+        try
         {
-            b_Videodisplay_root.videoSizeControl(argSizeLeft, argSizeRight);
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.videoSizeControl(argSizeLeft, argSizeRight);
+                return v;
+            }
+            else
+            {
+                vidSizeContLeft = argSizeLeft;
+                vidSizeContRight = argSizeRight;
+            }
         }
-        else
+        catch (err)
         {
-            vidSizeContLeft = argSizeLeft;
-            vidSizeContRight = argSizeRight;
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
+        return false;
     };
 
     /**
      * @memberOf Videodisplay
      * @description getViewState
+     * @return false if something went wrong
      */
     function getViewState()
     {
-        if (initialized())
+        try
         {
-            return b_Videodisplay_root.getViewState();
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.getViewState();
+                return v;
+            } 
+        } catch(err)
+        {
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
-        return {
-        };
+        return false;
     };
 
     /**
@@ -445,21 +599,31 @@ Videodisplay = (function ()
      * @param argWidthMediaTwo
      * @param argHeightMediaTwo
      * @param argMultiMediaContainerLeft
+     * @return false if something went wrong
      */
     function setMediaResolution(argWidthMediaOne, argHeightMediaOne, argWidthMediaTwo, argHeightMediaTwo, argMultiMediaContainerLeft)
     {
-        if (initialized())
+        try
         {
-            return b_Videodisplay_root.setMediaResolution(argWidthMediaOne, argHeightMediaOne, argWidthMediaTwo, argHeightMediaTwo, argMultiMediaContainerLeft);
+            if (initialized())
+            {
+                var v = b_Videodisplay_root.setMediaResolution(argWidthMediaOne, argHeightMediaOne, argWidthMediaTwo, argHeightMediaTwo, argMultiMediaContainerLeft);
+                return v;
+            }
+            else
+            {
+                widthMediaOne = argWidthMediaOne;
+                heightMediaOne = argHeightMediaOne;
+                widthMediaTwo = argWidthMediaTwo;
+                heightMediaTwo = argHeightMediaTwo;
+                contLeft = argMultiMediaContainerLeft;
+            }
         }
-        else
+        catch (err)
         {
-            widthMediaOne = argWidthMediaOne;
-            heightMediaOne = argHeightMediaOne;
-            widthMediaTwo = argWidthMediaTwo;
-            heightMediaTwo = argHeightMediaTwo;
-            contLeft = argMultiMediaContainerLeft;
+            Opencast.Utils.log("Error in Videodisplay '" + arguments.callee.toString().substr(0, arguments.callee.toString().indexOf('(')) + "': " + err);
         }
+        return false;
     };
     
     return {

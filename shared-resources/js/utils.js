@@ -451,6 +451,29 @@ Opencast.Utils = (function ()
         return false;
     }
     
+    /**
+     * @memberOf Opencast.Utils
+     * @description Logs given arguments -- uses console.log
+     * @param any arguments console.log-valid
+     * @return true if window.console exists and arguments had been logged, false else
+     */
+    function log()
+    {
+        if(window.console)
+        {
+            try
+            {
+                window.console && console.log.apply(console, Array.prototype.slice.call(arguments));
+            }
+            catch(err)
+            {
+                console.log(e);
+            }
+            return true;
+        }
+        return false;
+    }
+    
     return {
         removeDuplicates: removeDuplicates,
         urlArrayToString: urlArrayToString,
@@ -466,6 +489,7 @@ Opencast.Utils = (function ()
         parseSeconds: parseSeconds,
         getLocaleDate: getLocaleDate,
         startsWith: startsWith,
-        getRandom: getRandom
+        getRandom: getRandom,
+        log: log
     };
 }());
