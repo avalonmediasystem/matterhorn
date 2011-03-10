@@ -30,7 +30,7 @@ Opencast.Utils = (function ()
      */
     function getTimeInMilliseconds(data)
     {
-        if ((data !== null) && (data.indexOf(':') != -1))
+        if ((data !== undefined) && (data !== null) && (data != 0) && (data.length) && (data.indexOf(':') != -1))
         {
             var values = data.split(':');
             // If the Format is correct

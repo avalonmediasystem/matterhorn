@@ -94,7 +94,8 @@ Opencast.Player = (function ()
         inPosition = 0,
         outPosition = 0,
         curPosition = 0,
-        INTERVAL_LENGTH = 5;
+        INTERVAL_LENGTH = 5,
+        lastValidTime = "Initializing";
         
     /**
      * @memberOf Opencast.Player
@@ -876,9 +877,10 @@ Opencast.Player = (function ()
     {
         if(!isPlaying())
         {
-            try
+            var playing = Videodisplay.play();
+            if(playing != false)
             {
-                FLASH_PLAYERSTATE = Videodisplay.play();
+                FLASH_PLAYERSTATE = playing;
                 setCurrentPlayPauseState(PLAYING);
                 if (displVidSizeControl)
                 {
@@ -888,9 +890,9 @@ Opencast.Player = (function ()
                     $("#oc_btn-dropdown").css("display", 'block');
                     $("#oc_player_video-dropdown").css("display", 'block');
                 }
-            } catch(err)
+            } else
             {
-                setCurrentPlayPauseState(PAUSING);
+                return false;
             }
         }
         return isPlaying();
@@ -1309,7 +1311,10 @@ Opencast.Player = (function ()
         // Assume that no Video/Audio lasts 0 seconds
         if((text.indexOf('NaN') != -1) || (text == '00:00:00') || (text == ''))
         {
-            text = 'Initializing';
+            text = lastValidTime;
+        } else
+        {
+            lastValidTime = text;
         }
         $("#oc_duration").text(text);
         $("#scrubber").attr("aria-valuemin", "00:00:00");

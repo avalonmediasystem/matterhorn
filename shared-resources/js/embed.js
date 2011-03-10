@@ -37,7 +37,8 @@ Opencast.Watch = (function ()
         slideLength = 0,
         timeoutTime = 400,
         duration = 0,
-        mediaPackageIdAvailable = true;
+        mediaPackageIdAvailable = true,
+        durationSetSuccessfully = false;
         
     /**
      * @memberOf Opencast.Watch
@@ -251,8 +252,12 @@ Opencast.Watch = (function ()
             }
         }
         Opencast.Player.setTotalTime(Opencast.Utils.formatSeconds(Opencast.Player.getDuration()));
-        // Set seconds or autoplay
-        durationSet();
+        
+        // Give the player a second to finish loading, then proceed
+        setTimeout(function()
+        {
+            Opencast.Watch.durationSet();
+        }, 1000);
     }
     
     /**
@@ -262,50 +267,52 @@ Opencast.Watch = (function ()
      */
     function durationSet()
     {
-        var playParam = Opencast.Utils.getURLParameter('play');
-        var timeParam = Opencast.Utils.getURLParameter('t');
-        var durTextSet = ($('#oc_duration').text() != 'Initializing');
-        var autoplay = (playParam !== null) && (playParam.toLowerCase() == 'true');
-        var time = (timeParam === null) ? 0 : Opencast.Utils.parseSeconds(timeParam);
-        time = (time < 0) ? 0 : time;
-        var rdy = false;
-        // duration set
-        if (durTextSet)
+        if(!durationSetSuccessfully)
         {
-            // autoplay and jump to time OR autoplay and not jump to time
-            if ((autoplay && (time != 0)) || (autoplay && (time == 0)))
+            var playParam = Opencast.Utils.getURLParameter('play');
+            var timeParam = Opencast.Utils.getURLParameter('t');
+            var durationStr = $('#oc_duration').text();
+            var durTextSet = (durationStr != 'Initializing') && (Opencast.Utils.getTimeInMilliseconds(durationStr) != 0);
+            var autoplay = (playParam !== null) && (playParam.toLowerCase() == 'true');
+            var time = (timeParam === null) ? 0 : Opencast.Utils.parseSeconds(timeParam);
+            time = (time < 0) ? 0 : time;
+            var rdy = false;
+            // duration set
+            if (durTextSet)
             {
-                // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
-                if (Opencast.Player.doPlay() && jumpToTime(time))
+                // autoplay and jump to time OR autoplay and not jump to time
+                if (autoplay)
                 {
-                    rdy = true;
+                    // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
+                    if (Opencast.Player.doPlay() && jumpToTime(time))
+                    {
+                        rdy = true;
+                    }
+                }
+                // not autoplay and jump to time
+                else
+                {
+                    if (jumpToTime(time))
+                    {
+                        rdy = true;
+                    }
                 }
             }
-            // not autoplay and jump to time
-            else if (!autoplay && (time != 0))
-            {
-                if (jumpToTime(time))
-                {
-                    rdy = true;
-                }
-            }
-            // not autoplay and not jump to time
             else
             {
-                rdy = true;
+                rdy = false;
             }
-        }
-        else
-        {
-            rdy = false;
-        }
-        if (!rdy)
-        {
-            // If duration time not set, yet: set a timeout and call again
-            setTimeout(function ()
+            if (!rdy)
             {
-                Opencast.Watch.durationSet();
-            }, timeoutTime);
+                // If duration time not set, yet: set a timeout and call again
+                setTimeout(function ()
+                {
+                    Opencast.Watch.durationSet();
+                }, timeoutTime);
+            } else
+            {
+                durationSetSuccessfully = true;
+            }
         }
     }
     
@@ -316,17 +323,14 @@ Opencast.Watch = (function ()
      */
     function jumpToTime(time)
     {
-        var success = false;
-        try
+        if(time > 0)
         {
-            Videodisplay.seek(time);
-            success = true;
-        }
-        catch (err)
+            var seekSuccessful = Videodisplay.seek(time);
+            return seekSuccessful;
+        } else
         {
-            success = false;
+            return true;
         }
-        return success;
     }
     
     /**
