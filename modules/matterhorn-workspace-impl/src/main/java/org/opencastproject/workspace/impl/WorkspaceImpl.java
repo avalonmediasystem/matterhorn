@@ -494,7 +494,7 @@ public class WorkspaceImpl implements Workspace {
     // Move the local file
     File original = getWorkspaceFile(collectionURI, false);
     if (original.isFile()) {
-      URI copyURI = wfr.getURI(toMediaPackage, toMediaPackageElement, filename);
+      URI copyURI = wfr.getURI(toMediaPackage, toMediaPackageElement, toFileName);
       File copy = getWorkspaceFile(copyURI, true);
       FileUtils.forceMkdir(copy.getParentFile());
       FileUtils.moveFile(original, copy);
