@@ -542,7 +542,13 @@ ocRecordings = new (function() {
         $(this).find('.fold-icon')
         .toggleClass('ui-icon-triangle-1-e')
         .toggleClass('ui-icon-triangle-1-s');
-        $(this).find('.fold-body').toggle('fast');
+        $(this).find('.fold-body').toggle('fast', function() {
+          if($(this).css('display') === 'none') {
+            ocRecordings.updateRefreshInterval(true, ocRecordings.Configuration.refresh);
+          } else {
+            ocRecordings.disableRefresh();
+          }
+        });
       });
     });
   }
@@ -1267,7 +1273,6 @@ ocRecordings = new (function() {
 
       } else if (action == 'stop') {
         links.push('<a href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Delete</a>');
-
       }
     });
     return links.join(' \n');
