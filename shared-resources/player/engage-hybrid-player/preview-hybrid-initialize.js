@@ -25,7 +25,38 @@ Opencast.Initialize = (function ()
         divId = '',
         timeout = 200, // http://javascript-array.com/scripts/jquery_simple_drop_down_menu/
         closetimer = 0,
-        ddmenuitem = 0;
+        ddmenuitem = 0,
+        keysSet = false,
+        KEY_0,
+        KEY_1,
+        KEY_2,
+        KEY_3,
+        KEY_4,
+        KEY_5,
+        KEY_6,
+        KEY_7,
+        KEY_8,
+        KEY_9,
+        KEY_C,
+        KEY_D,
+        KEY_F,
+        KEY_I,
+        KEY_M,
+        KEY_P,
+        KEY_R,
+        KEY_S,
+        KEY_T,
+        KEY_U,
+        KEY_c,
+        KEY_d,
+        KEY_f,
+        KEY_i,
+        KEY_m,
+        KEY_p,
+        KEY_r,
+        KEY_s,
+        KEY_t,
+        KEY_u;
     
     /**
      @memberOf Opencast.Initialize
@@ -47,47 +78,91 @@ Opencast.Initialize = (function ()
     
     /**
      @memberOf Opencast.Initialize
+     @description sets the keys to its ascii characters
+     */
+    function setKeys()
+    {
+        if(!keysSet)
+        {
+            var asciiAlphabet = Opencast.Utils.getAsciiAlphabet();
+            KEY_0 = asciiAlphabet['0'],
+            KEY_1 = asciiAlphabet['1'],
+            KEY_2 = asciiAlphabet['2'],
+            KEY_3 = asciiAlphabet['3'],
+            KEY_4 = asciiAlphabet['4'],
+            KEY_5 = asciiAlphabet['5'],
+            KEY_6 = asciiAlphabet['6'],
+            KEY_7 = asciiAlphabet['7'],
+            KEY_8 = asciiAlphabet['8'],
+            KEY_9 = asciiAlphabet['9'],
+            KEY_C = asciiAlphabet['C'],
+            KEY_D = asciiAlphabet['D'],
+            KEY_F = asciiAlphabet['F'],
+            KEY_I = asciiAlphabet['I'],
+            KEY_M = asciiAlphabet['M'],
+            KEY_P = asciiAlphabet['P'],
+            KEY_R = asciiAlphabet['R'],
+            KEY_S = asciiAlphabet['S'],
+            KEY_T = asciiAlphabet['T'],
+            KEY_U = asciiAlphabet['U'],
+            KEY_c = asciiAlphabet['c'],
+            KEY_d = asciiAlphabet['d'],
+            KEY_f = asciiAlphabet['f'],
+            KEY_i = asciiAlphabet['i'],
+            KEY_m = asciiAlphabet['m'],
+            KEY_p = asciiAlphabet['p'],
+            KEY_r = asciiAlphabet['r'],
+            KEY_s = asciiAlphabet['s'],
+            KEY_t = asciiAlphabet['t'],
+            KEY_u = asciiAlphabet['u'];
+            keysSet = true;
+        }
+    }
+    
+    /**
+     @memberOf Opencast.Initialize
      @description Keylistener.
      */    
     function keyboardListener()
     {
+        setKeys();
         $(document).keyup(function (event)
         {
             if (event.altKey === true && event.ctrlKey === true)
             {
-                if (event.which === Opencast.Utils.toAscii('M') ||
-                    event.which === Opencast.Utils.toAscii('m'))
+                if (event.which === KEY_M ||
+                    event.which === KEY_m)
                 {
                     Opencast.Player.doToggleMute();
                 }
-                if (event.which === Opencast.Utils.toAscii('0') ||
-                    event.which === Opencast.Utils.toAscii('1') ||
-                    event.which === Opencast.Utils.toAscii('2') ||
-                    event.which === Opencast.Utils.toAscii('3') ||
-                    event.which === Opencast.Utils.toAscii('4') ||
-                    event.which === Opencast.Utils.toAscii('5') ||
-                    event.which === Opencast.Utils.toAscii('6') ||
-                    event.which === Opencast.Utils.toAscii('7') ||
-                    event.which === Opencast.Utils.toAscii('8') ||
-                    event.which === Opencast.Utils.toAscii('9') ||
-                    event.which === Opencast.Utils.toAscii('C') ||
-                    event.which === Opencast.Utils.toAscii('D') ||
-                    event.which === Opencast.Utils.toAscii('F') ||
-                    event.which === Opencast.Utils.toAscii('I') ||
-                    event.which === Opencast.Utils.toAscii('P') ||
-                    event.which === Opencast.Utils.toAscii('R') ||
-                    event.which === Opencast.Utils.toAscii('S') ||
-                    event.which === Opencast.Utils.toAscii('T') ||
-                    event.which === Opencast.Utils.toAscii('U') ||
-                    event.which === Opencast.Utils.toAscii('c') ||
-                    event.which === Opencast.Utils.toAscii('d') ||
-                    event.which === Opencast.Utils.toAscii('f') ||
-                    event.which === Opencast.Utils.toAscii('i') ||
-                    event.which === Opencast.Utils.toAscii('p') ||
-                    event.which === Opencast.Utils.toAscii('r') ||
-                    event.which === Opencast.Utils.toAscii('s') ||
-                    event.which === Opencast.Utils.toAscii('t') ||
-                    event.which === Opencast.Utils.toAscii('u') ||)
+                if (event.which === KEY_0 ||
+                    event.which === KEY_0 ||
+                    event.which === KEY_2 ||
+                    event.which === KEY_3 ||
+                    event.which === KEY_4 ||
+                    event.which === KEY_5 ||
+                    event.which === KEY_6 ||
+                    event.which === KEY_7 ||
+                    event.which === KEY_8 ||
+                    event.which === KEY_9 ||
+                    event.which === KEY_C ||
+                    event.which === KEY_D ||
+                    event.which === KEY_F ||
+                    event.which === KEY_I ||
+                    event.which === KEY_P ||
+                    event.which === KEY_R ||
+                    event.which === KEY_S ||
+                    event.which === KEY_T ||
+                    event.which === KEY_U ||
+                    event.which === KEY_c ||
+                    event.which === KEY_d ||
+                    event.which === KEY_f ||
+                    event.which === KEY_i ||
+                    event.which === KEY_p ||
+                    event.which === KEY_r ||
+                    event.which === KEY_s ||
+                    event.which === KEY_t ||
+                    event.which === KEY_u)
                 {
                     Videodisplay.passCharCode(event.which);
                 }
