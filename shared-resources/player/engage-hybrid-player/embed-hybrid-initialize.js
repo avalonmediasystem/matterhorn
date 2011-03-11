@@ -46,13 +46,12 @@ Opencast.Initialize = (function ()
         flashWidth = 0,
         embedUrl = "",
         advancedUrl = "",
-        size = "";
-
-    var segmentForwardDelay = 200,
-        segmentBackwardDelay = 200;
-    var segmentTimeoutForward, segmentTimeoutBackward;
-    var segmentForwardClickedCounter = 0,
-        segmentBackwardClickedCounter = 0; // Number of clicks
+        size = "",
+        segmentForwardDelay = 200,
+        segmentBackwardDelay = 200,
+        segmentForwardClickedCounter = 0,
+        segmentBackwardClickedCounter = 0,
+        segmentTimeoutForward, segmentTimeoutBackward;
         
     /**
      @memberOf Opencast.Initialize

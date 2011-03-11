@@ -22,6 +22,51 @@ var Opencast = Opencast || {};
  */
 Opencast.Utils = (function ()
 {
+    var asciiAlphabet;
+    var asciiAlphabetCashed = false;
+    
+    /**
+     * @memberOf Opencast.Utils
+     * @description Returns the ascii alphabet lower case (internal function for cashing)
+     * @return the alphabet lower case
+     */
+    function getAsciiAlphabet_internal()
+    {
+        var fullAscii = new Array();
+        for(var i = 0; i <= 255; ++i)
+        {
+            fullAscii[String.fromCharCode(i)] = i;
+        }
+        return fullAscii;
+    }
+    
+    /**
+     * @memberOf Opencast.Utils
+     * @description Returns the ascii alphabet lower case
+     * @return the alphabet lower case
+     */
+    function getAsciiAlphabet()
+    {
+        if(!asciiAlphabetCashed)
+        {
+            // Cashe ASCII alphabet
+            asciiAlphabet = getAsciiAlphabet_internal();
+            asciiAlphabetCashed = true;
+        }
+        return asciiAlphabet;
+    }
+    
+    /**
+     * @memberOf Opencast.Utils
+     * @description Returns the ASCII value of char
+     * @param char Character to get the ASCII value from
+     * @return the ASCII value of char
+     */
+    function toAscii(char)
+    {
+        return getAsciiAlphabet()[char]||'';
+    }
+        
     /**
      * @memberOf Opencast.Utils
      * @description Returns the Input Time in Milliseconds
@@ -475,6 +520,8 @@ Opencast.Utils = (function ()
     }
     
     return {
+        getAsciiAlphabet: getAsciiAlphabet,
+        toAscii: toAscii,
         removeDuplicates: removeDuplicates,
         urlArrayToString: urlArrayToString,
         getCleanedURL: getCleanedURL,

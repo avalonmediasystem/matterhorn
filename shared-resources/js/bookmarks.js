@@ -21,6 +21,9 @@ var Opencast = Opencast || {};
  */
 Opencast.Bookmarks = (function ()
 {
+    var BOOKMARKS = "Bookmarks",
+        BOOKMARKSHIDE = "Hide Bookmarks";
+    
     /**
      * @memberOf Opencast.Bookmarks
      * @description Initializes the segments view
@@ -118,6 +121,61 @@ Opencast.Bookmarks = (function ()
     }
     
     /**
+     @memberOf Opencast.Bookmarks
+     @description Show the bookmarks
+     */
+    function showBookmarks()
+    {
+        $("#oc_bookmarks").attr("className", "oc_DisplayBlock-textleft");
+        $("#oc_btn-bookmarks").attr(
+        {
+            alt: BOOKMARKSHIDE,
+            title: BOOKMARKSHIDE,
+            value: BOOKMARKSHIDE
+        });
+        $("#oc_btn-bookmarks").attr('aria-pressed', 'true');
+        $("#oc_bookmarksPoints").css('display', 'block');
+    }
+    
+    /**
+     @memberOf Opencast.Bookmarks
+     @description Hide the bookmarks
+     */
+    function hideBookmarks()
+    {
+        $("#oc_bookmarks").attr("className", "oc_DisplayNone");
+        $("#oc_btn-bookmarks").attr(
+        {
+            alt: BOOKMARKS,
+            title: BOOKMARKS,
+            value: BOOKMARKS
+        });
+        $("#oc_btn-bookmarks").attr('aria-pressed', 'false');
+        $("#oc_bookmarksPoints").css('display', 'none');
+    }
+    
+    /**
+     @memberOf Opencast.Player
+     @description Toggle the bookmarks
+     */
+    function doToggleBookmarks()
+    {
+        if ($("#oc_btn-bookmarks").attr("title") === BOOKMARKS)
+        {
+            showBookmarks();
+            hideEmbed();
+            hideSlides();
+            setShowSections(true);
+        }
+        else
+        {
+            hideBookmarks();
+            setShowSections(false);
+        }
+        // Opencast.Initialize.doResize();
+    }
+    
+    /**
      * @memberOf Opencast.Bookmarks
      * @description Add a bookmark
      * @param String value, String name, String text
@@ -189,6 +247,9 @@ Opencast.Bookmarks = (function ()
     
     return {
         initialize: initialize,
+        showBookmarks: showBookmarks,
+        hideBookmarks: hideBookmarks,
+        doToggleBookmarks: doToggleBookmarks,
         addBookmark: addBookmark,
         removeBookmark: removeBookmark,
         playBookmark: playBookmark
