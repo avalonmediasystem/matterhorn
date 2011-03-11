@@ -412,7 +412,6 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       fromDb = em.find(JobJpaImpl.class, job.getId());
       if (fromDb == null)
         throw new NoResultException();
-      em.refresh(fromDb);
       update(fromDb, (JaxbJob) job);
       em.merge(fromDb);
       tx.commit();
