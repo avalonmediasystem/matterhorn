@@ -1272,7 +1272,7 @@ ocRecordings = new (function() {
         links.push('<a title="Remove this Recording from UI only" href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Ignore</a>');
 
       } else if (action == 'stop') {
-        links.push('<a href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Delete</a>');
+        links.push('<a href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Ignore</a>');
       }
     });
     return links.join(' \n');
