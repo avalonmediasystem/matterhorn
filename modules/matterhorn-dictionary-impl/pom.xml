@@ -5,11 +5,11 @@
 	<artifactId>matterhorn-dictionary-impl</artifactId>
 	<packaging>bundle</packaging>
 	<name>matterhorn-dictionary-impl</name>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0.2-rc3</version>
 	<parent>
 		<groupId>org.opencastproject</groupId>
 		<artifactId>base</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>1.0.2-rc3</version>
 	</parent>
 	<dependencies>
 
