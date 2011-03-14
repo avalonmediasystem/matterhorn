@@ -86,12 +86,14 @@ Opencast.Annotation_ChapterPlugin = (function ()
     {
         if ((element !== undefined) && (annotation_chapterData.annotation !== undefined) && (annotation_chapterData.annotation.length > 0))
         {
+            Opencast.Utils.log("Annotation Plugin: Data available, processing template");
             processedTemplateData = template.process(annotation_chapterData);
             element.html(processedTemplateData);
             return true;
         }
         else
         {
+            Opencast.Utils.log("Annotation Plugin: No data available");
             return false;
         }
     }

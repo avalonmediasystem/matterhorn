@@ -59,6 +59,7 @@ Opencast.AnalyticsPlugin = (function ()
     {
         if (element !== undefined)
         {
+            Opencast.Utils.log("Analytics Plugin: Data available, drawing foot prints");
             element.sparkline(footprintData, {
                 type: 'line',
                 spotRadius: '0',
@@ -69,6 +70,7 @@ Opencast.AnalyticsPlugin = (function ()
         }
         else
         {
+            Opencast.Utils.log("Annotation Plugin: No data available");
             return false;
         }
     }

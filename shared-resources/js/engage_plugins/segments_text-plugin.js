@@ -90,8 +90,12 @@ Opencast.segments_text_Plugin = (function ()
     {
         if ((element !== undefined) && (segments_data.segment !== undefined) && (segments_data.segment.length > 0))
         {
+            Opencast.Utils.log("Segments Text Plugin: Data available, processing template");
             processedTemplateData = template.process(segments_data);
             element.html(processedTemplateData);
+        } else
+        {
+            Opencast.Utils.log("Segments Text Plugin: No data available");
         }
     }
     

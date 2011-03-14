@@ -160,24 +160,33 @@ Opencast.segments_ui_slider_Plugin = (function ()
      */
     function createSegments(withSegments)
     {
+        var cs1 = false,
+            cs2 = false,
+            cs3 = false;
+            
         // Process Element Segments Table 1
         if (withSegments && (elementSegmentsTable !== undefined) && (segments_ui_dataSegments.segment !== undefined) && (segments_ui_dataSegments.segment.length > 0))
         {
             processedTemplateData = templateSegmentsTable.process(segments_ui_dataSegments);
             elementSegmentsTable.html(processedTemplateData);
+            cs1 = true;
         }
         // Process Element Data 1
         if ((elementData1 !== undefined) && (segments_ui_dataData1.track !== undefined) && (segments_ui_dataData1.track.length > 0))
         {
             processedTemplateData = templateData1.process(segments_ui_dataData1);
             elementSegmentsTable.html(processedTemplateData);
+            cs2 = true;
         }
         // Process Element Data 2
         if ((elementData2 !== undefined) && (segments_ui_dataData2.attachment !== undefined) && (segments_ui_dataData2.attachment.length > 0))
         {
             processedTemplateData = templateData2.process(segments_ui_dataData2);
             elementSegmentsTable.html(processedTemplateData);
+            cs3 = true;
         }
+        var tl = '' + (cs1 ? " 1 " : '') + (cs2 ? " 2 " : '') + (cs3 ? " 3 " : '');
+        Opencast.Utils.log("Segments UI Slider Plugin: Following Templates have (successfully) been proceeded: " + tl+ " from 3 Templates possible");
     }
     
     return {

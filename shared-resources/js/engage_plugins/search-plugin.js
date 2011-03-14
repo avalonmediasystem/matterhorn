@@ -107,6 +107,7 @@ Opencast.search_Plugin = (function ()
     {
         if (element !== undefined)
         {
+            Opencast.Utils.log("Search Plugin: Data available, processing template");
             if (search_value !== '')
             {
                 var newTemplate = getHeader(search_value) + '<br />' + template;
@@ -120,6 +121,7 @@ Opencast.search_Plugin = (function ()
             return true;
         } else
         {
+            Opencast.Utils.log("Search Plugin: No data available");
             return false;
         }
     }

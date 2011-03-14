@@ -23,7 +23,8 @@ Opencast.segments_ui = (function ()
 {
     var imgURLs = new Array(),        // segment image URLs
         newSegments = new Array(),    // segments
-        retSegments;                  // segment object
+        retSegments,                  // segment object
+        minSegmentPixels = 8;
         
     /**
      * @memberOf Opencast.segments_ui
@@ -210,9 +211,8 @@ Opencast.segments_ui = (function ()
                         // Calculate the minimal segment duration
                         // time / (scrubberLength / minPixel)
                         var scrubberLength = parseInt($('#oc_body').width());
-                        var minPixel= 5;
+                        var minPixel= Math.max(minSegmentPixels, 5);
                         var minSegmentLen = complDur / (scrubberLength / minPixel);
-                        Opencast.Utils.log("----------");
                         Opencast.Utils.log("Min. scrubber length: " + scrubberLength);
                         Opencast.Utils.log("Min. segment pixel: " + minPixel);
                         Opencast.Utils.log("Min. segment length: " + minSegmentLen);
@@ -276,17 +276,17 @@ Opencast.segments_ui = (function ()
                                 ++newSegmentsIndex;
                             }
                         });
+                        var oldLength = data['search-results'].result.segments.segment.length;
                         data['search-results'].result.segments.segment = newSegments;
                         retSegments = data['search-results'].result.segments;
+                        Opencast.Utils.log("Removed " + (oldLength - newSegments.length) + " Segments due to being too small in relation to the scrubber length");
                     } else
                     {
-                        Opencast.Utils.log("----------");
                         Opencast.Utils.log("Segments not available");
                     }
                     // Check if any Media.tracks are available
                     if ((data['search-results'].result.mediapackage.media !== undefined) && (data['search-results'].result.mediapackage.media.track.length > 0))
                     {
-                        Opencast.Utils.log("----------");
                         Opencast.Utils.log("Media tracks available");
                         // Set whether prefer streaming of progressive
                         data['search-results'].result.mediapackage.media.preferStreaming = videoModeStream;
@@ -312,9 +312,10 @@ Opencast.segments_ui = (function ()
                         });
                         data['search-results'].result.mediapackage.media.isVideo = isVideo;
                         data['search-results'].result.mediapackage.media.rtmpAvailable = rtmpAvailable;
+                        Opencast.Utils.log(isVideo ? "Media is a Video" : "Media is not a Video");
+                        Opencast.Utils.log(rtmpAvailable ? "Streaming (rtmp) is available" : "Streaming (rtmp) is not available");
                     } else
                     {
-                        Opencast.Utils.log("----------");
                         Opencast.Utils.log("Media tracks not available");
                     }
                     // Create Trimpath Template
@@ -324,7 +325,6 @@ Opencast.segments_ui = (function ()
                 }
                 else
                 {
-                    Opencast.Utils.log("----------");
                     Opencast.Utils.log("Ajax call: Data not available");
                     Opencast.Watch.continueProcessing(true);
                 }
@@ -332,7 +332,6 @@ Opencast.segments_ui = (function ()
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                Opencast.Utils.log("----------");
                 Opencast.Utils.log("Segments UI Ajax call: Requesting data failed");
                 $('#data').html('No Segment UI available');
                 $('#data').hide();

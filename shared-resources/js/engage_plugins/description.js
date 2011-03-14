@@ -50,7 +50,6 @@ Opencast.Description = (function ()
         // If cashed data are available
         if (Opencast.Description_Plugin.createDescriptionFromCashe())
         {
-            Opencast.Utils.log("----------");
             Opencast.Utils.log("Cashing description plugin: yes");
             // Make visible
             $('#description-loading').hide();
@@ -58,7 +57,6 @@ Opencast.Description = (function ()
         }
         else
         {
-            Opencast.Utils.log("----------");
             Opencast.Utils.log("Cashing description plugin: no");
             // Request JSONP data
             $.ajax(
@@ -69,7 +67,6 @@ Opencast.Description = (function ()
                 jsonp: 'jsonp',
                 success: function (data)
                 {
-                    Opencast.Utils.log("----------");
                     Opencast.Utils.log("Description AJAX call #1: Requesting data succeeded");
                     if ((data === undefined) || (data['search-results'] === undefined) || (data['search-results'].result === undefined))
                     {
@@ -100,7 +97,6 @@ Opencast.Description = (function ()
                         jsonp: 'jsonp',
                         success: function (result)
                         {
-                            Opencast.Utils.log("----------");
                             Opencast.Utils.log("Description AJAX call #2: Requesting data succeeded");
                             var views = checkForNullUndef(result.stats.views);
                             if ((result.stats.views == 0) || (views != defaultChar))
@@ -123,7 +119,6 @@ Opencast.Description = (function ()
                         // If no data comes back (JSONP-Call #2)
                         error: function (xhr, ajaxOptions, thrownError)
                         {
-                            Opencast.Utils.log("----------");
                             Opencast.Utils.log("Description Ajax call #1: Requesting data failed");
                             displayNoDescriptionAvailable("No data available");
                         }
@@ -132,7 +127,6 @@ Opencast.Description = (function ()
                 // If no data comes back (JSONP-Call #1)
                 error: function (xhr, ajaxOptions, thrownError)
                 {
-                    Opencast.Utils.log("----------");
                     Opencast.Utils.log("Description Ajax call #2: Requesting data failed");
                     displayNoDescriptionAvailable("No data available");
                 }

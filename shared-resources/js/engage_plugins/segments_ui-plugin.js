@@ -363,47 +363,64 @@ Opencast.segments_ui_Plugin = (function ()
      * @param withSegments true if process with Segments, false if without Segments
      */
     function createSegments(withSegments) {
+        var cs1 = false,
+            cs2 = false,
+            cs3 = false,
+            cs4 = false,
+            cs5 = false,
+            cs6 = false,
+            cs7 = false;
+            
         // Process Element Segments 1
         if (withSegments && (elementSegments1 !== undefined) && (segments_ui_dataSegments.segment !== undefined) && (segments_ui_dataSegments.segment.length > 0)) {
             processedTemplateData = templateSegments1.process(segments_ui_dataSegments);
             elementSegments1.html(processedTemplateData);
+            cs1 = true;
         }
 
         // Process Element Media 1
         if ((elementMedia1 !== undefined) && (segments_ui_dataMPMedia.track !== undefined) && (segments_ui_dataMPMedia.track.length > 0)) {
             processedTemplateData = templateMedia1.process(segments_ui_dataMPMedia);
             elementMedia1.html(processedTemplateData);
+            cs2 = true;
         }
 
         // Process Element Data 1
         if ((elementData1 !== undefined) && (segments_ui_data !== undefined)) {
             processedTemplateData = templateData1.process(segments_ui_data);
             elementData1.html(processedTemplateData);
+            cs3 = true;
         }
 
         // Process Element MediaPackage 1
         if ((elementMediaPackage1 !== undefined) && (segments_ui_dataMPAttach.attachment !== undefined) && (segments_ui_dataMPAttach.attachment.length > 0)) {
             processedTemplateData = templateMPAttach1.process(segments_ui_dataMPAttach);
             elementMediaPackage1.html(processedTemplateData);
+            cs4 = true;
         }
 
         // Process Element Data 2
         if ((elementData2 !== undefined) && (templateData2 !== undefined)) {
             processedTemplateData = templateData2.process(segments_ui_data);
             elementData2.html(processedTemplateData);
+            cs5 = true;
         }
 
         // Process Element MediaPackage 2
         if ((elementMediaPackage2 !== undefined) && (segments_ui_dataMPCatalog.catalog !== undefined) && (segments_ui_dataMPCatalog.catalog.length > 0)) {
             processedTemplateData = templateMPCatalog1.process(segments_ui_dataMPCatalog);
             elementMediaPackage2.html(processedTemplateData);
+            cs6 = true;
         }
 
         // Process Element Segments 2
         if (withSegments && (elementSegments2 !== undefined) && (segments_ui_dataSegments.segment !== undefined) && (segments_ui_dataSegments.segment.length > 0)) {
             processedTemplateData = templateSegments2.process(segments_ui_dataSegments);
             elementSegments2.html(processedTemplateData);
+            cs7 = true;
         }
+        var tl = '' + (cs1 ? " 1 " : '') + (cs2 ? " 2 " : '') + (cs3 ? " 3 " : '') + (cs4 ? " 4 " : '') + (cs5 ? " 5 " : '') + (cs6 ? " 6 " : '') + (cs7 ? " 7 " : '');
+        Opencast.Utils.log("Segments UI Plugin: Following Templates have (successfully) been proceeded: " + tl + " from 7 Templates possible");
     }
 
     return {

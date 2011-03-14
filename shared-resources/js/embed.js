@@ -46,7 +46,6 @@ Opencast.Watch = (function ()
      */
     function onPlayerReady()
     {
-        Opencast.Utils.log("----------");
         Opencast.Utils.log("Player ready");
         var mediaPackageId = Opencast.Utils.getURLParameter('id');
         var userId = Opencast.Utils.getURLParameter('user');
@@ -84,7 +83,6 @@ Opencast.Watch = (function ()
     function continueProcessing(error)
     {
         var err = error || false;
-        Opencast.Utils.log("----------");
         Opencast.Utils.log("Continue processing (" + (error ? "with error" : "without error") + ")");
         if (error)
         {
@@ -258,7 +256,6 @@ Opencast.Watch = (function ()
         var formattedSecs = Opencast.Utils.formatSeconds(Opencast.Player.getDuration());
         Opencast.Player.setTotalTime(formattedSecs);
         
-        Opencast.Utils.log("----------");
         Opencast.Utils.log("Media duration: " + formattedSecs);
         
         // Give the player a second to finish loading, then proceed
@@ -294,7 +291,6 @@ Opencast.Watch = (function ()
                     // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
                     if (Opencast.Player.doPlay() && jumpToTime(time))
                     {
-                        Opencast.Utils.log("----------");
                         Opencast.Utils.log("Autoplay: true");
                         rdy = true;
                     }
@@ -304,7 +300,6 @@ Opencast.Watch = (function ()
                 {
                     if (jumpToTime(time))
                     {
-                        Opencast.Utils.log("----------");
                         Opencast.Utils.log("Autoplay: false");
                         rdy = true;
                     }
@@ -337,13 +332,11 @@ Opencast.Watch = (function ()
     {
         if(time > 0)
         {
-            Opencast.Utils.log("----------");
-            Opencast.Utils.log("Jump to time: true (" + time +")");
+            Opencast.Utils.log("Jump to time: true (" + time +"s)");
             var seekSuccessful = Videodisplay.seek(time);
             return seekSuccessful;
         } else
         {
-            Opencast.Utils.log("----------");
             Opencast.Utils.log("Jump to time: false");
             return true;
         }
