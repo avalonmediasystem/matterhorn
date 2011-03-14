@@ -15,18 +15,28 @@
  */
 package org.opencastproject.kernel.rest;
 
+import static org.opencastproject.kernel.rest.JsonpFilter.CHARACTER_ENCODING;
+
+import org.opencastproject.kernel.rest.JsonpFilter.ByteArrayServletOutputStream;
 import org.opencastproject.kernel.rest.JsonpFilter.HttpServletResponseContentWrapper;
 
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.util.Arrays;
 import org.easymock.EasyMock;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import javax.servlet.http.HttpServletResponse;
 
 public class JsonpTest {
+
+  private String SERVLET_OUTPUT = null;
+
+  @Before
+  public void setup() throws Exception {
+    SERVLET_OUTPUT = IOUtils.toString(getClass().getResourceAsStream("/utf8.json"), CHARACTER_ENCODING);
+  }
 
   @Test
   public void testCallbackSafety() {
@@ -50,12 +60,9 @@ public class JsonpTest {
     for (int i = 0; i < numberOfRuns; i++) {
       // Mock an 'original' http response
       HttpServletResponse originalResponse = EasyMock.createNiceMock(HttpServletResponse.class);
-      StringWriter stringWriter = new StringWriter();
-      PrintWriter printWriter = new PrintWriter(stringWriter);
-      EasyMock.expect(originalResponse.getWriter()).andReturn(printWriter).anyTimes();
-      // ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
-      // EasyMock.expect(originalResponse.getOutputStream()).andReturn(out).anyTimes();
-      EasyMock.expect(originalResponse.getCharacterEncoding()).andReturn("UTF-8").anyTimes();
+      ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+      EasyMock.expect(originalResponse.getOutputStream()).andReturn(out).anyTimes();
+      EasyMock.expect(originalResponse.getCharacterEncoding()).andReturn(CHARACTER_ENCODING).anyTimes();
       EasyMock.replay(originalResponse);
 
       // Wrap the response
@@ -74,115 +81,13 @@ public class JsonpTest {
 
       totalTime += System.currentTimeMillis() - start;
 
-      // Our string writer should now contain the wrapped content;
-      Assert.assertEquals("Content wrapped?", jsonpCallback + "(" + SERVLET_OUTPUT + ");", stringWriter.getBuffer()
-              .toString());
+      // Our output stream should now contain the wrapped content;
+      byte[] expected = (jsonpCallback + JsonpFilter.OPEN_PARENS + SERVLET_OUTPUT + JsonpFilter.POST_PADDING)
+              .getBytes();
+      byte[] actual = out.toByteArray();
+      Assert.assertTrue("Content wrapped properly?", Arrays.areEqual(expected, actual));
     }
 
     System.out.println("Total wrap time = " + totalTime);
   }
-
-  private static final String SERVLET_OUTPUT = "<html><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>"
-          + "<div>Some content</div><div>Some content</div><div>Some content</div><div>Some content</div>";
-
 }
