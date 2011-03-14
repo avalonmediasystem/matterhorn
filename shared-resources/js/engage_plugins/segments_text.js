@@ -60,6 +60,8 @@ Opencast.segments_text = (function ()
         // If cashed data are available
         if (Opencast.segments_text_Plugin.createSegmentsTextFromCashe())
         {
+            Opencast.Utils.log("----------");
+            Opencast.Utils.log("Cashing segments text plugin: yes");
             // Make visible
             $('#oc_slidetext').show();
             $('#segments_text-loading').hide();
@@ -68,6 +70,8 @@ Opencast.segments_text = (function ()
         }
         else
         {
+            Opencast.Utils.log("----------");
+            Opencast.Utils.log("Cashing segments text plugin: no");
             // Request JSONP data
             $.ajax(
             {
@@ -77,30 +81,43 @@ Opencast.segments_text = (function ()
                 jsonp: 'jsonp',
                 success: function (data)
                 {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Segments Text AJAX call: Requesting data succeeded");
                     // get rid of every '@' in the JSON data
                     // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
-                    data['search-results'].result.segments.currentTime = Opencast.Utils.getTimeInMilliseconds(Opencast.Player.getCurrentTime());
-                    // Set Duration until this Segment ends
-                    var completeDuration = 0;
-                    $.each(data['search-results'].result.segments.segment, function (i, value)
+                    if ((data === undefined) || (data['search-results'] === undefined) || (data['search-results'].result === undefined) || (data['search-results'].result.segments === undefined))
                     {
-                        // Set a Duration until the Beginning of this Segment
-                        data['search-results'].result.segments.segment[i].durationExcludingSegment = completeDuration;
-                        completeDuration += parseInt(data['search-results'].result.segments.segment[i].duration);
-                        // Set a Duration until the End of this Segment
-                        data['search-results'].result.segments.segment[i].durationIncludingSegment = completeDuration;
-                    });
-                    // Create Trimpath Template
-                    Opencast.segments_text_Plugin.addAsPlugin($('#oc-segments_text'), data['search-results'].result.segments);
-                    // Make visible
-                    $('#oc_slidetext').show();
-                    $('#segments_text-loading').hide();
-                    $('#oc-segments_text').show();
-                    $('.oc-segments-preview').css('display', 'block');
+                        Opencast.Utils.log("----------");
+                        Opencast.Utils.log("Segments Text AJAX call: Data not available");
+                    } else
+                    {
+                        Opencast.Utils.log("----------");
+                        Opencast.Utils.log("Segments Text AJAX call: Data available");
+                        data['search-results'].result.segments.currentTime = Opencast.Utils.getTimeInMilliseconds(Opencast.Player.getCurrentTime());
+                        // Set Duration until this Segment ends
+                        var completeDuration = 0;
+                        $.each(data['search-results'].result.segments.segment, function (i, value)
+                        {
+                            // Set a Duration until the Beginning of this Segment
+                            data['search-results'].result.segments.segment[i].durationExcludingSegment = completeDuration;
+                            completeDuration += parseInt(data['search-results'].result.segments.segment[i].duration);
+                            // Set a Duration until the End of this Segment
+                            data['search-results'].result.segments.segment[i].durationIncludingSegment = completeDuration;
+                        });
+                        // Create Trimpath Template
+                        Opencast.segments_text_Plugin.addAsPlugin($('#oc-segments_text'), data['search-results'].result.segments);
+                        // Make visible
+                        $('#oc_slidetext').show();
+                        $('#segments_text-loading').hide();
+                        $('#oc-segments_text').show();
+                        $('.oc-segments-preview').css('display', 'block');
+                    }
                 },
                 // If no data comes back
                 error: function (xhr, ajaxOptions, thrownError)
                 {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Segments Text Ajax call: Requesting data failed");
                     $('#oc-segments_text').html('No Segment Text available');
                     $('#oc-segments_text').hide();
                 }

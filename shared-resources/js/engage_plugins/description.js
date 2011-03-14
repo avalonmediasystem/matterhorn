@@ -50,12 +50,16 @@ Opencast.Description = (function ()
         // If cashed data are available
         if (Opencast.Description_Plugin.createDescriptionFromCashe())
         {
+            Opencast.Utils.log("----------");
+            Opencast.Utils.log("Cashing description plugin: yes");
             // Make visible
             $('#description-loading').hide();
             $('#oc-description').show();
         }
         else
         {
+            Opencast.Utils.log("----------");
+            Opencast.Utils.log("Cashing description plugin: no");
             // Request JSONP data
             $.ajax(
             {
@@ -65,9 +69,11 @@ Opencast.Description = (function ()
                 jsonp: 'jsonp',
                 success: function (data)
                 {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Description AJAX call #1: Requesting data succeeded");
                     if ((data === undefined) || (data['search-results'] === undefined) || (data['search-results'].result === undefined))
                     {
-                        displayNoDescriptionAvailable("No data defined (1)");
+                        displayNoDescriptionAvailable("No data defined");
                         return;
                     }
                     // Process data
@@ -94,6 +100,8 @@ Opencast.Description = (function ()
                         jsonp: 'jsonp',
                         success: function (result)
                         {
+                            Opencast.Utils.log("----------");
+                            Opencast.Utils.log("Description AJAX call #2: Requesting data succeeded");
                             var views = checkForNullUndef(result.stats.views);
                             if ((result.stats.views == 0) || (views != defaultChar))
                             {
@@ -103,7 +111,7 @@ Opencast.Description = (function ()
                             var descriptionSet = Opencast.Description_Plugin.addAsPlugin($('#oc-description'), data['search-results']);
                             if (!descriptionSet)
                             {
-                                displayNoDescriptionAvailable("No template available (2)");
+                                displayNoDescriptionAvailable("No template available");
                             }
                             else
                             {
@@ -115,14 +123,18 @@ Opencast.Description = (function ()
                         // If no data comes back (JSONP-Call #2)
                         error: function (xhr, ajaxOptions, thrownError)
                         {
-                            displayNoDescriptionAvailable("No data available (2)");
+                            Opencast.Utils.log("----------");
+                            Opencast.Utils.log("Description Ajax call #1: Requesting data failed");
+                            displayNoDescriptionAvailable("No data available");
                         }
                     });
                 },
                 // If no data comes back (JSONP-Call #1)
                 error: function (xhr, ajaxOptions, thrownError)
                 {
-                    displayNoDescriptionAvailable("No data available (1)");
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Description Ajax call #2: Requesting data failed");
+                    displayNoDescriptionAvailable("No data available");
                 }
             });
         }

@@ -24,7 +24,7 @@ Opencast.segments_ui_slider_Plugin = (function ()
     // The Templates to process
     var templateSegmentsTable = '<tr>' +
                                 '{for s in segment}' +
-                                    '{if s.durationIncludingSegment >= currentTime}' +
+                                    '{if parseInt(s.duration) > 0}' +
                                         '<td class="segment-holder" style="width: 15px;" " ' +
                                              'id="segment${s.index}" ' +
                                              'onmouseover="Opencast.segments_ui.hoverSegment(${parseInt(s.index)})" ' +

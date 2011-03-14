@@ -21,30 +21,54 @@ var Opencast = Opencast || {};
  */
 Opencast.segments_ui = (function ()
 {
+    var imgURLs = new Array(),        // segment image URLs
+        newSegments = new Array(),    // segments
+        retSegments;                  // segment object
+        
+    /**
+     * @memberOf Opencast.segments_ui
+     * @description Returns the segment object given by the JSONP-Ajax-Call and afterwards processed
+     * @return the segment object given by the JSONP-Ajax-Call and afterwards processed
+     */
+    function getSegments()
+    {
+        return retSegments;
+    }
+    
+    /**
+     * @memberOf Opencast.segments_ui
+     * @description Returns an array with segment image URLs
+     * @return an array with segment image URLs
+     */
+    function getImgURLArray()
+    {
+        return imgURLs;
+    }
+    
     /**
      * @memberOf Opencast.segments_ui
      * @description Toggles the class segment-holder-over
-     * @param Integer
-     *          segmentId the id of the segment
+     * @param segmentId segmentId the id of the segment image
+     * @param slideNr actual slide number
      */
-    function hoverSegment(segmentId)
+    function hoverSegment(segmentId, slideNr)
     {
-        $("#segment" + segmentId).toggleClass("segment-holder");
-        $("#segment" + segmentId).toggleClass("segment-holder-over");
-        $("#segment" + segmentId).toggleClass("ui-state-hover");
-        $("#segment" + segmentId).toggleClass("ui-corner-all");
-        var index = segmentId;
+        slideNr = slideNr||segmentId;
+        $("#segment" + slideNr).toggleClass("segment-holder");
+        $("#segment" + slideNr).toggleClass("segment-holder-over");
+        $("#segment" + slideNr).toggleClass("ui-state-hover");
+        $("#segment" + slideNr).toggleClass("ui-corner-all");
         var imageHeight = 120;
         var nrOfSegments = Opencast.segments.getNumberOfSegments();
-        $("#segment-tooltip").html('<img src="' + Opencast.segments.getSegmentPreview(index) + '" height="' + imageHeight + '" alt="Slide ' + (segmentId + 1) + ' of ' + nrOfSegments + '"/>');
-        if (($("#segment" + segmentId).offset() != null) && ($("#segment" + segmentId).offset() != null) && ($("#segment" + segmentId).width() != null) && ($("#segment-tooltip").width() != null))
+        $("#segment-tooltip").html('<img src="' + imgURLs[segmentId] + '" height="' + imageHeight + '" alt="Slide ' + (slideNr + 1) + ' of ' + nrOfSegments + '"/>');
+        if (($("#segment" + slideNr).offset() != null) && ($("#segment" + slideNr).offset() != null) && ($("#segment" + slideNr).width() != null) && ($("#segment-tooltip").width() != null))
         {
             var eps = 4;
             var segment0Left = $("#segment0").offset().left + eps;
             var segmentLastRight = $("#segment" + (nrOfSegments - 1)).offset().left + $("#segment" + (nrOfSegments - 1)).width() - eps;
-            var segmentLeft = $("#segment" + segmentId).offset().left;
-            var segmentTop = $("#segment" + segmentId).offset().top;
-            var segmentWidth = $("#segment" + segmentId).width();
+            var segmentLeft = $("#segment" + slideNr).offset().left;
+            var segmentTop = $("#segment" + slideNr).offset().top;
+            var segmentWidth = $("#segment" + slideNr).width();
             var tooltipWidth = $("#segment-tooltip").width();
             if (tooltipWidth == 0)
             {
@@ -137,8 +161,12 @@ Opencast.segments_ui = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Segments UI AJAX call: Requesting data succeeded");
                 if ((data !== undefined) && (data['search-results'] !== undefined) && (data['search-results'].result !== undefined))
                 {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Segments UI AJAX call: Data available");
                     // Streaming Mode is default true
                     var videoModeStream = true;
                     // Check whether a Videomode has been selected
@@ -156,11 +184,17 @@ Opencast.segments_ui = (function ()
                         {
                             videoModeStream = false;
                         }
+                        Opencast.Utils.log("----------");
+                        Opencast.Utils.log("Videomode manually set to: " + (videoModeStream ? "Streaming" : "Progressive"));
                     }
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Videomode: " + (videoModeStream ? "Streaming if possible" : "Progressive"));
                     // Check if Segments + Segments Text is available
                     var segmentsAvailable = (data['search-results'].result !== undefined) && (data['search-results'].result.segments !== undefined) && (data['search-results'].result.segments.segment.length > 0);
                     if (segmentsAvailable)
                     {
+                        Opencast.Utils.log("----------");
+                        Opencast.Utils.log("Segments available");
                         // get rid of every '@' in the JSON data
                         // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
                         data['search-results'].result.segments.currentTime = Opencast.Utils.getTimeInMilliseconds(Opencast.Player.getCurrentTime());
@@ -170,21 +204,90 @@ Opencast.segments_ui = (function ()
                         {
                             complDur += parseInt(data['search-results'].result.segments.segment[i].duration);
                         });
-                        // Set Duration until this Segment ends
                         var completeDuration = 0;
+                        var length = data['search-results'].result.segments.segment.length;
+                        
+                        // Calculate the minimal segment duration
+                        // time / (scrubberLength / minPixel)
+                        var scrubberLength = parseInt($('#oc_body').width());
+                        var minPixel= 5;
+                        var minSegmentLen = complDur / (scrubberLength / minPixel);
+                        Opencast.Utils.log("----------");
+                        Opencast.Utils.log("Min. scrubber length: " + scrubberLength);
+                        Opencast.Utils.log("Min. segment pixel: " + minPixel);
+                        Opencast.Utils.log("Min. segment length: " + minSegmentLen);
+                        var newSegmentsIndex = 0;
+                        var minusExcludedDuration = 0;
                         $.each(data['search-results'].result.segments.segment, function (i, value)
                         {
-                            data['search-results'].result.segments.segment[i].completeDuration = complDur;
-                            // Set a Duration until the Beginning of this Segment
-                            data['search-results'].result.segments.segment[i].durationExcludingSegment = completeDuration;
-                            completeDuration += parseInt(data['search-results'].result.segments.segment[i].duration);
-                            // Set a Duration until the End of this Segment
-                            data['search-results'].result.segments.segment[i].durationIncludingSegment = completeDuration;
+                            // Save the image URL
+                            imgURLs[i] = data['search-results'].result.segments.segment[i].previews.preview.$;
+                            var curr = data['search-results'].result.segments.segment[i];
+                            var currDur = parseInt(curr.duration);
+                            if(currDur > 0)
+                            {
+                                curr.completeDuration = complDur;
+                                // Set a Duration until the Beginning of this Segment
+                                curr.durationExcludingSegment = completeDuration - minusExcludedDuration;
+                                minusExcludedDuration = 0;
+                                completeDuration += currDur;
+                                // Set a Duration until the End of this Segment
+                                curr.durationIncludingSegment = completeDuration;
+                                
+                                var timeToAdd = 0;
+                                
+                                // loop through following segments
+                                for(var j = i + 1; j < length; ++j)
+                                {
+                                    var currJ = data['search-results'].result.segments.segment[j];
+                                    var currJDur = parseInt(currJ.duration);
+                                    // if a following segment does not has the minimal length
+                                    if(currJDur < minSegmentLen)
+                                    {
+                                        // save duration
+                                        timeToAdd += currJDur;
+                                        // set duration to 0 for not displaying the segment
+                                        currJ.duration = 0;
+                                    } else
+                                    {
+                                        break;
+                                    }
+                                }
+                                // if some following segment(s) didn't have the minimal length as well
+                                if(timeToAdd > 0)
+                                {
+                                    // put the segments with the current segment together
+                                    curr.duration = parseInt(curr.duration) + timeToAdd;
+                                    curr.durationIncludingSegment = parseInt(curr.durationIncludingSegment) + timeToAdd;
+                                    timeToAdd = 0;
+                                }
+                                
+                            }
                         });
+                        $.each(data['search-results'].result.segments.segment, function (i, value)
+                        {
+                            var dur = parseInt(data['search-results'].result.segments.segment[i].duration);
+                            if(dur > 0)
+                            {
+                                newSegments[newSegmentsIndex] = data['search-results'].result.segments.segment[i];
+                                newSegments[newSegmentsIndex].hoverSegmentIndex = i;
+                                newSegments[newSegmentsIndex].index = newSegmentsIndex;
+                                newSegments[newSegmentsIndex].previews.preview.$ = data['search-results'].result.segments.segment[i].previews.preview.$;
+                                ++newSegmentsIndex;
+                            }
+                        });
+                        data['search-results'].result.segments.segment = newSegments;
+                        retSegments = data['search-results'].result.segments;
+                    } else
+                    {
+                        Opencast.Utils.log("----------");
+                        Opencast.Utils.log("Segments not available");
                     }
                     // Check if any Media.tracks are available
                     if ((data['search-results'].result.mediapackage.media !== undefined) && (data['search-results'].result.mediapackage.media.track.length > 0))
                     {
+                        Opencast.Utils.log("----------");
+                        Opencast.Utils.log("Media tracks available");
                         // Set whether prefer streaming of progressive
                         data['search-results'].result.mediapackage.media.preferStreaming = videoModeStream;
                         // Check if the File is a Video
@@ -209,6 +312,10 @@ Opencast.segments_ui = (function ()
                         });
                         data['search-results'].result.mediapackage.media.isVideo = isVideo;
                         data['search-results'].result.mediapackage.media.rtmpAvailable = rtmpAvailable;
+                    } else
+                    {
+                        Opencast.Utils.log("----------");
+                        Opencast.Utils.log("Media tracks not available");
                     }
                     // Create Trimpath Template
                     Opencast.segments_ui_Plugin.addAsPlugin($('#segmentstable1'), $('#segments_ui-media1'), $('#data1'), $('#segments_ui-mediapackagesAttachments'), $('#data2'), $('#segments_ui-mediapackagesCatalog'), $('#segmentstable2'), data['search-results'].result, segmentsAvailable);
@@ -217,12 +324,16 @@ Opencast.segments_ui = (function ()
                 }
                 else
                 {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Ajax call: Data not available");
                     Opencast.Watch.continueProcessing(true);
                 }
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Segments UI Ajax call: Requesting data failed");
                 $('#data').html('No Segment UI available');
                 $('#data').hide();
                 Opencast.Watch.continueProcessing(true);
@@ -241,6 +352,8 @@ Opencast.segments_ui = (function ()
     }
     
     return {
+        getSegments: getSegments,
+        getImgURLArray: getImgURLArray,
         hoverSegment: hoverSegment,
         hoverOutSegment: hoverOutSegment,
         hoverDescription: hoverDescription,

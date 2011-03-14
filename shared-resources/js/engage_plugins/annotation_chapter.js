@@ -44,9 +44,13 @@ Opencast.Annotation_Chapter = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Annotation AJAX call: Requesting data succeeded");
                 var tmpData = data['annotations'];
                 if ((tmpData !== undefined) && (tmpData.annotation !== undefined))
                 {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Annotation AJAX call: Data available");
                     // Display the controls
                     $('#oc_checkbox-annotations').show();
                     $('#oc_label-annotations').show();
@@ -55,13 +59,17 @@ Opencast.Annotation_Chapter = (function ()
                 }
                 else
                 {
-                    displayNoAnnotationsAvailable("No data available (undefined status, initialize)");
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Annotation AJAX call: Data not available");
+                    displayNoAnnotationsAvailable("No data available");
                 }
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                displayNoAnnotationsAvailable("No data available (1), initialize");
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Annotation Ajax call: Requesting data failed");
+                displayNoAnnotationsAvailable("No data available");
             }
         });
     }
@@ -81,18 +89,24 @@ Opencast.Annotation_Chapter = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Annotation AJAX call: Requesting data succeeded");
                 if ((data === undefined) || (data['annotations'] === undefined) || (data['annotations'].annotation === undefined))
                 {
-                    displayNoAnnotationsAvailable("No data defined (1)");
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Annotation AJAX call: Data not available");
+                    displayNoAnnotationsAvailable("No data defined");
                 }
                 else
                 {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Annotation AJAX call: Data available");
                     tmpData.duration = duration;
                     // Create Trimpath Template
                     var annotSet = Opencast.Annotation_ChapterPlugin.addAsPlugin($('#annotation'), data['annotations'].annotation);
                     if (annotSet)
                     {
-                        displayNoAnnotationsAvailable("No template available (1)");
+                        displayNoAnnotationsAvailable("No template available");
                     }
                     else
                     {
@@ -118,7 +132,9 @@ Opencast.Annotation_Chapter = (function ()
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                displayNoAnnotationsAvailable("No data available (1)");
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Annotation Ajax call: Requesting data failed");
+                displayNoAnnotationsAvailable("No data available");
             }
         });
     }

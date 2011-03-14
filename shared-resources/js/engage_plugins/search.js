@@ -194,13 +194,21 @@ Opencast.search = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Search AJAX call: Requesting data succeeded");
                 // get rid of every '@' in the JSON data
                 // dataStor = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
                 dataStor = data;
                 var segmentsAvailable = true;
                 if ((dataStor === undefined) || (dataStor['search-results'] === undefined) || (dataStor['search-results'].result === undefined))
                 {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Search AJAX call: Data not available");
                     segmentsAvailable = false;
+                } else
+                {
+                    Opencast.Utils.log("----------");
+                    Opencast.Utils.log("Search AJAX call: Data available");
                 }
                 // Check if Segments + Segments Text is available
                 segmentsAvailable = segmentsAvailable && (dataStor['search-results'].result.segments !== undefined) && (dataStor['search-results'].result.segments.segment.length > 0);
@@ -249,6 +257,8 @@ Opencast.search = (function ()
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Search Ajax call: Requesting data failed");
                 if (!foundAlready)
                 {
                     setNoSegmentDataAvailable();

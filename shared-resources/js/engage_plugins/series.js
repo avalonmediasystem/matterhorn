@@ -58,10 +58,18 @@ Opencast.Series = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Series AJAX call: Requesting data succeeded");
                 data = createDataForPlugin(data);
                 data['search-results'].currentPage = page;
                 //add as a plugin
                 Opencast.Series_Plugin.addAsPlugin($('#oc_series'), data['search-results']);
+            },
+            // If no data comes back
+            error: function (xhr, ajaxOptions, thrownError)
+            {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Series Ajax call: Requesting data failed");
             }
         });
     }
@@ -94,6 +102,8 @@ Opencast.Series = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Series AJAX call: Requesting data succeeded");
                 // get rid of every '@' in the JSON data
                 data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
                 data = createDataForPlugin(data);
@@ -182,6 +192,8 @@ Opencast.Series = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                Opencast.Utils.log("----------");
+                Opencast.Utils.log("Series AJAX call #1: Requesting data succeeded");
                 if ((data !== undefined) && (data['search-results'] !== undefined) && (data['search-results'].result !== undefined))
                 {
                     series_id = data['search-results'].result.dcIsPartOf;
@@ -194,6 +206,8 @@ Opencast.Series = (function ()
                             jsonp: 'jsonp',
                             success: function (data)
                             {
+                                Opencast.Utils.log("----------");
+                                Opencast.Utils.log("Series AJAX call #2: Requesting data succeeded");
                                 if (data['search-results'].result.length > 1)
                                 {
                                     $('#oc_player-head-see-more').show();

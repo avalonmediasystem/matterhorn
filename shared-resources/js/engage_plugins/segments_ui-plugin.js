@@ -24,17 +24,17 @@ Opencast.segments_ui_Plugin = (function ()
     // The Templates to process
     var templateSegments1 = '<tr>' +
                             '{for s in segment}' +
-                                '{if s.durationIncludingSegment >= currentTime}' +
+                                '{if (parseInt(s.duration) > 0)}' +
                                     '<td role="button" class="segment-holder ui-widget ui-widget-content" ' +
-                                         'id="segment${s.index}" ' +
-                                         'onmouseover="Opencast.segments_ui.hoverSegment(${parseInt(s.index)})" ' +
-                                         'onmouseout="Opencast.segments_ui.hoverOutSegment(${parseInt(s.index)})" ' +
-                                         'alt="Slide ${parseInt(s.index) + 1} of ${segment.length}" ' +
-                                         'onclick="Opencast.Watch.seekSegment(${Math.floor(parseInt(s.time) / 1000)})" ' +
-                                          'style="width: ${parseInt(s.duration) / parseInt(s.completeDuration) * 100}%;" ' +
-                                    '>' +
-                                        '<span class="segments-time" style="display: none">${Math.floor(parseInt(s.time) / 1000)}</span>' + 
-                                    '</td>' +
+                                        'id="segment${s.index}" ' +
+                                        'onmouseover="Opencast.segments_ui.hoverSegment(${parseInt(s.hoverSegmentIndex)}, ${parseInt(s.index)})" ' +
+                                        'onmouseout="Opencast.segments_ui.hoverOutSegment(${parseInt(s.index)})" ' +
+                                        'alt="Slide ${parseInt(s.index) + 1} of ${segment.length}" ' +
+                                        'onclick="Opencast.Watch.seekSegment(${parseInt(s.time) / 1000})" ' +
+                                        'style="width: ${parseInt(s.duration) / parseInt(s.completeDuration) * 100}%;" ' +
+                                     '>' +
+                                        '<span class="segments-time" style="display: none">${parseInt(s.time) / 1000}</span>' +
+                                     '</td>' +
                                  '{/if}' +
                              '{forelse}' +
                                  '<td style="width: 100%;" id="segment-holder-empty" class="segment-holder" />' +
@@ -276,7 +276,7 @@ Opencast.segments_ui_Plugin = (function ()
                                 '{/for}';
     
     var templateSegments2 = '{for s in segment}' +
-                                '{if s.durationIncludingSegment >= currentTime}' +
+                                '{if (parseInt(s.duration) > 0)}' +
                                     '<tr>' +
                                         '<td class="oc-segments-preview">' +
                                             '${s.previews.preview.$}' +
