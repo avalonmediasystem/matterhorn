@@ -162,11 +162,9 @@ Opencast.segments_ui = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
-                Opencast.Utils.log("----------");
                 Opencast.Utils.log("Segments UI AJAX call: Requesting data succeeded");
                 if ((data !== undefined) && (data['search-results'] !== undefined) && (data['search-results'].result !== undefined))
                 {
-                    Opencast.Utils.log("----------");
                     Opencast.Utils.log("Segments UI AJAX call: Data available");
                     // Streaming Mode is default true
                     var videoModeStream = true;
@@ -185,16 +183,13 @@ Opencast.segments_ui = (function ()
                         {
                             videoModeStream = false;
                         }
-                        Opencast.Utils.log("----------");
                         Opencast.Utils.log("Videomode manually set to: " + (videoModeStream ? "Streaming" : "Progressive"));
                     }
-                    Opencast.Utils.log("----------");
                     Opencast.Utils.log("Videomode: " + (videoModeStream ? "Streaming if possible" : "Progressive"));
                     // Check if Segments + Segments Text is available
                     var segmentsAvailable = (data['search-results'].result !== undefined) && (data['search-results'].result.segments !== undefined) && (data['search-results'].result.segments.segment.length > 0);
                     if (segmentsAvailable)
                     {
-                        Opencast.Utils.log("----------");
                         Opencast.Utils.log("Segments available");
                         // get rid of every '@' in the JSON data
                         // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
