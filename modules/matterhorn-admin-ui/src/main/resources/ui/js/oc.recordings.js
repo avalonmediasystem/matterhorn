@@ -104,6 +104,7 @@ ocRecordings = new (function() {
     if (!refreshing) {
       refreshing = true;
       var params = [];
+      params.push('compact=true');
       // 'state' to display
       var state = ocRecordings.Configuration.state;
       params.push('state=-stopped');
