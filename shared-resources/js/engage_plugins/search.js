@@ -22,14 +22,18 @@ var Opencast = Opencast || {};
 Opencast.search = (function ()
 {
     // Variable for the storage of the processed jsonp-Data
-    var dataStor, staticInputElem, mediaPackageId;
-    var staticImg = 'url("../../img/jquery/ui-bg_flat_75_fde7ce_40x100.png") repeat-x scroll 50% 50% #FDE7CE';
-    var SEARCH = 'Search this Recording';
-    var colorFirst = '#C0C0C0';
-    var colorSecond = '#ADD8E6';
-    var colorThird = '#90EE90';
-    var foundAlready = false; // flag if something has already been found
-    var lastHit = ''; // storage for latest successful search hit
+    var dataStor,
+        staticInputElem,
+        mediaPackageId,
+        staticImg = 'url("../../img/jquery/ui-bg_flat_75_fde7ce_40x100.png") repeat-x scroll 50% 50% #FDE7CE',
+        SEARCH = 'Search this Recording',
+        colorFirst = '#C0C0C0',
+        colorSecond = '#ADD8E6',
+        colorThird = '#90EE90',
+        foundAlready = false, // flag if something has already been found
+        lastHit = '',         // storage for latest successful search hit
+        validSegments,        // map of old and new segments
+        requestedValidSegments = false;
     
     /**
      * @memberOf Opencast.search
@@ -103,6 +107,13 @@ Opencast.search = (function ()
         // Prepare each segment
         $(dataStor['search-results'].result.segments.segment).each(function (i)
         {
+            var newSeg = validSegments[i];
+            var isValid = (newSeg != -1) ? true : false;
+            if(isValid)
+            {
+                var curr = dataStor['search-results'].result.segments.segment[newSeg];
+            }
+            
             var bgColor = 'none';
             var text = this.text + '';
             // Remove previously marked Text
@@ -141,8 +152,15 @@ Opencast.search = (function ()
             }
             // Set background of the table tr
             this.backgroundColor = bgColor;
+            var segment = '';
             // Set background of the scrubber elements
-            var segment = 'td#segment' + i;
+            if(isValid)
+            {
+                segment = 'td#segment' + newSeg;
+            } else
+            {
+                segment = 'td#segment' + i;
+            }
             if (bgColor !== 'none')
             {
                 // The image from jquery ui overrides the background-color, so: remove it
@@ -167,6 +185,12 @@ Opencast.search = (function ()
      */
     function showResult(elem, searchValue)
     {
+        // Request map of valid segments
+        if(!requestedValidSegments)
+        {
+            validSegments = Opencast.segments_ui.getSegmentNumbers();
+            requestedValidSegments = true;
+        }
         staticInputElem = elem;
         // Don't search for the default value
         if ((searchValue === SEARCH) || ($(staticInputElem).val() === SEARCH))

@@ -24,7 +24,8 @@ Opencast.segments_ui = (function ()
     var imgURLs = new Array(),        // segment image URLs
         newSegments = new Array(),    // segments
         retSegments,                  // segment object
-        minSegmentPixels = 8;
+        minSegmentPixels = 8,
+        segmentsNrs = new Array();    // segments number
         
     /**
      * @memberOf Opencast.segments_ui
@@ -34,6 +35,33 @@ Opencast.segments_ui = (function ()
     function getSegments()
     {
         return retSegments;
+    }
+     
+    /**
+     * @memberOf Opencast.segments_ui
+     * @description Returns the old and new segment numbers mapped (e.g. getSegmentNumbers[oldNumber] = newNumber), -1 if no new value is available
+     * @return the old and new segment numbers mapped (e.g. getSegmentNumbers[oldNumber] = newNumber), -1 if no new value is available
+     */
+    function getSegmentNumbers()
+    {
+        return segmentsNrs;
+    }
+     
+    /**
+     * @memberOf Opencast.segments_ui
+     * @description Returns the new segment number (e.g. getSegmentNumbers[oldNumber] = newNumber), -1 if no new value is available
+     * @param oldNr the old segment number
+     * @return the new segment number mapped (e.g. getSegmentNumbers[oldNumber] = newNumber), -1 if no new value is available
+     */
+    function getSegmentNumber(oldNr)
+    {
+        if((oldNr >= 0) && (oldNr < segmentsNrs.length))
+        {
+            return segmentsNrs[oldNr];
+        } else
+        {
+            return -1;
+        }
     }
     
     /**
@@ -212,7 +240,10 @@ Opencast.segments_ui = (function ()
                         Opencast.Utils.log("Min. segment pixel: " + minPixel);
                         Opencast.Utils.log("Min. segment length: " + minSegmentLen);
                         var newSegmentsIndex = 0;
-                        var minusExcludedDuration = 0;
+                        var hiddenSegmentsNr = 0;
+                        var hiddenSegmentsStr = '';
+                        
+                        // Filter segments with a too small duration
                         $.each(data['search-results'].result.segments.segment, function (i, value)
                         {
                             // Save the image URL
@@ -223,14 +254,15 @@ Opencast.segments_ui = (function ()
                             {
                                 curr.completeDuration = complDur;
                                 // Set a Duration until the Beginning of this Segment
-                                curr.durationExcludingSegment = completeDuration - minusExcludedDuration;
-                                minusExcludedDuration = 0;
+                                curr.durationExcludingSegment = completeDuration;
                                 completeDuration += currDur;
                                 // Set a Duration until the End of this Segment
                                 curr.durationIncludingSegment = completeDuration;
                                 
                                 var timeToAdd = 0;
                                 
+                                segmentsNrs[i] = i - hiddenSegmentsNr;
+                                var currHid = 0;
                                 // loop through following segments
                                 for(var j = i + 1; j < length; ++j)
                                 {
@@ -239,6 +271,10 @@ Opencast.segments_ui = (function ()
                                     // if a following segment does not has the minimal length
                                     if(currJDur < minSegmentLen)
                                     {
+                                        ++currHid;
+                                        // map the old and new segment numbers
+                                        segmentsNrs[j] = i - hiddenSegmentsNr;
+                                        hiddenSegmentsStr += ' ' + j + ' ';
                                         // save duration
                                         timeToAdd += currJDur;
                                         // set duration to 0 for not displaying the segment
@@ -248,6 +284,7 @@ Opencast.segments_ui = (function ()
                                         break;
                                     }
                                 }
+                                hiddenSegmentsNr += currHid;
                                 // if some following segment(s) didn't have the minimal length as well
                                 if(timeToAdd > 0)
                                 {
@@ -256,9 +293,14 @@ Opencast.segments_ui = (function ()
                                     curr.durationIncludingSegment = parseInt(curr.durationIncludingSegment) + timeToAdd;
                                     timeToAdd = 0;
                                 }
-                                
                             }
                         });
+                        /*
+                        $.each(segmentsNrs, function (i, value)
+                        {
+                            Opencast.Utils.log("segmentsNrs[" + i + "] = " + segmentsNrs[i]);
+                        });
+                        */
                         $.each(data['search-results'].result.segments.segment, function (i, value)
                         {
                             var dur = parseInt(data['search-results'].result.segments.segment[i].duration);
@@ -274,7 +316,7 @@ Opencast.segments_ui = (function ()
                         var oldLength = data['search-results'].result.segments.segment.length;
                         data['search-results'].result.segments.segment = newSegments;
                         retSegments = data['search-results'].result.segments;
-                        Opencast.Utils.log("Removed " + (oldLength - newSegments.length) + " Segments due to being too small in relation to the scrubber length");
+                        Opencast.Utils.log("Removed " + (oldLength - newSegments.length) + "/" + oldLength + " Segments due to being too small in relation to the scrubber length:" + hiddenSegmentsStr);
                     } else
                     {
                         Opencast.Utils.log("Segments not available");
@@ -347,6 +389,8 @@ Opencast.segments_ui = (function ()
     
     return {
         getSegments: getSegments,
+        getSegmentNumbers: getSegmentNumbers,
+        getSegmentNumber: getSegmentNumber,
         getImgURLArray: getImgURLArray,
         hoverSegment: hoverSegment,
         hoverOutSegment: hoverOutSegment,
