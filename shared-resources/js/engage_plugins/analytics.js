@@ -209,11 +209,13 @@ Opencast.Analytics = (function ()
         resizeEndTimeoutRunning = false;
         $(window).resize(function ()
         {
-            dateIn = new Date();
-            if (resizeEndTimeoutRunning === false)
+            if(analyticsDisplayed)
             {
-                resizeEndTimeoutRunning = true;
-                resizeEndTimeoutRunning = setTimeout(resizeEnd, waitForMove);
+                dateIn = new Date();
+                if (resizeEndTimeoutRunning === false)
+                {
+                    resizeEndTimeoutRunning = setTimeout(resizeEnd, waitForMove);
+                }
             }
         });
     }

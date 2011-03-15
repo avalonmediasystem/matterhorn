@@ -21,11 +21,13 @@ var Opencast = Opencast || {};
  */
 Opencast.segments_ui = (function ()
 {
-    var imgURLs = new Array(),        // segment image URLs
-        newSegments = new Array(),    // segments
-        retSegments,                  // segment object
+    var imgURLs,                      // segment image URLs  (Array)
+        newSegments,                  // segments            (Array)
+        retSegments,                  // segment object      (Object)
         minSegmentPixels = 8,
-        segmentsNrs = new Array();    // segments number
+        segmentsNrs,                  // segments number     (Array)
+        resizeEndTimeoutRunning = false,
+        waitForMove = 150;
         
     /**
      * @memberOf Opencast.segments_ui
@@ -190,6 +192,10 @@ Opencast.segments_ui = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
+                imgURLs = [];
+                newSegments = [];
+                segmentsNrs = [];
+                
                 Opencast.Utils.log("Segments UI AJAX call: Requesting data succeeded");
                 if ((data !== undefined) && (data['search-results'] !== undefined) && (data['search-results'].result !== undefined))
                 {
@@ -317,6 +323,7 @@ Opencast.segments_ui = (function ()
                         data['search-results'].result.segments.segment = newSegments;
                         retSegments = data['search-results'].result.segments;
                         Opencast.Utils.log("Removed " + (oldLength - newSegments.length) + "/" + oldLength + " Segments due to being too small in relation to the scrubber length:" + hiddenSegmentsStr);
+                        // initResizeEnd(); // TODO: Does not work, yet: Error in Flash Bridge
                     } else
                     {
                         Opencast.Utils.log("Segments not available");
@@ -375,6 +382,42 @@ Opencast.segments_ui = (function ()
                 Opencast.Watch.continueProcessing(true);
             }
         });
+    }
+        
+    /**
+     * @memberOf Opencast.segments_ui
+     * @description Binds the Window-Resize-Event
+     */
+    function initResizeEnd()
+    {
+        $(window).resize(function ()
+        {
+            dateIn = new Date();
+            if (resizeEndTimeoutRunning === false)
+            {
+                resizeEndTimeoutRunning = true;
+                resizeEndTimeoutRunning = setTimeout(resizeEnd, waitForMove);
+            }
+        });
+    }
+    
+    /**
+     * @memberOf Opencast.segments_ui
+     * @description Checks if resize is over
+     */
+    function resizeEnd()
+    {
+        var dateOut = new Date();
+        // if the Resize-Event is not over yet: set new timeout
+        if ((dateOut - dateIn) < waitForMove)
+        {
+            setTimeout(resizeEnd, waitForMove);
+        }
+        else
+        {
+            resizeEndTimeoutRunning = false;
+            initialize();
+        }
     }
     
     /**
