@@ -21,13 +21,14 @@ var Opencast = Opencast || {};
  */
 Opencast.segments_ui = (function ()
 {
-    var imgURLs,                      // segment image URLs  (Array)
-        newSegments,                  // segments            (Array)
+    var imgURLs = [],                 // segment image URLs  (Array)
+        newSegments = [],             // segments            (Array)
         retSegments,                  // segment object      (Object)
         minSegmentPixels = 8,
-        segmentsNrs,                  // segments number     (Array)
+        segmentsNrs = [],             // segments number     (Array)
         resizeEndTimeoutRunning = false,
-        waitForMove = 150;
+        waitForMove = 150,
+        onceLoaded = false;
         
     /**
      * @memberOf Opencast.segments_ui
@@ -90,21 +91,22 @@ Opencast.segments_ui = (function ()
         $("#segment" + slideNr).toggleClass("ui-state-hover");
         $("#segment" + slideNr).toggleClass("ui-corner-all");
         var imageHeight = 120;
-        var nrOfSegments = Opencast.segments.getNumberOfSegments();
+        var nrOfSegments = segmentsNrs[segmentsNrs.length - 1]; // get length of new segments
         $("#segment-tooltip").html('<img src="' + imgURLs[segmentId] + '" height="' + imageHeight + '" alt="Slide ' + (slideNr + 1) + ' of ' + nrOfSegments + '"/>');
         if (($("#segment" + slideNr).offset() != null) && ($("#segment" + slideNr).offset() != null) && ($("#segment" + slideNr).width() != null) && ($("#segment-tooltip").width() != null))
         {
             var eps = 4;
-            var segment0Left = $("#segment0").offset().left + eps;
-            var segmentLastRight = $("#segment" + (nrOfSegments - 1)).offset().left + $("#segment" + (nrOfSegments - 1)).width() - eps;
-            var segmentLeft = $("#segment" + slideNr).offset().left;
-            var segmentTop = $("#segment" + slideNr).offset().top;
-            var segmentWidth = $("#segment" + slideNr).width();
             var tooltipWidth = $("#segment-tooltip").width();
             if (tooltipWidth == 0)
             {
                 tooltipWidth = 160;
-            }
+            }            
+            var segment0Left = parseInt($("#segment0").offset().left + eps);
+            var segmentLastRight = parseInt($('#segmentstable1').width()) + segment0Left - 3 * eps;
+            
+            var segmentLeft = $("#segment" + slideNr).offset().left;
+            var segmentTop = $("#segment" + slideNr).offset().top;
+            var segmentWidth = $("#segment" + slideNr).width();
             var pos = segmentLeft + segmentWidth / 2 - tooltipWidth / 2;
             // Check overflow on left Side
             if (pos < segment0Left)
@@ -323,7 +325,7 @@ Opencast.segments_ui = (function ()
                         data['search-results'].result.segments.segment = newSegments;
                         retSegments = data['search-results'].result.segments;
                         Opencast.Utils.log("Removed " + (oldLength - newSegments.length) + "/" + oldLength + " Segments due to being too small in relation to the scrubber length:" + hiddenSegmentsStr);
-                        // initResizeEnd(); // TODO: Does not work, yet: Error in Flash Bridge
+                        initResizeEnd();
                     } else
                     {
                         Opencast.Utils.log("Segments not available");
@@ -365,7 +367,11 @@ Opencast.segments_ui = (function ()
                     // Create Trimpath Template
                     Opencast.segments_ui_Plugin.addAsPlugin($('#segmentstable1'), $('#segments_ui-media1'), $('#data1'), $('#segments_ui-mediapackagesAttachments'), $('#data2'), $('#segments_ui-mediapackagesCatalog'), $('#segmentstable2'), data['search-results'].result, segmentsAvailable);
                     Opencast.segments_ui_slider_Plugin.addAsPlugin($('#tableData1'), $('#segments_ui_slider_data1'), $('#segments_ui_slider_data2'), data['search-results'].result, segmentsAvailable);
-                    Opencast.Watch.continueProcessing();
+                    if(!onceLoaded)
+                    {
+                        Opencast.Watch.continueProcessing();
+                        onceLoaded = true;
+                    }
                 }
                 else
                 {
@@ -390,15 +396,33 @@ Opencast.segments_ui = (function ()
      */
     function initResizeEnd()
     {
-        $(window).resize(function ()
+        if(!resizeEndTimeoutRunning)
         {
-            dateIn = new Date();
-            if (resizeEndTimeoutRunning === false)
+            $(window).resize(function ()
             {
-                resizeEndTimeoutRunning = true;
-                resizeEndTimeoutRunning = setTimeout(resizeEnd, waitForMove);
+                dateIn = new Date();
+                if (resizeEndTimeoutRunning === false)
+                {
+                    resizeEndTimeoutRunning = true;
+                    resizeEndTimeoutRunning = setTimeout(resizeEnd, waitForMove);
+                }
+            });
+        }
+        // If window has been resized
+        if(resizeEndTimeoutRunning == true)
+        {
+            resizeEndTimeoutRunning = false;
+            Opencast.segments.clearCashe();
+            Opencast.segments.initialize();
+            if(Opencast.search)
+            {
+                Opencast.search.initialize();
+                if(Opencast.search.isOpen())
+                {
+                    Opencast.search.showResult(Opencast.search.getCurrentInputElement(), Opencast.search.getCurrentSearchString());
+                }
             }
-        });
+        }
     }
     
     /**
@@ -415,7 +439,8 @@ Opencast.segments_ui = (function ()
         }
         else
         {
-            resizeEndTimeoutRunning = false;
+            // Set this flag to true to show that after the asynchronous AJAX-call other segments have to be re-initialized
+            resizeEndTimeoutRunning = true;
             initialize();
         }
     }

@@ -32,8 +32,11 @@ Opencast.search = (function ()
         colorThird = '#90EE90',
         foundAlready = false, // flag if something has already been found
         lastHit = '',         // storage for latest successful search hit
-        validSegments,        // map of old and new segments
-        requestedValidSegments = false;
+        validSegments = [],   // map of old and new segments
+        requestedValidSegments = false,
+        searchOpen = false,
+        currentInputElem = '',
+        currentSearchStr = '';
     
     /**
      * @memberOf Opencast.search
@@ -153,6 +156,7 @@ Opencast.search = (function ()
             // Set background of the table tr
             this.backgroundColor = bgColor;
             var segment = '';
+            
             // Set background of the scrubber elements
             if(isValid)
             {
@@ -179,15 +183,38 @@ Opencast.search = (function ()
     
     /**
      * @memberOf Opencast.search
+     * @description Returns the current input element
+     * @param Returns the current input element
+     */
+    function getCurrentInputElement()
+    {
+        return currentInputElem;
+    }
+    
+    /**
+     * @memberOf Opencast.search
+     * @description Returns the current search string
+     * @param Returns the current search string
+     */
+    function getCurrentSearchString()
+    {
+        return currentSearchStr;
+    }
+    
+    /**
+     * @memberOf Opencast.search
      * @description Does the search
-     * @param elem The Input ELement (currently a workaround)
+     * @param elem The Input Element (currently a workaround)
      * @param searchValue The search value
      */
     function showResult(elem, searchValue)
     {
+        currentInputElem = elem;
+        currentSearchStr = searchValue;
         // Request map of valid segments
         if(!requestedValidSegments)
         {
+            validSegments = [];
             validSegments = Opencast.segments_ui.getSegmentNumbers();
             requestedValidSegments = true;
         }
@@ -338,6 +365,7 @@ Opencast.search = (function ()
      */
     function displayResult()
     {
+        searchOpen = true;
         $('#oc_search-segment').show();
         $('#search-loading').hide();
         $('#oc-search-result').show();
@@ -349,6 +377,7 @@ Opencast.search = (function ()
      */
     function hideSearch()
     {
+        searchOpen = false;
         $("#oc_btn-lecturer-search").attr('aria-pressed', 'false');
         $('#oc_search-segment').hide();
         // Write the default value if no search value has been given
@@ -364,7 +393,17 @@ Opencast.search = (function ()
      */
     function initialize()
     {
-        // Do nothing in here
+        requestedValidSegments = false;
+    }
+    
+    /**
+     * @memberOf Opencast.search
+     * @description Returns if search is opened
+     * @return true if search is opened, false else
+     */
+    function isOpen()
+    {
+        return searchOpen;
     }
     
     return {
@@ -372,8 +411,11 @@ Opencast.search = (function ()
         getSecondColor: getSecondColor,
         getThirdColor: getThirdColor,
         initialize: initialize,
+        getCurrentInputElement: getCurrentInputElement,
+        getCurrentSearchString: getCurrentSearchString,
         showResult: showResult,
         hideSearch: hideSearch,
+        isOpen: isOpen,
         setMediaPackageId: setMediaPackageId
     };
 }());

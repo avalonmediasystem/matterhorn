@@ -30,7 +30,8 @@ Opencast.segments = (function ()
         SEGMENTS = "Segments",
         SEGMENTS_HIDE = "Hide Segments",
         imgURLs,
-        newSegments;
+        newSegments,
+        cashe = false;
         
     /**
      * @memberOf Opencast.segments
@@ -355,6 +356,15 @@ Opencast.segments = (function ()
     
     /**
      * @memberOf Opencast.segments
+     * @description Resets the cashe
+     */
+    function clearCashe()
+    {
+        cashe = false;
+    }
+    
+    /**
+     * @memberOf Opencast.segments
      * @description Displays the Segments Tab
      */
     function showSegments()
@@ -378,7 +388,7 @@ Opencast.segments = (function ()
         $('#segments-loading').show();
         $('#slider').hide();
         // If cashed data are available
-        if (Opencast.segments_Plugin.createSegmentsFromCashe())
+        if (cashe && Opencast.segments_Plugin.createSegmentsFromCashe())
         {
             Opencast.Utils.log("Cashing segments plugin: yes");
             // Request JSONP data -- senseless but otherwise weirdly no correct css parsing?!
@@ -410,6 +420,7 @@ Opencast.segments = (function ()
         }
         else
         {
+            cashe = true;
             Opencast.Utils.log("Cashing segments plugin: no");
             // Request JSONP data // TODO: Remove Ajax, we're getting the data from segments_ui -- senseless but otherwise weirdly no correct css parsing?!
             $.ajax(
@@ -510,6 +521,7 @@ Opencast.segments = (function ()
         getSecondsBeforeSlide: getSecondsBeforeSlide,
         getSecondsNextSlide: getSecondsNextSlide,
         getSlideLength: getSlideLength,
+        clearCashe: clearCashe,
         initialize: initialize,
         sizeSliderContainer: sizeSliderContainer,
         showSegments: showSegments,
