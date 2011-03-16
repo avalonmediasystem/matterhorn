@@ -629,13 +629,13 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
         WorkflowOperationInstance currentOperation = instance.getCurrentOperation();
         List<WorkflowOperationInstance> operations = instance.getOperations();
         operations.clear(); // instance.getOperations() is a copy
-        instance.setOperations(operations);
         if (currentOperation != null) {
           for (String key : currentOperation.getConfigurationKeys()) {
             currentOperation.removeConfiguration(key);
           }
-          instance.getOperations().add(currentOperation);
+          operations.add(currentOperation);
         }
+        instance.setOperations(operations);
 
         // Remove all mediapackage elements
         MediaPackage mediaPackage = instance.getMediaPackage();
