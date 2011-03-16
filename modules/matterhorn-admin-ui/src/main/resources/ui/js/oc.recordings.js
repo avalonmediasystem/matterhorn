@@ -10,6 +10,8 @@ ocRecordings = new (function() {
 
   var STATISTICS_DELAY = 3000;     // time interval for statistics update
 
+  var UPCOMMING_EVENTS_GRACE_PERIOD = 30 * 1000;
+
   var SORT_FIELDS = {
     'Title' : 'TITLE',
     'Presenter' : 'CREATOR',
@@ -324,7 +326,10 @@ ocRecordings = new (function() {
     }
 
     // Status
-    var op = ocRecordings.findLastOperation(wf, wf.state);
+    var op = false;
+    if (wf.operations !== undefined && wf.operations.operation !== undefined) {
+      op = wf.operations.operation;
+    }
     if (wf.state == 'SUCCEEDED') {
       this.state = 'Finished';
     } else if (wf.state == 'FAILING' || wf.state == 'FAILED') {
@@ -356,7 +361,7 @@ ocRecordings = new (function() {
           };
         }
       } else {
-        ocUtils.log('Warning could not find current operation for worklfow ' + wf.id);
+        ocUtils.log('No current operation for worklfow ' + wf.id);
         this.state = 'Paused';
       }
     } else if (wf.state == 'RUNNING') {
@@ -364,14 +369,10 @@ ocRecordings = new (function() {
         this.state = 'Processing';
         this.operation = op.description;
       } else {
-        op = ocRecordings.findFirstOperation(wf, "INSTANTIATED");    // MH-6426: it can happen that for running workflow there is no operation in state RUNNING
-        if (op) {                                                    //     in this case we search for the next INSTANTIATED operation and display it as QUEUED
-          this.operation = op.description;
-        } else {
-          ocUtils.log('Warning could not find current operation for worklfow ' + wf.id);
-        }
-        this.state = 'Queued';
+        this.state = 'Running';
       }
+    } else if (wf.state == 'INSTANTIATED') {
+      this.state = 'Initializing...';
     } else {
       this.state = wf.state;
     }
@@ -381,10 +382,10 @@ ocRecordings = new (function() {
       $.each(wf.configurations.configuration, function(index, elm) {
         if (elm.key == 'schedule.start') {
           var start = elm['$'];
-          var now = new Date().getTime();
-          if (parseInt(start) < parseInt(now)) {
-            self.error = 'Capture or Ingest Failure';
-            self.state = 'Failed';
+          var now = new Date().getTime() - UPCOMMING_EVENTS_GRACE_PERIOD;
+          if (parseInt(start) < now) {
+            self.error = 'It seems the core system did not recieve proper status updates from the Capture Agent that should have conducted this recording.';
+            self.state = 'WARNING : Recording may have failed to start or ingest!';
           }
         }
       });
@@ -609,7 +610,7 @@ ocRecordings = new (function() {
   this.displayHoldUI = function(wfId) {
     var workflow = ocRecordings.getWorkflow(wfId);
     if (workflow) {
-      var operation = ocRecordings.findFirstOperation(workflow, 'PAUSED');
+      var operation = workflow.operations.operation;  // ocRecordings.findFirstOperation(workflow, 'PAUSED');
       if (operation !== false && operation.holdurl !== undefined) {
         this.Hold.workflow = workflow;
         this.Hold.operation = operation;
