@@ -307,7 +307,7 @@ public class TextAnalysisWorkflowOperationHandler extends AbstractWorkflowOperat
       List<Attachment> images = new LinkedList<Attachment>();
       try {
         for (long time : times) {
-          extractImageJobs.put(time, composer.image(sourceTrack, IMAGE_EXTRACTION_PROFILE, times));
+          extractImageJobs.put(time, composer.image(sourceTrack, IMAGE_EXTRACTION_PROFILE, time));
         }
         if (!waitForStatus(extractImageJobs.values().toArray(new Job[extractImageJobs.size()])).isSuccess())
           throw new WorkflowOperationException("Extracting scene image from " + sourceTrack + " failed");
