@@ -47,6 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -94,6 +96,9 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
 
   /** This host's base URL */
   protected String hostName;
+
+  /** The base URL for job URLs */
+  protected String jobHost;
 
   /** The factory used to generate the entity manager */
   protected EntityManagerFactory emf = null;
@@ -149,6 +154,13 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       hostName = UrlSupport.DEFAULT_BASE_URL;
     } else {
       hostName = cc.getBundleContext().getProperty("org.opencastproject.server.url");
+    }
+
+    // Find the jobs URL
+    if (cc == null || StringUtils.isBlank(cc.getBundleContext().getProperty("org.opencastproject.jobs.url"))) {
+      jobHost = hostName;
+    } else {
+      jobHost = cc.getBundleContext().getProperty("org.opencastproject.jobs.url");
     }
 
     // Register this host
@@ -308,6 +320,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
 
       em.persist(job);
       tx.commit();
+      setJobUri(job);
       return job;
     } catch (RollbackException e) {
       tx.rollback();
@@ -338,6 +351,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       }
       em.persist(job);
       tx.commit();
+      setJobUri(job);
       return job;
     } catch (RollbackException e) {
       tx.rollback();
@@ -356,7 +370,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
   public Job getJob(long id) throws NotFoundException, ServiceRegistryException {
     EntityManager em = emf.createEntityManager();
     try {
-      Job job = em.find(JobJpaImpl.class, id);
+      JobJpaImpl job = em.find(JobJpaImpl.class, id);
       if (job == null) {
         throw new NotFoundException("Job " + id + " not found");
       }
@@ -364,6 +378,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       // this row in the database
       em.refresh(job);
       job.getArguments();
+      setJobUri(job);
       return job;
     } catch (Exception e) {
       if (e instanceof NotFoundException) {
@@ -393,6 +408,19 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
     }
   }
 
+  protected Job setJobUri(Job job) {
+    if (job instanceof JaxbJob) {
+      try {
+        ((JaxbJob) job).setUri(new URI(jobHost + "/services/job/" + job.getId() + ".xml"));
+      } catch (URISyntaxException e) {
+        logger.warn("Can not set the job URI", e);
+      }
+    } else {
+      logger.warn("Can not set the job URI on a " + job.getClass().getName());
+    }
+    return job;
+  }
+
   /**
    * Internal method to update a job, throwing unwrapped JPA exceptions.
    * 
@@ -416,6 +444,7 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
       em.merge(fromDb);
       tx.commit();
       ((JaxbJob) job).setVersion(fromDb.getVersion());
+      setJobUri(job);
       return job;
     } catch (PersistenceException e) {
       if (tx.isActive())
@@ -785,7 +814,11 @@ public class ServiceRegistryJpaImpl implements ServiceRegistry {
         query.setParameter("status", status);
         query.setParameter("serviceType", type);
       }
-      return query.getResultList();
+      List<Job> jobs = query.getResultList();
+      for(Job job : jobs) {
+        setJobUri(job);
+      }
+      return jobs;
     } catch (Exception e) {
       throw new ServiceRegistryException(e);
     } finally {
