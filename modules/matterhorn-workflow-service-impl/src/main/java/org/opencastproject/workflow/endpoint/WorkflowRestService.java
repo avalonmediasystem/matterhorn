@@ -637,11 +637,13 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
         }
         instance.setOperations(operations);
 
-        // Remove all mediapackage elements
+        // Remove all mediapackage elements (but keep the duration)
         MediaPackage mediaPackage = instance.getMediaPackage();
+        long duration = instance.getMediaPackage().getDuration();
         for (MediaPackageElement element : mediaPackage.elements()) {
           mediaPackage.remove(element);
         }
+        mediaPackage.setDuration(duration);
       }
     }
 
