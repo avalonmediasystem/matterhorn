@@ -390,6 +390,9 @@ Opencast.Initialize = (function ()
         {
             dropdown_timer();
         });
+
+        // Set the Controls visible
+        $('#oc_video-player-controls').show();
         Opencast.ariaSpinbutton.initialize('oc_volume-container', 'oc_volume-back', 'oc_volume-front', 8, 0, 100);
         // aria roles
         $("#editorContainer").attr("className", "oc_editTime");
