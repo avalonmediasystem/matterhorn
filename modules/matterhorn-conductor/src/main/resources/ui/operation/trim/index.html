@@ -587,9 +587,9 @@
             var seriesDcElm = $(mediapackage.documentElement).find("metadata > catalog[type='dublincore/series']");
             var seriesDcFileId = '';        // MediaPackageElementId of series DC catalog
             if (seriesDcElm.length == 0) {
-              var seriesDcElm = $('<catalog />').attr('id', DEFAULT_SERIES_CATALOG_ID).attr('type', 'dublincore/series');
-              $('<mimetype />').text('text/xml').appendTo(seriesDcElm);
-              $('<url />').appendTo(seriesDcElm);
+              var seriesDcElm = $('<catalog></catalog>',mediapackage.documentElement).attr('id', DEFAULT_SERIES_CATALOG_ID).attr('type', 'dublincore/series');
+              $('<mimetype></mimetype>',mediapackage.documentElement).text('text/xml').appendTo(seriesDcElm);
+              $('<url></url>',mediapackage.documentElement).appendTo(seriesDcElm);
               $(mediapackage.documentElement).find('metadata').append(seriesDcElm);
             }
             // upload series dc xml
@@ -626,6 +626,7 @@
             var mp = ocUtils.xmlToString(mediapackage);
             mp = mp.replace(/ xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g,'');     // no luck with $(element).removeAttr('xmlns');
             parent.ocRecordings.Hold.changedMediaPackage = mp;
+            //alert(mp);
           }
           parent.ocRecordings.continueWorkflow(postData);
         }
@@ -645,14 +646,20 @@
         
         $('.dcMetaField').each(function(){
           var $field = $(this);
+          var fieldname = $field.attr('name');
           if ($field.val() != '') {
-            var $dcelm = $(DCmetadata.documentElement).find('dcterms\\:' + $field.attr('name'));
-            if ($dcelm.length != 0) {
+            var $dcelm = false;    //$(DCmetadata.documentElement).find('dcterms\\:' + $field.attr('name'));
+            $(DCmetadata.documentElement).children().each(function(index, elm) {
+              if (elm.tagName == 'dcterms:' + fieldname) {
+                $dcelm = $(elm);
+              }
+            });
+            if ($dcelm !== false) {
               ocUtils.log("updating " + $field.attr('name') + " to: " + $field.val());
               $dcelm.text($field.val());
             } else {
               ocUtils.log("creating " + $field.attr('name') + " with value: " + $field.val());
-              $('<dcterms:' + $field.attr('name') + '>').text($field.val()).appendTo(DCmetadata.documentElement);
+              $(DCmetadata.createElement('dcterms:' + $field.attr('name'))).text($field.val()).appendTo(DCmetadata.documentElement);
             }
           }
         });
@@ -675,7 +682,7 @@
           $mpelm.text(value);
         } else {
           ocUtils.log('Creating ' + MPname + ' in MediaPackage with value ' + value);
-          $newelm = $('<' + MPname + '/>').text(value);
+          $newelm = $('<' + MPname + '></' + MPname + '>',mediapackage.documentElement).text(value);
           $newelm.appendTo(mediapackage.documentElement);
         }
       }
@@ -694,11 +701,11 @@
           if ($parent.length > 0) {
             $parent.empty();
           } else {
-            $parent = $('<' + MPgroupname + '/>');
+            $parent = $('<' + MPgroupname + '></' + MPgroupname + '>', mediapackage.documentElement);
             $(mediapackage.documentElement).append($parent);
           }
           $dcelms.each(function() {
-            $('<' + MPname + '/>').text($(this).text()).appendTo($parent);
+            $('<' + MPname + '></' + MPname + '>', mediapackage.documentElement).text($(this).text()).appendTo($parent);
           });
         }
       }
