@@ -163,6 +163,7 @@ public class JobJpaImpl extends JaxbJob {
     return id;
   }
 
+  @Transient
   @XmlElement(name = "url")
   @Override
   public URI getUri() {
