@@ -19,6 +19,7 @@ import org.opencastproject.capture.pipeline.PipelineTestHelpers;
 import org.opencastproject.capture.pipeline.bins.CaptureDevice;
 import org.opencastproject.capture.pipeline.bins.CaptureDeviceBinTest;
 import org.opencastproject.capture.pipeline.bins.GStreamerElementFactory;
+import org.opencastproject.capture.pipeline.bins.GStreamerElements;
 import org.opencastproject.capture.pipeline.bins.UnableToCreateElementException;
 import org.opencastproject.capture.pipeline.bins.producers.ProducerFactory.ProducerType;
 
@@ -127,10 +128,10 @@ public class VideoFilesinkConsumerTest {
 
   @Test
   public void settingCodecButNotContainerResultsInCorrectCodecAndDefaultMuxer() {
-    if (!gstreamerInstalled || PipelineTestHelpers.testGstreamerElement(VideoFilesinkConsumer.DEFAULT_ENCODER)
+    if (!gstreamerInstalled || PipelineTestHelpers.testGstreamerElement(GStreamerElements.X264ENC)
             || PipelineTestHelpers.testGstreamerElement(VideoFilesinkConsumer.DEFAULT_MUXER))
       return;
-    Properties captureDeviceProperties = createProperties("x264enc", "4096", null);
+    Properties captureDeviceProperties = createProperties(GStreamerElements.X264ENC, "4096", null);
     captureDevice = PipelineTestHelpers.createCaptureDevice("/dev/video0", ProducerType.VIDEOTESTSRC, "Friendly Name",
             "/tmp/testpipe/test.mp2", captureDeviceProperties);
     VideoFilesinkConsumer videoFileSinkBin = createVideoFileSinkBinDontWantException(captureDeviceProperties);
