@@ -95,14 +95,13 @@ ocUtils.getDateString = function(date) {
   var daySeparator = ", ";
   var dateSeparator = " ";
   var yearSeparator = " ";
-	var d = date;
-	var datestring = days[(d.getDate() + 1) % 7];
+	var datestring = days[date.getDay()];
 	datestring += daySeparator;
-	datestring += months[d.getMonth() % 12];
+	datestring += months[date.getMonth()];
 	datestring += dateSeparator;
-	datestring += (d.getDate() >= 10) ? d.getDate() : "0".concat(d.getDate());
+	datestring += ocUtils.padString(date.getDate(), '0', 2);
 	datestring += yearSeparator;
-	datestring += d.getFullYear();
+	datestring += date.getFullYear();
 	return datestring;
 }
 
