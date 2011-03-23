@@ -51,8 +51,6 @@ import javax.servlet.http.HttpServletResponse;
  * Note that if you are running the workspace on the same machine as the singleton working file repository, you can save
  * a lot of space if you configure both root directories onto the same volume (that is, if your file system supports
  * hard links).
- * 
- * TODO Implement cache invalidation using the caching headers, if provided, from the remote server.
  */
 public class WorkspaceImpl implements Workspace {
 
@@ -300,29 +298,17 @@ public class WorkspaceImpl implements Workspace {
         if (uriElements.length > 2) {
           String collectionId = uriElements[uriElements.length - 2];
           String filename = uriElements[uriElements.length - 1];
-          wfr.deleteFromCollection(collectionId, filename);
+          deleteFromCollection(collectionId, filename);
         }
       } else if (uriPath.indexOf(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX) > 0) {
         String[] uriElements = uriPath.split("/");
         if (uriElements.length >= 3) {
           String mediaPackageId = uriElements[uriElements.length - 3];
           String elementId = uriElements[uriElements.length - 2];
-          wfr.delete(mediaPackageId, elementId);
+          delete(mediaPackageId, elementId);
         }
       }
     }
-
-    // Remove the file and optionally its parent directory if empty
-    File f = getWorkspaceFile(uri, false);
-    if (f.isFile()) {
-      synchronized (wsRoot) {
-        FileUtils.forceDelete(f);
-        if (f.getParentFile().list().length == 0) {
-          FileUtils.forceDelete(f.getParentFile());
-        }
-      }
-    }
-
   }
 
   /**
@@ -335,6 +321,14 @@ public class WorkspaceImpl implements Workspace {
     File f = new File(PathSupport.concat(new String[] { wsRoot, WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX,
             mediaPackageID, mediaPackageElementID }));
     FileUtils.deleteQuietly(f);
+    
+    // Remove the file and optionally its parent directory if empty
+    synchronized (wsRoot) {
+      File mediaPackageDirectory = f.getParentFile();
+      if (mediaPackageDirectory.list().length == 0) {
+        FileUtils.forceDelete(f.getParentFile());
+      }
+    }
   }
 
   /**
@@ -543,6 +537,13 @@ public class WorkspaceImpl implements Workspace {
     File f = new File(PathSupport.concat(new String[] { wsRoot, WorkingFileRepository.COLLECTION_PATH_PREFIX,
             collectionId, fileName }));
     FileUtils.deleteQuietly(f);
+
+    // Remove the file and optionally its parent directory if empty
+    synchronized (wsRoot) {
+      if (f.getParentFile().list().length == 0) {
+        FileUtils.forceDelete(f.getParentFile());
+      }
+    }
   }
 
   /**

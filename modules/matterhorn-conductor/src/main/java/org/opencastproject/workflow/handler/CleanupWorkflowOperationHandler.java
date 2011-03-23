@@ -27,6 +27,7 @@ import org.opencastproject.workflow.api.WorkflowOperationResult;
 import org.opencastproject.workflow.api.WorkflowOperationResult.Action;
 import org.opencastproject.workspace.api.Workspace;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,8 +67,8 @@ public class CleanupWorkflowOperationHandler extends AbstractWorkflowOperationHa
   public CleanupWorkflowOperationHandler() {
     configurationOptions = new TreeMap<String, String>();
     configurationOptions.put(PRESERVE_FLAVOR_PROPERTY,
-            "The configuration key that specifies the flavors to preserve.  If not specified, this operation will not"
-                    + "remove any files.");
+            "The configuration key that specifies the flavors to preserve.  If not specified, this operation will "
+                    + "remove everything.  Specify */* to keep everything.");
   }
 
   /**
@@ -92,13 +93,10 @@ public class CleanupWorkflowOperationHandler extends AbstractWorkflowOperationHa
     MediaPackage mediaPackage = workflowInstance.getMediaPackage();
     WorkflowOperationInstance currentOperation = workflowInstance.getCurrentOperation();
 
+    // Figure out what to keep
     String flavors = currentOperation.getConfiguration(PRESERVE_FLAVOR_PROPERTY);
     final List<MediaPackageElementFlavor> flavorsToPreserve = new ArrayList<MediaPackageElementFlavor>();
-
-    // If the configuration does not specify flavors, keep them all
-    if (flavors == null) {
-      flavorsToPreserve.add(MediaPackageElementFlavor.parseFlavor("*/*"));
-    } else {
+    if (StringUtils.isNotBlank(flavors)) {
       for (String flavor : asList(flavors)) {
         flavorsToPreserve.add(MediaPackageElementFlavor.parseFlavor(flavor));
       }
@@ -141,6 +139,7 @@ public class CleanupWorkflowOperationHandler extends AbstractWorkflowOperationHa
         logger.warn("Unable to delete {}", uri);
       }
     }
+    
     return createResult(mediaPackage, Action.CONTINUE);
   }
 
@@ -153,4 +152,5 @@ public class CleanupWorkflowOperationHandler extends AbstractWorkflowOperationHa
   public SortedMap<String, String> getConfigurationOptions() {
     return configurationOptions;
   }
+
 }

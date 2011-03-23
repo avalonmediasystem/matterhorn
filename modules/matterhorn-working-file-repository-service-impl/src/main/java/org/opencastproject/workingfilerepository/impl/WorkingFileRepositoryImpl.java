@@ -123,7 +123,12 @@ public class WorkingFileRepositoryImpl implements WorkingFileRepository, PathMap
     logger.info(getDiskSpace());
   }
 
-  public void delete(String mediaPackageID, String mediaPackageElementID) {
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.workingfilerepository.api.WorkingFileRepository#delete(java.lang.String, java.lang.String)
+   */
+  public void delete(String mediaPackageID, String mediaPackageElementID) throws IOException {
     checkPathSafe(mediaPackageID);
     checkPathSafe(mediaPackageElementID);
     File f = getFile(mediaPackageID, mediaPackageElementID);
@@ -133,14 +138,20 @@ public class WorkingFileRepositoryImpl implements WorkingFileRepository, PathMap
     }
     File parentDirectory = f.getParentFile();
     logger.debug("Attempting to delete file {}", parentDirectory.getAbsolutePath());
-    try {
-      FileUtils.forceDelete(parentDirectory);
-    } catch (IOException e) {
-      throw new SecurityException("Can not delete file in mediaPackage/mediaElement: " + mediaPackageID + "/"
-              + mediaPackageElementID);
+    FileUtils.forceDelete(parentDirectory);
+
+    // Remove the file and optionally its parent directory if empty
+    File mediaPackageDirectory = parentDirectory.getParentFile();
+    if (mediaPackageDirectory.list().length == 0) {
+      FileUtils.forceDelete(mediaPackageDirectory);
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.workingfilerepository.api.WorkingFileRepository#get(java.lang.String, java.lang.String)
+   */
   public InputStream get(String mediaPackageID, String mediaPackageElementID) throws NotFoundException {
     checkPathSafe(mediaPackageID);
     checkPathSafe(mediaPackageElementID);
@@ -525,19 +536,19 @@ public class WorkingFileRepositoryImpl implements WorkingFileRepository, PathMap
    *      java.lang.String)
    */
   @Override
-  public void deleteFromCollection(String collectionId, String fileName) {
+  public void deleteFromCollection(String collectionId, String fileName) throws IOException {
     File f = getFileFromCollection(collectionId, fileName);
     if (f == null)
       throw new IllegalArgumentException("Source file " + collectionId + "/" + fileName + " does not exist");
     File md5File = getMd5File(f);
     if (f.exists() && f.isFile() && f.canWrite() && md5File.exists() && md5File.isFile() && md5File.canWrite()) {
-      boolean md5Success = md5File.delete();
-      boolean sourceSuccess = f.delete();
-      if (!sourceSuccess || !md5Success)
-        throw new IllegalStateException("can not delete " + f);
+      FileUtils.forceDelete(md5File);
+      FileUtils.forceDelete(f);
     } else {
       throw new IllegalStateException("file " + f + " either does not exist, is not a file, or is not writable");
     }
+    
+    // Don't remove empty collections for now
   }
 
   /**

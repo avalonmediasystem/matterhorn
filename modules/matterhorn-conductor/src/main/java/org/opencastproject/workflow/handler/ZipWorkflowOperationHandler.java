@@ -72,6 +72,9 @@ public class ZipWorkflowOperationHandler extends AbstractWorkflowOperationHandle
   /** The element flavors to include in the zip file */
   public static final String INCLUDE_FLAVORS_PROPERTY = "include-flavors";
 
+  /** Whether to attach the zip file to the mediapackage */
+  public static final String ATTACH_TO_MEDIAPACKAGE_PROPERTY = "attach-to-mediapackage";
+
   /** The property indicating whether to apply compression to the archive */
   public static final String COMPRESS_PROPERTY = "compression";
 
@@ -104,6 +107,8 @@ public class ZipWorkflowOperationHandler extends AbstractWorkflowOperationHandle
             "The configuration key that specifies whether to compress the zip archive.  Defaults to false.");
     configurationOptions.put(INCLUDE_FLAVORS_PROPERTY,
             "The configuration key that specifies the element flavors to include in the zipped mediapackage archive");
+    configurationOptions.put(ATTACH_TO_MEDIAPACKAGE_PROPERTY,
+    "The configuration key that specifies whether to attach the resulting zip file to the mediapackage.  Defaults to false");
   }
 
   /**
@@ -143,6 +148,7 @@ public class ZipWorkflowOperationHandler extends AbstractWorkflowOperationHandle
   public WorkflowOperationResult start(final WorkflowInstance workflowInstance, JobContext context) throws WorkflowOperationException {
     final MediaPackage mediaPackage = workflowInstance.getMediaPackage();
     final WorkflowOperationInstance currentOperation = workflowInstance.getCurrentOperation();
+    boolean attachToMediaPackage = "true".equalsIgnoreCase(currentOperation.getConfiguration(ATTACH_TO_MEDIAPACKAGE_PROPERTY));
     String flavors = currentOperation.getConfiguration(INCLUDE_FLAVORS_PROPERTY);
     final List<MediaPackageElementFlavor> flavorsToZip = new ArrayList<MediaPackageElementFlavor>();
 
@@ -189,12 +195,15 @@ public class ZipWorkflowOperationHandler extends AbstractWorkflowOperationHandle
     }
     logger.info("Zipped mediapackage {} moved to the {} archive", mediaPackage, collectionId);
 
-    Attachment attachment = (Attachment) MediaPackageElementBuilderFactory.newInstance().newElementBuilder()
-            .elementFromURI(uri, Type.Attachment, ARCHIVE_FLAVOR);
-    try {
-      attachment.setChecksum(Checksum.create(ChecksumType.DEFAULT_TYPE, zip));
-    } catch (IOException e) {
-      throw new WorkflowOperationException(e);
+    if (attachToMediaPackage) {
+      Attachment attachment = (Attachment) MediaPackageElementBuilderFactory.newInstance().newElementBuilder()
+              .elementFromURI(uri, Type.Attachment, ARCHIVE_FLAVOR);
+      try {
+        attachment.setChecksum(Checksum.create(ChecksumType.DEFAULT_TYPE, zip));
+      } catch (IOException e) {
+        throw new WorkflowOperationException(e);
+      }
+      mediaPackage.add(attachment);
     }
 
     // The zip file is safely in the archive, so it's now safe to attempt to remove the original zip
@@ -203,7 +212,6 @@ public class ZipWorkflowOperationHandler extends AbstractWorkflowOperationHandle
     } catch (Exception e) {
       throw new WorkflowOperationException(e);
     }
-    mediaPackage.add(attachment);
 
     return createResult(mediaPackage, Action.CONTINUE);
   }
