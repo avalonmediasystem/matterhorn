@@ -89,7 +89,7 @@
 
   <bean id="matterhornEntryPoint" class= "org.opencastproject.security.DelegatingAuthenticationEntryPoint">
     <property name="userEntryPoint" ref="casEntryPoint" />
-    <property name="systemAuthenticationEntryPoint" ref="digestEntryPoint" />
+    <property name="digestAuthenticationEntryPoint" ref="digestEntryPoint" />
   </bean>
   
   <bean id="digestEntryPoint" class="org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint">
