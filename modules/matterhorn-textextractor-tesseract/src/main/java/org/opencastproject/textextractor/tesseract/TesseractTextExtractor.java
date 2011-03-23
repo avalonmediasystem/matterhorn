@@ -23,6 +23,7 @@ import org.opencastproject.textextractor.api.TextFrame;
 import org.opencastproject.util.ProcessExcecutorException;
 import org.opencastproject.util.ProcessExecutor;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.osgi.service.cm.ConfigurationException;
@@ -122,6 +123,7 @@ public class TesseractTextExtractor implements TextExtractor, ManagedService {
       throw new TextExtractorException(e);
     } finally {
       IOUtils.closeQuietly(is);
+      FileUtils.deleteQuietly(outputFile);
     }
 
     return textFrame;

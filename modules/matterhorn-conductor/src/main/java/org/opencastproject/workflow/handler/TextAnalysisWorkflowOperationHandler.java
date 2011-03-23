@@ -380,6 +380,8 @@ public class TextAnalysisWorkflowOperationHandler extends AbstractWorkflowOperat
           logger.warn("The mpeg-7 structure returned by the text analyzer is not what is expected", e);
           continue;
         }
+        
+        workspace.delete(catalog.getURI());
       }
 
       // Put the catalog into the workspace and add it to the media package
@@ -396,7 +398,8 @@ public class TextAnalysisWorkflowOperationHandler extends AbstractWorkflowOperat
       // Since we've enriched and stored the mpeg7 catalog, remove the original
       mediaPackage.remove(segmentCatalog);
       workspace.delete(segmentCatalog.getURI());
-
+      workspace.delete(segmentCatalog.getURI());
+      
       // Add flavor and target tags
       catalog.setFlavor(MediaPackageElements.TEXTS);
       for (String tag : targetTagSet) {

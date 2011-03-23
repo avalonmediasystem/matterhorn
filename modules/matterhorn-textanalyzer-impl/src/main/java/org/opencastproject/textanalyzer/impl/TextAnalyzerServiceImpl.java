@@ -135,8 +135,9 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
   @SuppressWarnings("unchecked")
   private Catalog extract(Job job, Attachment image) throws TextAnalyzerException, MediaPackageException {
 
-    final Attachment attachment;
-    final URI imageUrl;
+    Attachment attachment = null;
+    URI imageUrl = null;
+    URI convertedImageUrl = null;
 
     // Make sure the attachment is a tiff
 
@@ -153,7 +154,8 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
         }
         conversionJob = serviceRegistry.getJob(conversionJob.getId());  // get the latest copy
         attachment = (Attachment) MediaPackageElementParser.getFromXml(conversionJob.getPayload());
-        imageUrl = attachment.getURI();
+        convertedImageUrl = attachment.getURI();
+        imageUrl = convertedImageUrl;
       } catch (EncoderException e) {
         throw new TextAnalyzerException(e);
       } catch (NotFoundException e) {
@@ -220,6 +222,13 @@ public class TextAnalyzerServiceImpl extends AbstractJobProducer implements Text
       } else {
         throw new TextAnalyzerException(e);
       }
+    } finally {
+      if (convertedImageUrl != null)
+        try {
+          workspace.delete(convertedImageUrl);
+        } catch (Exception e) {
+          logger.warn("Unable to remove temporary image file " + convertedImageUrl);
+        }
     }
   }
 
