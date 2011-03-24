@@ -138,7 +138,7 @@ Opencast.WorkflowInspect = (function() {
 
     // in case of an 'upcoming event' episode dublin core catalog is obtained from scheduler service
     if (workflow.template == 'scheduling') {
-      out.info.episodeDC = this.SCHEDULER_URL + workflow.id + '/dublincore';
+      out.info.episodeDC = {sameHost:true, url:this.SCHEDULER_URL + workflow.id + '/dublincore'};
     }
 
     return {
@@ -153,13 +153,13 @@ Opencast.WorkflowInspect = (function() {
     var result = TrimPath.processDOMTemplate(templateId, workflow);
     $target.append(result);
     $target.tabs({
-                  select: function (event, ui) {
-                    if(ui.index == 3 && window.location.hash != '#performance')
-                    {
-                        window.location.hash = '#performance';
-                        window.location.reload();
-                    }
-                  }
+      select: function (event, ui) {
+        if(ui.index == 3 && window.location.hash != '#performance')
+        {
+          window.location.hash = '#performance';
+          window.location.reload();
+        }
+      }
     });
     $('.unfoldable-tr').click(function() {
       var $content = $(this).find('.unfoldable-content');
@@ -182,25 +182,27 @@ Opencast.WorkflowInspect = (function() {
     // Render Episode DC if present
     if (workflow.workflow.info.episodeDC !== false) {
       if (workflow.workflow.info.episodeDC.sameHost == true) {
-      $.ajax({
-        url : workflow.workflow.info.episodeDC.url,
-        type : 'GET',
-        dataType : 'xml',
-        error : function() {
-          $('#episodeContainer').text('Error: Could not retrieve Episode Dublin Core Catalog');
-        },
-        success : function(data) {
-          data = Opencast.RenderUtils.DCXMLtoObj(data);
-          var episode = TrimPath.processDOMTemplate('episodeTemplate', data);
-          $('#episodeContainer').append(episode);
-          if (data.dc.license) {
-            $('#licenseField').text(data.dc.license);
+        $.ajax({
+          url : workflow.workflow.info.episodeDC.url,
+          type : 'GET',
+          dataType : 'xml',
+          error : function() {
+            $('#episodeContainer').text('Error: Could not retrieve Episode Dublin Core Catalog');
+          },
+          success : function(data) {
+            data = Opencast.RenderUtils.DCXMLtoObj(data);
+            var episode = TrimPath.processDOMTemplate('episodeTemplate', data);
+            $('#episodeContainer').append(episode);
+            if (data.dc.license) {
+              $('#licenseField').text(data.dc.license);
+            }
+            enableUnfoldables();
           }
-        }
-      });
+        });
       } else {
         var episode = TrimPath.processDOMTemplate('catalogDownloadTemplate', workflow.workflow.info.episodeDC);
         $('#episodeContainer').append(episode);
+        enableUnfoldables();
       }
     }
 
@@ -217,27 +219,29 @@ Opencast.WorkflowInspect = (function() {
           success : function(data) {
             var series = TrimPath.processDOMTemplate('seriesTemplate', Opencast.RenderUtils.DCXMLtoObj(data));
             $('#seriesContainer').append(series);
+            enableUnfoldables();
           }
         });
       } else {
         var series = TrimPath.processDOMTemplate('catalogDownloadTemplate', workflow.workflow.info.seriesDC);
         $('#seriesContainer').append(series);
+        enableUnfoldables();
       }
     }
+  }
 
+  function enableUnfoldables() {
     // care for unfoldable boxes
-    if (workflow.workflow.info.episodeDC || workflow.workflow.info.seriesDC) {
-      $('.unfoldable-header').click(function() {
-        var $content = $(this).next('.unfoldable-content');
-        if ($content.is(':visible')) {
-          $content.hide('fast');
-          $(this).find('.fold-icon').removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
-        } else {
-          $content.show('fast');
-          $(this).find('.fold-icon').removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
-        }
-      });
-    }
+    $('.unfoldable-header').click(function() {
+      var $content = $(this).next('.unfoldable-content');
+      if ($content.is(':visible')) {
+        $content.hide('fast');
+        $(this).find('.fold-icon').removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
+      } else {
+        $content.show('fast');
+        $(this).find('.fold-icon').removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
+      }
+    });
   }
 
   /** render workflow performance chart
