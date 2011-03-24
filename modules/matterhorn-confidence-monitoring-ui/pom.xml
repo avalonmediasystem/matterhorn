@@ -50,13 +50,13 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/classes/ui/jquery</outputDirectory>
+              <outputDirectory>${basedir}/target/classes/ui/</outputDirectory>
               <resources>
                 <resource>
-                  <directory>../../shared-resources/jquery/</directory>
+                  <directory>../../shared-resources/</directory>
                   <includes>
-                    <include> **/* </include>
-                  </includes>
+                     <include>jquery/**</include>
+                  </includes>  
                   <filtering>false</filtering>
                 </resource>
               </resources>
@@ -73,6 +73,7 @@
           <instructions>
             <Bundle-SymbolicName> ${project.artifactId} </Bundle-SymbolicName>
             <Import-Package>org.opencastproject.kernel.http;version=${project.version}</Import-Package>
+            <Private-Package>ui.*</Private-Package>
             <Service-Component>
               OSGI-INF/confidence-monitoring-ui.xml
             </Service-Component>
