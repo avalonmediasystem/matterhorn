@@ -203,7 +203,7 @@ public class WorkspaceImpl implements Workspace {
                 FileSupport.copy(wfrCopy, f);
               }
             } else {
-              logger.debug("{} is up to date");
+              logger.debug("{} is up to date", f);
             }
             logger.debug("Getting {} directly from working file repository root at {}", uri, f);
             return new File(f.getAbsolutePath());
@@ -325,8 +325,8 @@ public class WorkspaceImpl implements Workspace {
     // Remove the file and optionally its parent directory if empty
     synchronized (wsRoot) {
       File mediaPackageDirectory = f.getParentFile();
-      if (mediaPackageDirectory.list().length == 0) {
-        FileUtils.forceDelete(f.getParentFile());
+      if (mediaPackageDirectory.isDirectory() && mediaPackageDirectory.list().length == 0) {
+        FileUtils.deleteQuietly(f.getParentFile());
       }
     }
   }
@@ -537,13 +537,6 @@ public class WorkspaceImpl implements Workspace {
     File f = new File(PathSupport.concat(new String[] { wsRoot, WorkingFileRepository.COLLECTION_PATH_PREFIX,
             collectionId, fileName }));
     FileUtils.deleteQuietly(f);
-
-    // Remove the file and optionally its parent directory if empty
-    synchronized (wsRoot) {
-      if (f.getParentFile().list().length == 0) {
-        FileUtils.forceDelete(f.getParentFile());
-      }
-    }
   }
 
   /**
