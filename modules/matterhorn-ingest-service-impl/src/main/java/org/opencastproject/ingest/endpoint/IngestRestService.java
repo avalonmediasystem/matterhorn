@@ -28,6 +28,7 @@ import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
 import org.opencastproject.rest.RestConstants;
 import org.opencastproject.util.DocUtil;
+import org.opencastproject.util.LocalHashMap;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.doc.DocRestData;
 import org.opencastproject.util.doc.Format;
@@ -44,6 +45,7 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -94,6 +96,9 @@ public class IngestRestService {
 
   /** The http request parameter used to provide the workflow definition id */
   private static final String WORKFLOW_DEFINITION_ID_PARAM = "workflowDefinitionId";
+
+  /** The http request parameter used to provide the workflow configuration */
+  private static final String WORKFLOW_CONFIGURATION_PARAM = "workflowConfig";
 
   private MediaPackageBuilderFactory factory = null;
   private IngestService ingestService = null;
@@ -365,14 +370,20 @@ public class IngestRestService {
           FileItemStream item = iter.next();
           if (item.isFormField()) {
             if (WORKFLOW_INSTANCE_ID_PARAM.equals(item.getFieldName())) {
-              String workflowIdAsString = IOUtils.toString(item.openStream(), "UTF-8");
-              try {
-                workflowInstanceIdAsLong = Long.parseLong(workflowIdAsString);
-              } catch (NumberFormatException e) {
-                logger.warn("{} '{}' is not numeric", WORKFLOW_INSTANCE_ID_PARAM, workflowIdAsString);
+              String workflowIdAsString = StringUtils.trimToNull(IOUtils.toString(item.openStream(), "UTF-8"));
+              if (workflowIdAsString != null) {
+                try {
+                  workflowInstanceIdAsLong = Long.parseLong(workflowIdAsString);
+                } catch (NumberFormatException e) {
+                  logger.warn("{} '{}' is not numeric", WORKFLOW_INSTANCE_ID_PARAM, workflowIdAsString);
+                }
               }
             } else if (WORKFLOW_DEFINITION_ID_PARAM.equals(item.getFieldName())) {
               workflowDefinitionId = IOUtils.toString(item.openStream(), "UTF-8");
+            } else if (WORKFLOW_CONFIGURATION_PARAM.equals(item.getFieldName())) {
+              LocalHashMap config = new LocalHashMap(IOUtils.toString(item.openStream()));
+              workflowConfig.putAll(config.getMap());
+              logger.debug("Adding workflow configuration: " + config.getMap());
             } else {
               logger.debug("Processing form field: " + item.getFieldName());
               workflowConfig.put(item.getFieldName(), IOUtils.toString(item.openStream(), "UTF-8"));
@@ -960,6 +971,8 @@ public class IngestRestService {
             "The workflow instance ID to associate with this zipped mediapackage"));
     endpoint.addRequiredParam(new Param(WORKFLOW_DEFINITION_ID_PARAM, Type.STRING, "full",
             "The workflow definition ID to run on this mediapackage"));
+    endpoint.addOptionalParam(new Param(WORKFLOW_CONFIGURATION_PARAM, Type.TEXT, "trimHold=true\ncaptionHold=true",
+            "The workflow configuration"));
     endpoint.addBodyParam(true, null, "The compressed (application/zip) media package file");
     endpoint.addStatus(org.opencastproject.util.doc.Status.ok(null));
     endpoint.addStatus(org.opencastproject.util.doc.Status.error(null));
