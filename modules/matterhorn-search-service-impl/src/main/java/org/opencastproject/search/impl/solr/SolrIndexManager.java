@@ -144,11 +144,13 @@ public class SolrIndexManager {
    *           if an errors occurs while talking to solr
    */
   public void clear() throws SolrServerException {
-    try {
-      solrServer.deleteByQuery("*:*");
-      solrServer.commit();
-    } catch (IOException e) {
-      throw new SolrServerException(e);
+    synchronized (solrServer) {
+      try {
+        solrServer.deleteByQuery("*:*");
+        solrServer.commit();
+      } catch (IOException e) {
+        throw new SolrServerException(e);
+      }
     }
   }
 
@@ -176,7 +178,7 @@ public class SolrIndexManager {
         logger.warn("Trying to delete non-existing (or already deleted) episode {} from the search index", id);
         return false;
       }
-      
+
       // Use all existing fields
       SolrDocument doc = solrResponse.getResults().get(0);
       SolrUpdateableInputDocument inputDocument = new SolrUpdateableInputDocument();
@@ -186,8 +188,10 @@ public class SolrIndexManager {
 
       // Set the oc_deleted field to the current date, then update
       inputDocument.setField(SolrFields.OC_DELETED, SolrUtils.serializeDate(new Date()));
-      solrServer.add(inputDocument);
-      solrServer.commit();
+      synchronized (solrServer) {
+        solrServer.add(inputDocument);
+        solrServer.commit();
+      }
       return true;
     } catch (IOException e) {
       throw new SolrServerException(e);
@@ -229,15 +233,17 @@ public class SolrIndexManager {
     }
 
     // Post everything to the search index
-    try {
-      if (episodeDocument != null)
-        solrServer.add(episodeDocument);
-      if (seriesDocument != null)
-        solrServer.add(seriesDocument);
-      solrServer.commit();
-      return true;
-    } catch (Exception e) {
-      throw new SolrServerException(e);
+    synchronized (solrServer) {
+      try {
+        if (episodeDocument != null)
+          solrServer.add(episodeDocument);
+        if (seriesDocument != null)
+          solrServer.add(seriesDocument);
+        solrServer.commit();
+        return true;
+      } catch (Exception e) {
+        throw new SolrServerException(e);
+      }
     }
   }
 
