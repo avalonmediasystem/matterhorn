@@ -113,6 +113,7 @@ Opencast.Utils = (function ()
             seconds = 0;
         }
         var result = "";
+        seconds = (seconds < 0) ? 0 : seconds;
         if (parseInt(seconds / 3600) < 10)
         {
             result += "0";

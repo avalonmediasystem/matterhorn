@@ -279,12 +279,12 @@ Opencast.Watch = (function ()
             var timeParam = Opencast.Utils.getURLParameter('t');
             var durationStr = $('#oc_duration').text();
             var durTextSet = (durationStr != 'Initializing') && (Opencast.Utils.getTimeInMilliseconds(durationStr) != 0);
-            var autoplay = (playParam !== null) && (playParam.toLowerCase() == 'true');
+            var autoplay = ((playParam !== null) && (playParam.toLowerCase() == 'true')) || (!mediaPackageIdAvailable);
             var time = (timeParam === null) ? 0 : Opencast.Utils.parseSeconds(timeParam);
             time = (time < 0) ? 0 : time;
             var rdy = false;
             // duration set
-            if (durTextSet)
+            if (durTextSet||!mediaPackageIdAvailable)
             {
                 // autoplay and jump to time OR autoplay and not jump to time
                 if (autoplay)
