@@ -324,7 +324,10 @@ Opencast.segments_ui = (function ()
                         data['search-results'].result.segments.segment = newSegments;
                         retSegments = data['search-results'].result.segments;
                         Opencast.Utils.log("Removed " + (oldLength - newSegments.length) + "/" + oldLength + " Segments due to being too small in relation to the scrubber length:" + hiddenSegmentsStr);
-                        initResizeEnd();
+                        if(!$.browser.msie)
+                        {
+                            initResizeEnd();
+                        }
                     } else
                     {
                         Opencast.Utils.log("Segments not available");
