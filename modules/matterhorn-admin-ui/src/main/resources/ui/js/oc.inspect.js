@@ -10,6 +10,8 @@ Opencast.WorkflowInspect = (function() {
   var instanceView;     // view of the workflow instance data
   var targetView;       // indicates if technical details or info page should be rendered ('details' | 'info')
 
+  var unfoldablesEnabled = false; //tracks if foldable sections have been enabled
+
   this.renderInfo = function(id, container, template) {
     targetView = 'info';
     templateId = template;
@@ -232,16 +234,19 @@ Opencast.WorkflowInspect = (function() {
 
   function enableUnfoldables() {
     // care for unfoldable boxes
-    $('.unfoldable-header').click(function() {
-      var $content = $(this).next('.unfoldable-content');
-      if ($content.is(':visible')) {
-        $content.hide('fast');
-        $(this).find('.fold-icon').removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
-      } else {
-        $content.show('fast');
-        $(this).find('.fold-icon').removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
-      }
-    });
+    if(!this.unfoldablesEnabled) {
+        $('.unfoldable-header').click(function() {
+          var $content = $(this).next('.unfoldable-content');
+          if ($content.is(':visible')) {
+            $content.hide('fast');
+            $(this).find('.fold-icon').removeClass('ui-icon-triangle-1-s').addClass('ui-icon-triangle-1-e');
+          } else {
+            $content.show('fast');
+            $(this).find('.fold-icon').removeClass('ui-icon-triangle-1-e').addClass('ui-icon-triangle-1-s');
+          }
+        });
+        this.unfoldablesEnabled = true;
+    }
   }
 
   /** render workflow performance chart
