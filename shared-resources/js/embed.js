@@ -71,6 +71,8 @@ Opencast.Watch = (function ()
         }
         else
         {
+            $('#oc_btn-skip-backward').hide();
+            $('#oc_btn-skip-forward').hide();
             continueProcessing();
         }
     }

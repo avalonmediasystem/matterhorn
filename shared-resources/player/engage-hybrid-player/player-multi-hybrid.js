@@ -787,6 +787,16 @@ Opencast.Player = (function ()
     
     /**
      @memberOf Opencast.Player
+     @description seeks
+     @param ms milliseconds
+     */
+    function doSeek(ms)
+    {
+        Videodisplay.seek(ms);
+    }
+    
+    /**
+     @memberOf Opencast.Player
      @description Toggle between closed captions on or off.
      @param Boolean cc
      */
@@ -1681,6 +1691,7 @@ Opencast.Player = (function ()
         doSkipBackward: doSkipBackward,
         doRewind: doRewind,
         doSkipForward: doSkipForward,
+        doSeek: doSeek,
         doToogleClosedCaptions: doToogleClosedCaptions,
         // show
         showShare: showShare,

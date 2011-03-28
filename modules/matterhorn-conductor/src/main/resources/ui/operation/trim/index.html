@@ -198,33 +198,33 @@
                 
         //start playing from current in point
         $('#play-from-in').click(function(){
-          var videodisplay = $('#player-container')[0].contentWindow.Videodisplay;
-          videodisplay.pause();
+          var player = $('#player-container')[0].contentWindow.Opencast.Player;
+          player.doPause();
           var seekTime = getTimeInMilliseconds($('#inPoint').val());
-          videodisplay.seek(seekTime / 1000);
+          player.doSeek(seekTime / 1000);
           window.setTimeout(function(){
-            videodisplay.play();
+            player.doPlay();
           }, 800);
         });
                 
         //play last 10 seconds to out
         $('#play-to-out').click(function(){
-          var videodisplay = $('#player-container')[0].contentWindow.Videodisplay;
-          videodisplay.pause();
+          var player = $('#player-container')[0].contentWindow.Opencast.Player;
+          player.doPause();
           var seekTime = getTimeInMilliseconds($('#outPoint').val()) / 1000;
           var timeOut = 10000;
           // If Out point < 10 Seconds
           if ((seekTime - 10) <= 0) {
-            videodisplay.seek(0);
+            player.doSeek(0);
             timeOut = seekTime * 1000;
           }
           else {
-            videodisplay.seek(seekTime - 10);
+            player.doSeek(seekTime - 10);
           }
           window.setTimeout(function(){
-            videodisplay.play();
+            player.doPlay();
             window.setTimeout(function(){
-              videodisplay.pause();
+              player.doPause();
             }, timeOut);
                         
           }, 800);
@@ -636,8 +636,8 @@
       }
             
       function cancel(){
-        var videodisplay = $('#player-container')[0].contentWindow.Videodisplay;
-        videodisplay.pause();
+        var player = $('#player-container')[0].contentWindow.Opencast.Player;
+        player.doPause();
         parent.ocRecordings.hideHoldActionUI();
       }
 
