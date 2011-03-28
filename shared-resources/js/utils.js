@@ -513,7 +513,7 @@ Opencast.Utils = (function ()
             }
             catch(err)
             {
-                console.log(e);
+                console.log(err);
             }
             return true;
         }
