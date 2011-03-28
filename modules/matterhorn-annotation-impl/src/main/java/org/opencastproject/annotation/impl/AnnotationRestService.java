@@ -219,10 +219,10 @@ public class AnnotationRestService {
     addEndpoint.addStatus(org.opencastproject.util.doc.Status.created("The URL to this annotation is returned in the "
             + "Location header, and the annotation itelf is returned in the response body."));
     addEndpoint.addRequiredParam(new Param("episode", Type.STRING, null, "The ID of the episode"));
-    addEndpoint.addRequiredParam(new Param("type", Type.STRING, null, "The type of annotation"));
-    addEndpoint.addRequiredParam(new Param("in", Type.STRING, null, "The time, or inpoint, of the annotation"));
-    addEndpoint.addOptionalParam(new Param("out", Type.STRING, null, "The optional outpoint of the annotation"));
-    addEndpoint.addRequiredParam(new Param("value", Type.TEXT, null, "The value of the annotation"));
+    addEndpoint.addRequiredParam(new Param("type", Type.STRING, null, "The type of annotation - example: chapter"));
+    addEndpoint.addRequiredParam(new Param("in", Type.STRING, null, "The time, or inpoint, of the annotation in ms"));
+    addEndpoint.addOptionalParam(new Param("out", Type.STRING, null, "The optional outpoint of the annotation in ms"));
+    addEndpoint.addRequiredParam(new Param("value", Type.TEXT, null, "The value of the annotation - example: chapter title"));
     addEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.READ, addEndpoint);
 
