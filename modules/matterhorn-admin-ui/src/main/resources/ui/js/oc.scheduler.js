@@ -461,6 +461,7 @@ ocScheduler.LoadEvent = function(doc){
       if(item.key.indexOf('org.opencastproject.workflow') > -1){
         workflowProperties[item.key] = item.value
       }else{ //flatten additional metadata into event
+        workflowProperties[item.key] = item.value;
         event[item.key] = item.value
       }
     }
