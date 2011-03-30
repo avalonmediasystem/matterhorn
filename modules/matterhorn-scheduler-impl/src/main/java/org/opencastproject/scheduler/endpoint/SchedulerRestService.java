@@ -161,8 +161,9 @@ public class SchedulerRestService {
   @Produces(MediaType.TEXT_XML)
   @Path("{eventId}/dublincore")
   public Response getDublinCoreMetadata(@PathParam("eventId") Long eventId) throws NotFoundException {
-    if (eventId == null)
+    if (eventId == null) {
       return Response.status(Status.BAD_REQUEST).build();
+    }
     String result = service.getDublinCoreMetadata(eventId);
     return Response.ok(result).build();
   }

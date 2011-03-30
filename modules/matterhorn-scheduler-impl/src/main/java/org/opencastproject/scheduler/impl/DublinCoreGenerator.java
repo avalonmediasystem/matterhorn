@@ -102,8 +102,8 @@ public class DublinCoreGenerator {
     if (event.getLanguage() != null) {
       dcCatalog.add(DublinCore.PROPERTY_LANGUAGE, new DublinCoreValue(event.getLanguage()));
     }
-    if (event.getLicense() != null) {
-      dcCatalog.add(DublinCore.PROPERTY_LICENSE, new DublinCoreValue(event.getLicense()));
+    if (event.getMetadataValueByKey("license") != null) {
+      dcCatalog.add(DublinCore.PROPERTY_LICENSE, new DublinCoreValue(event.getMetadataValueByKey("license")));
     }
     if (event.getSeriesId() != null) {
       dcCatalog.add(DublinCore.PROPERTY_IS_PART_OF, new DublinCoreValue(event.getSeriesId()));
