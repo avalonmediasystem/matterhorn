@@ -5,11 +5,11 @@
   <artifactId>matterhorn-textextractor-tesseract</artifactId>
   <packaging>bundle</packaging>
   <name>matterhorn-textextractor-tesseract</name>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1.10234</version>
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1.10234</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
