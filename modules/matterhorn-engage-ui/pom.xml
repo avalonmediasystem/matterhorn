@@ -240,4 +240,125 @@
 			</plugin>
 		</plugins>
 	</reporting>
+	
+	<profiles>
+<profile>
+    <id>
+        compress
+    </id>
+    <build>
+        <plugins>
+            <plugin> 
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>
+                    yuicompressor-maven-plugin
+                </artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>
+                                compress
+                            </goal>
+                        </goals>
+                        <phase>
+                            generate-sources
+                        </phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <jswarn>
+                        false
+                    </jswarn>
+                    <preserveStringLiterals>
+                        true
+                    </preserveStringLiterals>
+                    <preserveAllSemiColons>
+                        true
+                    </preserveAllSemiColons>
+                    <nomunge>
+                        false
+                    </nomunge>
+					<nosuffix>false</nosuffix>
+					<force>
+						true
+					</force>
+                    <failOnWarning>
+                        false
+                    </failOnWarning>
+                   <sourceDirectory>
+                       /opt/matterhorn/branch1.1/shared-resources
+					 </sourceDirectory>
+                    <outputDirectory>
+                        /opt/matterhorn/branch1.1/shared-resources/minified
+                    </outputDirectory>
+                    <aggregations>
+                    <aggregation>
+                            <includes>
+                            	<include>**/analytics-plugin-min.js</include>
+								<include>**/analytics-min.js</include>
+								<include>**/annotation_chapter-plugin-min.js</include>
+								<include>**/annotation_chapter-min.js</include>
+								<include>**/description-plugin-min.js</include>
+								<include>**/description-min.js</include>
+								<include>**/json2-min.js</include>
+								<include>**/search-plugin-min.js</include>
+								<include>**/search-min.js</include>
+								<include>**/segments_text-plugin-min.js</include>
+								<include>**/segments_text-min.js</include>
+								<include>**/segments_ui_slider-plugin-min.js</include>
+								<include>**/segments_ui-plugin-min.js</include>
+								<include>**/segments_ui-min.js</include>
+								<include>**/segments-plugin-min.js</include>
+								<include>**/segments-min.js</include>
+								<include>**/series-plugin-min.js</include>
+								<include>**/series-min.js</include>
+                            </includes>
+                            <output>
+                               /opt/matterhorn/branch1.1/shared-resources/minified/js/engage_plugins/engage_plugins_complete-min.js
+                            </output>
+                        </aggregation>
+						<aggregation>
+							<includes>
+								<include>**/bookmarks-min.js</include>
+								<include>**/embed-min.js</include>
+								<include>**/engage-ui-min.js</include>
+								<include>**/jquery.timers-1.2-min.js</include>
+								<include>**/Math.uuid-min.js</include>
+								<include>**/oc-pager-min.js</include>
+								<include>**/utils-min.js</include>
+								<include>**/watch-min.js</include>
+							</includes>
+								<output>
+									 /opt/matterhorn/branch1.1/shared-resources/minified/js/engage_js_complete-min.js
+								</output>
+						</aggregation>
+						<aggregation>
+							<includes>
+								<include>**/embed-hybrid-initialize.js</include>
+								<include>**/player-multi-hybrid-flash.js</include>
+								<include>**/player-multi-hybrid-initialize.js</include>
+								<include>**/player-multi-hybrid-scubber.js</include>
+								<include>**/player-multi-hybrid.js</include>
+								<include>**/preview-hybrid-initialize.js</include>
+							</includes>
+							<output>
+								 /opt/matterhorn/branch1.1/shared-resources/minified/player/engage-hybrid-player/engage-hybrid-player_complete-min.js
+							</output>
+						</aggregation>
+						<!--<aggregation>
+							<includes>
+								<include>**/*.css</include>
+							</includes>
+							<output>/opt/matterhorn/branch1.1/shared-resources/css/allescss.css</output>
+						</aggregation> -->
+                    </aggregations>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</profile>
+</profiles>
+
+	
 </project>
