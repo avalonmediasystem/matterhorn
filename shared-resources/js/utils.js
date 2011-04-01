@@ -62,9 +62,9 @@ Opencast.Utils = (function ()
      * @param char Character to get the ASCII value from
      * @return the ASCII value of char
      */
-    function toAscii(charToConvert)
+    function toAscii(character)
     {
-        return getAsciiAlphabet()[charToConvert]||'';
+        return getAsciiAlphabet()[character]||'';
     }
         
     /**
@@ -113,6 +113,7 @@ Opencast.Utils = (function ()
             seconds = 0;
         }
         var result = "";
+        seconds = (seconds < 0) ? 0 : seconds;
         if (parseInt(seconds / 3600) < 10)
         {
             result += "0";
@@ -512,7 +513,7 @@ Opencast.Utils = (function ()
             }
             catch(err)
             {
-                console.log(e);
+                console.log(err);
             }
             return true;
         }
