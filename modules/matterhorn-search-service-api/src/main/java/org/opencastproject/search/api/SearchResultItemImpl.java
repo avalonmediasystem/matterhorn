@@ -37,8 +37,8 @@ import javax.xml.bind.annotation.XmlType;
  * This class models an item in the search result. It represents a 'video' or 'series' object.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "result", namespace = "http://search.opencastproject.org/")
-@XmlRootElement(name = "result", namespace = "http://search.opencastproject.org/")
+@XmlType(name = "result", namespace = "http://search.opencastproject.org")
+@XmlRootElement(name = "result", namespace = "http://search.opencastproject.org")
 public class SearchResultItemImpl implements SearchResultItem {
 
   /** Serial version id **/

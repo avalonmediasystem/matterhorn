@@ -100,8 +100,8 @@ import javax.xml.bind.annotation.XmlType;
 
 })
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "job", namespace = "http://job.opencastproject.org/")
-@XmlRootElement(name = "job", namespace = "http://job.opencastproject.org/")
+@XmlType(name = "job", namespace = "http://job.opencastproject.org")
+@XmlRootElement(name = "job", namespace = "http://job.opencastproject.org")
 public class JobJpaImpl extends JaxbJob {
 
   /** The logger */
