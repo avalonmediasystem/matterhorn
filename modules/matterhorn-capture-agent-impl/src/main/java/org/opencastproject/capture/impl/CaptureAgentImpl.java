@@ -1560,7 +1560,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     // Setup the agent capabilities push jobs
     try {
       long capbsPushTime = Long.parseLong(configService
-              .getItem(CaptureParameters.AGENT_CAPABILITIES_REMOTE_POLLING_INTERVAL)) * CaptureParameters.MILLISECONDS;
+              .getItem(CaptureParameters.AGENT_CAPABILITIES_REMOTE_POLLING_INTERVAL));// * CaptureParameters.MILLISECONDS;
 
       // Setup the push job
       JobDetail capbsJob = new JobDetail("agentCapabilitiesUpdate", AgentCapabilitiesJob.class);
