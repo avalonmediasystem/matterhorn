@@ -95,7 +95,7 @@ public class SchedulingTest {
   public void testTest() {
 
     // Setup the job
-    JobDetail job = new JobDetail("starting_capture", Scheduler.DEFAULT_GROUP, StartCaptureJob.class);
+    JobDetail job = new JobDetail("starting_capture", Scheduler.DEFAULT_GROUP, StartCaptureJobTest.class);
 
     long time = TriggerUtils.getNextGivenSecondDate(null, 5).getTime();
     // Create a new trigger Name Group name Start End # of times to repeat Repeat interval
