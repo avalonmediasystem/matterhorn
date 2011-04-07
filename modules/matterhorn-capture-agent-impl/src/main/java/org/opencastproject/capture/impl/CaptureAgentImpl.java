@@ -1523,15 +1523,15 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     // Setup the agent state push jobs
     long statePushTime;
     try {
-      statePushTime = Long.parseLong(configService.getItem(CaptureParameters.AGENT_STATE_REMOTE_POLLING_INTERVAL));
-              //* CaptureParameters.MILLISECONDS;
+      statePushTime = Long.parseLong(configService.getItem(CaptureParameters.AGENT_STATE_REMOTE_POLLING_INTERVAL))
+              * CaptureParameters.MILLISECONDS;
     } catch (NumberFormatException e) {
       logger.warn("Invalid time specified in the \"" + CaptureParameters.AGENT_STATE_REMOTE_POLLING_INTERVAL
               + "\" value is \"" + configService.getItem(CaptureParameters.AGENT_STATE_REMOTE_POLLING_INTERVAL)
               + "\" and the config service is \"" + configService.toString()
               + "\". Will be using the default polling time of " + CaptureParameters.DEFAULT_STATE_PUSH_TIME);
       // Set the state push time to a default.
-      statePushTime = CaptureParameters.DEFAULT_STATE_PUSH_TIME;// * CaptureParameters.MILLISECONDS;
+      statePushTime = CaptureParameters.DEFAULT_STATE_PUSH_TIME * CaptureParameters.MILLISECONDS;
     }
     // Setup the push job
     JobDetail stateJob = new JobDetail("agentStateUpdate", JobParameters.RECURRING_TYPE, AgentStateJob.class);
@@ -1560,7 +1560,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     // Setup the agent capabilities push jobs
     try {
       long capbsPushTime = Long.parseLong(configService
-              .getItem(CaptureParameters.AGENT_CAPABILITIES_REMOTE_POLLING_INTERVAL));// * CaptureParameters.MILLISECONDS;
+              .getItem(CaptureParameters.AGENT_CAPABILITIES_REMOTE_POLLING_INTERVAL)) * CaptureParameters.MILLISECONDS;
 
       // Setup the push job
       JobDetail capbsJob = new JobDetail("agentCapabilitiesUpdate", AgentCapabilitiesJob.class);
