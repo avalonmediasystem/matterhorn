@@ -47,7 +47,7 @@ public class AgentCapabilitiesJob implements Job {
    * Creates a unique identifier that will allow us to track which updates are having errors to when they started.
    * @return An ever increasing int that will wrap around once it hits Interger.MAX_VALUE
    */
-  public synchronized static int getStatePushCount(){
+  public synchronized int getStatePushCount(){
     if(globalCapabilityPushCount == 0){
       logger.info("Starting first capability push count.");
     }

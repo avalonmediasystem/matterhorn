@@ -19,7 +19,6 @@ import org.opencastproject.capture.admin.api.AgentState;
 import org.opencastproject.capture.admin.api.RecordingState;
 import org.opencastproject.capture.api.CaptureParameters;
 
-import org.apache.commons.io.FileUtils;
 import org.gstreamer.Gst;
 import org.junit.After;
 import org.junit.Assert;
