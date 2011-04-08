@@ -246,6 +246,9 @@ Opencast.Watch = (function ()
         // Show video controls and data
         $('#data').show();
         $('#oc_video-player-controls').show();
+        $('#oc_video-time').show();
+        $('#oc_video-controls').show();
+        $('#oc_sound').show();
         // Set Duration
         var durDiv = $('#dc-extent').html();
         if ((durDiv !== undefined) && (durDiv !== null) && (durDiv != ''))
