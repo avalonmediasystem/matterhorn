@@ -1288,7 +1288,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       schedulerProperties.put("org.quartz.scheduler.rmi.proxy", "false");
 
       schedulerProperties.put("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
-      schedulerProperties.put("org.quartz.threadPool.threadCount", "5");
+      schedulerProperties.put("org.quartz.threadPool.threadCount", "20");
 
       schedulerProperties.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
       try {
