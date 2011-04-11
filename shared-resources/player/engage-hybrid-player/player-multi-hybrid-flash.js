@@ -28,13 +28,14 @@ Opencast.FlashVersion = (function ()
     var requiredMinorVersion = 1;
     // Minor version of Flash required
     var requiredRevision = 0;
-    // Browser detection
 	// Flash Player Version Detection - Rev 1.6
-// Detect Client Browser type
-// Copyright(c) 2005-2006 Adobe Macromedia Software, LLC. All rights reserved.
-var isIE  = (navigator.appVersion.indexOf("MSIE") != -1) ? true : false;
-var isWin = (navigator.appVersion.toLowerCase().indexOf("win") != -1) ? true : false;
-var isOpera = (navigator.userAgent.indexOf("Opera") != -1) ? true : false;
+    // Copyright(c) 2005-2006 Adobe Macromedia Software, LLC. All rights reserved.
+    
+    // Browser detection
+    var isIE = $.browser.msie||false;        // Internet Explorer
+    var isOpera = $.browser.opera||false;    // Opera
+    // Operating system detection
+    var isWin = (navigator.appVersion.toLowerCase().indexOf("win") != -1) ? true : false; // Windows
     
     /**
      @memberOf Opencast.FlashVersion
