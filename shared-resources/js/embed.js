@@ -259,6 +259,11 @@ Opencast.Watch = (function ()
                 Opencast.Player.setDuration(duration);
             }
         }
+        // adjust the slider height
+        if(!(Opencast.segments.getNumberOfSegments() > 0))
+        {
+            $('.progress-list').height("6px");
+        }
         var formattedSecs = Opencast.Utils.formatSeconds(Opencast.Player.getDuration());
         Opencast.Player.setTotalTime(formattedSecs);
         
