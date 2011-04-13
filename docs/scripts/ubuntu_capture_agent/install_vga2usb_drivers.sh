@@ -73,7 +73,10 @@ if [[ -z "$(lsmod | grep -e "^vga2usb")" ]]; then
   		# Fix for MH-6755: in new drivers, the 'num_frame_buffers' param is 'v4l_num_buffers'
   		# Check first which one uses this driver, then uses that value to patch the compilation, as usual
   		buffer_param=$(modinfo vga2usb.ko | grep -o  '\(num_frame_buffers\|v4l_num_buffers\)')
-  		sed -i "/sudo \/sbin\/insmod/s/\$/ ${buffer_param}=2/" Makefile
+  		
+  		# Fix for MH-7570 in newer drivers "v4l_err_on_nosignal" makes the device visible 
+  		# even if no signal is attached to the epiphan device (same driver version as v4l_num_buffers)
+  		sed -i "/sudo \/sbin\/insmod/s/\$/ ${buffer_param}=2/ v4l_err_on_nosignal=0" Makefile
   		
   		# First "make" is necessary according with MH-3810
 		make &> /dev/null && make load &> /dev/null
