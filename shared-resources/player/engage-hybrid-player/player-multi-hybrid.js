@@ -849,7 +849,7 @@ Opencast.Player = (function ()
         backupPlayPauseState = getCurrentPlayPauseState();
         if (backupPlayPauseState === PLAYING)
         {
-            Videodisplay.pause();
+            Opencast.Player.doPause();
         }
         $("#oc_edit-time").focus();
     }
@@ -1287,11 +1287,11 @@ Opencast.Player = (function ()
             $("#oc_edit-time").val($("#oc_current-time").val());
             $("#oc_edit-time").removeClass("oc_edit-time-error");
         }
-        if (backupPlayPauseState === PLAYING)
+        if (backupPlayPauseState === PLAYING && Opencast.engage.getLoadProgress() != -1)
         {
-            Videodisplay.play();
-            backupPlayPauseState = '';
+            Opencast.Player.doPlay();
         }
+        backupPlayPauseState = '';
     }
     
     /**
