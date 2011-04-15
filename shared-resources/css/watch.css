@@ -30,17 +30,17 @@ input.ui-button {
 /* IDs */
 
 #matterhorn-main-logo {
-    background-image: url("../img/unilogo_224x56.jpg");
+    background-image: url("../img/Matterhorn_80x56.gif");
     background-repeat: no-repeat;
     background-position: center;
     display:block;
-    width: 224px;
+    width: 80px;
     height: 56px;
 }
 
 /* Start: Flash Player loading */
 #oc_flash-player-loading {
-    background-color: #F9F9F9;
+    background-color: #FDE7CE;
     vertical-align: middle;
     text-align: center;
     margin-bottom: 0px;
@@ -89,7 +89,7 @@ input.ui-button {
 /* End: Flash Player loading */
 
 #oc-search-result tr:hover {
-    background-color: #ffab94;
+    background-color: #FFFFCC;
 }
 
 #oc-search-result {
