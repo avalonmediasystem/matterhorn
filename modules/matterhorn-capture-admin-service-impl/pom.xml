@@ -5,11 +5,11 @@
   <artifactId>matterhorn-capture-admin-service-impl</artifactId>
   <packaging>bundle</packaging>
   <name>matterhorn-capture-admin-service-impl</name>
-  <version>1.1.10282</version>
+  <version>1.1.0</version>
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.1.10282</version>
+    <version>1.1.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
