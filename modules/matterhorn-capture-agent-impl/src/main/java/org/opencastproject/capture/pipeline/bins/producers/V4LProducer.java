@@ -27,12 +27,13 @@ import org.opencastproject.capture.pipeline.bins.UnableToSetElementPropertyBecau
 
 import org.gstreamer.Element;
 import org.gstreamer.Pad;
+import org.gstreamer.event.EOSEvent;
 
 import java.io.File;
 import java.util.Properties;
 
 /**
- * TODO: Comment me!
+ * V4L Producer captures from a video for linux device. 
  */
 public class V4LProducer extends VideoProducer {
 
@@ -121,5 +122,14 @@ public class V4LProducer extends VideoProducer {
   @Override
   public Pad getSrcPad() {
     return fpsfilter.getStaticPad(GStreamerProperties.SRC);
+  }
+  
+  /** 
+   * Send an EOS to all of the source elements for this Bin.  
+   **/
+  @Override
+  public void shutdown() {
+    logger.info("Sending EOS to stop " + v4lsrc.getName());
+    v4lsrc.sendEvent(new EOSEvent());
   }
 }

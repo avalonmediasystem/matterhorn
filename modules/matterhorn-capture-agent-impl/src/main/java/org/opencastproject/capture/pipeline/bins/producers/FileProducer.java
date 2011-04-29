@@ -28,6 +28,7 @@ import org.opencastproject.capture.pipeline.bins.UnableToSetElementPropertyBecau
 import org.gstreamer.Element;
 import org.gstreamer.Pad;
 import org.gstreamer.PadLinkReturn;
+import org.gstreamer.event.EOSEvent;
 
 import java.io.File;
 import java.util.Properties;
@@ -152,5 +153,14 @@ public class FileProducer extends VideoProducer {
       throw new UnableToLinkGStreamerElementsException(captureDevice, queue, decodebin);
     else if (!videorate.link(fpsfilter))
       throw new UnableToLinkGStreamerElementsException(captureDevice, videorate, fpsfilter);
+  }
+  
+  /** 
+   * Send an EOS to all of the source elements for this Bin.  
+   **/
+  @Override
+  public void shutdown() {
+    logger.info("Sending EOS to stop " + filesrc.getName());
+    filesrc.sendEvent(new EOSEvent());
   }
 }

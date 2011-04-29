@@ -13,13 +13,18 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.capture.pipeline;
+package org.opencastproject.capture.impl;
 
-public class NoCaptureDevicesSpecifiedException extends Exception {
-  public NoCaptureDevicesSpecifiedException(String string) {
-    super(string);
+/** This class is used to throw exceptions while trying to start a capture. **/
+public class UnableToStartCaptureException extends RuntimeException {
+  private static final long serialVersionUID = 3683577250029869724L;
+  private String message; 
+  public UnableToStartCaptureException(String message) {
+    this.message = message;    
   }
-
-  private static final long serialVersionUID = -2776566529497991815L;
-
+  
+  @Override
+  public String getMessage() {
+    return message;
+  }
 }

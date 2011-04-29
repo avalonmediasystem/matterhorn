@@ -15,10 +15,8 @@
  */
 package org.opencastproject.capture.pipeline;
 
-import static org.easymock.EasyMock.createMock;
-
-import org.opencastproject.capture.api.CaptureAgent;
 import org.opencastproject.capture.api.CaptureParameters;
+import org.opencastproject.capture.impl.CaptureAgentImpl;
 import org.opencastproject.capture.impl.ConfigurationManager;
 import org.opencastproject.capture.impl.XProperties;
 import org.opencastproject.capture.pipeline.bins.GStreamerElements;
@@ -27,6 +25,7 @@ import org.opencastproject.capture.pipeline.bins.consumers.VideoFilesinkConsumer
 import org.opencastproject.capture.pipeline.bins.producers.ProducerFactory.ProducerType;
 
 import org.apache.commons.io.FileUtils;
+import org.easymock.classextension.EasyMock;
 import org.gstreamer.Bin;
 import org.gstreamer.Element;
 import org.gstreamer.Gst;
@@ -50,9 +49,9 @@ import java.util.Properties;
 /**
  * TODO: Clarify how gstreamer testing should be done.
  */
-public class PipelineFactoryTest {
+public class GstreamerPipelineTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(PipelineFactoryTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(GstreamerPipelineTest.class);
 
   private static ArrayList<String> devices;
 
@@ -62,7 +61,9 @@ public class PipelineFactoryTest {
   private File fakeCaptureDevice = new File("./target", "fakeCapture");
   private int numberOfProducers;
   private String deviceNames;
-
+  private GStreamerPipeline gstreamerPipeline;
+  private CaptureAgentImpl captureAgentImpl;
+  
   @BeforeClass
   public static void setupClass() {
     try {
@@ -122,6 +123,7 @@ public class PipelineFactoryTest {
 
   @Before
   public void setupTest() throws IOException {
+    long timeout = 5L;
     properties = new Properties();
     File testCaptureDirectory = new File("./target", "pipeline-factory-test");
     FileUtils.forceMkdir(testCaptureDirectory);
@@ -134,6 +136,8 @@ public class PipelineFactoryTest {
     numberOfProducers = 0;
     deviceNames = "";
     FileUtils.touch(fakeCaptureDevice);
+    captureAgentImpl = EasyMock.createNiceMock(CaptureAgentImpl.class);
+    gstreamerPipeline = new GStreamerPipeline(captureAgentImpl);
   }
 
   @After
@@ -150,7 +154,7 @@ public class PipelineFactoryTest {
 
       String deviceNames = setupCaptureDevices();
       properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, deviceNames);
-      testPipeline = PipelineFactory.create(properties, false, null);
+      testPipeline = gstreamerPipeline.create(properties, false);
       Assert.assertEquals(devices.size(), testPipeline.getElements().size());
     }
   }
@@ -159,7 +163,7 @@ public class PipelineFactoryTest {
   public void testNullProperties() {
     boolean success = false;
     try {
-      PipelineFactory.create(null, false, null);
+      gstreamerPipeline.create(null, false);
     } catch (NullPointerException e) {
       success = true;
     }
@@ -169,7 +173,7 @@ public class PipelineFactoryTest {
   @Test
   public void testEmptyProperties() {
     Properties p = new Properties();
-    Assert.assertNull(PipelineFactory.create(p, false, null));
+    Assert.assertNull(gstreamerPipeline.create(p, false));
   }
 
   @Test
@@ -198,8 +202,7 @@ public class PipelineFactoryTest {
       e.printStackTrace();
       Assert.fail();
     }
-    CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
-    PipelineFactory.create(config.getAllProperties(), false, captureAgentMock);
+    gstreamerPipeline.create(config.getAllProperties(), false);
   }
 
   private XProperties loadProperties(String location) throws IOException {
@@ -226,7 +229,7 @@ public class PipelineFactoryTest {
               + CaptureParameters.CAPTURE_DEVICE_DEST, extraDevice + ".out");
       deviceNames += "Not A Device" + ",";
       properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, deviceNames);
-      testPipeline = PipelineFactory.create(properties, false, null);
+      testPipeline = gstreamerPipeline.create(properties, false);
       Assert.assertEquals(devices.size(), testPipeline.getElements().size());
     }
   }
@@ -287,7 +290,7 @@ public class PipelineFactoryTest {
             || PipelineTestHelpers.testGstreamerElement(VideoFilesinkConsumer.DEFAULT_MUXER))
       return;
     numberOfProducers = 14;
-    CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
+    
     // Devices that don't need a source
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.FAKESRC, ProducerType.CUSTOM_VIDEO_SRC);
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.FAKESRC, ProducerType.CUSTOM_AUDIO_SRC);
@@ -306,7 +309,7 @@ public class PipelineFactoryTest {
     addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.FILESRC, ProducerType.FILE);
     addProducerTypeDeviceToPropertiesWithSourceLocation(GStreamerElements.DV1394SRC, ProducerType.DV_1394);
     properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, deviceNames);
-    Pipeline pipeline = PipelineFactory.create(properties, false, captureAgentMock);
+    Pipeline pipeline = gstreamerPipeline.create(properties, false);
     Assert.assertEquals(numberOfProducers, pipeline.getElements().size());
   }
 
@@ -318,7 +321,6 @@ public class PipelineFactoryTest {
             || PipelineTestHelpers.testGstreamerElement(VideoFilesinkConsumer.DEFAULT_ENCODER)
             || PipelineTestHelpers.testGstreamerElement(VideoFilesinkConsumer.DEFAULT_MUXER))
       return;
-    CaptureAgent captureAgentMock = createMock(CaptureAgent.class);
     numberOfProducers = 6;
     logger.info("A lot of \"Can't find source file or device\" exceptions should follow, this is normal. ");
     // Devices that don't need a source
@@ -340,7 +342,7 @@ public class PipelineFactoryTest {
     addProducerTypeDeviceToPropertiesWithoutSourceLocation(GStreamerElements.DV1394SRC, ProducerType.DV_1394);
     properties.setProperty(CaptureParameters.CAPTURE_DEVICE_NAMES, deviceNames);
 
-    Pipeline pipeline = PipelineFactory.create(properties, false, captureAgentMock);
+    Pipeline pipeline = gstreamerPipeline.create(properties, false);
     for (Element element : pipeline.getElements()) {
       Bin bin = (Bin)element;
       System.out.println(bin.getElements());

@@ -27,6 +27,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.service.cm.ConfigurationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -45,19 +47,33 @@ import java.util.List;
 import java.util.Properties;
 
 public class SchedulerImplTest {
+  private String directory = "scheduler-restart-test";
   private SchedulerImpl schedulerImpl = null;
   private ConfigurationManager configurationManager = null;
   private Properties schedulerProperties = null;
   private CaptureAgentImpl captureAgentImpl = null;
   private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
-
+  private static final Logger logger = LoggerFactory.getLogger(SchedulerImplTest.class);
+  private WaitForState waiter;
+  
   @Before
   public void setUp() {
     Properties properties = setupCaptureProperties();
+    removeTestDirectory();
     setupConfigurationManager(properties);
     setupCaptureAgentImpl();
     setupSchedulerProperties();
     setupSchedulerImpl();
+  }
+
+  private void removeTestDirectory() {
+    File testDir = new File("./target", directory); 
+    if (testDir.exists()) {
+      FileUtils.deleteQuietly(testDir);
+      logger.info("Removing  " + testDir.getAbsolutePath());
+    } else {
+      logger.info("Didn't Delete " + testDir.getAbsolutePath());
+    }
   }
 
   private Properties setupCaptureProperties() {
@@ -754,6 +770,17 @@ public class SchedulerImplTest {
     setupThreeCaptureCalendar(-10, -1, 10);
     captureAgentImpl.activate(null);
     schedulerImpl = new SchedulerImpl(schedulerProperties, configurationManager, captureAgentImpl);
+    waiter = new WaitForState();
+    waiter.sleepWait(new CheckState() {
+      @Override
+      public boolean check() {
+        if (schedulerImpl != null) {
+          return schedulerImpl.getCaptureSchedule().length == 2;
+        } else {
+          return false;
+        }
+      }
+    });
     Assert.assertEquals(2, schedulerImpl.getCaptureSchedule().length);
   }
   
@@ -780,7 +807,7 @@ public class SchedulerImplTest {
   }
   
   public void setupFakeMediaPackageWithoutMediaFiles() {
-    String directory = "scheduler-restart-test";
+    
     // Create the configuration manager
     configurationManager = new ConfigurationManager();
     // Setup the configuration manager with a tmp storage directory.

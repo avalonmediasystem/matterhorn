@@ -47,11 +47,11 @@ public class AgentCapabilitiesJob implements Job {
    * Creates a unique identifier that will allow us to track which updates are having errors to when they started.
    * @return An ever increasing int that will wrap around once it hits Interger.MAX_VALUE
    */
-  public synchronized int getStatePushCount(){
-    if(globalCapabilityPushCount == 0){
+  public synchronized int getStatePushCount() {
+    if (globalCapabilityPushCount == 0) {
       logger.info("Starting first capability push count.");
     }
-    if(globalCapabilityPushCount == Integer.MAX_VALUE){
+    if (globalCapabilityPushCount == Integer.MAX_VALUE) {
       logger.info("Agent capability push count has reached maximum, resetting global state push count to zero.");
       globalCapabilityPushCount = 0;
     }
@@ -69,7 +69,12 @@ public class AgentCapabilitiesJob implements Job {
     ConfigurationManager config = (ConfigurationManager) ctx.getMergedJobDataMap().get(JobParameters.CONFIG_SERVICE);
     CaptureAgent agent = (CaptureAgent) ctx.getMergedJobDataMap().get(JobParameters.STATE_SERVICE);
     TrustedHttpClient client = (TrustedHttpClient) ctx.getMergedJobDataMap().get(JobParameters.TRUSTED_CLIENT);
-
+    
+    if (client == null) {
+      logger.error("TrustedHttpClient was null so we won't be able to update the agent capabilities until it is updated.");
+      return;
+    }
+    
     // Figure out where we're sending the data
     String url = config.getItem(CaptureParameters.AGENT_STATE_REMOTE_ENDPOINT_URL);
     if (url == null) {

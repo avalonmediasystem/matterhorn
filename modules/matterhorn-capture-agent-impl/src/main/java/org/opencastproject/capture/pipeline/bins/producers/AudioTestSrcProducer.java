@@ -27,6 +27,7 @@ import org.opencastproject.capture.pipeline.bins.UnableToSetElementPropertyBecau
 
 import org.gstreamer.Element;
 import org.gstreamer.Pad;
+import org.gstreamer.event.EOSEvent;
 
 import java.util.Properties;
 
@@ -85,5 +86,13 @@ public class AudioTestSrcProducer extends AudioProducer {
   public Pad getSrcPad() {
     return audiotestsrc.getStaticPad(GStreamerProperties.SRC);
   }
-
+  
+  /** 
+   * Send an EOS to all of the source elements for this Bin.  
+   **/
+  @Override
+  public void shutdown() {
+    logger.info("Sending EOS to stop " + audiotestsrc.getName());
+    audiotestsrc.sendEvent(new EOSEvent());
+  }
 }

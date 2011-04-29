@@ -28,6 +28,7 @@ import org.opencastproject.capture.pipeline.bins.UnableToSetElementPropertyBecau
 import org.gstreamer.Caps;
 import org.gstreamer.Element;
 import org.gstreamer.Pad;
+import org.gstreamer.event.EOSEvent;
 
 import java.util.Properties;
 
@@ -151,5 +152,14 @@ public class DV1394Producer extends VideoProducer {
   @Override
   public Pad getSrcPad() {
     return fpsfilter.getStaticPad(GStreamerProperties.SRC);
+  }
+  
+  /** 
+   * Send an EOS to all of the source elements for this Bin.  
+   **/
+  @Override
+  public void shutdown() {
+    logger.info("Sending EOS to stop " + dv1394src.getName());
+    dv1394src.sendEvent(new EOSEvent());
   }
 }

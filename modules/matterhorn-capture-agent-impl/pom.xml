@@ -217,7 +217,8 @@
               OSGI-INF/configuration-service.xml,
               OSGI-INF/capture-ui.xml,
               OSGI-INF/capture-files.xml,
-              OSGI-INF/confidence-monitor-service-rest.xml
+              OSGI-INF/confidence-monitor-service-rest.xml,
+              OSGI-INF/gstreamer-capture-framework.xml
             </Service-Component>
           </instructions>
         </configuration>

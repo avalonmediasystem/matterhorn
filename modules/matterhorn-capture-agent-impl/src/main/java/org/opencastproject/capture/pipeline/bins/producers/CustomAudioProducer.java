@@ -24,7 +24,9 @@ import org.opencastproject.capture.pipeline.bins.UnableToLinkGStreamerElementsEx
 import org.opencastproject.capture.pipeline.bins.UnableToSetElementPropertyBecauseElementWasNullException;
 
 import org.gstreamer.Bin;
+import org.gstreamer.Element;
 import org.gstreamer.Pad;
+import org.gstreamer.event.EOSEvent;
 
 import java.util.Properties;
 
@@ -88,5 +90,16 @@ public class CustomAudioProducer extends ProducerBin {
   @Override
   public boolean isAudioDevice() {
     return true;
+  }
+  
+  /** 
+   * Send an EOS to all of the source elements for this Bin.  
+   **/
+  @Override
+  public void shutdown() {
+    for (Element element : bin.getSources()) {
+      logger.info("Sending EOS to stop " + element.getName());
+      element.sendEvent(new EOSEvent());
+    }
   }
 }

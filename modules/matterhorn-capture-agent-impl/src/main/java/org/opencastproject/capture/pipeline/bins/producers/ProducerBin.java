@@ -29,6 +29,7 @@ import org.opencastproject.capture.pipeline.bins.UnableToSetElementPropertyBecau
 import org.gstreamer.Element;
 import org.gstreamer.GhostPad;
 import org.gstreamer.Pad;
+import org.gstreamer.event.EOSEvent;
 
 import java.util.Properties;
 
@@ -110,4 +111,15 @@ public abstract class ProducerBin extends PartialBin {
    *           Thrown if the ghost pads cannot be created
    */
   protected abstract Pad getSrcPad() throws UnableToCreateGhostPadsForBinException;
+
+  /** Should return the source element for the bin so that we can send an EOS down stream to properly stop the pipeline. **/
+  public void shutdown() {
+    /**
+     * Send an EOS to all of the source elements for this Bin.
+     **/
+    for (Element element : bin.getSources()) {
+      logger.info("Sending EOS to stop " + element.getName());
+      element.sendEvent(new EOSEvent());
+    }
+  }
 }

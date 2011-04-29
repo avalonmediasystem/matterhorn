@@ -35,6 +35,7 @@ public class VideoFilesinkConsumer extends ConsumerBin {
   public static final String DEFAULT_ENCODER = GStreamerElements.FFENC_MPEG2VIDEO;
   public static final String DEFAULT_MUXER = GStreamerElements.MPEGPSMUX;
   public static final String DEFAULT_BITRATE = "2000000";
+  
   /**
    * Pass 0 is CBR (default), Pass 4 is constant quantizer, Pass 5 is constant quality Must set H.264 encoding to use
    * constant quantizer or else it will not start
