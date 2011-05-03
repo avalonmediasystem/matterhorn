@@ -19,7 +19,6 @@ import org.opencastproject.capture.admin.api.AgentState;
 import org.opencastproject.capture.admin.api.RecordingState;
 import org.opencastproject.capture.api.CaptureParameters;
 
-import org.apache.commons.io.FileUtils;
 import org.gstreamer.Gst;
 import org.junit.After;
 import org.junit.Assert;
@@ -35,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Properties;
+import org.apache.commons.io.FileUtils;
 
 /**
  * Test the implementation of the Capture Agent, which uses gstreamer to generate pipelines that capture the media.
@@ -46,11 +46,10 @@ public class CaptureAgentImplTest {
 
   /** The configuration manager for these tests */
   private ConfigurationManager config = null;
-  
+
   /** Properties specifically designed for unit testing */
-  private Properties captureProperties = null;
-  private Properties captureScheduleProperties = null;
-  
+  private Properties properties = null;
+
   /** Define a recording ID for the test */
   private static final String recordingID = "UnitTest1";
 
@@ -83,37 +82,38 @@ public class CaptureAgentImplTest {
       return;
     // Create the configuration manager
     config = new ConfigurationManager();
-    
-    File testDir = new File("./target", "capture-agent-test"  + File.separator + "cache" + File.separator + "captures" + File.separator + recordingID); 
+    File testDir = new File("./target", "capture-agent-test" + File.separator + "cache" + File.separator + "captures"
+            + File.separator + recordingID);
     if (testDir.exists()) {
       FileUtils.deleteQuietly(testDir);
       logger.info("Removing  " + testDir.getAbsolutePath());
     } else {
       logger.info("Didn't Delete " + testDir.getAbsolutePath());
     }
-    
+
     Properties p = loadProperties("config/capture.properties");
     p.put("org.opencastproject.storage.dir",
             new File("./target", "capture-agent-test").getAbsolutePath());
     p.put("org.opencastproject.server.url", "http://localhost:8080");
     p.put(CaptureParameters.CAPTURE_SCHEDULE_REMOTE_POLLING_INTERVAL, -1);
     p.put("M2_REPO", getClass().getClassLoader().getResource("m2_repo").getFile());
-    captureScheduleProperties = loadProperties("config/scheduler.properties");
     config.updated(p);
     // creates agent, initially idle
     captureAgentImpl = new CaptureAgentImpl();
     captureAgentImpl.setConfigService(config);
+    captureAgentImpl.setCaptureFramework(new GStreamerCaptureFramework());
     Assert.assertNull(captureAgentImpl.getAgentState());
     captureAgentImpl.activate(null);
     Assert.assertEquals(AgentState.IDLE, captureAgentImpl.getAgentState());
-    captureAgentImpl.updated(captureScheduleProperties);
-    captureAgentImpl.setCaptureFramework(new GStreamerCaptureFramework());
+    p.clear();
+    //NB:  agent's .updated() function takes a Quartz properties file, *NOT* the agent's.  Hence the load here.
+    p = loadProperties("config/scheduler.properties");
+    captureAgentImpl.updated(p);
     // setup testing properties
-    captureProperties = new Properties();
-    captureProperties.setProperty(CaptureParameters.RECORDING_ID, recordingID);
-    captureProperties.setProperty(CaptureParameters.RECORDING_END, "something");
+    properties = new Properties();
+    properties.setProperty(CaptureParameters.RECORDING_ID, recordingID);
+    properties.setProperty(CaptureParameters.RECORDING_END, "something");
     waiter = new WaitForState();
-    
   }
 
   @After
@@ -125,7 +125,7 @@ public class CaptureAgentImplTest {
     captureAgentImpl = null;
     config.deactivate();
     config = null;
-    captureProperties = null;
+    properties = null;
   }
 
   private XProperties loadProperties(String location) throws IOException {
@@ -144,7 +144,7 @@ public class CaptureAgentImplTest {
       return;
 
     // start the capture, assert the recording id is correct
-    String id = captureAgentImpl.startCapture(captureProperties);
+    String id = captureAgentImpl.startCapture(properties);
     Assert.assertEquals(recordingID, id);
 
     File outputdir = new File(config.getItem("capture.filesystem.cache.capture.url"), id);
@@ -233,7 +233,7 @@ public class CaptureAgentImplTest {
 
     // Put a recording into the agent, then kill it mid-capture
     Assert.assertEquals(0, captureAgentImpl.getKnownRecordings().size());
-    String id = captureAgentImpl.startCapture(captureProperties);
+    String id = captureAgentImpl.startCapture(properties);
     Assert.assertEquals(1, captureAgentImpl.getKnownRecordings().size());
     Thread.sleep(20000);
     captureAgentImpl.deactivate();
@@ -277,6 +277,7 @@ public class CaptureAgentImplTest {
     Assert.assertEquals(0, captureAgentImpl.getKnownRecordings().size());
 
     captureAgentImpl.setConfigService(config);
+
     Assert.assertEquals(0, captureAgentImpl.getKnownRecordings().size());
     captureAgentImpl.loadRecordingsFromDisk();
     Assert.assertEquals(0, captureAgentImpl.getKnownRecordings().size());
@@ -296,7 +297,7 @@ public class CaptureAgentImplTest {
     captureAgentImpl.loadRecordingsFromDisk();
     Assert.assertEquals(0, captureAgentImpl.getKnownRecordings().size());
 
-    String id = captureAgentImpl.startCapture(captureProperties);
+    String id = captureAgentImpl.startCapture(properties);
     Assert.assertEquals(recordingID, id);
 
     // even with a mock capture, the state should remain capturing until stopCapture has been called
@@ -318,6 +319,7 @@ public class CaptureAgentImplTest {
     captureAgentImpl = null;
 
     captureAgentImpl = new CaptureAgentImpl();
+    captureAgentImpl.setCaptureFramework(new GStreamerCaptureFramework());
     captureAgentImpl.setConfigService(config);
     captureAgentImpl.activate(null);
     captureAgentImpl.updated(loadProperties("config/scheduler.properties"));
@@ -325,7 +327,8 @@ public class CaptureAgentImplTest {
     captureAgentImpl.getSchedulerImpl().stopScheduler();
     captureAgentImpl.loadRecordingsFromDisk();
 
-    Assert.assertEquals(10, captureAgentImpl.getKnownRecordings().size());
+    Assert.assertEquals(12, captureAgentImpl.getKnownRecordings().size());
+    Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.CAPTURE_ERROR));
     Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.CAPTURE_FINISHED));
     Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.CAPTURING));
     Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.MANIFEST));
@@ -335,10 +338,11 @@ public class CaptureAgentImplTest {
     Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.COMPRESSING_ERROR));
     Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.UPLOADING));
     Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.UPLOAD_ERROR));
-    Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.UPLOADING));
+    Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id)); //This is the recording that was actually started
+    Assert.assertNotNull(captureAgentImpl.getKnownRecordings().get(id + "-" + RecordingState.UPLOAD_FINISHED));
 
     captureAgentImpl.loadRecordingsFromDisk();
-    Assert.assertEquals(10, captureAgentImpl.getKnownRecordings().size());
+    Assert.assertEquals(12, captureAgentImpl.getKnownRecordings().size());
   }
 
   @Test
@@ -350,6 +354,7 @@ public class CaptureAgentImplTest {
     config = new ConfigurationManager();
     Properties p = setupConfigurationManagerProperties();
     captureAgentImpl = new CaptureAgentImpl();
+    captureAgentImpl.setCaptureFramework(new GStreamerCaptureFramework());
     captureAgentImpl.setConfigService(config);
     waiter = new WaitForState();
     waiter.sleepWait(new CheckState() {
@@ -364,7 +369,7 @@ public class CaptureAgentImplTest {
     });    
     Assert.assertFalse("The configuration manager is just created it shouldn't be updated yet.", captureAgentImpl.isRefreshed());
     Assert.assertFalse("The agent is just created it shouldn't be updated either", captureAgentImpl.isUpdated());
-    captureAgentImpl.updated(captureScheduleProperties);
+    captureAgentImpl.updated(loadProperties("config/scheduler.properties"));
     waiter = new WaitForState();
     waiter.sleepWait(new CheckState() {
       @Override
@@ -404,6 +409,7 @@ public class CaptureAgentImplTest {
     config = new ConfigurationManager();
     Properties p = setupConfigurationManagerProperties();
     captureAgentImpl = new CaptureAgentImpl();
+    captureAgentImpl.setCaptureFramework(new GStreamerCaptureFramework());
     captureAgentImpl.setConfigService(config);
     waiter = new WaitForState();
     waiter.sleepWait(new CheckState() {
@@ -432,7 +438,7 @@ public class CaptureAgentImplTest {
     });
     Assert.assertTrue("The config manager is now updated so refreshed should be true.", captureAgentImpl.isRefreshed());
     Assert.assertFalse("The agent should still not be updated.", captureAgentImpl.isUpdated());
-    captureAgentImpl.updated(captureScheduleProperties);
+    captureAgentImpl.updated(loadProperties("config/scheduler.properties"));
     waiter = new WaitForState();
     waiter.sleepWait(new CheckState() {
       @Override
@@ -472,6 +478,7 @@ public class CaptureAgentImplTest {
     Assert.assertTrue(config.isInitialized());
     
     captureAgentImpl = new CaptureAgentImpl();
+    captureAgentImpl.setCaptureFramework(new GStreamerCaptureFramework());
     captureAgentImpl.setConfigService(config);
     waiter = new WaitForState();
     waiter.sleepWait(new CheckState() {
@@ -486,7 +493,7 @@ public class CaptureAgentImplTest {
     });
     Assert.assertTrue("The configuration manager is fully up, so it should refresh the agent.", captureAgentImpl.isRefreshed());
     Assert.assertFalse("The agent is just created it shouldn't be updated either", captureAgentImpl.isUpdated());
-    captureAgentImpl.updated(captureScheduleProperties);
+    captureAgentImpl.updated(loadProperties("config/scheduler.properties"));
     waiter = new WaitForState();
     waiter.sleepWait(new CheckState() {
       @Override
@@ -511,7 +518,8 @@ public class CaptureAgentImplTest {
     // Create the configuration manager
     config = new ConfigurationManager();
     captureAgentImpl = new CaptureAgentImpl();
-    captureAgentImpl.updated(captureScheduleProperties);
+    captureAgentImpl.setCaptureFramework(new GStreamerCaptureFramework());
+    captureAgentImpl.updated(loadProperties("config/scheduler.properties"));
     waiter = new WaitForState();
     waiter.sleepWait(new CheckState() {
       @Override
