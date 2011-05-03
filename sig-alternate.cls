@@ -751,8 +751,6 @@
 \ifnum\titlenotecount=2
       \@maketntext{%
       \raisebox{4pt}{$\ast$}\rule\z@\footnotesep\ignorespaces\the\tntoks\par\@finalstrut\strutbox}%
-\@maketntext{%
-         \raisebox{4pt}{$\dagger$}\rule\z@\footnotesep\ignorespaces\the\tntokstwo\@finalstrut\strutbox}%
 \fi
 \ifnum\titlenotecount=3
       \@maketntext{%
@@ -1377,7 +1375,7 @@
     \raisebox{9pt}{$\ast$}
 \fi
 \ifnum\titlenotecount=2
-    \raisebox{9pt}{$\dagger$}
+    \raisebox{9pt}{$\ast$}
 \fi
 \ifnum\titlenotecount=3
     \raisebox{9pt}{$\ddagger$}
@@ -1393,7 +1391,6 @@
 
 \long\def\@titlenotetext#1{\insert\footins{%
 \ifnum\titlenotecount=1\global\tntoks={#1}\fi
-\ifnum\titlenotecount=2\global\tntokstwo={#1}\fi
 \ifnum\titlenotecount=3\global\tntoksthree={#1}\fi
 \ifnum\titlenotecount=4\global\tntoksfour={#1}\fi
 \ifnum\titlenotecount=5\global\tntoksfive={#1}\fi
