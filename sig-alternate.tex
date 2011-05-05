@@ -49,13 +49,23 @@
 \keywords{Human, Social, and Educational Aspects of Multimedia, Multimedia Systems and Middleware}
 
 \section{Introduction}
-The Opencast community is a collaboration of higher education institutions, commercial partners, and individuals working together to explore, create, and document best practices and technologies with respect to rich media in higher education.  The principal activity this community has undergone is the development of the Matterhorn product: an open source and enterprise strength platform for media acquisition, processing, distribution, and playback.
+The Opencast community is a collaboration of higher education institutions, commercial partners, and individuals working together to explore, create, and document best practices and technologies with respect to rich media in higher education.  The principal activity this community has undergone is the development of the Matterhorn product: an open source and enterprise strength platform for media acquisition, processing, and playback for lecture capture.
 
-In 2009 a group of thirteen higher education institutions came together and formed a team of designers, developers, and researchers charged with creating a open source solution for lecture capture in the enterprise.  Consisting of members from computer science research groups as well as institutional education and technology infrastructure support groups, the aim of this team was to take lessons learned from deployed home grown systems and build a scalable, accessible, open solution for higher education.
+In 2009 a group of thirteen higher education institutions formed a team of designers, developers, and researchers charged with creating a open source solution for lecture capture.  Consisting of members from computer science research groups as well as institutional education and technology infrastructure support groups, the aim of this team was to take lessons learned from deployed home grown systems and build a scalable, accessible, open solution for higher education.  Notably, the system was intended to be both a platform for research in multimedia, pedagogy, and education, as well as a production system intended to scale to federations of institutions and tens of thousands of students.
 
-Supported by a Mellon and Hewlett Foundation grant totalling \$1.5M, and institutional matching funds of \$2M, development began in MONTH/YEAR and is now maintained by over X committers from institutions and corporations from around the world.  For more information on Opencast Matterhorn readers are invited to visit www.opencastproject.org.
+Supported by a Mellon and Hewlett Foundation grant totalling \$1.5M, and institutional matching funds of \$2M, development has continued for two years and is maintained by over 17 committers from institutions and corporations from around the world.  For more information on Opencast Matterhorn readers are invited to visit www.opencastproject.org.
 
-\section{Architecture}
+\section{Architecture \& System}
+Matterhorn is made up of three subsystems corresponding to content acquisition, processing, and playback.  In addition to these distinct systems, a variety of user interfaces and API's for administration and choreographing these subsystems are provided.  
+
+Technology wise, Matterhorn is built as a J2EE OSGI system, allowing for services to be swapped out dynamically at runtime as needed.  API's are provided as REST endpoints, encouraging reuse outside of the Java domain.  There is a high reliance of Matterhorn on other open source solutions (\emph{gstreamer}, \emph{ffmpeg}, and \emph{Apache Felix} to name a few of the more significant frameworks used), and all contributed code is licensed under the OSI approved Educational Community License (ECL) 2.0.  While no proprietary code is part of Matterhorn, several proprietary hardware and software solutions have been integration by interested parties.
+
+\subsection{Content Acquisition}
+
+\subsection{Audio \& Video Processing}
+
+\subsection{Media Playback}
+
 \section{Production System}
 \section{Research Platform}
 One of the powerful aspects of a common platform for lecture capture in higher education is the ability to share not only research results but research innovations.  Several institutions are actively developing, deploying, and validating systems based on Matterhorn, and the ease at which these institutions can share those results back with the broader community, allows for greater impact while reducing the costs of applying research in practice.
@@ -74,14 +84,17 @@ A sample of some of the research endevours using Matterhorn that we are familiar
 
 
 \section{Acknowledgments}
-Hewlett and Mellon
+We would like to thank the Hewlett and Mellon foundations for their critical support that allowed us to coordinate, plan, execute, and sustain the vision we have for media in higher education.
+
+In addition to the many committers who made this work possible, we would like to thank the following committers emeritus and contributors who played a pivotal role in bringing the product to fruition (in alphabetical order): Stefan Altevogt, Allison Bloodworth, Johannes Emden, Mara Hancock, Jamie Hodge, Andre Klassen, Bostjan Pajntar, Olaf Shulte, and Aaron Zeckoski.
+
 
 \bibliographystyle{abbrv}
 \bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
 
 \appendix
 \section{Additional Authors}
-The cover page lists authors who are members of the product owner team and executed the vision for Matterhorn 1.0.  Additional authors of this work include our numerous committers and designers (listed here alphabetically): a ({\texttt{a@a.org}}) and b ({\texttt{b@b.net}}).
+The cover page lists authors who are members of the product owner team and executed the vision for Matterhorn 1.0.  Additional authors of this work include our numerous committers and designers (listed here alphabetically): Kristofor Amundson, Greg Logan, Kenneth Lui, Adam McKenzie, Denis Meyer, Markus Moormann, Matjaz Rihtar, Ruediger Rolf, Nejc Skofic, Micah Sutton, Rub\'{e}n P\'{e}rez V\'{a}zquez, and Benjamin Wulff.  Full citation of this work should acknowledge these persons as extended authors.
 
 \section{References}
 
