@@ -8,13 +8,13 @@
 \author{
 %
 \alignauthor
-		Christopher A. Brooks \titlenote{Corresponding authors.  Other authors listed alphabetically.}\\
+		Christopher A. Brooks \titlenote{Corresponding authors.  Other authors listed alphabetically.  Corresponding authors are Ph.D. students at their institutions.}\\
        \affaddr{University of Saskatchewan}\\
        \affaddr{Saskatoon, SK, Canada}\\
        \email{cab938@mail.usask.ca}
 %
 \alignauthor
-		Markus Ketterl \titlenote{Corresponding authors.  Other authors listed alphabetically.}\\
+		Markus Ketterl \titlenote{}\\
        \affaddr{Universit\"{a}t Osnabr\"{u}ck}\\
        \affaddr{Osnabr\"{u}ck, Germany}\\
        \email{mketterl@uni-osnabrueck.de}
@@ -48,6 +48,7 @@
 
 \maketitle
 \begin{abstract}
+%todo: chris
 \end{abstract}
 
 \keywords{Human, Social, and Educational Aspects of Multimedia, Multimedia Systems and Middleware}
@@ -81,22 +82,27 @@ Services included in the Matterhorn 1.1 distribution include video encoding (usi
 Distribution of content to is also implemented using services.  Matterhorn publishing services for both progressive download and the open source \emph{red5} streaming server are included, as well as a local search index service using \emph{solr}.  Services for distribution to other popular portals such as YouTube.edu and iTunesU are under development.
 
 \subsection{Media Playback}
+%todo: markus
 %-searching and rss as a "portal" make integration easy
 %-a11y
 %-flex and the open frameworks we are using for media
 %-advanced features but don't touch on footprints, this comes later.
 
 \section{Production System}
-Matterhorn has been used at institutions across the globe as a lecture capture solution for thousands of students.  The open source nature of the product makes measurement of adoption difficult, however both corresponding authors of this document have overseen widespread deployments of Matterhorn at their institution and offer a glimpse here of the effect it has had on their students.
+Matterhorn has been used at institutions across the globe as a lecture capture solution for thousands of students.  The open source nature of the product makes measurement of adoption difficult, however both corresponding authors of this document have overseen widespread local deployments of Matterhorn and offer a glimpse here of the effect it has had at their institution.  More user testimonials can be found on the Opencast Matterhorn project website.
 
 \subsection{University of Saskatchewan}
-The University of Saskatchewan piloted Matterhorn 1.0 capture agents in 11 classrooms between September 2010 and April 2011.  Custom Matterhorn workflows were created to connect to a legacy media player which was already integrated into campus infrastructure.
-Over this time period 944 events were captured with the majority of them being regular undergraduate lectures (between 1 hour and 4 hours long) along with some special events and meetings.  A breadth first approach was taken with a number of domains being recorded including the sciences, social sciences, humanities, and professional colleges.
+The University of Saskatchewan piloted Matterhorn 1.0 capture agents in 11 classrooms between September 2010 and April 2011.  Custom Matterhorn workflows were created to connect to a legacy media player which had already been integrated into campus infrastructure.
 
-> - number of lectures captured, number of hours of lectures
-> - domains captured
-> - unique students viewing lectures
-> - hours of lectures students have viewed 
+Over this time period 944 events were captured with the majority of them being regular undergraduate lectures (between 1 hour and 4 hours long) along with some special events and meetings.  A breadth first approach was taken to lecture capture deployment, and a variety of disciplines were recorded including the natural sciences, social sciences, humanities, and professional colleges.
+
+During this two term deployment, 2,639 unique students watched over 1,543 days worth of video, an average of roughly 41 hours per student.  Students were restricted to viewing videos from their enrolled classes only, though many students were in multiple classes.
+
+In addition to this, several students at the university have been involved in the customization of Matterhorn through volunteering, summer research positions, professional internships, and graduate theses.  The University of Saskatchewan was a mentoring institution in the Undergraduate Capstone Open Source projects (UCOSP)\footnote{See http://http://ucosp.ca/} where five senior undergraduate students from institutions across the country worked on various aspects of Matterhorn for completion of their bachelors degree.
+
+\subsection{Universit\"{a}t Osnabr\"{u}ck}
+%todo: markus
+%worth mentioning your software engineering class too
 
 \section{Research Platform}
 One of the powerful aspects of a common platform for lecture capture in higher education is the ability to share not only research results but research innovations.  Several institutions are actively developing, deploying, and validating systems based on Matterhorn, and the ease at which these institutions can share those results back with the broader community, allows for greater impact while reducing the costs of applying research in practice.
@@ -104,19 +110,19 @@ A sample of some of the research endevours using Matterhorn that we are familiar
 \begin{itemize}
 \item \textbf{Student interaction modelling through clustering.}   Using Matterhorn recorded lectures, clusters of students who share similar viewing patterns were discovered in \cite{Brooks2010}.  Tying these clusters to pedagogical goals and educational strategies can allow for content recommendation or early warning of student problems.
 \item \textbf{Scene detection using Supervised Machine Learning.}  The Matterhorn scene detection service was analysed in \cite{Johnston2011} against several other scene detection techniques.  The workflow operation handler features of Matterhorn make both multiple detection techniques as well as supervised machine learning techniques feasible in large scale implementations if computational resources are available.
-%\item Speech rec. ETH (maybe we should leave this out?)
+%todo: markus
+%\item Speech rec. ETH (maybe we should leave this out?)  Its ok if there is no cite, just a paragraph would be fine.
 %\item Footprints, Osna (anything new from virtpresenter?
 %\item Opentrack who? osna?  eth?  both?
 \end{itemize}
 
 \section{Conclusions}
-
+%todo: chris
 
 \section{Acknowledgments}
 We would like to thank the Hewlett and Mellon foundations for their critical support that allowed us to coordinate, plan, execute, and sustain the vision we have for media in higher education.
 
-In addition to the many committers who made this work possible, we would like to thank the following committers emeritus and contributors who played a pivotal role in bringing the product to fruition (in alphabetical order): Stefan Altevogt, Allison Bloodworth, Johannes Emden, Mara Hancock, Jamie Hodge, Andre Klassen, Bostjan Pajntar, Olaf Shulte, and Aaron Zeckoski \cite{clark:pct}.
-
+In addition to the many committers who made this work possible, we would like to thank the following committers emeritus and contributors who played a pivotal role in bringing the product to fruition (in alphabetical order): Stefan Altevogt, Allison Bloodworth, Johannes Emden, Mara Hancock, Jamie Hodge, Andre Klassen, Bostjan Pajntar, Olaf Shulte, and Aaron Zeckoski.
 
 \bibliographystyle{abbrv}
 \bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
