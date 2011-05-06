@@ -17,18 +17,21 @@
 		Markus Ketterl \titlenote{Corresponding authors.  Other authors listed alphabetically.}\\
        \affaddr{Universit\"{a}t Osnabr\"{u}ck}\\
        \affaddr{Osnabr\"{u}ck, Germany}\\
-       \email{mketterl@uni-osnabrueck.de}%
+       \email{mketterl@uni-osnabrueck.de}
+%
 \alignauthor
 		Adam Hochman\\
        \affaddr{University of California at Berkeley}\\
        \affaddr{Berkeley, CA, USA}\\
-       \email{adam@media.berkeley.edu}\and
+       \email{adam@media.berkeley.edu}
+\and
 %
 \alignauthor
 		Josh Holtzman\\
        \affaddr{University of California at Berkeley}\\
        \affaddr{Berkeley, CA, USA}\\
-       \email{jholtzman@berkeley.edu}%
+       \email{jholtzman@berkeley.edu}
+%
 \alignauthor
 		Judy Stern\\
        \affaddr{University of California at Berkeley}\\
@@ -39,7 +42,8 @@
 		Tobias Wunden\\
        \affaddr{Eidgen\"{o}ssische Technische Hochschule Z\"{u}rich}\\
        \affaddr{Zurich, Switzerland}\\
-       \email{tobias.wunden@id.ethz.ch}}
+       \email{tobias.wunden@id.ethz.ch}
+}
 
 
 \maketitle
@@ -49,16 +53,16 @@
 \keywords{Human, Social, and Educational Aspects of Multimedia, Multimedia Systems and Middleware}
 
 \section{Introduction}
-The Opencast community is a collaboration of higher education institutions, commercial partners, and individuals working together to explore, create, and document best practices and technologies with respect to rich media in higher education.  The principal activity this community has undergone is the development of the Matterhorn product: an open source and enterprise strength platform for media acquisition, processing, and playback for lecture capture.
+The Opencast community is a collaboration of higher education institutions, commercial partners, and individuals working together to explore, create, and document best practices and technologies with respect to rich media in higher education.  The principal activity this community has undergone is the development of the Matterhorn product: an open source and enterprise strength platform for media acquisition, processing, distribution and playback for lecture capture.
 
-In 2009 a group of thirteen higher education institutions formed a team of designers, developers, and researchers charged with creating a open source solution for lecture capture.  Consisting of members from computer science research groups as well as institutional education and technology infrastructure support groups, the aim of this team was to take lessons learned from deployed home grown systems and build a scalable, accessible, open solution for higher education.  Notably, the system was intended to be both a platform for research in multimedia, pedagogy, and education, as well as a production system intended to scale to federations of institutions and tens of thousands of students.
+In 2009 a group of thirteen higher education institutions formed a team of designers, developers, and researchers charged with creating a reliable open source solution for lecture capture and content usage.  Consisting of members from computer science research groups as well as institutional education and technology infrastructure support groups, the aim of this team was to take lessons learned from deployed home grown systems and build a scalable, accessible, open solution for higher education.  Notably, the system was intended to be both a platform for research in multimedia, pedagogy, and education, as well as a production system intended to scale to future needs, federations of institutions and tens of thousands of students accessing and using the content.
 
-Supported by a Mellon and Hewlett Foundation grant totalling \$1.5M, and institutional matching funds of \$2M, development has continued for two years and is maintained by over 17 committers from institutions and corporations from around the world.  The Opencast community has over 650 members with more than 200 of them interested in the Matterhorn build project\footnote{As there are no membership fees or official membership process these numbers reflect subscriptions to our public mailing lists.}.   For more information on Opencast Matterhorn readers are invited to visit www.opencastproject.org.
+Supported by a Mellon and Hewlett Foundation grant totalling \$1.5M, and institutional matching funds of \$2M, development has continued for two years and is maintained by over 17 committers from institutions and corporations from around the world.  The Opencast community has over 650 members with more than 200 of them interested in the Matterhorn build project\footnote{As there are no membership fees or official membership process these numbers reflect subscriptions to our public mailing lists.}. More information about Opencast Matterhorn can be found in \cite{DBLP:journals/itse/KetterlSH10} and by visiting the projects homepage at www.opencastproject.org. 
 
 \section{Architecture \& System}
 Matterhorn is made up of three subsystems corresponding to content acquisition, processing, and playback.  In addition to these distinct systems, a variety of user interfaces and API's for administration and choreographing these subsystems are provided.  
 
-Technology wise, Matterhorn is built as a J2EE OSGI system, allowing for services to be swapped out dynamically at runtime as needed.  API's are provided as REST endpoints, encouraging reuse outside of the Java domain.  There is a high reliance of Matterhorn on other open source solutions (\emph{gstreamer}, \emph{ffmpeg}, and \emph{apache felix} to name a few of the more significant frameworks used), and all contributed code is licensed under the OSI approved Educational Community License (ECL) 2.0.  While no proprietary code is part of Matterhorn, several proprietary hardware and software solutions have been integration by interested parties.
+Technology wise, Matterhorn is built as a J2EE OSGI system, allowing for services to be swapped out dynamically at runtime as needed.  API's are provided as REST endpoints, encouraging reuse outside of the Java domain.  There is a high reliance of Matterhorn on other open source solutions (\emph{gstreamer}, \emph{ffmpeg}, and \emph{apache felix} to name a few of the more significant frameworks used), and all contributed code is licensed under the OSI approved Educational Community License (ECL) 2.0.  While no proprietary code is part of Matterhorn, several proprietary hardware and software solutions have been integration by interested parties until now.
 
 \subsection{Content Acquisition}
 The principal method of content acquisition in Matterhorn is the \emph{capture agent}; a hardware device connected to classroom audio/video technology.  The reference platform for this agent is based on commodity laptop-style x86 hardware and works with a number of different video capture devices including NTSC/PAL-based cards (such as the hauppage and bt787 chipsets), usb webcams, and specialized VGA capture devices (such as the epiphan line of products).  A fully capable agent with both VGA (5 FPS) capture and NTSC/PAL capture (30/25 FPS) costs roughly \$1,500, and several vendors are beginning to offer embedded or value-added solutions to integrate with Matterhorn capture at a similar price point.
