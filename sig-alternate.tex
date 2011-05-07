@@ -51,7 +51,7 @@
 %todo: chris
 \end{abstract}
 
-\keywords{Human, Social, and Educational Aspects of Multimedia, Multimedia Systems and Middleware}
+\keywords{Human, Social, and Educational Aspects of Multimedia, Multimedia Systems and Middleware, E-Learning, Web lectures}
 
 \section{Introduction}
 The Opencast community is a collaboration of higher education institutions, commercial partners, and individuals working together to explore, create, and document best practices and technologies with respect to rich media in higher education.  The principal activity this community has undergone is the development of the Matterhorn product: an open source and enterprise strength platform for media acquisition, processing, distribution and playback for lecture capture.
@@ -106,6 +106,11 @@ During this two term deployment, 2,639 unique students watched over 1,543 days w
 In addition to this, several students at the university have been involved in the customization of Matterhorn through volunteering, summer research positions, professional internships, and graduate theses.  The University of Saskatchewan was a mentoring institution in the Undergraduate Capstone Open Source projects (UCOSP)\footnote{See http://http://ucosp.ca/} where five senior undergraduate students from institutions across the country worked on various aspects of Matterhorn for completion of their bachelors degree.
 
 \subsection{Universit\"{a}t Osnabr\"{u}ck}
+The University of Osnabrueck migrated to Opencast Matterhorn 1.0 for the winter semester 2010/2011. The system was used to record 16 weekly lectures with Matterhorn capture hardware and a couple of additional events (e.g. workshops, conferences, talks) with traditional A/V equipment, subsequently ingested for further processing and distribution. In total, more than 300 (typically 1.5h long ) recordings were processed and distributed using the Matterhorn ecosystem. However running in full production with the first public final release in 2010 using a large scale distributed system setup unveiled bugs and performance problems that could hardly be identified using the system only in lab mode. Bug reports from students, lecturers and administrators have been reported and could be solved in the updated version 1.1 (April 2011) which makes the system much more stable and reliable in everyday use.
+Some of the recorded lectures have been watched by more than 1000 unique students in a small time frame without reported problems or performance concerns.
+Matterhorn has been build by Universities for learning which implies that the system is also used for additional software engineering projects at the University in computer science classes to extend features or to better understand how Open source projects work.
+
+
 %todo: markus
 %worth mentioning your software engineering class too
 
@@ -115,7 +120,8 @@ A sample of some of the research endevours using Matterhorn that we are familiar
 \begin{itemize}
 \item \textbf{Student interaction modelling through clustering.}   Using Matterhorn recorded lectures, clusters of students who share similar viewing patterns were discovered in \cite{Brooks2010}.  Tying these clusters to pedagogical goals and educational strategies can allow for content recommendation or early warning of student problems.
 \item \textbf{Scene detection using Supervised Machine Learning.}  The Matterhorn scene detection service was analysed in \cite{Johnston2011} against several other scene detection techniques.  The workflow operation handler features of Matterhorn make both multiple detection techniques as well as supervised machine learning techniques feasible in large scale implementations if computational resources are available.
-\item \textbf{Social navigation support in web lectures.} bla bla blub \cite{KMV09} \cite{Ketterl:2010:USN:1912600.1912699}
+\item \textbf{Social navigation support in web lectures.} User awareness has become one of the major features of todays Web 2.0 experience. Understanding how different people are using multimedia content opens up new possibilities for navigation and analysis \cite{KMV09}. Social footprints allow to track which parts of long video recordings have been watched more frequently by students. This information can then be used for machine learning or also for semantic based recommender systems \cite{Ketterl:2010:USN:1912600.1912699}.
+\item \textbf{Camera tracking and extended audio analysis} Other research areas that have been tackled by the community are automated camera tracking systems or the capability to analyze the spoken words from a lecturer during class to furher extend the metadata information that belongs to a video recording.
 %todo: markus
 %\item Speech rec. ETH (maybe we should leave this out?)  Its ok if there is no cite, just a paragraph would be fine.
 %\item Footprints, Osna (anything new from virtpresenter?
@@ -123,12 +129,13 @@ A sample of some of the research endevours using Matterhorn that we are familiar
 \end{itemize}
 
 \section{Conclusions}
+- platform for sharing our content; sharing infrastructure between universities, moving from grant funding to open source; evtl. HTML5; LMS integration ...
 %todo: chris
 
 \section{Acknowledgments}
 We would like to thank the Hewlett and Mellon foundations for their critical support that allowed us to coordinate, plan, execute, and sustain the vision we have for media in higher education.
 
-In addition to the many committers who made this work possible, we would like to thank the following committers emeritus and contributors who played a pivotal role in bringing the product to fruition (in alphabetical order): Stefan Altevogt, Allison Bloodworth, Johannes Emden, Mara Hancock, Jamie Hodge, Andre Klassen, Bostjan Pajntar, Olaf Shulte, and Aaron Zeckoski.
+In addition to the many committers who made this work possible, we would like to thank the following committers emeritus and contributors who played a pivotal role in bringing the product to fruition (in alphabetical order): Stefan Altevogt, Allison Bloodworth, Nils Birnbaum, Johannes Emden, Sebastian Ewert, Mara Hancock, Jamie Hodge, Andre Klassen, Bostjan Pajntar, Olaf Shulte, and Aaron Zeckoski.
 
 \bibliographystyle{abbrv}
 \bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
