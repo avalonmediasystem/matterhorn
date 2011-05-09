@@ -411,12 +411,13 @@ public final class GStreamerPipeline {
         }
       } catch (JV4LInfoException e) {
         // The v4l device caused an exception
-        if (e.getMessage().equalsIgnoreCase("No medium found")) {
+        // uncommented because we get a localized exception message
+        //if (e.getMessage().equalsIgnoreCase("No medium found")) {
           logger.warn("No VGA signal detected. Trying to start capture regardless...");
           return ProducerType.EPIPHAN_VGA2USB;
-        } else {
-          throw new UnrecognizedDeviceException("Unexpected jv4linfo exception: " + e.getMessage() + " for " + srcLoc);
-        }
+        //} else {
+        //  throw new UnrecognizedDeviceException("Unexpected jv4linfo exception: " + e.getMessage() + " for " + srcLoc);
+        //}
       }
     }
   }

@@ -28,6 +28,8 @@ import org.gstreamer.GstObject;
 import org.gstreamer.Pipeline;
 import org.gstreamer.State;
 import org.gstreamer.Bus.EOS;
+import org.gstreamer.Bus.ERROR;
+import org.gstreamer.Bus.STATE_CHANGED;
 import org.gstreamer.elements.AppSink;
 import org.gstreamer.event.EOSEvent;
 import org.slf4j.Logger;
@@ -86,6 +88,8 @@ public class EpiphanVGA2USBV4LSubDeviceBin extends EpiphanVGA2USBV4LSubAbstractB
     setElementProperties();
     linkElements();
     setEOSListener();
+    setStateChangeLogger();
+    setErrorListener();
     bin.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_ALL, bin.getName(), false);
   }
   
@@ -258,5 +262,40 @@ public class EpiphanVGA2USBV4LSubDeviceBin extends EpiphanVGA2USBV4LSubAbstractB
   public void shutdown() {
     logger.info("Sending EOS to stop " + src.getName());
     src.sendEvent(new EOSEvent());
+  }
+  
+  /**
+   * Set state changed listener to log starting and stoping bin events.
+   */
+  protected void setStateChangeLogger() {
+    src.getBus().connect(new STATE_CHANGED() {
+
+      @Override
+      public void stateChanged(GstObject source, State old, State current, State pending) {
+        if (source == src) {
+          if (old.intValue() == State.PLAYING.intValue())
+            logger.info("Epiphan Bin stopped.");
+          
+          if (current.intValue() == State.PLAYING.intValue())
+            logger.info("Epiphan Bin started.");
+        }
+      }
+    });
+  }
+  
+  /**
+   * Set error listener on source element. 
+   * Log message and stop bin.
+   */
+  protected void setErrorListener() {
+    src.getBus().connect(new ERROR() {
+
+      @Override
+      public void errorMessage(GstObject source, int i, String message) {
+        logger.error("{}: {}", source.getName(), (message != null ? message : "unknown Error"));
+        broken = true;
+        stop();
+      }
+    });
   }
 }

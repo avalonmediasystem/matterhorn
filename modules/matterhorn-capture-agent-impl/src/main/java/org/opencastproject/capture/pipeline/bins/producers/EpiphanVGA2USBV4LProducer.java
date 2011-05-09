@@ -83,8 +83,6 @@ public class EpiphanVGA2USBV4LProducer extends V4LProducer {
   /** Elements. */
   private Element identity;
 
-  private Element videorate;
-
   private Element colorspace;
 
   /** Source element. */
@@ -412,14 +410,20 @@ public class EpiphanVGA2USBV4LProducer extends V4LProducer {
       V4LInfo v4linfo = JV4LInfo.getV4LInfo(device);
       String deviceName = v4linfo.getVideoCapability().getName();
       
-      if (deviceName.contains("VGA2USB") || deviceName.contains("VGA2PCI")) {
-        return true;
+      if (!deviceName.contains("VGA2USB") && !deviceName.contains("VGA2PCI")) {
+        return false;
       }
+      
+      // test resolution min == max (@see getCaps())
+      if (v4linfo.getVideoCapability().getMinwidth() != v4linfo.getVideoCapability().getMaxwidth()) {
+        return false;
+      }
+      return true;
+      
     } catch (JV4LInfoException e) {
       
       return false;
     }
-    return false;
   }
 
   /**
