@@ -16,24 +16,6 @@
 
 package org.opencastproject.feed.impl;
 
-import org.opencastproject.feed.api.Content;
-import org.opencastproject.feed.api.Content.Mode;
-import org.opencastproject.feed.api.Enclosure;
-import org.opencastproject.feed.api.Feed;
-import org.opencastproject.feed.api.FeedEntry;
-import org.opencastproject.feed.api.FeedGenerator;
-import org.opencastproject.mediapackage.MediaPackage;
-import org.opencastproject.mediapackage.MediaPackageElement;
-import org.opencastproject.mediapackage.MediaPackageElementFlavor;
-import org.opencastproject.mediapackage.Track;
-import org.opencastproject.search.api.SearchResult;
-import org.opencastproject.search.api.SearchResultItem;
-import org.opencastproject.search.api.SearchResultItem.SearchResultItemType;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.MalformedURLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -42,6 +24,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
+
+import javax.naming.directory.SearchResult;
+import javax.sound.midi.Track;
 
 /**
  * This class provides basic functionality for creating feeds and is used as the base implementation for the default
@@ -780,6 +766,8 @@ public abstract class AbstractFeedGenerator implements FeedGenerator {
         if (feed.getType().equals(Feed.Type.RSS)) {
           for (String mediaType : rssMediaTypes) {
             for (MediaPackageElement element : elements) {
+              if (candidateElements.contains(element))
+                continue;
               if (mediaType.equals(PROP_RSS_MEDIA_TYPE_DEFAULT)) {
                 if (element.containsTag(tags)) {
                   candidateElements.add(element);
@@ -796,7 +784,7 @@ public abstract class AbstractFeedGenerator implements FeedGenerator {
                   break selectElements;
                 }
               }
-              if ("audio".equals(mediaType) && track.hasAudio() && track.hasVideo()) {
+              if ("audio".equals(mediaType) && track.hasAudio()) {
                 if (element.containsTag(tags)) {
                   candidateElements.add(element);
                   break selectElements;
