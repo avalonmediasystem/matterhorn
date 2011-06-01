@@ -99,6 +99,9 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
   /** Methods that ingest catalogs from a URI create jobs with this operation type */
   public static final String INGEST_CATALOG_FROM_URI = "catalog";
 
+  /** Ingest can only occur for a workflow currently in one of these operations. */
+  public static final String[] PRE_PROCESSING_OPERATIONS = new String[] { "schedule", "capture", "ingest" };
+
   /** The workflow service */
   private WorkflowService workflowService;
 
@@ -682,9 +685,9 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
           throw new IllegalStateException(workflow
                   + " has no current operation, so can not be resumed with a new mediapackage");
         }
-        int currentPosition = workflow.getOperations().indexOf(currentOperation);
-        if (currentPosition > 2) {
-          throw new IllegalStateException(workflow + " is already in operation #" + currentPosition
+        String currentOperationTemplate = currentOperation.getTemplate();
+        if (!Arrays.asList(PRE_PROCESSING_OPERATIONS).contains(currentOperationTemplate)) {
+          throw new IllegalStateException(workflow + " is already in operation " + currentOperationTemplate
                   + ", so we can not ingest");
         }
 
@@ -699,7 +702,9 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
             MediaPackageElementFlavor catalogFlavor = element.getFlavor();
             MediaPackageElement[] existingCatalogs = existingMediaPackage.getCatalogs(catalogFlavor);
             if (existingCatalogs != null && existingCatalogs.length > 0) {
-              logger.info("Mediapackage {} already contains a catalog with flavor {}.  Skipping the conflicting ingested catalog", existingMediaPackage, catalogFlavor);
+              logger.info(
+                      "Mediapackage {} already contains a catalog with flavor {}.  Skipping the conflicting ingested catalog",
+                      existingMediaPackage, catalogFlavor);
               continue;
             }
           }
@@ -710,6 +715,7 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
         workflow.extend(workflowDef);
 
         // Advance the workflow
+        int currentPosition = workflow.getOperations().indexOf(currentOperation);
         while (currentPosition < preProcessingOperations - 1) {
           currentOperation = workflow.getCurrentOperation();
           logger.debug("Advancing workflow (skipping {})", currentOperation);
