@@ -283,3 +283,10 @@ ocUtils.sizeOf = function(obj) {
   }
   return length;
 }
+
+ocUtils.exists = function(obj) {
+  if(typeof obj !== 'undefined') {
+    return true;
+  }
+  return false;
+}
