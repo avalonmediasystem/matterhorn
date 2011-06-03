@@ -129,7 +129,14 @@ var ocScheduler = (function() {
       });
     
     $('#seriesSelect').autocomplete({
-      source: SERIES_URL + '/search',
+      source: function(search, callback){
+        $.ajax({
+          type: 'get',
+          url:SERIES_URL + '/series.json',
+          data: {q: search.term},
+          success: function(data){ handleSeriesSearch(data, callback); }
+        });
+      },
       select: function(event, ui){
         $('#series').val(ui.item.id);
       },
@@ -1179,15 +1186,15 @@ ocScheduler.DeleteForm = function(){
           },
           setValue: function(value) {
             var opts, agentId, found;
-            if(typeof value === 'string') {
+            if (typeof value === 'string') {
               value = { agent: value };
             }
             opts = this.fields.agent.children();
             agentId = value.agent;
-            if(opts.length > 0){
+            if (opts.length > 0){
               found = false;
               for(var i = 0; i < opts.length; i++) {
-                if(opts[i].value == agentId){
+                if (opts[i].value == agentId){
                   found = true;
                   opts[i].selected = true;
                   break;
@@ -1211,6 +1218,23 @@ ocScheduler.DeleteForm = function(){
     this.dublinCore.components = dcComps;
     this.recording.components = recComps;
     this.capture.components = extraComps;
+  }
+  
+  function handleSeriesSearch(data, callback) {
+    var source = [];
+    for (var i in data) {
+      var series = data[i];
+      if (ocUtils.exists(series['http://purl.org/dc/terms/'])) {
+        series = series['http://purl.org/dc/terms/'];
+        var item = {
+          label: series.title[0].value + ' - ' + series.creator[0].value,
+          value: series.title[0].value,
+          id: series.identifier[0].value
+        }
+        source.push(item);
+      }
+    }
+    callback(source);
   }
   
   return sched;
