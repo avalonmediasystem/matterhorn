@@ -360,10 +360,10 @@ public class IngestRestService {
     logger.debug("addZippedMediaPackage(HttpRequest)");
     FileInputStream zipInputStream = null;
     String zipFileName = UUID.randomUUID().toString() + ".zip";
+    URI zipFileUri = null;
     try {
       String workflowDefinitionId = null;
       Long workflowInstanceIdAsLong = null;
-      URI zipFileUri = null;
       Map<String, String> workflowConfig = new HashMap<String, String>();
       if (ServletFileUpload.isMultipartContent(request)) {
         for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
@@ -418,12 +418,13 @@ public class IngestRestService {
     } finally {
       IOUtils.closeQuietly(zipInputStream);
       try {
-        workspace.deleteFromCollection(COLLECTION_ID, zipFileName);
+	  workspace.delete(zipFileUri);
+	  logger.info("Removing temporary ingest file");
       } catch (NotFoundException nfe) {
         // That's fine, we failed somewhere on the way
         logger.debug("Error removing missing temporary ingest file " + COLLECTION_ID + "/" + zipFileName, nfe);
       } catch (IOException ioe) {
-        logger.warn("Error removing temporary ingest file " + COLLECTION_ID + "/" + zipFileName, ioe);
+	logger.warn("Error removing temporary ingest file " + zipFileUri, ioe);
       }
     }
   }
