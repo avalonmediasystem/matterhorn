@@ -342,6 +342,20 @@ Opencast.Watch = (function ()
         mediaResolutionOne = mediaResolutionOne === null ? '' : mediaResolutionOne;
         mediaResolutionTwo = mediaResolutionTwo === null ? '' : mediaResolutionTwo;
         
+        // Check for videoUrl and videoUrl2 URL Parameters
+        var mediaUrlTmp = Opencast.Utils.getURLParameter('videoUrl');
+        mediaUrlOne = (mediaUrlTmp == null) ? mediaUrlOne : mediaUrlTmp;
+        if(mediaUrlTmp != null)
+        {
+            Opencast.Utils.log('Set Video URL 1 manually');
+        }
+        mediaUrlTmp = Opencast.Utils.getURLParameter('videoUrl2');
+        mediaUrlTwo = (mediaUrlTmp == null) ? mediaUrlTwo : mediaUrlTmp;
+        if(mediaUrlTmp != null)
+        {
+            Opencast.Utils.log('Set Video URL 2 manually');
+        }
+        
         // If URL Parameter display exists and is set to revert
         var display = Opencast.Utils.getURLParameter('display');
         if ((display != null) && (display.toLowerCase() == 'invert') && (mediaUrlTwo != ''))
@@ -474,9 +488,11 @@ Opencast.Watch = (function ()
         {
             var playParam = Opencast.Utils.getURLParameter('play');
             var timeParam = Opencast.Utils.getURLParameter('t');
+            var previewParam = Opencast.Utils.getURLParameter('preview');
+            previewParam = previewParam == null ? false : true;
             var durationStr = $('#oc_duration').text();
             var durTextSet = (durationStr != 'Initializing') && (Opencast.Utils.getTimeInMilliseconds(durationStr) != 0);
-            var autoplay = ((playParam !== null) && (playParam.toLowerCase() == 'true')) || (!mediaPackageIdAvailable);
+            var autoplay = ((playParam !== null) && (playParam.toLowerCase() == 'true')) || (!mediaPackageIdAvailable && !previewParam);
             var time = (timeParam === null) ? 0 : Opencast.Utils.parseSeconds(timeParam);
             time = (time < 0) ? 0 : time;
             var rdy = false;
@@ -496,6 +512,9 @@ Opencast.Watch = (function ()
                 // not autoplay and jump to time
                 else
                 {
+                    if(previewParam) {
+                       Opencast.Player.doPause();
+                    }
                     if (jumpToTime(time))
                     {
                         Opencast.Utils.log("Autoplay: false");
