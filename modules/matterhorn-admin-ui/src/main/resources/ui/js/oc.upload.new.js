@@ -26,6 +26,20 @@ var ocUpload = (function() {
     $('#workflowSelector').change(ocUpload.UI.selectWorkflowDefinition);
     $('#submitButton').button().click(startUpload);
     $('#cancelButton').button().click(backToRecordings);
+    
+    var initializerDate;
+    initializerDate = new Date();  
+
+    $('#startTimeHour').val(initializerDate.getHours()); 
+    $('#startTimeMin').val(initializerDate.getMinutes()); 
+
+    $('#recordDate').datepicker({
+      showOn: 'both',
+      buttonImage: 'img/icons/calendar.gif',
+      buttonImageOnly: true,
+      dateFormat: 'yy-mm-dd'
+    });
+    $('#recordDate').datepicker('setDate', initializerDate);  
 
     ocUpload.UI.loadWorkflowDefinitions();
     initSeriesAutocomplete();
@@ -474,6 +488,12 @@ ocUpload.Ingest = (function() {
       $newElm.text($field.val());
       $(dcDoc.documentElement).append($newElm);
     });
+    var $created = $(dcDoc.createElement('dcterms:created'))
+    var date = $('#recordDate').datepicker('getDate').getTime();
+    date += $('#startTimeHour').val() * 60 * 60 * 1000;
+    date += $('#startTimeMin').val() * 60 * 1000;
+    $created.text(ocUtils.toISODate(new Date(date)));
+    $(dcDoc.documentElement).append($created);
     var out = ocUtils.xmlToString(dcDoc);
     return out;
   }
