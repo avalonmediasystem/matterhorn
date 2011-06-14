@@ -347,13 +347,14 @@ public class SchedulerRestService {
    */
   @DELETE
   @Path("{id}")
+  @Produces(MediaType.TEXT_PLAIN)
   @RestQuery(name = "deleterecordings", description = "Removes scheduled event with specified ID.", returnDescription = "OK if event were successfully removed or NOT FOUND if event with specified ID does not exist", pathParameters = { @RestParameter(name = "id", isRequired = true, description = "Event ID", type = Type.STRING) }, reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "Event was successfully removed"),
           @RestResponse(responseCode = HttpServletResponse.SC_NOT_FOUND, description = "Event with specified ID does not exist") })
   public Response deleteEvent(@PathParam("id") long eventId) {
     try {
       service.removeEvent(eventId);
-      return Response.ok().build();
+      return Response.status(Response.Status.NO_CONTENT).build();
     } catch (NotFoundException e) {
       logger.warn("Event with id '{}' does not exist.", eventId);
       return Response.status(Status.NOT_FOUND).build();

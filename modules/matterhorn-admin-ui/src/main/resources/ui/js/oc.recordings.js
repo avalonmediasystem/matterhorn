@@ -848,13 +848,26 @@ ocRecordings = new (function() {
   this.removeRecording = function(id, title) {
     if(confirm('Are you sure you wish to delete ' + title + '?')){
       $.ajax({
-        url: '/scheduler/'+id,
+        url: '/recordings/'+id,
         type: 'DELETE',
+        dataType: 'text',
         error: function(XHR,status,e){
           alert('Could not remove Recording ' + title);
         },
         success: function(){
-          ocRecordings.reload();
+          $.ajax({
+            url: WORKFLOW_URL + '/stop',
+            type: 'POST',
+            data: {
+              id: id
+            },
+            error: function(XHR,status,e){
+                alert('Could not stop Processing.');
+            },
+            success: function(){
+              ocRecordings.reload();
+            }
+          });
         }
       });
     }
@@ -867,15 +880,15 @@ ocRecordings = new (function() {
         $.ajax({
           url: WORKFLOW_URL + '/stop',
           type: 'POST',
-        data       : {
-          id: id
-        },
-        error      : function(XHR,status,e){
-            alert('Could not stop Processing.');
-        },
+          data: {
+            id: id
+          },
+          error: function(XHR,status,e){
+              alert('Could not stop Processing.');
+          },
           success: function(){
-          ocRecordings.reload();
-        }
+            ocRecordings.reload();
+          }
       });
     }
   }
@@ -1112,7 +1125,7 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
             return;
           }
           $.ajax({
-            url: '/scheduler/'+id,
+            url: '/recordings/'+id,
             type: 'DELETE',
             complete: function(xhr, status) {
               if(xhr.status == 500) {
