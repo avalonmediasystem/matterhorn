@@ -1174,7 +1174,7 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
       },
       validate: function(){
         if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === ''){ //have text and no idea
-          return this.createSeriesFromSearchText();
+          return false; // this.createSeriesFromSearchText();
         }
         return true; //nothing, or we have an id.
       },

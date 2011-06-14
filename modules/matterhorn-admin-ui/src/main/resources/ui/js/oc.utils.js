@@ -290,3 +290,18 @@ ocUtils.exists = function(obj) {
   }
   return false;
 }
+
+ocUtils.getDCJSONParam = function(dcJSON, param, namespace) {
+  namespace = 'http://purl.org/dc/terms/' || namespace;
+  for (var i in dcJSON) {
+    var metadata = dcJSON[i];
+    if (i === namespace) {
+      for (var j in metadata) {
+        if (j === param) {
+          return metadata[param][0].value;
+        }
+      }
+    }
+  }
+  return false;
+}

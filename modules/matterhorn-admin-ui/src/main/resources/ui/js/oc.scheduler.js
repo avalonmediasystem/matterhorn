@@ -550,9 +550,7 @@ ocScheduler.DeleteForm = function(){
     var data = {
       device: '',
       start: 0,
-      end: 0,
-      duration: 0,
-      rrule: ''
+      end: 0
     };
     this.conflictingEvents = false;
     $('#missingFieldsContainer').hide();
@@ -564,7 +562,7 @@ ocScheduler.DeleteForm = function(){
     }else{
       return false;
     }
-    if(this.type === SINGLE_EVENT) {
+    if(sched.type === SINGLE_EVENT) {
       if(sched.recording.components.startDate.validate() && sched.recording.components.duration.validate()) {
         data.start = sched.recording.components.startDate.getValue();
         data.duration = sched.recording.components.duration.getValue();
@@ -583,25 +581,16 @@ ocScheduler.DeleteForm = function(){
         return false;
       }
     }
-    $.post(SCHEDULER_URL + "/conflict.json", data, function(data) {
+    $.get(SCHEDULER_URL + "/conflicts.json", data, function(data) {
       var events = [];
-      if(data != '') {
-        if(!$.isArray(data.events.event)) {
-          if(sched.mode === CREATE_MODE || (sched.mode === EDIT_MODE && $('#eventId').val() !== data.events.event.id)) {
-            events.push(data.events.event);
-          }
-          if(events.length == 0) {
-            return;
-          }
-        } else {
-          events = data.events.event;
-        }
-        for(i in events) {
+      if (data != '') {
+        for (var i in data) {
+          var event = data[i];
           curId = $('#eventId').val();
-          eid = events[i].id;
+          eid = ocUtils.getDCJSONParam(event, 'identifier');
           if(sched.mode === CREATE_MODE || (sched.mode === EDIT_MODE && curId !== eid)) {
             sched.conflictingEvents = true;
-            $('#conflictingEvents').append('<li><a href="scheduler.html?eventId=' + events[i].id + '&edit=true" target="_new">' + events[i].title + '</a></li>');
+            $('#conflictingEvents').append('<li><a href="scheduler.html?eventId=' + eid + '&edit=true" target="_new">' + ocUtils.getDCJSONParam(event, 'title') + '</a></li>');
           }
         }
         if(sched.conflictingEvents) {
@@ -621,7 +610,7 @@ ocScheduler.DeleteForm = function(){
     dcComps.creator = new ocAdmin.Component(['creator'], { key: 'creator' });
     dcComps.contributor = new ocAdmin.Component(['contributor'], { key: 'contributor' });
     dcComps.seriesId = new ocAdmin.Component(['series', 'seriesSelect'],
-      { required: true, key: 'ispartof' },
+      { required: true, key: 'isPartOf' },
       { getValue: function() { 
           if(this.fields.series) {
             this.value = this.fields.series.val();
@@ -640,7 +629,7 @@ ocScheduler.DeleteForm = function(){
         },
         validate: function() {
           if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === '') { //have text and no id
-            return this.createSeriesFromSearchText();
+            return false; //this.createSeriesFromSearchText();
           }
           return true; //nothing, or we have an id.
         },
@@ -667,13 +656,16 @@ ocScheduler.DeleteForm = function(){
           var series, seriesComponent, seriesId;
           var creationSucceeded = false;
           if(this.fields.seriesSelect !== ''){
-            series = '<series><additionalMetadata><metadata><key>title</key><value>' + this.fields.seriesSelect.val() + '</value></metadata></additionalMetadata></series>';
+            series = '<dublincore xmlns="http://www.opencastproject.org/xsd/1.0/dublincore/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oc="http://www.opencastproject.org/matterhorn"><dcterms:title xmlns="">' + this.fields.seriesSelect.val() + '</dcterms:title></dublincore>'
             seriesComponent = this;
             $.ajax({
               async: false,
-              type: 'PUT',
+              type: 'POST',
               url: SERIES_URL + '/',
-              data: { series: series },
+              data: { 
+                series: series,
+                acl: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:acl xmlns:ns2="org.opencastproject.security"></ns2:acl>'
+              },
               dataType: 'json',
               success: function(data){
                 creationSucceeded = true;

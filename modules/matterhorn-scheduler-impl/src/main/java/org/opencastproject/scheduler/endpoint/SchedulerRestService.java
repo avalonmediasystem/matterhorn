@@ -825,17 +825,23 @@ public class SchedulerRestService {
           @RestResponse(responseCode = HttpServletResponse.SC_BAD_REQUEST, description = "Missing or invalid parameters") })
   public Response getConflictingEventsJSON(@QueryParam("device") String device, @QueryParam("start") String startDate,
           @QueryParam("end") String endDate, @QueryParam("duration") String duration, @QueryParam("rrule") String rrule) {
-    if (StringUtils.isEmpty(device) || startDate == null || endDate == null || duration == null) {
+    if (StringUtils.isEmpty(device) || startDate == null || endDate == null) {
       logger.warn("Either device, start date, end date or duration were not specified");
+      return Response.status(Status.BAD_REQUEST).build();
+    }
+    if (StringUtils.isNotEmpty(rrule) && duration == null) {
+      logger.warn("If checking recurrence, must include duration.");
       return Response.status(Status.BAD_REQUEST).build();
     }
     Long startDateAsLong;
     Long endDateAsLong;
-    Long durationAsLong;
+    Long durationAsLong = 0L;
     try {
       startDateAsLong = Long.parseLong(startDate);
       endDateAsLong = Long.parseLong(endDate);
-      durationAsLong = Long.parseLong(duration);
+      if (duration != null) {
+        durationAsLong = Long.parseLong(duration);
+      }
     } catch (NumberFormatException e) {
       logger.warn("Invalid number parameter: {}", e.getMessage());
       return Response.status(Status.BAD_REQUEST).build();
