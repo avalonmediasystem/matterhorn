@@ -717,6 +717,10 @@ Opencast.Initialize = (function ()
         {
             Opencast.Annotation_Chapter.doToggleAnnotation_Chapter();
         });
+        $('#oc_checkbox-annotation-comment').click(function ()
+        {
+            Opencast.Annotation_Comment.doToggleAnnotation_Comment();
+        });
         //bind click events to show dialog
         $('#oc_shortcuts').dialog(
         {

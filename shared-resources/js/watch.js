@@ -42,6 +42,7 @@ Opencast.Watch = (function ()
         
     var analyticsURL = "",
         annotationURL = "",
+        annotationCommentURL = "",
         descriptionEpisodeURL = "",
         descriptionStatsURL = "",
         searchURL = "",
@@ -69,6 +70,16 @@ Opencast.Watch = (function ()
     function getAnnotationURL()
     {
         return annotationURL;
+    }
+
+    /**
+     * @memberOf Opencast.Watch
+     * @description Returns a plugin URL
+     * @return a plugin URL
+     */
+    function getAnnotationCommentURL()
+    {
+        return annotationCommentURL;
     }
     
     /**
@@ -192,6 +203,7 @@ Opencast.Watch = (function ()
         {
             analyticsURL = data.plugin_urls.analytics;
             annotationURL = data.plugin_urls.annotation;
+            annotationCommentURL = data.plugin_urls.annotationComment;
             descriptionEpisodeURL = data.plugin_urls.description.episode;
             descriptionStatsURL = data.plugin_urls.description.stats;
             searchURL = data.plugin_urls.search;
@@ -204,6 +216,7 @@ Opencast.Watch = (function ()
             Opencast.Utils.log("Plugin URLs");
             Opencast.Utils.log("Analytics URL: " + analyticsURL);
             Opencast.Utils.log("Annotation URL: " + annotationURL);
+            Opencast.Utils.log("Annotation Comments URL: " + annotationCommentURL);
             Opencast.Utils.log("Description (Episode) URL: " + descriptionEpisodeURL);
             Opencast.Utils.log("Description (Stats) URL: " + descriptionStatsURL);
             Opencast.Utils.log("Search URL: " + searchURL);
@@ -240,6 +253,7 @@ Opencast.Watch = (function ()
             // Set MediaPackage ID's in the Plugins
             Opencast.Player.setMediaPackageId(mediaPackageId);
             Opencast.Annotation_Chapter.setMediaPackageId(mediaPackageId);
+            Opencast.Annotation_Comment.setMediaPackageId(mediaPackageId);
             Opencast.Analytics.setMediaPackageId(mediaPackageId);
             Opencast.Series.setMediaPackageId(mediaPackageId);
             Opencast.Description.setMediaPackageId(mediaPackageId);
@@ -276,6 +290,8 @@ Opencast.Watch = (function ()
         Opencast.Analytics.initialize();
         Opencast.Annotation_Chapter.setDuration(parseInt(parseInt(dcExtent) / 1000));
         Opencast.Annotation_Chapter.initialize();
+        Opencast.Annotation_Comment.setDuration(parseInt(parseInt(dcExtent) / 1000));
+        Opencast.Annotation_Comment.initialize();
         $('#oc_body').bind('resize', function ()
         {
             Opencast.AnalyticsPlugin.resizePlugin();
@@ -645,6 +661,7 @@ Opencast.Watch = (function ()
     return {
         getAnalyticsURL: getAnalyticsURL,
         getAnnotationURL: getAnnotationURL,
+        getAnnotationCommentURL : getAnnotationCommentURL,
         getDescriptionEpisodeURL: getDescriptionEpisodeURL,
         getDescriptionStatsURL: getDescriptionStatsURL,
         getSearchURL: getSearchURL,

@@ -49,6 +49,8 @@
         <script type="text/javascript" src="js/engage_plugins/analytics.js"></script>
         <script type="text/javascript" src="js/engage_plugins/annotation_chapter-plugin.js"></script>
         <script type="text/javascript" src="js/engage_plugins/annotation_chapter.js"></script>
+        <script type="text/javascript" src="js/engage_plugins/annotation_comment-plugin.js"></script>
+        <script type="text/javascript" src="js/engage_plugins/annotation_comment.js"></script>
         <script type="text/javascript" src="js/engage_plugins/series-plugin.js"></script>
         <script type="text/javascript" src="js/engage_plugins/series.js"></script>
         <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-initialize.js"></script>
@@ -151,8 +153,10 @@
                 </center>
             </noscript>
                 
-            <div id="oc_flash-player">
-                <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js"></script>
+            <div id="oc_slide-comments">
+                <div id="oc_flash-player">                   
+                    <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js"></script>
+                </div>
             </div>
             
             <!-- START: Hide when no Javascript is activated -->
@@ -243,6 +247,7 @@
                 <div id="analytics-and-annotations">
                     <span id="analytics" class="analytics">Loading..</span>
                     <span id="annotation" class="annotation">Annotation..</span>
+                    <span id="annotation_comment">Comments..</span>
                     <table class="segments" id="segmentstable1">
                         <!-- data comes here -->
                     </table>
@@ -272,6 +277,10 @@
                 </span>
                 &nbsp;
                 <strong>View:</strong>
+                <input id="oc_checkbox-annotation-comment" type="checkbox" name="show comments" title="show comments" />
+                <label id="oc_label-annotation-comment" for="oc_checkbox-annotation-comment">
+                    Comments
+                </label>
                 <input id="oc_checkbox-annotations" type="checkbox" name="show Annotations" title="show Annotations" />
                 <label id="oc_label-annotations" for="oc_checkbox-annotations">
                     Annotations
@@ -356,6 +365,8 @@
         
         <div id="segment-tooltip" class="segment-tooltip"></div>
         
+        <div id="comment-tooltip" class="segment-tooltip"></div>
+        
         <!-- Shortcut dialog -->
         <div id="oc_shortcuts" title="Shortcuts">
             <span id="skip"><a name="shortcuts"></a></span>
@@ -436,5 +447,16 @@
         
         <!-- Series dialog -->
         <div id="oc_series" class="ui-widget ui-widget-content ui-corner-all oc_popuplayer ui-state-hover" title="see more of this series" tabindex="-1" role="dialog" aria-hidden="true"></div>
+    
+        <!--  Comment dialog -->
+        <div id="oc_comment_dialog" title="Create new comment">         
+            <form>
+            <fieldset>
+            <label for="comment">Comment</label>
+            </br>
+            <textarea name="oc_comment_field" id="oc_comment_field" cols="50" rows="10"></textarea>
+            </fieldset>
+            </form>       
+        </div>
     </body>
 </html>
