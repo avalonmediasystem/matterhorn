@@ -1095,7 +1095,7 @@ ocRecordings = new (function() {
         },
         ocRecordings.bulkActionComplete);
       } else if(ocRecordings.Configuration.state === 'bulkdelete') {
-if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming recordings? \nNo record of these will remain. You will need to reschedule if needed.') ){
+        if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming recordings? \nNo record of these will remain. You will need to reschedule if needed.') ){
         progressChunk = (100 / eventIdList.length)
         $('#deleteProgress').progressbar({
           value: 0,
@@ -1132,9 +1132,22 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
                 failed++;
                 $('#deleteErrorMessage').text('Failed to delete ' + failed + ' recordings.');
               } else {
-              progress = progress + progressChunk;
-              $('#deleteProgress').progressbar('value', progress);
-            }
+                $.ajax({
+                  url: WORKFLOW_URL + '/stop',
+                  type: 'POST',
+                  data: {
+                    id: id
+                  },
+                  error: function(XHR,status,e){
+                    failed++;
+                    $('#deleteErrorMessage').text('Could not stop Processing ' + failed + ' recordings.');
+                  },
+                  success: function(){
+                    progress = progress + progressChunk;
+                    $('#deleteProgress').progressbar('value', progress);
+                  }
+                });
+              }
             }
           });
         }, 250);

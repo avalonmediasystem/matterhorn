@@ -267,8 +267,8 @@ public class SchedulerRestService {
         logger.warn("Could not parse event catalog: {}", catalogs.getFirst("event"));
         return Response.status(Status.BAD_REQUEST).build();
       }
-      start = recordingProperties.getProperty("start");
-      end = recordingProperties.getProperty("end");
+      start = recordingProperties.getProperty("startDate");
+      end = recordingProperties.getProperty("endDate");
       duration = recordingProperties.getProperty("duration");
       recurrence = recordingProperties.getProperty("recurrence");
       timezone = recordingProperties.getProperty("timezone");

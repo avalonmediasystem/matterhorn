@@ -915,7 +915,7 @@ ocScheduler.DeleteForm = function(){
         });
   
       recComps.recurrence = new ocAdmin.Component(['scheduleRepeat', 'repeatSun', 'repeatMon', 'repeatTue', 'repeatWed', 'repeatThu', 'repeatFri', 'repeatSat'],
-        { required: true, key: 'recurrencePattern' },
+        { required: true, key: 'recurrence' },
         { getValue: function() {
             var rrule, dotw, days, date, hour, min, dayOffset;
             if(this.validate()) {
@@ -923,7 +923,7 @@ ocScheduler.DeleteForm = function(){
                 rrule     = "FREQ=WEEKLY;BYDAY=";
                 dotw      = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
                 days      = [];
-                date      = new Date(ocScheduler.components.recurrenceStart.getValue());
+                date      = new Date(ocScheduler.recording.components.recurrenceStart.getValue());
                 hour      = date.getUTCHours();
                 min       = date.getUTCMinutes();
                 dayOffset = 0;
@@ -1004,9 +1004,9 @@ ocScheduler.DeleteForm = function(){
                  this.fields.repeatThu[0].checked ||
                  this.fields.repeatFri[0].checked ||
                  this.fields.repeatSat[0].checked ){
-                if(ocScheduler.components.recurrenceStart.validate() &&
+                if(ocScheduler.recording.components.recurrenceStart.validate() &&
                    // ocScheduler.components.recurrenceDuration.validate() &&
-                   ocScheduler.components.recurrenceEnd.validate()) {
+                   ocScheduler.recording.components.recurrenceEnd.validate()) {
                   return true;
                 }
               }
@@ -1024,6 +1024,29 @@ ocScheduler.DeleteForm = function(){
             return container;
           }
         });
+      
+      dcComps.temporal = new ocAdmin.Component(['recurDurationHour', 'recurDurationMin', 'recurStart', 'recurStartTimeHour', 'recurStartTimeMin', 'recurEnd'],
+          { key: 'temporal'},
+          { getValue: function() {
+              var date = this.fields.recurStart.datepicker('getDate');
+              if(date && date.constructor == Date) {
+                var start = date / 1000; // Get date in milliseconds, convert to seconds.
+                start += this.fields.recurStartTimeHour.val() * 3600; // convert hour to seconds, add to date.
+                start += this.fields.recurStartTimeMin.val() * 60; //convert minutes to seconds, add to date.
+                start -= sched.tzDiff * 60; //Agent TZ offset
+                start = start * 1000; //back to milliseconds
+              }
+              var end = this.fields.recurEnd.datepicker('getDate') / 1000;
+              end += this.fields.recurStartTimeHour.val() * 3600; // start hour
+              end += this.fields.recurStartTimeMin.val() * 60; //start min, then add duration
+              end += this.fields.recurDurationHour.val() * 3600; // seconds per hour
+              end += this.fields.recurDurationMin.val() * 60; // milliseconds per min
+              end = end * 1000;
+              ocUtils.log(start, end);
+              return 'start=' + ocUtils.toISODate(new Date(start)) + 
+                '; end=' + ocUtils.toISODate(new Date(end)) + '; scheme=W3C-DTF;';
+            }
+          });
                                                                           
     }else{ //Single Event
       
@@ -1154,9 +1177,9 @@ ocScheduler.DeleteForm = function(){
             duration = doc.createElement('duration');
             duration.appendChild(doc.createTextNode(this.getValue()));
             parent.appendChild(duration);
-            if(typeof ocScheduler.components.startDate != 'undefined' && ocScheduler.components.startDate.getValue() != null) {
+            if(typeof ocScheduler.dublinCore.components.startDate != 'undefined' && ocScheduler.dublinCore.components.startDate.getValue() != null) {
               endDate = doc.createElement('endDate');
-              endDate.appendChild(doc.createTextNode(ocScheduler.components.startDate.getValue() + this.getValue()));
+              endDate.appendChild(doc.createTextNode(ocScheduler.dublinCore.components.startDate.getValue() + this.getValue()));
               parent.appendChild(endDate);
             }
           },

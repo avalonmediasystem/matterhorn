@@ -439,8 +439,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     List<Long> eventsIDs = new ArrayList<Long>();
 
     for (DublinCoreCatalog event : eventList) {
-      DCMIPeriod period = EncodingSchemeUtils.decodeMandatoryPeriod(templateCatalog
-              .getFirst(DublinCore.PROPERTY_TEMPORAL));
+      DCMIPeriod period = EncodingSchemeUtils.decodeMandatoryPeriod(event.getFirst(DublinCore.PROPERTY_TEMPORAL));
       if (!period.hasEnd() || !period.hasStart()) {
         throw new IllegalArgumentException(
                 "Dublin core field dc:temporal does not contain information about start and end of event");
@@ -708,6 +707,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
               Precision.Second);
       event.set(DublinCore.PROPERTY_TEMPORAL, eventTime);
       events.add(event);
+      i++;
     }
     return events;
   }
