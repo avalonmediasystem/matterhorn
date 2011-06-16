@@ -235,7 +235,7 @@
    
    <!-- Dublin core fields. -->
     
-   <field name="dc_title" type="text" indexed="true" stored="true" omitNorms="true" multiValued="false"/>
+   <field name="dc_title" type="text" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
    <field name="dc_subject" type="text" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
    <field name="dc_creator" type="text" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
    <field name="dc_publisher" type="text" indexed="true" stored="true" omitNorms="true" multiValued="true"/>  
@@ -247,7 +247,7 @@
    <field name="dc_available_to" type="date" indexed="true" stored="true" omitNorms="true" multiValued="false"/>
    <field name="dc_language" type="string" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
    <field name="dc_rights_holder" type="text" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
-   <field name="dc_spatial" type="text" indexed="true" stored="true" omitNorms="true"/>
+   <field name="dc_spatial" type="text" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
    <field name="dc_temporal" type="text" indexed="true" stored="true" omitNorms="true"/>
    <field name="dc_is_part_of" type="string" indexed="true" stored="true" omitNorms="true"/>
    <field name="dc_replaces" type="string" indexed="true" stored="true" omitNorms="true"/>
