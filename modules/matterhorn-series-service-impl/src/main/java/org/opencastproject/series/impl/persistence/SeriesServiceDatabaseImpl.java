@@ -18,8 +18,10 @@ package org.opencastproject.series.impl.persistence;
 import org.opencastproject.metadata.dublincore.DublinCore;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
+import org.opencastproject.security.api.AccessControlEntry;
 import org.opencastproject.security.api.AccessControlList;
 import org.opencastproject.security.api.AccessControlParser;
+import org.opencastproject.security.api.SecurityConstants;
 import org.opencastproject.series.impl.SeriesServiceDatabase;
 import org.opencastproject.series.impl.SeriesServiceDatabaseException;
 import org.opencastproject.util.NotFoundException;
@@ -220,6 +222,9 @@ public class SeriesServiceDatabaseImpl implements SeriesServiceDatabase {
       AccessControlList acl = null;
       if (entity.getAccessControl() != null) {
         acl = AccessControlParser.parseAcl(entity.getAccessControl());
+      } else {
+        AccessControlEntry anonymousReadAccess = new AccessControlEntry(SecurityConstants.MH_ANONYMOUS, "read", true);
+        acl = new AccessControlList(anonymousReadAccess);
       }
       return acl;
     } catch (NotFoundException e) {
