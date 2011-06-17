@@ -15,6 +15,7 @@
  */
 package org.opencastproject.scheduler.impl;
 
+import org.opencastproject.mediapackage.EName;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageException;
@@ -630,6 +631,21 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     } catch (WorkflowException e) {
       logger.error("Could not update workflow for event with ID '{}': {}", eventID, e.getMessage());
       throw new SchedulerException(e);
+    }
+  }
+  
+  /**
+   * TODO: Update this function so that it uses a new serivce function with a single transaction so that it is not slow.
+   */
+  public void updateEvents(List<Long> idList, final DublinCoreCatalog eventCatalog)  throws NotFoundException, SchedulerException {
+    for (Long id : idList) {
+      DublinCoreCatalog cat = getEventDublinCore(id);
+      for (EName prop : eventCatalog.getProperties()) {
+        if (!eventCatalog.get(prop).isEmpty()) {
+          cat.set(prop, eventCatalog.get(prop));
+        }
+      }
+      updateEvent(cat);
     }
   }
 

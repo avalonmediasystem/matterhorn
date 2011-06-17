@@ -1236,9 +1236,10 @@ ocScheduler.DeleteForm = function(){
   }
   
   function handleSeriesSearch(data, callback) {
+    var catalogs = data.catalogs;
     var source = [];
-    for (var i in data) {
-      var series = data[i];
+    for (var i in catalogs) {
+      var series = catalogs[i];
       if (ocUtils.exists(series['http://purl.org/dc/terms/'])) {
         series = series['http://purl.org/dc/terms/'];
         var item = {

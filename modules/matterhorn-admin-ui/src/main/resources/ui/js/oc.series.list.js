@@ -17,55 +17,128 @@ ocSeriesList = {} || ocSeriesList;
 ocSeriesList.views = {} || ocSeriesList.views;
 ocSeriesList.views.seriesView = {} || ocSeriesList.seriesView;
 
+ocSeriesList.Configuration = new (function(){
+    //default configuration
+    this.count = 10;
+    this.total = 10;
+    this.startPage = 0;  
+    this.sort = 'TITLE_ASC';  
+});
+
 ocSeriesList.init = function(){
-  $("#addSeriesButton").button({
-    icons:{
-      primary:"ui-icon-circle-plus"
-    }
-  });
-var result = TrimPath.processDOMTemplate("seriesTemplate", ocSeriesList.views);
-  $('#seriesTableContainer').html(result);
+	$("#addSeriesButton").button({
+	    icons:{
+	      primary:"ui-icon-circle-plus"
+	    }
+	});
+
+	ocSeriesList.askForSeries();		
+ 	// pager
+	$('#pageSize').val(ocSeriesList.Configuration.count);
+		    
+	$('#pageSize').change(function(){
+		ocSeriesList.Configuration.count = $(this).val();
+		ocSeriesList.Configuration.startPage = 0;
+		ocSeriesList.askForSeries();		
+	});
+	
 }
 
+ocSeriesList.askForSeries = function(){
+	$.ajax({
+		type : 'GET',
+		dataType : 'json',
+		url : "/series/series.json?"+ocSeriesList.buildURLparams(),
+		success : ocSeriesList.buildSeriesView,
+		error : ocSeriesList.showSeriesTable
+	});
+}
+
+ocSeriesList.showSeriesTable = function(){
+	var result = TrimPath.processDOMTemplate("seriesTemplate", ocSeriesList.views);
+	$('#seriesTableContainer').html(result);
+	
+	$('#pageList').text(" Page "+(ocSeriesList.Configuration.startPage+1));
+	
+       $('.sortable').click( function() {
+      		var sortDesc = $(this).find('.sort-icon').hasClass('ui-icon-circle-triangle-s');
+	       var sortField = $(this).attr('id').substr(4);		
+		$( '#seriesTable th .sort-icon' )
+			.removeClass('ui-icon-circle-triangle-s')
+	      		.removeClass('ui-icon-circle-triangle-n')
+	      		.addClass('ui-icon-triangle-2-n-s');
+      		if (sortDesc) {
+			ocSeriesList.Configuration.sort = sortField.toUpperCase()+"_ASC";
+			ocSeriesList.Configuration.startPage = 0;
+			ocSeriesList.askForSeries();		
+      		} else {
+			ocSeriesList.Configuration.sort = sortField.toUpperCase()+"_DESC";
+			ocSeriesList.Configuration.startPage = 0;
+			ocSeriesList.askForSeries();		
+		}
+    });
+
+    if (ocSeriesList.Configuration.sort != null) {
+	var sortField = ocSeriesList.Configuration.sort.split("_")[0]; 
+	var sortOrder = ocSeriesList.Configuration.sort.split("_")[1];
+
+      var th = $('#sort' + sortField[0]+sortField.toLowerCase().substring(1,sortField.length));
+      $(th).find('.sort-icon').removeClass('ui-icon-triangle-2-n-s');
+      if (sortOrder == 'ASC') {
+        $(th).find('.sort-icon').addClass('ui-icon-circle-triangle-n');
+      } else if (sortOrder == 'DESC') {
+        $(th).find('.sort-icon').addClass('ui-icon-circle-triangle-s');
+      }
+    }
+}
+
+ocSeriesList.buildURLparams = function() {
+    var pa = [];
+    for (p in ocSeriesList.Configuration) {
+      if (ocSeriesList.Configuration[p] != null) {	
+        pa.push(p + '=' + escape(this.Configuration[p]));
+      }
+    }
+    return pa.join('&');
+  }
+ 
+
 ocSeriesList.buildSeriesView = function(data) {
-  ocUtils.log($.isArray(data));
-  for(var i = 0; i < data.length; i++) {
-    var s = ocSeriesList.views.seriesView[data[i]['http://purl.org/dc/terms/']['identifier'][0].value] = {};
-    s.id = data[i]['http://purl.org/dc/terms/']['identifier'][0].value;
-    for(var key in data[i]['http://purl.org/dc/terms/']) {
+  ocSeriesList.Configuration.total = data.totalCount;
+  catalogs = data.catalogs;
+  ocSeriesList.views.seriesView = {};
+  ocUtils.log($.isArray(catalogs));
+  for(var i = 0; i < catalogs.length; i++) {
+    var id = catalogs[i]['http://purl.org/dc/terms/']['identifier'][0].value;
+    var s = ocSeriesList.views.seriesView[id] = {};
+    s.id = id
+    for(var key in catalogs[i]['http://purl.org/dc/terms/']) {
       if(key === 'title'){
-        s.title = data[i]['http://purl.org/dc/terms/'][key][0].value
+        s.title = catalogs[i]['http://purl.org/dc/terms/'][key][0].value
       } else if(key === 'creator') {
-        s.creator = data[i]['http://purl.org/dc/terms/'][key][0].value
+        s.creator = catalogs[i]['http://purl.org/dc/terms/'][key][0].value
       } else if(key  === 'contributor') {
-        s.contributor = data[i]['http://purl.org/dc/terms/'][key][0].value
+        s.contributor = catalogs[i]['http://purl.org/dc/terms/'][key][0].value
       }
     }
   }
-//  if(typeof data.seriesList === 'object'){
-//    if(!$.isArray(data.seriesList.series)){
-//      data.seriesList.series = [data.seriesList.series]
-//    }
-//    $.each(data.seriesList.series, function(i,series){
-//      var s = ocSeriesList.views.seriesView[series.id] = {};
-//      s.id = series.id;
-//      if(typeof series.additionalMetadata === 'object') {
-//        if(!$.isArray(series.additionalMetadata.metadata)){
-//          series.additionalMetadata.metadata = [series.additionalMetadata.metadata];
-//        }
-//        for(var j=0; j < series.additionalMetadata.metadata.length; j++){
-//          var metadata = series.additionalMetadata.metadata[j];
-//          if(metadata.key === 'title'){
-//            s.title = metadata.value;
-//          } else if(metadata.key === 'creator') {
-//            s.creator = metadata.value;
-//          } else if(metadata.key  === 'contributor') {
-//            s.contributor = metadata.value;
-//          }
-//        }
-//      }
-//    });
-//  }
+
+	ocSeriesList.showSeriesTable();	
+}
+
+ocSeriesList.previousPage = function(){
+	if(ocSeriesList.Configuration.startPage > 0) {
+	  ocSeriesList.Configuration.startPage--;
+	  ocSeriesList.askForSeries();
+	}
+}
+
+ocSeriesList.nextPage = function(){
+	  numPages = Math.floor(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count) - 1;
+    if( ocSeriesList.Configuration.startPage < numPages ) {
+      ocSeriesList.Configuration.startPage++;
+      ocSeriesList.askForSeries();
+    }
 }
 
 ocSeriesList.deleteSeries = function(seriesId, title) {

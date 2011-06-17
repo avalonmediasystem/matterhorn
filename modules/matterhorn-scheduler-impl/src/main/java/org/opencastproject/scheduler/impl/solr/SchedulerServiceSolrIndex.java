@@ -75,6 +75,9 @@ public class SchedulerServiceSolrIndex implements SchedulerServiceIndex {
 
   /** Configuration key for an embedded solr configuration and data directory */
   public static final String CONFIG_SOLR_ROOT = "org.opencastproject.scheduler.solr.dir";
+  
+  /** the default scheduler index suffix */
+  public static final String SOLR_ROOT_SUFFIX = "/schedulerindex";
 
   /** Delimeter used for concatenating multivalued fields for sorting fields in solr */
   public static final String SOLR_MULTIVALUED_DELIMETER = "; ";
@@ -146,7 +149,7 @@ public class SchedulerServiceSolrIndex implements SchedulerServiceIndex {
         String storageDir = cc.getBundleContext().getProperty("org.opencastproject.storage.dir");
         if (storageDir == null)
           throw new IllegalStateException("Storage dir must be set (org.opencastproject.storage.dir)");
-        solrRoot = PathSupport.concat(storageDir, "series");
+        solrRoot = PathSupport.concat(storageDir + SOLR_ROOT_SUFFIX, "series");
       }
 
       Object syncIndexingConfig = cc.getProperties().get("synchronousIndexing");

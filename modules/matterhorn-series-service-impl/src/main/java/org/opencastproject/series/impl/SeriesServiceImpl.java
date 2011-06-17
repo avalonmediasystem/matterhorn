@@ -227,6 +227,7 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
     try {
       List<DublinCoreCatalog> result = index.search(query);
       DublinCoreCatalogList dcList = new DublinCoreCatalogList();
+      dcList.setCatalogCount(getSeriesCount());
       dcList.setCatalogList(result);
       return dcList;
     } catch (SeriesServiceDatabaseException e) {
@@ -262,6 +263,15 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
     } catch (SeriesServiceDatabaseException e) {
       logger.error("Exception occurred while retrieving access control rules for series {}: {}", seriesID,
               e.getMessage());
+      throw new SeriesException(e);
+    }
+  }
+  
+  public int getSeriesCount() throws SeriesException {
+    try {
+      return persistence.countSeries();
+    } catch (SeriesServiceDatabaseException e) {
+      logger.error("Exception occured while counting series.", e);
       throw new SeriesException(e);
     }
   }

@@ -54,6 +54,7 @@ var ocUpload = (function() {
           dataType: 'json',
           type: 'GET',
           success: function(data) {
+            data = data.catalogs;
             var series_list = [];
             $.each(data, function(){
               series_list.push({value: this['http://purl.org/dc/terms/']['title'][0].value,

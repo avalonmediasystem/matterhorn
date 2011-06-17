@@ -20,6 +20,7 @@ import org.opencastproject.metadata.dublincore.DublinCoreCatalogList;
 import org.opencastproject.util.NotFoundException;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -218,4 +219,6 @@ public interface SchedulerService {
    *           if exception occurred
    */
   Date getScheduleLastModified(SchedulerQuery filter) throws SchedulerException;
+  
+  void updateEvents(List<Long> idList, final DublinCoreCatalog eventCatalog) throws NotFoundException, SchedulerException;
 }

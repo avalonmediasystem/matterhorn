@@ -50,8 +50,6 @@ ocRecordings = new (function() {
   this.refreshingStats = false; // indicates if JSONP requesting statistics data is in progress
   this.refreshInterval = null;
   this.statsInterval = null;
-  
-  this.bulkEditComponents = {};
 
   // object that holds the workflow and the operation object for the hold state UI currently displayed
   this.Hold = {
@@ -802,7 +800,14 @@ ocRecordings = new (function() {
     $('#applyBulkAction').click(ocRecordings.applyBulkAction);
     
     $('#seriesSelect').autocomplete({
-      source: SERIES_URL + '/search',
+      source: function(search, callback){
+        $.ajax({
+          type: 'get',
+          url: SERIES_URL + '/series.json',
+          data: {q: search.term},
+          success: function(data){ handleSeriesSearch(data, callback); }
+        });
+      },
       select: function(event, ui){
         $('#series').val(ui.item.id);
       },
@@ -833,6 +838,12 @@ ocRecordings = new (function() {
       }
     });
 
+    // Catalogs
+    ocRecordings.dublinCore = new ocAdmin.Catalog({ //DC Metadata catalog
+      name: 'dublincore',
+      serializer: new ocAdmin.DublinCoreSerializer()
+    });
+    
     // set up statistics update
     ocRecordings.startStatisticsUpdate();
 
@@ -844,6 +855,24 @@ ocRecordings = new (function() {
       refresh();    // load and render data for currently set configuration
     }
   };
+  
+  function handleSeriesSearch(data, callback) {
+    var catalogs = data.catalogs;
+    var source = [];
+    for (var i in catalogs) {
+      var series = catalogs[i];
+      if (ocUtils.exists(series['http://purl.org/dc/terms/'])) {
+        series = series['http://purl.org/dc/terms/'];
+        var item = {
+          label: series.title[0].value + ' - ' + series.creator[0].value,
+          value: series.title[0].value,
+          id: series.identifier[0].value
+        }
+        source.push(item);
+      }
+    }
+    callback(source);
+  }
   
   this.removeRecording = function(id, title) {
     if(confirm('Are you sure you wish to delete ' + title + '?')){
@@ -1085,15 +1114,16 @@ ocRecordings = new (function() {
     });
     if(eventIdList.length > 0){
       if(ocRecordings.Configuration.state === 'bulkedit') {
-        manager = new ocAdmin.Manager('event', '', ocRecordings.bulkEditComponents);
-        event = manager.serialize();
         $('#progressIndicator').show();
-        $.post('/scheduler/', 
-        {
-          event: event,
-          idList: '[' + eventIdList.toString() + ']'
-        },
-        ocRecordings.bulkActionComplete);
+        $.ajax({
+          url: '/recordings/bulkaction',
+          type: 'PUT',
+          data: {
+            dublincore: ocRecordings.dublinCore.serialize(),
+            idlist: '[' + eventIdList.toString() + ']'
+          },
+          success: ocRecordings.bulkActionComplete
+        });
       } else if(ocRecordings.Configuration.state === 'bulkdelete') {
         if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming recordings? \nNo record of these will remain. You will need to reschedule if needed.') ){
         progressChunk = (100 / eventIdList.length)
@@ -1152,7 +1182,7 @@ ocRecordings = new (function() {
           });
         }, 250);
       }
-}
+     }
     }
   }
 
@@ -1164,20 +1194,23 @@ ocRecordings = new (function() {
   }
 
   this.registerBulkEditComponents = function() {
-    ocRecordings.bulkEditComponents.title = new ocAdmin.Component(['title'], {
-      label: 'titleLabel'
+    ocRecordings.dublinCore.components.title = new ocAdmin.Component(['title'], {
+      label: 'titleLabel',
+      key: 'title'
     });
-    ocRecordings.bulkEditComponents.creator = new ocAdmin.Component(['creator'], {
-      label: 'creatorLabel'
+    ocRecordings.dublinCore.components.creator = new ocAdmin.Component(['creator'], {
+      label: 'creatorLabel',
+      key: 'creator'
     });
-    ocRecordings.bulkEditComponents.contributor = new ocAdmin.Component(['contributor'], {
-      label: 'contributorLabel'
+    ocRecordings.dublinCore.components.contributor = new ocAdmin.Component(['contributor'], {
+      label: 'contributorLabel',
+      key: 'contributor'
     });
-    ocRecordings.bulkEditComponents.seriesId = new ocAdmin.Component(['series', 'seriesSelect'],
+    ocRecordings.dublinCore.components.seriesId = new ocAdmin.Component(['series', 'seriesSelect'],
     {
       label: 'seriesLabel',
       errorField: 'missingSeries',
-      nodeKey: ['seriesId', 'series'],
+      key: ['isPartOf'],
       required: true
     },
 
@@ -1246,14 +1279,17 @@ ocRecordings = new (function() {
         return creationSucceeded;
       }
     });
-    ocRecordings.bulkEditComponents.subject = new ocAdmin.Component(['subject'], {
-      label: 'subjectLabel'
+    ocRecordings.dublinCore.components.subject = new ocAdmin.Component(['subject'], {
+      label: 'subjectLabel',
+      key: 'subject'
     });
-    ocRecordings.bulkEditComponents.language = new ocAdmin.Component(['language'], {
-      label: 'languageLabel'
+    ocRecordings.dublinCore.components.language = new ocAdmin.Component(['language'], {
+      label: 'languageLabel',
+      key: 'language'
     });
-    ocRecordings.bulkEditComponents.description = new ocAdmin.Component(['description'], {
-      label: 'descriptionLabel'
+    ocRecordings.dublinCore.components.description = new ocAdmin.Component(['description'], {
+      label: 'descriptionLabel',
+      key: 'description'
     });
   }
   
