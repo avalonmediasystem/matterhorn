@@ -127,18 +127,25 @@ public class LdapUserProvider implements UserProvider, ManagedService, CachingUs
    * Connect to LDAP
    */
   private void connect() {
+    logger.debug("connecting to ldap");
     DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(url);
     if (StringUtils.isNotBlank(userDn)) {
+      logger.debug("user dn is not null, loading from properties");
       contextSource.setPassword(password);
       contextSource.setUserDn(userDn);
+      contextSource.setAnonymousReadOnly(false);
+    } else {
+      logger.debug("user dn is null, anonymous");
+      contextSource.setAnonymousReadOnly(true);
     }
-    contextSource.setAnonymousReadOnly(true);
+    
     try {
       contextSource.afterPropertiesSet();
     } catch (Exception e) {
       throw new org.opencastproject.util.ConfigurationException("Unable to create a spring context source", e);
     }
     FilterBasedLdapUserSearch userSearch = new FilterBasedLdapUserSearch(searchBase, searchFilter, contextSource);
+    userSearch.setReturningAttributes(roleAttributesGlob.split(","));
     this.delegate = new LdapUserDetailsService(userSearch);
 
     if (StringUtils.isNotBlank(roleAttributesGlob)) {

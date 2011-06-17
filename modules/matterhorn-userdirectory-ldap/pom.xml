@@ -129,6 +129,7 @@
             <Import-Package>
               !netscape.ldap.ber.stream,
               com.sun.jndi.ldap,
+              com.sun.net.ssl.internal.ssl,
               *;resolution:=optional
             </Import-Package>
             <Export-Package>
