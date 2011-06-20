@@ -652,12 +652,33 @@ public class SchedulerServiceSolrIndex implements SchedulerServiceIndex {
     append(sb, SolrFields.CREATED_KEY, query.getCreatedFrom(), query.getCreatedTo());
     append(sb, SolrFields.STARTS_KEY, query.getStartsFrom(), query.getStartsTo());
     append(sb, SolrFields.ENDS_KEY, query.getEndsFrom(), query.getEndsTo());
+    
+    if (query.getIdsList() != null) {
+      if (sb.length() > 0) {
+        sb.append(" AND ");
+      }
+      sb.append("(");
+      List<String> ids = query.getIdsList();
+      for (int i = 0; i < ids.size(); i++) {
+        String id = ids.get(i);
+        if (StringUtils.isNotEmpty(id)) {
+          sb.append(SolrFields.ID_KEY);
+          sb.append(":");
+          sb.append(ClientUtils.escapeQueryChars(id));
+        }
+        if (i < ids.size() - 1) {
+          sb.append(" OR ");
+        }
+      }
+      sb.append(")");
+    }
 
     // If we're looking for anything, set the query to a wildcard search
     if (sb.length() == 0) {
       sb.append("*:*");
     }
 
+    logger.info("Solr query: " + sb.toString());
     return sb.toString();
   }
 

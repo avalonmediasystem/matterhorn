@@ -29,6 +29,7 @@ import org.opencastproject.metadata.dublincore.EncodingSchemeUtils;
 import org.opencastproject.metadata.dublincore.Precision;
 import org.opencastproject.scheduler.api.SchedulerException;
 import org.opencastproject.scheduler.api.SchedulerQuery;
+import org.opencastproject.scheduler.api.SchedulerQuery.Sort;
 import org.opencastproject.scheduler.api.SchedulerService;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.NotFoundException;
@@ -635,14 +636,27 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
   }
   
   /**
-   * TODO: Update this function so that it uses a new serivce function with a single transaction so that it is not slow.
+   * TODO: Update this function so that it uses a new service function with a single transaction so that it is not slow.
    */
-  public void updateEvents(List<Long> idList, final DublinCoreCatalog eventCatalog)  throws NotFoundException, SchedulerException {
-    for (Long id : idList) {
-      DublinCoreCatalog cat = getEventDublinCore(id);
+  public void updateEvents(List<String> idList, final DublinCoreCatalog eventCatalog)  throws NotFoundException, SchedulerException {
+    SchedulerQuery q = new SchedulerQuery();
+    q.withIdInList(idList);
+    q.withSort(Sort.EVENT_START);
+    List<DublinCoreCatalog> catalogs = search(q).getCatalogList();
+    for (int i = 0; i < catalogs.size(); i++) {
+      DublinCoreCatalog cat = catalogs.get(i);
       for (EName prop : eventCatalog.getProperties()) {
         if (!eventCatalog.get(prop).isEmpty()) {
-          cat.set(prop, eventCatalog.get(prop));
+          List<DublinCoreValue> vals = eventCatalog.get(prop);
+          if (DublinCore.PROPERTY_TITLE.equals(prop)) {
+            List<DublinCoreValue> incrementedVals = new ArrayList<DublinCoreValue>();
+            for (DublinCoreValue v : vals) {
+              incrementedVals.add(new DublinCoreValue(v.getValue().concat(" " + String.valueOf(i + 1)), v.getLanguage(), v.getEncodingScheme()));
+            }
+            cat.set(prop, incrementedVals);
+          } else {
+            cat.set(prop, vals);
+          }
         }
       }
       updateEvent(cat);

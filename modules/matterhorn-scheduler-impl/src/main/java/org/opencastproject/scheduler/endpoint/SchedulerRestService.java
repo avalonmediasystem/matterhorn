@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
 
@@ -373,10 +374,14 @@ public class SchedulerRestService {
     }
     if (!ids.isEmpty() && eventCatalog != null) {
       try {
-        service.updateEvents(ids, eventCatalog);
+        ArrayList<String> stringIds = new ArrayList<String>();
+        for (int i = 0; i < ids.size(); i++) {
+          stringIds.add(Long.toString((Long)ids.get(i)));
+        }
+        service.updateEvents(stringIds, eventCatalog);
         return Response.noContent().type("").build(); // remove content-type, no message-body.
       } catch (Exception e) {
-        logger.warn("Unable to update event with id '{}': {}", ids, e);
+        logger.warn("Unable to update event with id " + ids.toString() + ": {}", e);
         return Response.serverError().build();
       }
     } else {

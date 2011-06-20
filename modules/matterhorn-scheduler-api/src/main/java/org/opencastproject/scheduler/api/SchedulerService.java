@@ -220,5 +220,5 @@ public interface SchedulerService {
    */
   Date getScheduleLastModified(SchedulerQuery filter) throws SchedulerException;
   
-  void updateEvents(List<Long> idList, final DublinCoreCatalog eventCatalog) throws NotFoundException, SchedulerException;
+  void updateEvents(List<String> idList, final DublinCoreCatalog eventCatalog) throws NotFoundException, SchedulerException;
 }

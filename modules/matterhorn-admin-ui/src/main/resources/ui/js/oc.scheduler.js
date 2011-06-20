@@ -137,6 +137,7 @@ var ocScheduler = (function() {
           success: function(data) {
             var series_list = [];
             $.each(data, function(){
+              console.log(this);
               series_list.push({value: this['http://purl.org/dc/terms/']['title'][0].value,
                                 id: this['http://purl.org/dc/terms/']['identifier'][0].value});
             });
