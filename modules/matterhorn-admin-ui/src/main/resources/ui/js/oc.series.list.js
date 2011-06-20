@@ -134,7 +134,7 @@ ocSeriesList.previousPage = function(){
 }
 
 ocSeriesList.nextPage = function(){
-	  numPages = Math.floor(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count) - 1;
+	  numPages = Math.floor(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count);
     if( ocSeriesList.Configuration.startPage < numPages ) {
       ocSeriesList.Configuration.startPage++;
       ocSeriesList.askForSeries();
