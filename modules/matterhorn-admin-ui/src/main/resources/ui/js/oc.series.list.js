@@ -58,7 +58,7 @@ ocSeriesList.showSeriesTable = function(){
 	var result = TrimPath.processDOMTemplate("seriesTemplate", ocSeriesList.views);
 	$('#seriesTableContainer').html(result);
 	
-	$('#pageList').text(" Page "+(ocSeriesList.Configuration.startPage+1));
+	$('#pageList').text((ocSeriesList.Configuration.startPage+1) + " of " + Math.ceil(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count));
 	
        $('.sortable').click( function() {
       		var sortDesc = $(this).find('.sort-icon').hasClass('ui-icon-circle-triangle-s');
