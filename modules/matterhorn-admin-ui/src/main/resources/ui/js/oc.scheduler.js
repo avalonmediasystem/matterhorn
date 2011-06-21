@@ -297,19 +297,6 @@ var ocScheduler = (function() {
     }
     
     if(!error) {
-      /*$('#submitButton').attr('disabled', 'disabled');
-      $('#submitModal').dialog({
-        modal: true,
-        resizable: false,
-        draggable: false,
-        close: function() { 
-          document.location = RECORDINGS_URL;
-        },
-        create: function (event, ui)
-        {
-          $('.ui-dialog-titlebar-close').hide();
-        }
-      });*/
       if(ocUtils.getURLParam('edit')) {
         $.ajax({type: 'PUT',
                 url: SCHEDULER_URL + '/' + $('#eventId').val(),
@@ -333,21 +320,6 @@ var ocScheduler = (function() {
   sched.cancelForm = function() {
     document.location = 'recordings.html';
   };
-
-/*
-ocScheduler.DeleteForm = function(){
-  var title, series, creator;
-  if(confirm(i18n.del.confirm)){
-    $.ajax(SCHEDULER_URL + '/removeEvent/' + $('#eventId').val(), function(){
-      title = ocScheduler.components.title.asString() || 'No Title';
-      series = ocScheduler.components.seriesId.asString() || 'No Series';
-      creator = ocScheduler.components.creator.asString() || 'No Creator';
-      $('#i18n_del_msg').text(i18n.del.msg(title, series, '(' + creator + ')'));
-      $('#stage').hide();
-      $('#deleteBox').show();
-    });
-  }
-};*/
 
   sched.handleAgentChange = function(elm){
     var time;
@@ -510,60 +482,6 @@ ocScheduler.DeleteForm = function(){
         cache: false
       });
     }
-    /*
-    var event = doc.event;
-    var workflowProperties = {};
-    var additionalMetadata;
-    if(typeof event.additionalMetadata.metadata != 'undefined') {
-     additionalMetadata = event.additionalMetadata.metadata;
-      for(var i in additionalMetadata){
-        var item = additionalMetadata[i];
-        if(item.key.indexOf('org.opencastproject.workflow') > -1) {
-          workflowProperties[item.key] = item.value
-        } else { //flatten additional metadata into event
-          event[item.key] = item.value
-        }
-      }
-    }
-    if(event['resources']){
-      //store the selected inputs for use when getting the capabilities.
-      sched.selectedInputs = event['resources'];
-    }
-    if(event['seriesId']){
-      $.get(SERIES_URL + '/' + event['seriesId'] + '.json', function(data){
-        var series = {id: data.series.id};
-        if(data.series.additionalMetadata){
-          if(!$.isArray(data.series.additionalMetadata.metadata)){
-            md = [data.series.additionalMetadata.metadata];
-          } else {
-            md = data.series.additionalMetadata.metadata;
-          }
-          for(var i in md){
-            if(typeof md[i].key != 'undefined' && md[i].key === 'title') {
-              series.label = md[i].value;
-            }
-          }
-        }
-        ocScheduler.components.seriesId.setValue(series);
-      });
-      delete event.seriesId;
-    }
-    if(workflowProperties['org.opencastproject.workflow.definition']) {
-      ocScheduler.additionalMetadataComponents.workflowDefinition.setValue(workflowProperties['org.opencastproject.workflow.definition']);
-      ocWorkflow.definitionSelected(workflowProperties['org.opencastproject.workflow.definition'],
-        $('#workflowConfigContainer'),
-        function(){
-          if(ocWorkflowPanel && ocWorkflowPanel.registerComponents && ocWorkflowPanel.setComponentValues) {
-            ocWorkflowPanel.registerComponents(ocScheduler.FormManager.workflowComponents);
-            ocWorkflowPanel.setComponentValues(workflowProperties, ocScheduler.FormManager.workflowComponents);
-          } else {
-            ocUtils.log("Couldn't register workflow panel components");
-          }
-        });
-    }
-    ocScheduler.FormManager.populate(event)
-    $('#agent').change(); //update the selected agent's capabilities
-    */
   }
 
   sched.eventSubmitComplete = function(xhr, status) {
@@ -771,6 +689,7 @@ ocScheduler.DeleteForm = function(){
             }
             var duration = this.fields.recurDurationHour.val() * 3600; // seconds per hour
             duration += this.fields.recurDurationMin.val() * 60; // seconds per min
+            duration = duration * 1000;
             ocUtils.log(start, duration);
           }
         });
@@ -1104,7 +1023,8 @@ ocScheduler.DeleteForm = function(){
                 start = start * 1000; //back to milliseconds
               }
               var end = this.fields.durationHour.val() * 3600; // seconds per hour
-              end += this.fields.durationMin.val() * 60 * 1000; // milliseconds per min
+              end += this.fields.durationMin.val() * 60; // milliseconds per min
+              end = end * 1000;
               end += start;
               ocUtils.log(start, end);
               return 'start=' + ocUtils.toISODate(new Date(start)) + 
