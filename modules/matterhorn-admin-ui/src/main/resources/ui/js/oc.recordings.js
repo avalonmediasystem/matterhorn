@@ -1051,6 +1051,7 @@ ocRecordings = new (function() {
         $('#bulkDeletePanel').hide();
         $('#bulkActionApply').show();
         $('#cancelBulkAction').hide();
+        $('#i18n_button_apply_bulk_action').html("Apply Changes");
         ocRecordings.registerBulkEditComponents();
         ocRecordings.Configuration.state = 'bulkedit'
       } else if (action === 'delete') {
@@ -1059,6 +1060,7 @@ ocRecordings = new (function() {
         $('#bulkDeletePanel').show();
         $('#bulkActionApply').show();
         $('#cancelBulkAction').hide();
+        $('#i18n_button_apply_bulk_action').html("Delete Recordings");
         ocRecordings.Configuration.state = 'bulkdelete'
       }
         refresh();
@@ -1210,7 +1212,7 @@ ocRecordings = new (function() {
     {
       label: 'seriesLabel',
       errorField: 'missingSeries',
-      key: ['isPartOf'],
+      key: 'isPartOf',
       required: true
     },
 
@@ -1347,7 +1349,7 @@ ocRecordings = new (function() {
         links.push('<a href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Ignore</a>');
       }
     });
-    return links.join(' \n');
+    return links.join(' | \n');
   }
 
   return this;
