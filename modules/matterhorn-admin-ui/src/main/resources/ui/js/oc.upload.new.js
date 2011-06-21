@@ -400,10 +400,10 @@ ocUpload.Ingest = (function() {
     var series = $('#series').val();
     var seriesId = $('#ispartof').val();
     if (series && seriesId) {
-      //var seriesId = $('#ispartof').val();
-      //if (!seriesId) {
-      //  seriesId = createSeries(series);
-      //}
+      var seriesId = $('#ispartof').val();
+      if (!seriesId) {
+        seriesId = createSeries(series);
+      }
       MediaPackage.elements.push(
         new MediaPackageElement('seriesDC', ELEMENT_TYPE.CATALOG, 'dublincore/series', getSeriesCatalog(seriesId)));
       ocUtils.log("Added Dublin Core catalog for series");

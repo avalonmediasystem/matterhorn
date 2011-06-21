@@ -690,7 +690,7 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
     }
 
     List<DublinCoreCatalog> result;
-
+    
     try {
       QueryResponse response = solrServer.query(solrQuery);
       SolrDocumentList items = response.getResults();

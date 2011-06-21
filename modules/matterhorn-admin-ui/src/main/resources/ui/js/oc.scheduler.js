@@ -136,12 +136,15 @@ var ocScheduler = (function() {
           type: 'GET',
           success: function(data) {
             var series_list = [];
+            data = data.catalogs;
             $.each(data, function(){
               console.log(this);
-              series_list.push({value: this['http://purl.org/dc/terms/']['title'][0].value,
-                                id: this['http://purl.org/dc/terms/']['identifier'][0].value});
+              series_list.push({
+                value: this['http://purl.org/dc/terms/']['title'][0].value,
+                id: this['http://purl.org/dc/terms/']['identifier'][0].value
+              });
             });
-            series_list.sort(function stringComparison(a, b)	{
+            series_list.sort(function stringComparison(a, b) {
               a = a.value;
               a = a.toLowerCase();
               a = a.replace(/ä/g,"a");
@@ -575,7 +578,7 @@ var ocScheduler = (function() {
         },
         validate: function() {
           if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === '') { //have text and no id
-            return false; //this.createSeriesFromSearchText();
+            this.createSeriesFromSearchText();
           }
           return true; //nothing, or we have an id.
         },
@@ -691,6 +694,12 @@ var ocScheduler = (function() {
             duration += this.fields.recurDurationMin.val() * 60; // seconds per min
             duration = duration * 1000;
             ocUtils.log(start, duration);
+          },
+          setValue: function(val) {
+            var temporal = parseDublinCoreTemporal(val);
+            ocScheduler.recording.components.recurrenceStart.setValue(temporal.start);
+            ocScheduler.recording.components.recurrenceEnd.setValue(temporal.end);
+            ocScheduler.recording.components.recurrenceDuration.setValue(temporal.dur);
           }
         });
       
@@ -1029,6 +1038,11 @@ var ocScheduler = (function() {
               ocUtils.log(start, end);
               return 'start=' + ocUtils.toISODate(new Date(start)) + 
                 '; end=' + ocUtils.toISODate(new Date(end)) + '; scheme=W3C-DTF;';
+            },
+            setValue: function(val) {
+              var temporal = parseDublinCoreTemporal(val);
+              ocScheduler.recording.components.startDate.setValue(temporal.start);
+              ocScheduler.recording.components.duration.setValue(temporal.dur);
             }
           });
       
@@ -1199,6 +1213,16 @@ var ocScheduler = (function() {
       }
     }
     callback(source);
+  }
+  
+  function parseDublinCoreTemporal(temporal) {
+    period = temporal.split(' ');
+    var start = period[0].slice(period[0].indexOf('=') + 1, -1);
+    var end = period[1].slice(period[1].indexOf('=') + 1, -1);
+    start = ocUtils.fromUTCDateString(start).getTime();
+    end = ocUtils.fromUTCDateString(end).getTime();
+    var duration = end - start;
+    return {start: start, end: end, dur: duration};
   }
   
   return sched;

@@ -1235,7 +1235,7 @@ ocRecordings = new (function() {
       },
       validate: function(){
         if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === ''){ //have text and no idea
-          return false; // this.createSeriesFromSearchText();
+          this.createSeriesFromSearchText();
         }
         return true; //nothing, or we have an id.
       },
