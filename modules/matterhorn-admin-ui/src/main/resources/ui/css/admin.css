@@ -64,7 +64,7 @@ table tr:hover a:hover { text-decoration: underline!important; }
 #bulkHeader {height:13px !important;}
 
 #holdActionPanelIframe { border: medium none; width: 100%; height:400px;}
-.recordings-bulk-action { border: 1px solid #CCCCCC; padding: 20px; width: 840px; display: none; }
+.recordings-bulk-action { border: 1px solid #CCCCCC; padding: 20px; width: 840px; display: none; margin-top: 10px; }
 #refreshControlsContainer, #perPageContainer, #goToPage { text-align: center; float: left; margin: 10px 10px 0 0; padding: 2px 5px;}
 #prevPage { float: left; }
 #pageWidget { float: right; }
