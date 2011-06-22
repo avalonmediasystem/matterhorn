@@ -193,3 +193,5 @@ table#agentsTable th, table#seriesTable th, table#recordingsTable th, table#stat
 .rolePrivilegeTable .roleName {padding-right:20px;}*/
 
 .informationText {font-size: 90%; color:grey; margin: 5px 10px 5px 10px;}
+
+.label-error {color: red;}

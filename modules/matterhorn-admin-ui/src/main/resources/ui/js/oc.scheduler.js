@@ -35,18 +35,22 @@ var ocScheduler = (function() {
   sched.tzDiff            = 0;
   
   // Catalogs
+  sched.catalogs = [];
   sched.dublinCore = new ocAdmin.Catalog({ //DC Metadata catalog
     name: 'dublincore',
     serializer: new ocAdmin.DublinCoreSerializer()
   });
+  sched.catalogs.push(sched.dublinCore);
   sched.recording = new ocAdmin.Catalog({ // Additional Recording properties
     name: 'event',
     serializer: new ocAdmin.Serializer()
   });
+  sched.catalogs.push(sched.recording);
   sched.capture = new ocAdmin.Catalog({ //Workflow Properties
     name: 'agentparameters',
     serializer: new ocAdmin.Serializer()
   });
+  sched.catalogs.push(sched.capture);
 
   sched.init = function init(){
     this.internationalize();
@@ -131,7 +135,7 @@ var ocScheduler = (function() {
     $('#seriesSelect').autocomplete({
       source: function(request, response) {
         $.ajax({
-          url: SERIES_URL + '/series.json?q=' + request.term,
+          url: SERIES_URL + '/series.json',
           data: {
             q: request.term,
             sort: 'TITLE'
@@ -256,6 +260,7 @@ var ocScheduler = (function() {
       if(!$('#seriesRequired')[0]){
         $('#seriesContainer label').prepend('<span id="seriesRequired" class="scheduler-required-text">* </span>'); //series is required, indicate as such.
       }
+      this.dublinCore.components.seriesId.required = true;
       this.recording.components.recurrenceStart.setValue(d.getTime().toString());
     }
     this.loadKnownAgents();
@@ -265,27 +270,31 @@ var ocScheduler = (function() {
     var payload = {};
     var error = false;
     
+    hideUserMessages();
+    
     if(ocScheduler.conflictingEvents) {
       $('#missingFieldsContainer').show();
       $('#errorConflict').show();
       $('#errorConflict li').show();
-      return;
     }
     
     $.extend(true, sched.capture.components, ocScheduler.workflowComponents);
     
-    payload[sched.dublinCore.name] = sched.dublinCore.serialize();
-    payload[sched.recording.name] = sched.recording.serialize();
-    payload[sched.capture.name] = sched.capture.serialize();
-    
-    for(var i in payload) {
-      if(payload[i] === false) {
-        error = true;
-        //handle error
-      }
+    var errors = [];
+    for (var i in sched.catalogs) {
+       var serializedCatalog = sched.catalogs[i].serialize();
+       if (!serializedCatalog) {
+         errors = errors.concat(sched.catalogs[i].getErrors());
+       } else {
+         payload[sched.catalogs[i].name] = serializedCatalog;
+       }
     }
     
-    if(!error) {
+    ocUtils.log(payload);
+    
+    if(errors.length > 0) {
+      showUserMessages(errors);
+    } else {
       if(ocUtils.getURLParam('edit')) {
         $.ajax({type: 'PUT',
                 url: SCHEDULER_URL + '/' + $('#eventId').val(),
@@ -487,7 +496,7 @@ var ocScheduler = (function() {
       start: 0,
       end: 0
     };
-    this.conflictingEvents = false;
+    sched.conflictingEvents = false;
     $('#missingFieldsContainer').hide();
     $('#missingFieldsContainer li').hide();
     $('#errorConflict').hide();
@@ -541,11 +550,18 @@ var ocScheduler = (function() {
     var dcComps = {};
     var extraComps = {};
     
-    dcComps.title = new ocAdmin.Component(['title'], { key: 'title', required: true });
+    dcComps.title = new ocAdmin.Component(['title'], { key: 'title', required: true,
+      errors: { missingRequired: new ocAdmin.Error('missingTitle', 'titleLabel') }
+    });
     dcComps.creator = new ocAdmin.Component(['creator'], { key: 'creator' });
     dcComps.contributor = new ocAdmin.Component(['contributor'], { key: 'contributor' });
     dcComps.seriesId = new ocAdmin.Component(['series', 'seriesSelect'],
-      { required: true, key: 'isPartOf' },
+      { required: false, key: 'isPartOf',
+        errors: { 
+          missingRequired: new ocAdmin.Error('missingSeries', 'seriesLabel'),
+          seriesError: new ocAdmin.Error('errorSeries')
+        }
+      },
       { getValue: function() { 
           if(this.fields.series) {
             this.value = this.fields.series.val();
@@ -563,10 +579,16 @@ var ocScheduler = (function() {
           return this.getValue() + '';
         },
         validate: function() {
+          var error = [];
           if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === '') { //have text and no id
-            this.createSeriesFromSearchText();
+            if(!this.createSeriesFromSearchText()) {
+              error.push(this.errors.seriesError); //failed to create series for some reason.
+            }
           }
-          return true; //nothing, or we have an id.
+          if(this.fields.series.val() === '' && this.required) {
+            error.push(this.errors.missingRequired);
+          }
+          return error;
         },
         toNode: function(parent) {
           if(parent) {
@@ -605,6 +627,9 @@ var ocScheduler = (function() {
               success: function(data){
                 creationSucceeded = true;
                 seriesComponent.fields.series.val(data.series.id);
+              },
+              error: function() {
+                creationSucceeded = false;
               }
             });
           }
@@ -615,7 +640,9 @@ var ocScheduler = (function() {
     dcComps.language = new ocAdmin.Component(['language'], { key: 'language' });
     dcComps.description = new ocAdmin.Component(['description'], { key: 'description' });
     extraComps.resources = new ocAdmin.Component([],
-      { key: 'capture.device.names' },
+      { key: 'capture.device.names', required: true,
+        errors: { missingRequired: new ocAdmin.Error('missingInputs', 'inputLabel') }
+      },
       { getValue: function() {
           var selected = [];
           for(var el in this.fields){
@@ -639,23 +666,13 @@ var ocScheduler = (function() {
               e[0].checked = false;
             }
           }
-        },
-        validate: function() {
-          var checked = false;
-          for(var el in this.fields) {
-            if(this.fields[el][0].checked) {
-              checked = true;
-              break;
-            }
-          }
-          return checked;
         }
       });
 
     extraComps.workflowDefinition = new ocAdmin.Component(['workflowSelector'], {key: 'org.opencastproject.workflow.definition'});
     
     if(sched.type === MULTIPLE_EVENTS){
-      //Series validation override for recurring events.
+      /*//Series validation override for recurring events.
       dcComps.seriesId.validate = function() {
         if(this.fields.series.val() !== '') { //Already have an id
           return true;
@@ -663,7 +680,7 @@ var ocScheduler = (function() {
           return this.createSeriesFromSearchText();
         }
         return false; //nothing
-      };
+      };*/
       
       dcComps.temporal = new ocAdmin.Component(['recurDurationHour', 'recurDurationMin', 'recurStart', 'recurStartTimeHour', 'recurStartTimeMin'],
         { key: 'temporal'},
@@ -690,7 +707,9 @@ var ocScheduler = (function() {
         });
       
       recComps.recurrenceStart = new ocAdmin.Component(['recurStart', 'recurStartTimeHour', 'recurStartTimeMin'],
-        { required: true, key: 'startDate' },
+        { required: true, key: 'startDate',
+          errors: { missingRequired: new ocAdmin.Error('errorRecurStartEnd', ['recurStartLabel', 'recurStartTimeLabel']) }
+        },
         { getValue: function() {
             var date, start;
             date = this.fields.recurStart.datepicker('getDate');
@@ -728,11 +747,11 @@ var ocScheduler = (function() {
               if(date && this.fields.recurStartTimeHour && this.fields.recurStartTimeMin) {
                 startdatetime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), this.fields.recurStartTimeHour.val(), this.fields.recurStartTimeMin.val());
                 if(startdatetime.getTime() >= now.getTime()) {
-                  return true;
+                  return [];
                 }
               }
             }
-            return false;
+            return this.errors.missingRequired;
           },
           asString: function() {
             return (new Date(this.getValue())).toLocaleString();
@@ -740,7 +759,9 @@ var ocScheduler = (function() {
         });
       
       recComps.recurrenceDuration = new ocAdmin.Component(['recurDurationHour', 'recurDurationMin'],
-        { required: true, key: 'duration' },
+        { required: true, key: 'duration',
+          errors: { missingRequired: new ocAdmin.Error('missingDuration', 'recurDurationLabel') }
+        },
         { getValue: function() {
             if(this.validate()) {
               duration = this.fields.recurDurationHour.val() * 3600; // seconds per hour
@@ -768,9 +789,9 @@ var ocScheduler = (function() {
           },
           validate: function() {
             if(this.fields.recurDurationHour && this.fields.recurDurationMin && (this.fields.recurDurationHour.val() != '0' || this.fields.recurDurationMin.val() != '0')) {
-              return true;
+              return [];
             }
-            return false;
+            return this.errors.missingRequired;
           },
           asString: function() {
             var dur = this.getValue() / 1000;
@@ -781,7 +802,9 @@ var ocScheduler = (function() {
         });
   
       recComps.recurrenceEnd = new ocAdmin.Component(['recurEnd', 'recurStart', 'recurStartTimeHour', 'recurStartTimeMin'],
-        { required: true, key: 'endDate' },
+        { required: true, key: 'endDate',
+          errors: { missingRequired: new ocAdmin.Error('errorRecurStartEnd', 'recurEndLabel') }
+        },
         { getValue: function() {
             var date, end;
             if(this.validate()) {
@@ -808,9 +831,9 @@ var ocScheduler = (function() {
             if(this.fields.recurEnd.datepicker && this.fields.recurStart.datepicker &&    // ocScheduler.components.recurrenceDuration.validate() &&
                this.fields.recurStartTimeHour && this.fields.recurStartTimeMin &&
                this.fields.recurEnd.datepicker('getDate') > this.fields.recurStart.datepicker('getDate')) {
-              return true;
+              return [];
             }
-            return false;
+            return this.errors.missingRequired;
           },
           asString: function() {
             return (new Date(this.getValue())).toLocaleString();
@@ -818,7 +841,9 @@ var ocScheduler = (function() {
         });
   
       dcComps.device = new ocAdmin.Component(['recurAgent'],
-        { required: true, key: 'spatial' },
+        { required: true, key: 'spatial',
+          errors: { missingRequired: new ocAdmin.Error('missingAgent', 'recurAgentLabel') }
+        },
         { getValue: function(){
             if(this.fields.recurAgent) {
               this.value = this.fields.recurAgent.val();
@@ -847,17 +872,13 @@ var ocScheduler = (function() {
               }
               this.fields.recurAgent.val(agentId);
             }
-          },
-          validate: function() {
-            if(this.getValue()) {
-              return true;
-            }
-            return false;
           }
         });
   
       recComps.recurrence = new ocAdmin.Component(['scheduleRepeat', 'repeatSun', 'repeatMon', 'repeatTue', 'repeatWed', 'repeatThu', 'repeatFri', 'repeatSat'],
-        { required: true, key: 'recurrence' },
+        { required: true, key: 'recurrence',
+          errors: { missingRequired: new ocAdmin.Error('errorRecurrence', 'recurrenceLabel') }
+        },
         { getValue: function() {
             var rrule, dotw, days, date, hour, min, dayOffset;
             if(this.validate()) {
@@ -949,11 +970,11 @@ var ocScheduler = (function() {
                 if(ocScheduler.recording.components.recurrenceStart.validate() &&
                    // ocScheduler.components.recurrenceDuration.validate() &&
                    ocScheduler.recording.components.recurrenceEnd.validate()) {
-                  return true;
+                  return [];
                 }
               }
             }
-            return false;
+            return this.errors.missingRequired;
           },
           toNode: function(parent) {
             for(var el in this.fields) {
@@ -1033,7 +1054,9 @@ var ocScheduler = (function() {
           });
       
       recComps.startDate = new ocAdmin.Component(['startDate', 'startTimeHour', 'startTimeMin'],
-        { required: true, key: 'startDate' },
+        { required: true, key: 'startDate',
+          errors: { missingRequired: new ocAdmin.Error('missingStartdate', ['startDateLabel', 'startTimeLabel']) }
+        },
         { getValue: function() {
             var date = 0;
             date = this.fields.startDate.datepicker('getDate').getTime() / 1000; // Get date in milliseconds, convert to seconds.
@@ -1072,9 +1095,9 @@ var ocScheduler = (function() {
                                        this.fields.startTimeHour.val(),
                                        this.fields.startTimeMin.val());
               if(startdatetime.getTime() >= now.getTime()) {
-                return true;
+                return [];
               }
-              return false;
+              return this.errors.missingRequired;
             }
           },
           asString: function() {
@@ -1083,7 +1106,7 @@ var ocScheduler = (function() {
         });
   
       recComps.duration = new ocAdmin.Component(['durationHour', 'durationMin'],
-        { key: 'duration', required: true },
+        { key: 'duration', required: true, errors: {missingRequired: new ocAdmin.Error('missingDuration', 'durationLabel')} },
         { getValue: function() {
             if(this.validate()) {
               duration = this.fields.durationHour.val() * 3600; // seconds per hour
@@ -1111,9 +1134,9 @@ var ocScheduler = (function() {
           },
           validate: function() {
             if(this.fields.durationHour && this.fields.durationMin && (this.fields.durationHour.val() !== '0' || this.fields.durationMin.val() !== '0')){
-              return true;
+              return [];
             }
-            return false;
+            return this.errors.missingRequired;
           },
           toNode: function(parent) {
             var duration, endDate, doc;
@@ -1140,7 +1163,9 @@ var ocScheduler = (function() {
         });
   
       dcComps.device = new ocAdmin.Component(['agent'],
-        { required: true, key: 'spatial' },
+        { required: true, key: 'spatial',
+          errors: { missingRequired: new ocAdmin.Error('missingAgent', 'agentLabel') }
+        },
         { getValue: function() {
             if(this.fields.agent) {
               this.value = this.fields.agent.val();
@@ -1169,12 +1194,6 @@ var ocScheduler = (function() {
               }
               this.fields.agent.val(agentId);
             }
-          },
-          validate: function() {
-            if(this.getValue()) {
-              return true;
-            }
-            return false;
           }
         });
     }
@@ -1209,6 +1228,28 @@ var ocScheduler = (function() {
     end = ocUtils.fromUTCDateString(end).getTime();
     var duration = end - start;
     return {start: start, end: end, dur: duration};
+  }
+  
+  function showUserMessages(errors, type) {
+    type = type || 'error';
+    if(type === 'error' && $('#missingFieldsContainer').css('display') === 'none') {
+      $('#missingFieldsContainer').show();
+    } else {
+      $('#missingFieldsContainer li').hide();
+    }
+    for(var i in errors) {
+      $('#' + errors[i].name).show();
+      for(var j in errors[i].label) {
+        var label = errors[i].label[j];
+        $('#' + label).addClass('label-error');
+      } 
+    }
+  }
+  
+  function hideUserMessages() {
+    $('#missingFieldsContainer').hide();
+    $('#missingFieldsContainer li').hide();
+    $('.label-error').removeClass('label-error');
   }
   
   return sched;
