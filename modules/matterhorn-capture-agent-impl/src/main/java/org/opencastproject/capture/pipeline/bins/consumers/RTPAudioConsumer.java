@@ -18,22 +18,22 @@ import java.util.Properties;
 
 public class RTPAudioConsumer extends ConsumerBin {
   // Used to encode the audio stream for RTP transmitting.
-  Element encoder;
+  private Element encoder;
   // Used to package the encoded audio into RTP packets
-  Element rtpPayloader;
+  private Element rtpPayloader;
   // Bin used to control the RTP stream through RTCP and transmit the audio.
-  Element gstRTPBin; 
+  private Element gstRTPBin; 
   // Used to receive RTCP control signals
-  Element rtcpUDPSrc;
+  private Element rtcpUDPSrc;
   //Used to send RTCP control signals
-  Element rtcpUDPSink;
+  private Element rtcpUDPSink;
   // Used to transmit the RTP packets
-  Element rtpUDPSink;
+  private Element rtpUDPSink;
 
-  String hostName = "128.233.104.69";
-  String rtpSendPort = "5002";
-  String rtcpSendPort = "5003";
-  String rtcpReceivePort = "5007";
+  private String hostName = "128.233.104.69";
+  private String rtpSendPort = "5002";
+  private String rtcpSendPort = "5003";
+  private String rtcpReceivePort = "5007";
   
   /**
    * Creates a consumer that takes in an audio source such as an alsa or pulse source and streams it using RTP. This is
