@@ -234,7 +234,11 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
           throws WorkflowException, MediaPackageException {
     // Build a mediapackage using the event metadata
     MediaPackage mediapackage = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder().createNew();
-    populateMediapackageWithStandardDCFields(mediapackage, event);
+    try {
+      populateMediapackageWithStandardDCFields(mediapackage, event);
+    } catch (Exception e) {
+      throw new MediaPackageException(e);
+    }
 
     mediapackage.setDate(startDate);
     mediapackage.setDuration(endDate.getTime() - startDate.getTime());
@@ -292,7 +296,13 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     }
 
     // set new values
+    try {
     populateMediapackageWithStandardDCFields(mediapackage, event);
+    } catch (NotFoundException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new SchedulerException(e);
+    }
 
     mediapackage.setDate(startDate);
     mediapackage.setDuration(endDate.getTime() - startDate.getTime());
@@ -316,11 +326,22 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * @param catalog
    *          {@link DublinCoreCatalog} for event
    */
-  private void populateMediapackageWithStandardDCFields(MediaPackage mediapackage, DublinCoreCatalog catalog) {
+  private void populateMediapackageWithStandardDCFields(MediaPackage mediapackage, DublinCoreCatalog catalog) throws Exception {
     mediapackage.setTitle(catalog.getFirst(DublinCore.PROPERTY_TITLE));
     mediapackage.setLanguage(catalog.getFirst(DublinCore.PROPERTY_LANGUAGE));
     mediapackage.setLicense(catalog.getFirst(DublinCore.PROPERTY_LICENSE));
     mediapackage.setSeries(catalog.getFirst(DublinCore.PROPERTY_IS_PART_OF));
+    
+    if (StringUtils.isNotEmpty(mediapackage.getSeries())) {
+      try {
+        DublinCoreCatalog s = seriesService.getSeries(catalog.getFirst(DublinCore.PROPERTY_IS_PART_OF));
+        mediapackage.setSeriesTitle(s.getFirst(DublinCore.PROPERTY_TITLE));
+      } catch (Exception e) {
+        logger.error("Unable to find series: " + catalog.getFirst(DublinCore.PROPERTY_IS_PART_OF), e);
+        throw e;
+      }
+    }
+    
     for (DublinCoreValue value : catalog.get(DublinCore.PROPERTY_CREATOR)) {
       mediapackage.addCreator(value.getValue());
     }
