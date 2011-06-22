@@ -72,12 +72,14 @@ public final class ConsumerFactory {
           CaptureDeviceNullPointerException, UnableToCreateElementException {
     if (consumerType == ConsumerType.AUDIO_FILE_SINK)
       return new AudioFilesinkConsumer(captureDevice, properties);
+    else if (consumerType == ConsumerType.CUSTOM_CONSUMER)
+      return new CustomConsumer(captureDevice, properties);
+    else if (consumerType == ConsumerType.RTP_AUDIO_CONSUMER)
+      return new RTPAudioConsumer(captureDevice, properties);
     else if (consumerType == ConsumerType.XVIMAGE_SINK)
       return new XVImagesinkConsumer(captureDevice, properties);
     else if (consumerType == ConsumerType.VIDEO_FILE_SINK)
       return new VideoFilesinkConsumer(captureDevice, properties);
-    else if (consumerType == ConsumerType.CUSTOM_CONSUMER)
-      return new CustomConsumer(captureDevice, properties);
     else {
       throw new NoConsumerFoundException("No valid SinkBin found for device " + consumerType);
     }

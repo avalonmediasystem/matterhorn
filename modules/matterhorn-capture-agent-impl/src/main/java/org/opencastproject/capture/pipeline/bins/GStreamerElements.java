@@ -41,12 +41,17 @@ public interface GStreamerElements {
   String XVIMAGESINK = "xvimagesink";
 
   /** Source Module: gst-plugins-good **/
+  String ALAWENC = "alawenc";
   String DV1394SRC = "dv1394src";
   String DVDEC = "dvdec";
   String DVDEMUX = "dvdemux";
+  String GSTRTPBIN = "gstrtpbin";
   String MULTIFILESRC = "multifilesrc";
   String PNGDEC = "pngdec";
   String PULSESRC = "pulsesrc";
+  String RTPPCMAPAY = "rtppcmapay";
+  String UDPSINK = "udpsink";
+  String UDPSRC = "udpsrc";
   String V4L2SRC = "v4l2src";
 
   /** Source Module: gst-plugins-bad **/

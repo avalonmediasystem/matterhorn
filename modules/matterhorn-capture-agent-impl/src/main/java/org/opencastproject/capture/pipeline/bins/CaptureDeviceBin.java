@@ -207,7 +207,8 @@ public class CaptureDeviceBin {
     if (producerBin.isVideoDevice()) {
       consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.VIDEO_FILE_SINK, captureDevice, properties);
     } else {
-      consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.AUDIO_FILE_SINK, captureDevice, properties);
+      //consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.AUDIO_FILE_SINK, captureDevice, properties);
+      consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.RTP_AUDIO_CONSUMER, captureDevice, properties);
     }
     consumerBins.add(consumerBin);
   }
