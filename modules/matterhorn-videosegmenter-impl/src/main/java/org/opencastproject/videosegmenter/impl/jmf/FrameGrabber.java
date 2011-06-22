@@ -206,7 +206,7 @@ public class FrameGrabber implements DataSink, BufferTransferHandler {
       return;
     } catch (IllegalMonitorStateException illegalMonitorStateException) {
       // Added to deal with MH-7924 even though it isn't explicitly defined in the API as a possible exception.
-      sendEvent(new DataSinkErrorEvent(this, e.getMessage()));
+      sendEvent(new DataSinkErrorEvent(this, illegalMonitorStateException.getMessage()));
       return;
     }
   }
