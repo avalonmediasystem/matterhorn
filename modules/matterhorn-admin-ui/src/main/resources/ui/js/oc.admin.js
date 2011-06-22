@@ -270,12 +270,12 @@ var ocAdmin = (function() {
       for(var i in catalog) {
         for(var j in this.components) {
           if(this.components[j].key === i){
+            ocUtils.log(i, j, catalog[i]);
             this.components[j].setValue(catalog[i]);
             break;
           }
         }
       }
-      ocUtils.log('returning');
     }
     this.getErrors = function() {
       return this.serializer.errors;
@@ -299,8 +299,10 @@ var ocAdmin = (function() {
       var lines = catalogBody.split('\n');
       var catalog = {};
       for(var i in lines) {
-        var keyVal = lines[i].split('=');
-        catalog[keyVal[0]] = keyVal[1];
+        if(lines[i] != '' && lines[i].charAt(0) != '#') {
+          var keyVal = lines[i].split('=');
+          catalog[keyVal[0]] = keyVal[1];
+        }
       }
       return catalog;
     }

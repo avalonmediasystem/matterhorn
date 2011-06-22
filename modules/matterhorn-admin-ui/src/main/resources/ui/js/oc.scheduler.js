@@ -21,6 +21,7 @@ var ocScheduler = (function() {
   var CAPTURE_ADMIN_URL = '/capture-admin';
   var SERIES_URL        = '/series';
   var RECORDINGS_URL    = '/admin/recordings.html';
+  var DUBLIN_CORE_NS_URI  = 'http://purl.org/dc/terms/';
   
   // Constants
   var CREATE_MODE       = 1;
@@ -147,8 +148,8 @@ var ocScheduler = (function() {
             data = data.catalogs;
             $.each(data, function(){
               series_list.push({
-                value: this['http://purl.org/dc/terms/']['title'][0].value,
-                id: this['http://purl.org/dc/terms/']['identifier'][0].value
+                value: this[DUBLIN_CORE_NS_URI]['title'][0].value,
+                id: this[DUBLIN_CORE_NS_URI]['identifier'][0].value
               });
             });
             response(series_list);
@@ -378,8 +379,8 @@ var ocScheduler = (function() {
     }
     $(this.inputList).append('</ul>');
     this.capture.components.resources.setFields(capabilities);
-    if(this.selectedInputs && ocUtils.getURLParam('edit')) {
-      this.capture.components.resources.setValue(this.selectedInputs);
+    if(ocUtils.getURLParam('edit')) {
+      this.capture.components.resources.setValue(sched.selectedInputs);
     }
     // Validate if an input was chosen
     this.inputCount = $(this.inputList).children('input:checkbox').size();
@@ -569,8 +570,12 @@ var ocScheduler = (function() {
           return this.value;
         },
         setValue: function(value) {
-          this.fields.series.val(value.id);
-          this.fields.seriesSelect.val(value.label)
+          this.fields.series.val(value);
+          var self = this;
+          $.get(SERIES_URL + '/' + value + '.json', function(data) {
+            var title = data[DUBLIN_CORE_NS_URI]['title'][0].value;
+            self.fields.seriesSelect.val(title);
+          });
         },
         asString: function() {
           if(this.fields.seriesSelect) {
@@ -666,21 +671,13 @@ var ocScheduler = (function() {
               e[0].checked = false;
             }
           }
+          ocScheduler.selectedInputs = value;
         }
       });
 
     extraComps.workflowDefinition = new ocAdmin.Component(['workflowSelector'], {key: 'org.opencastproject.workflow.definition'});
     
     if(sched.type === MULTIPLE_EVENTS){
-      /*//Series validation override for recurring events.
-      dcComps.seriesId.validate = function() {
-        if(this.fields.series.val() !== '') { //Already have an id
-          return true;
-        } else if(this.fields.seriesSelect.val() !== '') { //have text but no id
-          return this.createSeriesFromSearchText();
-        }
-        return false; //nothing
-      };*/
       
       dcComps.temporal = new ocAdmin.Component(['recurDurationHour', 'recurDurationMin', 'recurStart', 'recurStartTimeHour', 'recurStartTimeMin'],
         { key: 'temporal'},
@@ -871,6 +868,7 @@ var ocScheduler = (function() {
                 $('#recurAgent').change();
               }
               this.fields.recurAgent.val(agentId);
+              this.fields.recurAgent.change();
             }
           }
         });
@@ -1193,6 +1191,7 @@ var ocScheduler = (function() {
                 $('#agent').change();
               }
               this.fields.agent.val(agentId);
+              this.fields.agent.change();
             }
           }
         });
