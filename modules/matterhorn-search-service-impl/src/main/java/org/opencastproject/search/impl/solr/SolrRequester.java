@@ -16,6 +16,20 @@
 
 package org.opencastproject.search.impl.solr;
 
+import static org.opencastproject.search.api.SearchService.READ_PERMISSION;
+import static org.opencastproject.search.api.SearchService.WRITE_PERMISSION;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
@@ -35,6 +49,7 @@ import org.opencastproject.search.api.SearchResultItem;
 import org.opencastproject.search.api.SearchResultItem.SearchResultItemType;
 import org.opencastproject.search.api.SearchResultItemImpl;
 import org.opencastproject.search.impl.SearchQueryImpl;
+import org.opencastproject.security.api.Organization;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.User;
 import org.opencastproject.util.SolrUtils;
@@ -44,19 +59,6 @@ import org.opencastproject.util.data.Function0;
 import org.opencastproject.util.data.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.opencastproject.search.api.SearchService.READ_PERMISSION;
-import static org.opencastproject.search.api.SearchService.WRITE_PERMISSION;
 
 /**
  * Class implementing <code>LookupRequester</code> to provide connection to solr indexing facility.
@@ -314,7 +316,8 @@ public class SolrRequester {
 
         @Override
         public MediaSegment[] getSegments() {
-          if (SearchResultItemType.AudioVisual.equals(getType()))            return createSearchResultSegments(doc, query).toArray(new MediaSegmentImpl[0]);
+          if (SearchResultItemType.AudioVisual.equals(getType()))
+            return createSearchResultSegments(doc, query).toArray(new MediaSegmentImpl[0]);
           else
             return new MediaSegmentImpl[0];
         }
@@ -614,18 +617,20 @@ public class SolrRequester {
 
     if (applyPermissions) {
       User user = securityService.getUser();
-      String[] roles = user.getRoles();
-      if (roles.length > 0) {
-        sb.append(" AND (");
-        StringBuilder roleList = new StringBuilder();
-        for (String role : roles) {
-          if (roleList.length() > 0)
-            roleList.append(" OR ");
-          roleList.append(Schema.OC_ACL_PREFIX).append(action).append(":").append(role);
-        }
-        sb.append(roleList.toString());
-        sb.append(")");
+      Organization org = securityService.getOrganization();
+      String anonymousRole = org.getAnonymousRole();
+      String[] userRoles = user.getRoles();
+      String[] roles = Arrays.copyOf(userRoles, userRoles.length + 1);
+      roles[roles.length - 1] = anonymousRole;
+      sb.append(" AND (");
+      StringBuilder roleList = new StringBuilder();
+      for (String role : roles) {
+        if (roleList.length() > 0)
+          roleList.append(" OR ");
+        roleList.append(Schema.OC_ACL_PREFIX).append(action).append(":").append(role);
       }
+      sb.append(roleList.toString());
+      sb.append(")");
     }
 
     SolrQuery query = new SolrQuery(sb.toString());
