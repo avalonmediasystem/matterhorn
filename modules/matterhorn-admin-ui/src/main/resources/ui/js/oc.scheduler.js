@@ -28,6 +28,7 @@ var ocScheduler = (function() {
   var EDIT_MODE         = 2;
   var SINGLE_EVENT      = 3;
   var MULTIPLE_EVENTS   = 4;
+  var SUBMIT_MODE        = 5;
   
   sched.mode              = CREATE_MODE;
   sched.type              = SINGLE_EVENT;
@@ -291,11 +292,23 @@ var ocScheduler = (function() {
        }
     }
     
-    ocUtils.log(payload);
-    
     if(errors.length > 0) {
       showUserMessages(errors);
     } else {
+      $('#submitButton').attr('disabled', 'disabled');
+      $('#submitModal').dialog(
+      {
+        modal: true,
+        resizable: false,
+        draggable: false,
+        close: function(){ 
+          document.location = RECORDINGS_URL;
+        },
+        create: function (event, ui)
+        {
+          $('.ui-dialog-titlebar-close').hide();
+        }
+      });
       if(ocUtils.getURLParam('edit')) {
         $.ajax({type: 'PUT',
                 url: SCHEDULER_URL + '/' + $('#eventId').val(),
@@ -484,7 +497,6 @@ var ocScheduler = (function() {
   }
 
   sched.eventSubmitComplete = function(xhr, status) {
-    ocUtils.log(status);
     if(status == "success") {
       document.location = RECORDINGS_URL;
     }
