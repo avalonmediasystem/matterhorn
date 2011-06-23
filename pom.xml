@@ -48,6 +48,7 @@
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-metadata</module>
         <module>modules/matterhorn-mpeg7</module>
+        <module>modules/matterhorn-mq</module>
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-scheduler-api</module>
         <module>modules/matterhorn-scheduler-impl</module>
@@ -76,6 +77,7 @@
         <module>modules/matterhorn-kernel</module>
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
+        <module>modules/matterhorn-mq</module>
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-series-service-api</module>
         <module>modules/matterhorn-series-service-impl</module>
@@ -104,6 +106,7 @@
         <module>modules/matterhorn-kernel</module>
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
+        <module>modules/matterhorn-mq</module>
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-static</module>
         <module>modules/matterhorn-webconsole</module>
@@ -151,6 +154,7 @@
         <module>modules/matterhorn-lti</module>
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
+        <module>modules/matterhorn-mq</module>
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-series-service-api</module>
         <module>modules/matterhorn-series-service-impl</module>
@@ -212,6 +216,7 @@
         <module>modules/matterhorn-kernel</module>
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
+        <module>modules/matterhorn-mq</module>
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-textanalyzer-api</module>
         <module>modules/matterhorn-textanalyzer-impl</module>
@@ -754,6 +759,12 @@
         <groupId>javax.ws.rs</groupId>
         <artifactId>jsr311-api</artifactId>
         <version>1.1.A</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-jms_1.1_spec</artifactId>
+        <version>1.1.1</version>
       </dependency>
 
       <!-- JPA -->

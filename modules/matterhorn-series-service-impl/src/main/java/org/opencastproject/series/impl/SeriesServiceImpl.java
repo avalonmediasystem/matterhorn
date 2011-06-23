@@ -31,10 +31,14 @@ import org.osgi.framework.ServiceException;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,11 +52,17 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   /** Logging utility */
   private static final Logger logger = LoggerFactory.getLogger(SeriesServiceImpl.class);
 
+  /** The event admin topic for series updates */
+  public static final String SERIES_TOPIC = "org/opencastproject/series";
+
   /** Index for searching */
   protected SeriesServiceIndex index;
 
   /** Persistent storage */
   protected SeriesServiceDatabase persistence;
+
+  /** The OSGI event admin service */
+  protected EventAdmin eventAdmin;
 
   /**
    * OSGi callback for setting index.
@@ -70,6 +80,15 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
    */
   public void setPersistence(SeriesServiceDatabase persistence) {
     this.persistence = persistence;
+  }
+
+  /**
+   * OSGi callback for setting the event admin.
+   * 
+   * @param eventAdmin
+   */
+  public void setEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
   }
 
   /**
@@ -157,6 +176,15 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
       throw new SeriesException(e);
     }
 
+    Dictionary<String, String> eventProperties = new Hashtable<String, String>();
+    String xml = null;
+    try {
+      xml = dc.toXmlString();
+    } catch (IOException e) {
+      throw new SeriesException(e);
+    }
+    eventProperties.put("series", xml);
+    eventAdmin.postEvent(new Event(SERIES_TOPIC, eventProperties));
     return newSeries;
   }
 
