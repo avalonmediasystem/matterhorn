@@ -15,7 +15,13 @@
  */
 package org.opencastproject.mq;
 
+import static org.opencastproject.event.EventAdminConstants.ID;
+
 import static java.lang.Boolean.TRUE;
+import static javax.jms.DeliveryMode.PERSISTENT;
+import static javax.jms.Session.SESSION_TRANSACTED;
+
+import org.opencastproject.event.EventAdminConstants;
 
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
@@ -30,7 +36,6 @@ import java.util.Hashtable;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
-import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -148,17 +153,21 @@ public class JmsEventAdminBridge implements EventHandler, MessageListener {
     }
     logger.debug("Bridging OSGI Event {}", event);
     try {
-      Session session = jmsConnection.createSession(true, Session.SESSION_TRANSACTED);
+      Session session = jmsConnection.createSession(true, SESSION_TRANSACTED);
       String topicPath = event.getTopic();
       Topic topic = session.createTopic(topicPath);
       MessageProducer producer = session.createProducer(topic);
       TextMessage msg = session.createTextMessage();
-      msg.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);
+      msg.setJMSDeliveryMode(PERSISTENT);
       msg.setJMSType(topicPath);
       for (String name : event.getPropertyNames()) {
         Object obj = event.getProperty(name);
         if (obj instanceof String) {
-          msg.setText((String) obj);
+          if (EventAdminConstants.PAYLOAD.equals(name)) {
+            msg.setText((String) obj);
+          } else {
+            msg.setStringProperty(name, (String) obj);
+          }
         } else {
           logger.warn("Only String event properties may be included in events for topic {}", event.getTopic());
         }
@@ -182,6 +191,7 @@ public class JmsEventAdminBridge implements EventHandler, MessageListener {
       String topic = message.getJMSDestination().toString();
       if (message instanceof TextMessage) {
         props.put(BRIDGED, TRUE.toString());
+        props.put(ID, message.getStringProperty(ID));
         props.put(PAYLOAD, ((TextMessage) message).getText());
         eventAdmin.postEvent(new Event(topic, props));
       } else {

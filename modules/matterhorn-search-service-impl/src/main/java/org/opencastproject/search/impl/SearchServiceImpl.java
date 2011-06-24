@@ -16,6 +16,10 @@
 
 package org.opencastproject.search.impl;
 
+import static org.opencastproject.event.EventAdminConstants.ID;
+import static org.opencastproject.event.EventAdminConstants.SERIES_ACL_TOPIC;
+import static org.opencastproject.event.EventAdminConstants.SERIES_TOPIC;
+
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.Job.Status;
 import org.opencastproject.mediapackage.MediaPackage;
@@ -26,6 +30,7 @@ import org.opencastproject.metadata.mpeg7.Mpeg7CatalogService;
 import org.opencastproject.search.api.SearchException;
 import org.opencastproject.search.api.SearchQuery;
 import org.opencastproject.search.api.SearchResult;
+import org.opencastproject.search.api.SearchResultItem;
 import org.opencastproject.search.api.SearchService;
 import org.opencastproject.search.impl.solr.SolrIndexManager;
 import org.opencastproject.search.impl.solr.SolrRequester;
@@ -51,6 +56,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
+import org.osgi.service.event.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +74,7 @@ import java.util.List;
 /**
  * A Solr-based {@link SearchService} implementation.
  */
-public final class SearchServiceImpl implements SearchService {
+public final class SearchServiceImpl implements SearchService, EventHandler {
 
   /** Log facility */
   private static final Logger logger = LoggerFactory.getLogger(SearchServiceImpl.class);
@@ -114,6 +122,9 @@ public final class SearchServiceImpl implements SearchService {
   /** The service registry */
   private ServiceRegistry serviceRegistry;
 
+  /** The event admin service */
+  private EventAdmin eventAdmin;
+
   /** Dynamic reference. */
   public void setStaticMetadataService(StaticMetadataService mdService) {
     this.mdServices.add(mdService);
@@ -153,6 +164,10 @@ public final class SearchServiceImpl implements SearchService {
 
   public void setOrgDirectory(OrganizationDirectoryService orgDirectory) {
     this.orgDirectory = orgDirectory;
+  }
+
+  public void setEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
   }
 
   /** For testing purposes only! */
@@ -338,13 +353,13 @@ public final class SearchServiceImpl implements SearchService {
    */
   public void add(MediaPackage mediaPackage) throws SearchException, MediaPackageException, IllegalArgumentException,
           UnauthorizedException, ServiceRegistryException {
-    if (mediaPackage == null) {
-      throw new IllegalArgumentException("Unable to add a null mediapackage");
-    }
     User currentUser = securityService.getUser();
     String adminRole = securityService.getOrganization().getAdminRole();
     if (!currentUser.hasRole(adminRole) && !authorizationService.hasPermission(mediaPackage, WRITE_PERMISSION)) {
       throw new UnauthorizedException(currentUser, SearchService.WRITE_PERMISSION);
+    }
+    if (mediaPackage == null) {
+      throw new IllegalArgumentException("Unable to add a null mediapackage");
     }
     try {
       logger.debug("Attempting to add mediapackage {} to search index", mediaPackage.getIdentifier());
@@ -441,4 +456,46 @@ public final class SearchServiceImpl implements SearchService {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
+   */
+  @Override
+  public void handleEvent(Event event) {
+    logger.info("Received {}", event);
+    String seriesId = (String) event.getProperty(ID);
+
+    if (SERIES_TOPIC.equals(event.getTopic()) || SERIES_ACL_TOPIC.equals(event.getTopic())) {
+      // A series or its ACL has been updated. Find any mediapackages with that series, and update them.
+      SearchQuery q = new SearchQueryImpl().withId(seriesId);
+      SearchResult result;
+      try {
+        result = solrRequester.getForAdministrativeRead(q);
+      } catch (SolrServerException e) {
+        logger.warn("can not load mediapackages with series {} for bulk update", seriesId);
+        return;
+      }
+      for (SearchResultItem item : result.getItems()) {
+        MediaPackage mp = item.getMediaPackage();
+        Organization originalOrg = securityService.getOrganization();
+        User originalUser = securityService.getUser();
+        try {
+          Organization org = orgDirectory.getOrganization(item.getOrganization());
+          securityService.setOrganization(org);
+          securityService
+                  .setUser(new User("search_admin", item.getOrganization(), new String[] { org.getAdminRole() }));
+          add(mp);
+        } catch (Exception e) {
+          logger.warn("Can not update mediapackage {} for section {} bulk update: {}",
+                  new Object[] { mp, seriesId, e.getMessage() });
+        } finally {
+          securityService.setOrganization(originalOrg);
+          securityService.setUser(originalUser);
+        }
+      }
+    } else {
+      logger.debug("Skipping event on topic {}, since this is of no concern to search", event.getTopic());
+    }
+  }
 }

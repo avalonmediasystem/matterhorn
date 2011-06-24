@@ -16,13 +16,9 @@
 
 package org.opencastproject.search.impl.solr;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
+import static org.opencastproject.search.api.SearchService.READ_PERMISSION;
+import static org.opencastproject.search.api.SearchService.WRITE_PERMISSION;
+
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilder;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
@@ -42,6 +38,14 @@ import org.opencastproject.util.data.CollectionUtil;
 import org.opencastproject.util.data.Function;
 import org.opencastproject.util.data.Function0;
 import org.opencastproject.util.data.Predicate;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,9 +58,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.opencastproject.search.api.SearchService.READ_PERMISSION;
-import static org.opencastproject.search.api.SearchService.WRITE_PERMISSION;
 
 /**
  * Class implementing <code>LookupRequester</code> to provide connection to solr indexing facility.
@@ -143,6 +144,16 @@ public class SolrRequester {
         @Override
         public String getId() {
           return Schema.getId(doc);
+        }
+
+        /**
+         * {@inheritDoc}
+         * 
+         * @see org.opencastproject.search.api.SearchResultItem#getOrganization()
+         */
+        @Override
+        public String getOrganization() {
+          return Schema.getOrganization(doc);
         }
 
         @Override
@@ -314,7 +325,8 @@ public class SolrRequester {
 
         @Override
         public MediaSegment[] getSegments() {
-          if (SearchResultItemType.AudioVisual.equals(getType()))            return createSearchResultSegments(doc, query).toArray(new MediaSegmentImpl[0]);
+          if (SearchResultItemType.AudioVisual.equals(getType()))
+            return createSearchResultSegments(doc, query).toArray(new MediaSegmentImpl[0]);
           else
             return new MediaSegmentImpl[0];
         }
@@ -613,6 +625,7 @@ public class SolrRequester {
       sb.append("*:*");
 
     if (applyPermissions) {
+      sb.append(" AND ").append(Schema.OC_ORGANIZATION).append(":").append(securityService.getOrganization().getId());
       User user = securityService.getUser();
       String[] roles = user.getRoles();
       if (roles.length > 0) {

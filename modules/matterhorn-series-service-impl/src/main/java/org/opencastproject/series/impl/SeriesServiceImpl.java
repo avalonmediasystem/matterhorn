@@ -15,12 +15,17 @@
  */
 package org.opencastproject.series.impl;
 
+import static org.opencastproject.event.EventAdminConstants.ID;
+import static org.opencastproject.event.EventAdminConstants.PAYLOAD;
+import static org.opencastproject.event.EventAdminConstants.SERIES_ACL_TOPIC;
+import static org.opencastproject.event.EventAdminConstants.SERIES_TOPIC;
 import static org.opencastproject.util.RequireUtil.notNull;
 
 import org.opencastproject.metadata.dublincore.DublinCore;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogList;
 import org.opencastproject.security.api.AccessControlList;
+import org.opencastproject.security.api.AccessControlParser;
 import org.opencastproject.series.api.SeriesException;
 import org.opencastproject.series.api.SeriesQuery;
 import org.opencastproject.series.api.SeriesService;
@@ -51,9 +56,6 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
 
   /** Logging utility */
   private static final Logger logger = LoggerFactory.getLogger(SeriesServiceImpl.class);
-
-  /** The event admin topic for series updates */
-  public static final String SERIES_TOPIC = "org/opencastproject/series";
 
   /** Index for searching */
   protected SeriesServiceIndex index;
@@ -176,15 +178,14 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
       throw new SeriesException(e);
     }
 
-    Dictionary<String, String> eventProperties = new Hashtable<String, String>();
     String xml = null;
     try {
       xml = dc.toXmlString();
     } catch (IOException e) {
       throw new SeriesException(e);
     }
-    eventProperties.put("series", xml);
-    eventAdmin.postEvent(new Event(SERIES_TOPIC, eventProperties));
+    sendEvent(SERIES_TOPIC, identifier, xml);
+
     return newSeries;
   }
 
@@ -220,7 +221,32 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
       throw new SeriesException(e);
     }
 
+    String xml = null;
+    try {
+      xml = AccessControlParser.toXml(accessControl);
+    } catch (IOException e) {
+      throw new SeriesException(e);
+    }
+    sendEvent(SERIES_ACL_TOPIC, seriesID, xml);
+
     return updated;
+  }
+
+  /**
+   * Sends an OSGI Event.
+   * 
+   * @param topic
+   *          the event topic
+   * @param objectId
+   *          the series identifier
+   * @param payload
+   *          the event payload
+   */
+  private void sendEvent(String topic, String objectId, String payload) {
+    Dictionary<String, String> eventProperties = new Hashtable<String, String>();
+    eventProperties.put(ID, objectId);
+    eventProperties.put(PAYLOAD, payload);
+    eventAdmin.postEvent(new Event(topic, eventProperties));
   }
 
   /*

@@ -15,7 +15,15 @@
     <matterhorn.basedir>${project.basedir}/../..</matterhorn.basedir>
     <checkstyle.skip>false</checkstyle.skip>
   </properties>
+
   <dependencies>
+
+    <!-- Matterhorn -->
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     
     <!-- Specs -->
     <dependency>
