@@ -22,6 +22,7 @@ ocSeriesList.Configuration = new (function(){
     this.count = 10;
     this.total = 10;
     this.startPage = 0;  
+    this.lastPage = 0;
     this.sort = 'TITLE_ASC';  
 });
 
@@ -39,12 +40,32 @@ ocSeriesList.init = function(){
 	$('#pageSize').change(function(){
 		ocSeriesList.Configuration.count = $(this).val();
 		ocSeriesList.Configuration.startPage = 0;
+                ocSeriesList.Configuration.lastPage = Math.ceil(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count);
 		ocSeriesList.askForSeries();		
 	});
 	
 }
 
 ocSeriesList.askForSeries = function(){
+  if(ocSeriesList.Configuration.startPage == 0) {
+    $('#prevText').show();
+    $('#prevButtons').hide();
+    
+    $('#nextText').hide();
+    $('#nextButtons').show();
+  } else if(ocSeriesList.Configuration.startPage == ocSeriesList.Configuration.lastPage) {
+    $('#nextText').show();
+    $('#nextButtons').hide();
+    
+    $('#prevText').hide();
+    $('#prevButtons').show();
+  } else {
+    $('#prevText').hide();
+    $('#prevButtons').show();
+    
+    $('#nextText').hide();
+    $('#nextButtons').show();
+  }
 	$.ajax({
 		type : 'GET',
 		dataType : 'json',
@@ -58,7 +79,7 @@ ocSeriesList.showSeriesTable = function(){
 	var result = TrimPath.processDOMTemplate("seriesTemplate", ocSeriesList.views);
 	$('#seriesTableContainer').html(result);
 	
-	$('#pageList').text((ocSeriesList.Configuration.startPage+1) + " of " + Math.ceil(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count));
+	$('#pageList').text((ocSeriesList.Configuration.startPage+1) + " of " + (ocSeriesList.Configuration.lastPage + 1));
 	
        $('.sortable').click( function() {
       		var sortDesc = $(this).find('.sort-icon').hasClass('ui-icon-circle-triangle-s');
@@ -105,6 +126,7 @@ ocSeriesList.buildURLparams = function() {
 
 ocSeriesList.buildSeriesView = function(data) {
   ocSeriesList.Configuration.total = data.totalCount;
+  ocSeriesList.Configuration.lastPage = Math.ceil(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count) - 1;
   catalogs = data.catalogs;
   ocSeriesList.views.seriesView = {};
   ocUtils.log($.isArray(catalogs));
