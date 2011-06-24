@@ -37,10 +37,23 @@ Monitor.loadDevices = function(){
    	      $('#video'+i).addClass('selected');
    	      Monitor.selectDevice(i);
    	    }
-      }else{
+      }
+      if (devType == 'audio'){
         $('#audio_devices').append('<li id="audio' + i + '" class="tab" onclick="Monitor.tabClick(' + i + ', this)">' + devName + '</li>');
         if(Monitor.selectedAudioDevice === null){
           $('#audio'+i).addClass('selected');
+   	      Monitor.selectDevice(i);
+   	    }
+      }
+      if(devType == 'av'){
+        $('#audio_devices').append('<li id="audio' + i + '" class="tab" onclick="Monitor.tabClick(' + i + ', this)">' + devName + '</li>');
+   	    $('#video_devices').append('<li id="video' + i + '" class="tab" onclick="Monitor.tabClick(' + i + ', this)">' + devName + '</li>');
+        if(Monitor.selectedAudioDevice === null){
+          $('#audio'+i).addClass('selected');
+   	      Monitor.selectDevice(i);
+   	    }
+   	    if(Monitor.selectedVideoDevice === null){
+   	      $('#video'+i).addClass('selected');
    	      Monitor.selectDevice(i);
    	    }
       }
@@ -99,7 +112,8 @@ Monitor.updateAudio = function(){
 	log('update audio');
 	$.get(CAPTURE_AGENT_CONFIDENCE_MONITORING_URL + "/audio/" + Monitor.devices[Monitor.selectedAudioDevice].name + "/0",
 	function(data){ 
-		var a = data.samples[0];
+    var length = data.samples.length - 1;
+    var a = data.samples[length < 0 ? 0 : length];
 		var dbLevel = parseFloat(a);
 		if(dbLevel && dbLevel != 'NaN'){
 			AudioBar.setValue(dbLevel);
