@@ -69,25 +69,65 @@ public class CaptureDeviceBin {
    *           Thrown if a GStreamer Element can't be created because the platform it is running on doesn't support it
    *           or the necessary GStreamer module is not installed.
    */
+  public CaptureDeviceBin(CaptureDevice captureDevice, Properties properties, boolean confidenceOnly)
+          throws UnableToLinkGStreamerElementsException, UnableToCreateGhostPadsForBinException,
+          UnableToSetElementPropertyBecauseElementWasNullException, NoConsumerFoundException,
+          CaptureDeviceNullPointerException, UnableToCreateElementException, NoProducerFoundException {
+            
+    this.captureDevice = captureDevice;
+    if (isFileBin()) {
+      this.captureDevice = new CaptureDevice(captureDevice.getLocation(), 
+              ProducerType.FILE, captureDevice.getFriendlyName(), captureDevice.getOutputPath());
+      this.captureDevice.setProperties(captureDevice.getProperties());
+    }
+//    if (isFileBin()) {
+//      addFileBin(captureDevice, properties);
+//    } else {
+      createProducer(this.captureDevice, properties);
+      createConsumers(this.captureDevice, properties, confidenceOnly);
+      linkProducerToConsumers();
+//    }
+  }
+  
+  /***
+   * Creates a bin that contains a complete pipeline from Producer to all Consumers for a capture device.
+   * 
+   * @throws UnableToLinkGStreamerElementsException
+   *           Thrown if any of the GStreamer Elements for the Producers or Consumers fails to Link together.
+   * @throws UnableToCreateGhostPadsForBinException
+   *           Thrown if one of the Producer or Consumers can't create ghost pads used to connect them together.
+   * @throws UnableToSetElementPropertyBecauseElementWasNullException
+   *           Thrown if setting one of the GStreamer Elements is null when setting one of its Properties.
+   * @throws NoConsumerFoundException
+   *           Thrown if no consumer can be found for the type specified.
+   * @throws NoProducerFoundException
+   *           Thrown if no producer can be found for the type specified.
+   * @throws CaptureDeviceNullPointerException
+   *           Thrown if the captureDevice parameter is null since it is necessary for creating both Producers and
+   *           Consumers.
+   * @throws UnableToCreateElementException
+   *           Thrown if a GStreamer Element can't be created because the platform it is running on doesn't support it
+   */
   public CaptureDeviceBin(CaptureDevice captureDevice, Properties properties)
           throws UnableToLinkGStreamerElementsException, UnableToCreateGhostPadsForBinException,
           UnableToSetElementPropertyBecauseElementWasNullException, NoConsumerFoundException,
           CaptureDeviceNullPointerException, UnableToCreateElementException, NoProducerFoundException {
-    this.captureDevice = captureDevice;
-    if (captureDevice.getName() == ProducerType.FILE) {
-      addFileBin(captureDevice, properties);
-    } else if (captureDevice.getName() == ProducerType.HAUPPAUGE_WINTV
+          
+    this(captureDevice, properties, false);
+  }
+  
+  /**
+   * Returns true if {@link captureDevice} is a file or 
+   * a Hauppauge card and no codec and container properties are set
+   * (so that we take advantage of the onboard mpeg encoding  and don't do it in software).
+   * 
+   * @return true if {@link captureDevice} is a file.
+   */
+  private boolean isFileBin() {
+    return captureDevice.getName() == ProducerType.FILE 
+            || (captureDevice.getName() == ProducerType.HAUPPAUGE_WINTV
             && captureDevice.getProperties().getProperty("codec") == null
-            && captureDevice.getProperties().getProperty("container") == null) {
-      // If the device is a Hauppauge card and we aren't changing either the codec or the container create a FileBin
-      // that will just copy the data from the Hauppauge card to the FileSink so that we take advantage of the onboard
-      // mpeg encoding and don't do it in software.
-      addFileBin(captureDevice, properties);
-    } else {
-      createProducer(captureDevice, properties);
-      createConsumers(captureDevice, properties);
-      linkProducerToConsumers();
-    }
+            && captureDevice.getProperties().getProperty("container") == null);
   }
 
   /**
@@ -140,6 +180,7 @@ public class CaptureDeviceBin {
           throws UnableToLinkGStreamerElementsException, UnableToCreateGhostPadsForBinException,
           UnableToSetElementPropertyBecauseElementWasNullException, CaptureDeviceNullPointerException,
           UnableToCreateElementException, NoProducerFoundException {
+          
     producerBin = ProducerFactory.getInstance().getProducer(captureDevice, properties);
   }
 
@@ -150,6 +191,8 @@ public class CaptureDeviceBin {
    *          The details of the capture device.
    * @param properties
    *          The confidence monitoring properties.
+   * @param confidenceOnly 
+   *          if true, FileSinkConsumer will not create
    * @throws UnableToLinkGStreamerElementsException
    *           If any of the Consumer Elements are unable to link this Exception is thrown.
    * @throws UnableToCreateGhostPadsForBinException
@@ -163,21 +206,28 @@ public class CaptureDeviceBin {
    * @throws NoProducerFoundException
    *           Thrown if the captureDevice.getName returns a ConsumerType that unrecognized.
    * **/
-  private void createConsumers(CaptureDevice captureDevice, Properties properties) throws NoConsumerFoundException,
+  private void createConsumers(CaptureDevice captureDevice, Properties properties, boolean confidenceOnly) throws NoConsumerFoundException,
           UnableToLinkGStreamerElementsException, UnableToCreateGhostPadsForBinException,
           UnableToSetElementPropertyBecauseElementWasNullException, CaptureDeviceNullPointerException,
           UnableToCreateElementException {
-    if (properties.get(CaptureParameters.CAPTURE_DEVICE_PREFIX + captureDevice.getFriendlyName()
-            + CaptureParameters.CAPTURE_DEVICE_CUSTOM_CONSUMER) != null) {
-      createCustomConsumer(captureDevice, properties);
-    } else {
-      createFilesinkConsumer(captureDevice, properties);
-      createXVImagesinkConsumer(properties);
+            
+    if (!confidenceOnly) {
+      
+      if (properties.get(CaptureParameters.CAPTURE_DEVICE_PREFIX + captureDevice.getFriendlyName()
+              + CaptureParameters.CAPTURE_DEVICE_CUSTOM_CONSUMER) != null) {
+        createCustomConsumer(captureDevice, properties);
+      } else {
+        createFilesinkConsumer(captureDevice, properties);
+        createXVImagesinkConsumer(properties);
+      }
+    }
+    
+    if (producerBin.captureDeviceProperties.isConfidence()) {
+      createMontoringConsumer(captureDevice, properties);
     }
   }
 
   
-
   /**
    * Creates a filesink Consumer for this Producer that will save the media to a file.
    * 
@@ -203,10 +253,14 @@ public class CaptureDeviceBin {
           UnableToCreateGhostPadsForBinException, UnableToSetElementPropertyBecauseElementWasNullException,
           CaptureDeviceNullPointerException, UnableToCreateElementException {
     ConsumerBin consumerBin;
-    if (producerBin.isVideoDevice()) {
+    if (isFileBin()) {
+      consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.FILE_SINK, captureDevice, properties);
+    } else if (producerBin.isVideoDevice()) {
       consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.VIDEO_FILE_SINK, captureDevice, properties);
-    } else {
+    } else if (producerBin.isAudioDevice()) {
       consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.AUDIO_FILE_SINK, captureDevice, properties);
+    } else {
+      throw new NoConsumerFoundException("Undefined Consumer!");
     }
     consumerBins.add(consumerBin);
   }
@@ -251,7 +305,20 @@ public class CaptureDeviceBin {
       }
     }
   }
+  
+  private void createMontoringConsumer(CaptureDevice captureDevice, Properties properties) 
+          throws UnableToLinkGStreamerElementsException, UnableToCreateGhostPadsForBinException, 
+          UnableToSetElementPropertyBecauseElementWasNullException, CaptureDeviceNullPointerException, 
+          UnableToCreateElementException, NoConsumerFoundException {
 
+    if (producerBin.isAudioDevice()) {
+      consumerBins.add(ConsumerFactory.getInstance().getSink(ConsumerType.AUDIO_MONITORING_SINK, captureDevice, properties));
+    } 
+    if (producerBin.isVideoDevice()) {
+      consumerBins.add(ConsumerFactory.getInstance().getSink(ConsumerType.VIDEO_MONITORING_SINK, captureDevice, properties));
+    }
+  }
+  
   /**
    * Link the Producer to a tee and create new pads for the tee to connect it to each Consumer.
    * 
@@ -335,5 +402,13 @@ public class CaptureDeviceBin {
   /** Returns the Bin that contains the Producer and Consumers. **/
   public Bin getBin() {
     return bin;
+  }
+  
+  public boolean isAudioDevice() {
+    return producerBin != null && producerBin.isAudioDevice();
+  }
+  
+  public boolean isVideoDevice() {
+    return isFileBin() || producerBin != null && producerBin.isVideoDevice();
   }
 }

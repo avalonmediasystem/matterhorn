@@ -19,6 +19,9 @@ import org.gstreamer.Element;
 
 import java.io.File;
 import java.util.Properties;
+import org.gstreamer.Bin;
+import org.gstreamer.event.EOSEvent;
+import org.opencastproject.capture.pipeline.bins.consumers.VideoMonitoringConsumer;
 
 /**
  * TODO: Comment me!
@@ -26,6 +29,8 @@ import java.util.Properties;
 public class FileBin extends PartialBin {
   
   private Element filesrc;
+  private Element queue;
+  private Element tee;
   private Element filesink;
 
   /**
@@ -50,6 +55,9 @@ public class FileBin extends PartialBin {
           UnableToCreateGhostPadsForBinException, UnableToSetElementPropertyBecauseElementWasNullException,
           CaptureDeviceNullPointerException, UnableToCreateElementException {
     super(captureDevice, properties);
+    if (captureDeviceProperties.isConfidence()) {
+      addMonitor();
+    }
   }
 
   /**
@@ -62,6 +70,10 @@ public class FileBin extends PartialBin {
   protected void createElements() throws UnableToCreateElementException {
     filesrc = GStreamerElementFactory.getInstance().createElement(captureDevice.getFriendlyName(),
             GStreamerElements.FILESRC, null);
+    tee = GStreamerElementFactory.getInstance().createElement(captureDevice.getFriendlyName(),
+            GStreamerElements.TEE, null);
+    queue = GStreamerElementFactory.getInstance().createElement(captureDevice.getFriendlyName(),
+            GStreamerElements.QUEUE, null);
     filesink = GStreamerElementFactory.getInstance().createElement(captureDevice.getFriendlyName(),
             GStreamerElements.FILESINK, null);
   }
@@ -96,7 +108,7 @@ public class FileBin extends PartialBin {
   /** Add filesrc and filesink to the Bin. **/
   @Override
   protected void addElementsToBin() {
-    bin.addMany(filesrc, filesink);
+    bin.addMany(filesrc, tee, queue, filesink);
   }
 
   /**
@@ -107,13 +119,49 @@ public class FileBin extends PartialBin {
    * **/
   @Override
   protected void linkElements() throws UnableToLinkGStreamerElementsException {
-    if (!filesrc.link(filesink))
-      throw new UnableToLinkGStreamerElementsException(captureDevice, filesrc, filesink);
+    if (!filesrc.link(tee))
+      throw new UnableToLinkGStreamerElementsException(captureDevice, filesrc, tee);
+    if (!tee.link(queue))
+      throw new UnableToLinkGStreamerElementsException(captureDevice, tee, queue);
+    if (!queue.link(filesink))
+      throw new UnableToLinkGStreamerElementsException(captureDevice, queue, filesink);
   }
 
   /** An empty createGhostPads prevents the default createGhostPads from running. **/
   @Override
   protected void createGhostPads() {
 
+  }
+  
+  /** 
+   * Sends an EOS event to filesrc Element, finding it recursive in a Bin.
+   * 
+   * @param bin Bin containig a filesrc Element.
+   **/
+  public static void sutdown(Bin bin) {
+    for (Element element : bin.getElementsRecursive()) {
+      if (element.getName().startsWith(GStreamerElements.FILESRC)) {
+        logger.info("Sending EOS to stop " + element.getName());
+        element.sendEvent(new EOSEvent());
+        return;
+      }
+    }
+  }
+  
+  /**
+   * Add and link video monitoring elements.
+   * @return true if success
+   */
+  protected void addMonitor() throws UnableToLinkGStreamerElementsException, 
+          UnableToCreateGhostPadsForBinException, UnableToSetElementPropertyBecauseElementWasNullException, 
+          CaptureDeviceNullPointerException, UnableToCreateElementException {
+    
+    VideoMonitoringConsumer monitoringBin = new VideoMonitoringConsumer(captureDevice, properties);
+    bin.add(monitoringBin.getBin());
+    
+    if (!Element.linkPads(tee, GStreamerProperties.SRCTEMPLATE, monitoringBin.getBin(), monitoringBin.GHOST_PAD_NAME)) {
+      logger.error("Can not link monitoring Bin to {}!", getBin().getName());
+//      throw new UnableToLinkGStreamerElementsException(captureDevice, tee, monitoringBin.getBin());
+    }
   }
 }
