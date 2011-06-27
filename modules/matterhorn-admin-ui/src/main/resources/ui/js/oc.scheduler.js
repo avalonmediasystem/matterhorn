@@ -540,6 +540,7 @@ var ocScheduler = (function() {
     }
     $.get(SCHEDULER_URL + "/conflicts.json", data, function(data) {
       var events = [];
+      data = data.catalogs
       if (data != '') {
         for (var i in data) {
           var event = data[i];
