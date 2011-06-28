@@ -30,7 +30,6 @@ import org.opencastproject.search.api.SearchResultImpl;
 import org.opencastproject.search.api.SearchResultItem;
 import org.opencastproject.search.api.SearchResultItem.SearchResultItemType;
 import org.opencastproject.search.api.SearchResultItemImpl;
-import org.opencastproject.search.impl.SearchQueryImpl;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.User;
 import org.opencastproject.util.SolrUtils;
@@ -105,7 +104,7 @@ public class SolrRequester {
    * @throws SolrServerException
    */
   public SearchResult getByQuery(String q, int limit, int offset) throws SolrServerException {
-    SearchQueryImpl q1 = new SearchQueryImpl();
+    SearchQuery q1 = new SearchQuery();
     q1.withQuery(q).withLimit(limit).withOffset(offset);
     return getForRead(q1);
   }
