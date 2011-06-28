@@ -270,7 +270,6 @@ var ocAdmin = (function() {
       for(var i in catalog) {
         for(var j in this.components) {
           if(this.components[j].key === i){
-            ocUtils.log(i, j, catalog[i]);
             this.components[j].setValue(catalog[i]);
             break;
           }

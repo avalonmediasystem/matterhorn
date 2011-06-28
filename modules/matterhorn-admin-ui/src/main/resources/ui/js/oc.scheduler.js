@@ -278,6 +278,7 @@ var ocScheduler = (function() {
       $('#missingFieldsContainer').show();
       $('#errorConflict').show();
       $('#errorConflict li').show();
+      return false;
     }
     
     $.extend(true, sched.capture.components, ocScheduler.workflowComponents);
@@ -317,7 +318,6 @@ var ocScheduler = (function() {
                 complete: ocScheduler.eventSubmitComplete
                 });
       } else {
-        ocUtils.log(payload);
         $.ajax({type: 'POST',
                 url: SCHEDULER_URL + '/',
                 data: payload,
@@ -482,6 +482,7 @@ var ocScheduler = (function() {
         url: SCHEDULER_URL + '/' + eventId + '.json',
         success: function(data) { 
           sched.dublinCore.deserialize(data);
+          sched.checkForConflictingEvents();
         },
         cache: false
       });
@@ -514,22 +515,22 @@ var ocScheduler = (function() {
     $('#missingFieldsContainer li').hide();
     $('#errorConflict').hide();
     $('#conflictingEvents').empty();
-    if(sched.dublinCore.components.device.validate()) {
+    if(sched.dublinCore.components.device.validate().length === 0) {
       data.device = sched.dublinCore.components.device.getValue()
     }else{
       return false;
     }
     if(sched.type === SINGLE_EVENT) {
-      if(sched.recording.components.startDate.validate() && sched.recording.components.duration.validate()) {
+      if(sched.recording.components.startDate.validate().length === 0 && sched.recording.components.duration.validate().length === 0) {
         data.start = sched.recording.components.startDate.getValue();
         data.duration = sched.recording.components.duration.getValue();
         data.end = data.start + data.duration;
       } else {
         return false;
       }
-    } else if(sched.recording.type === MULTIPLE_EVENTS) {
-      if(sched.recording.components.recurrenceStart.validate() && sched.recording.components.recurrenceEnd.validate() &&
-          sched.recording.components.recurrence.validate() && sched.recording.components.recurrenceDuration.validate()){
+    } else if(sched.type === MULTIPLE_EVENTS) {
+      if(sched.recording.components.recurrenceStart.validate().length === 0 && sched.recording.components.recurrenceEnd.validate().length === 0 &&
+          sched.recording.components.recurrence.validate().length === 0 && sched.recording.components.recurrenceDuration.validate().length === 0){
         data.start = sched.recording.components.recurrenceStart.getValue();
         data.end = sched.recording.components.recurrenceEnd.getValue();
         data.duration = sched.recording.components.recurrenceDuration.getValue();
@@ -641,10 +642,11 @@ var ocScheduler = (function() {
                 series: series,
                 acl: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:acl xmlns:ns2="org.opencastproject.security"></ns2:acl>'
               },
-              dataType: 'json',
+              dataType: 'xml',
               success: function(data){
+                window.debug = data;
                 creationSucceeded = true;
-                seriesComponent.fields.series.val(data.series.id);
+                seriesComponent.fields.series.val($('dcterms\\:identifier',data).text());
               },
               error: function() {
                 creationSucceeded = false;
@@ -706,7 +708,6 @@ var ocScheduler = (function() {
             var duration = this.fields.recurDurationHour.val() * 3600; // seconds per hour
             duration += this.fields.recurDurationMin.val() * 60; // seconds per min
             duration = duration * 1000;
-            ocUtils.log(start, duration);
           },
           setValue: function(val) {
             var temporal = parseDublinCoreTemporal(val);
@@ -1016,7 +1017,6 @@ var ocScheduler = (function() {
               end += this.fields.recurDurationHour.val() * 3600; // seconds per hour
               end += this.fields.recurDurationMin.val() * 60; // milliseconds per min
               end = end * 1000;
-              ocUtils.log(start, end);
               return 'start=' + ocUtils.toISODate(new Date(start)) + 
                 '; end=' + ocUtils.toISODate(new Date(end)) + '; scheme=W3C-DTF;';
             }
@@ -1053,7 +1053,6 @@ var ocScheduler = (function() {
               end += this.fields.durationMin.val() * 60; // milliseconds per min
               end = end * 1000;
               end += start;
-              ocUtils.log(start, end);
               return 'start=' + ocUtils.toISODate(new Date(start)) + 
                 '; end=' + ocUtils.toISODate(new Date(end)) + '; scheme=W3C-DTF;';
             },
