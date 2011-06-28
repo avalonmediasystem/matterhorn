@@ -15,6 +15,8 @@
  */
 package org.opencastproject.authorization.xacml;
 
+import static org.opencastproject.mediapackage.MediaPackageElements.XACML_POLICY;
+
 import org.opencastproject.mediapackage.Attachment;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageElementBuilderFactory;
@@ -54,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -69,6 +72,9 @@ public class XACMLAuthorizationService implements AuthorizationService {
 
   /** The default filename for XACML attachments */
   public static final String XACML_FILENAME = "xacml.xml";
+
+  /** The default element ID for XACML attachments */
+  public static final String XACML_ELEMENT_ID = "security-policy";
 
   /** The workspace */
   protected Workspace workspace;
@@ -306,12 +312,18 @@ public class XACMLAuthorizationService implements AuthorizationService {
         throw new MediaPackageException("Unable to generate xacml for mediapackage " + mediapackage.getIdentifier());
       }
 
+      // Get any existing attachment
+      List<URI> existingXacmlFiles = new ArrayList<URI>();
+      for (Attachment a : mediapackage.getAttachments(XACML_POLICY)) {
+        existingXacmlFiles.add(a.getURI());
+        mediapackage.remove(a);
+      }
+
       // add attachment
-      String attachmentId = "xacmlpolicy";
-      URI uri = workspace.getURI(mediapackage.getIdentifier().toString(), attachmentId, XACML_FILENAME);
+      URI uri = workspace.getURI(mediapackage.getIdentifier().toString(), XACML_ELEMENT_ID, XACML_FILENAME);
       Attachment attachment = (Attachment) MediaPackageElementBuilderFactory.newInstance().newElementBuilder()
-              .elementFromURI(uri, Attachment.TYPE, MediaPackageElements.XACML_POLICY);
-      attachment.setIdentifier(attachmentId);
+              .elementFromURI(uri, Attachment.TYPE, XACML_POLICY);
+      attachment.setIdentifier(XACML_ELEMENT_ID);
       mediapackage.add(attachment);
 
       try {
@@ -321,6 +333,15 @@ public class XACMLAuthorizationService implements AuthorizationService {
         throw new MediaPackageException("Can not store xacml for mediapackage " + mediapackage.getIdentifier());
       }
       attachment.setURI(uri);
+
+      // Remove the old xacml file(s)
+      for (URI uriExistingXacml : existingXacmlFiles) {
+        try {
+          workspace.delete(uriExistingXacml);
+        } catch (Exception e) {
+          logger.warn("Unable to delete previous xacml file: {}", e);
+        }
+      }
 
       // return augmented mediapackage
       return mediapackage;

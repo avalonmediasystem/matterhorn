@@ -184,6 +184,7 @@ public class SeriesUpdatedEventHandler implements EventHandler {
               Organization org = organizationDirectoryService.getOrganization(item.getOrganization());
               securityService.setOrganization(org);
               if (SERIES_ACL_TOPIC.equals(event.getTopic())) {
+
                 // Remove the original xacml policy attachments
                 Attachment[] originalXacmlAttachments = mp.getAttachments(XACML_POLICY);
                 if (originalXacmlAttachments.length > 0) {
@@ -195,15 +196,17 @@ public class SeriesUpdatedEventHandler implements EventHandler {
                 // Build a new XACML file for this mediapackage
                 AccessControlList acl = AccessControlParser.parseAcl((String) event.getProperty(PAYLOAD));
                 authorizationService.setAccessControl(mp, acl);
+                Attachment fileRepoCopy = mp.getAttachments(XACML_POLICY)[0];
 
                 // Distribute the updated XACML file
-                Job distributionJob = distributionService.distribute(mp.getIdentifier().toString(),
-                        mp.getAttachments(XACML_POLICY)[0]);
+                Job distributionJob = distributionService.distribute(mp.getIdentifier().toString(), fileRepoCopy);
                 JobBarrier barrier = new JobBarrier(serviceRegistry, distributionJob);
                 Result jobResult = barrier.waitForJobs();
                 if (jobResult.getStatus().get(distributionJob).equals(FINISHED)) {
+                  mp.remove(fileRepoCopy);
                   mp.add(getFromXml(serviceRegistry.getJob(distributionJob.getId()).getPayload()));
                 }
+
               }
               // Update the search index with the modified mediapackage
               searchService.add(mp);
