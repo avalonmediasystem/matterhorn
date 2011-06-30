@@ -23,7 +23,7 @@ ocSeriesList.Configuration = new (function(){
     this.total = 10;
     this.startPage = 0;  
     this.lastPage = 0;
-    this.sort = 'TITLE_ASC';  
+    this.sort = 'TITLE';  
 });
 
 ocSeriesList.init = function(){
@@ -43,27 +43,35 @@ ocSeriesList.init = function(){
                 ocSeriesList.Configuration.lastPage = Math.ceil(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count);
 		ocSeriesList.askForSeries();		
 	});
-	
-}
+	$('input#goToPage').change(function(){
+		var goPage = parseInt($(this).val());
+		if ( (!isNaN(goPage))&&(goPage<=ocSeriesList.Configuration.lastPage)) {		
+			ocSeriesList.Configuration.startPage = goPage-1;
+			ocSeriesList.askForSeries();
+		}
+		else {
+			$(this).val(ocSeriesList.Configuration.startPage+1);
+		}
+	});}
 
 ocSeriesList.askForSeries = function(){
   if(ocSeriesList.Configuration.startPage == 0) {
-    $('#prevText').show();
+    //$('#prevText').show();
     $('#prevButtons').hide();
     
-    $('#nextText').hide();
+    //$('#nextText').hide();
     $('#nextButtons').show();
   } else if(ocSeriesList.Configuration.startPage == ocSeriesList.Configuration.lastPage) {
-    $('#nextText').show();
+    //$('#nextText').show();
     $('#nextButtons').hide();
-    
-    $('#prevText').hide();
+  
+    //$('#prevText').hide();
     $('#prevButtons').show();
   } else {
-    $('#prevText').hide();
+    //$('#prevText').hide();
     $('#prevButtons').show();
     
-    $('#nextText').hide();
+    //$('#nextText').hide();
     $('#nextButtons').show();
   }
 	$.ajax({
@@ -79,8 +87,10 @@ ocSeriesList.showSeriesTable = function(){
 	var result = TrimPath.processDOMTemplate("seriesTemplate", ocSeriesList.views);
 	$('#seriesTableContainer').html(result);
 	
-	$('#pageList').text((ocSeriesList.Configuration.startPage+1) + " of " + (ocSeriesList.Configuration.lastPage + 1));
-	
+	//$('#pageList').text((ocSeriesList.Configuration.startPage+1) + " of " + (ocSeriesList.Configuration.lastPage + 1));
+	$('#pageCount').text(ocSeriesList.Configuration.lastPage+1);
+	$('input#goToPage').val((ocSeriesList.Configuration.startPage+1));
+
        $('.sortable').click( function() {
       		var sortDesc = $(this).find('.sort-icon').hasClass('ui-icon-circle-triangle-s');
 	       var sortField = $(this).attr('id').substr(4);		
@@ -89,7 +99,7 @@ ocSeriesList.showSeriesTable = function(){
 	      		.removeClass('ui-icon-circle-triangle-n')
 	      		.addClass('ui-icon-triangle-2-n-s');
       		if (sortDesc) {
-			ocSeriesList.Configuration.sort = sortField.toUpperCase()+"_ASC";
+			ocSeriesList.Configuration.sort = sortField.toUpperCase();
 			ocSeriesList.Configuration.startPage = 0;
 			ocSeriesList.askForSeries();		
       		} else {
@@ -105,10 +115,10 @@ ocSeriesList.showSeriesTable = function(){
 
       var th = $('#sort' + sortField[0]+sortField.toLowerCase().substring(1,sortField.length));
       $(th).find('.sort-icon').removeClass('ui-icon-triangle-2-n-s');
-      if (sortOrder == 'ASC') {
-        $(th).find('.sort-icon').addClass('ui-icon-circle-triangle-n');
-      } else if (sortOrder == 'DESC') {
+      if (sortOrder == 'DESC') {
         $(th).find('.sort-icon').addClass('ui-icon-circle-triangle-s');
+      } else {
+        $(th).find('.sort-icon').addClass('ui-icon-circle-triangle-n');
       }
     }
 }
@@ -127,6 +137,7 @@ ocSeriesList.buildURLparams = function() {
 ocSeriesList.buildSeriesView = function(data) {
   ocSeriesList.Configuration.total = data.totalCount;
   ocSeriesList.Configuration.lastPage = Math.ceil(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count) - 1;
+//  ocSeriesList.Configuration.totalPages = Math.floor(parseInt(ocSeriesList.Configuration.total) / parseInt(ocSeriesList.Configuration.count));
   catalogs = data.catalogs;
   ocSeriesList.views.seriesView = {};
   ocUtils.log($.isArray(catalogs));
@@ -156,7 +167,7 @@ ocSeriesList.previousPage = function(){
 }
 
 ocSeriesList.nextPage = function(){
-	  numPages = Math.floor(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count);
+    numPages = Math.floor(ocSeriesList.Configuration.total / ocSeriesList.Configuration.count);
     if( ocSeriesList.Configuration.startPage < numPages ) {
       ocSeriesList.Configuration.startPage++;
       ocSeriesList.askForSeries();

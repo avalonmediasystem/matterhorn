@@ -65,9 +65,15 @@ table tr:hover a:hover { text-decoration: underline!important; }
 
 #holdActionPanelIframe { border: medium none; width: 100%; height:400px;}
 .recordings-bulk-action { border: 1px solid #CCCCCC; padding: 20px; width: 840px; display: none; margin-top: 10px; }
-#refreshControlsContainer, #perPageContainer, #goToPage { text-align: center; float: left; margin: 10px 10px 0 0; padding: 2px 5px;}
+#refreshControlsContainer, #perPageContainer, #pageWidget { text-align: center; float: left; margin: 10px 10px 0 0; padding: 2px 5px;}
 #prevPage { float: left; }
 #pageWidget { float: right; }
+
+/* page: series_list */
+.paging-nav-goto { width:30px; text-align:right; }
+span#prevPage, span#firstPage, span#nextPage, span#lastPage { float:left; border:1px solid darkgray; }
+span#prevPage:hover, span#firstPage:hover, span#nextPage:hover, span#lastPage:hover { background-color:lightgray; cursor: pointer; }
+span.paging-nav {float: left; margin: 0px 10px 0px 10px;}
 
 /* page: capture_agents */
 /*#captureTable {margin-top:30px;}*/

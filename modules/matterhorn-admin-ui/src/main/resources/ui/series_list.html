@@ -21,14 +21,7 @@
        <script type="text/javascript">
             $(document).ready( function() {
               ocSeriesList.init();
-      
-              /*$('#seriesTable').tablesorter({
-                cssHeader: 'sortable',
-                cssAsc: 'sortable-Asc',
-                cssDesc: 'sortable-Desc' ,
-                headers: { 3: { sorter: false } }
-              });*/
-              
+                                
               $("#tabsWrapper").tabs({
                 select: function (event, ui) {
                   switch (ui.index) {
@@ -113,61 +106,34 @@
                     <div id="seriesTableContainer" />
                 </div>
 
-                <!-- TABLE PAGINATION OPTIONS -->
-                <div class="ui-helper-clearfix">
-<div id="perPageContainer" class="ui-widget ui-state-hover ui-corner-all">
+ <!-- TABLE PAGINATION OPTIONS -->
+ <div class="ui-helper-clearfix">
+	<div id="perPageContainer" class="ui-widget ui-state-hover ui-corner-all">
                 <span>
                   Show
                   <select id="pageSize" class="paging-nav-pagesize-selector">
-                    <option value="5" >5</option>
-		    <option value="10" selected="selected">10</option>
+                    <option value="5">5</option>
+		      <option value="10" selected="selected">10</option>
                     <option value="20">20</option>
                     <option value="50">50</option>
                   </select>
                   Series per page
                 </span>
-</div>
-<!--
-<div id="goToPage" class="ui-widget ui-state-hover ui-corner-all">     
-                <span>
-                  Go to page
-                  <input type="text" class="paging-nav-goto" style="width:50px;">
-                </span>
-</div>
--->
-<span id="pageWidget" class="layout-inline">
-                            <span id="prevButtons" class="ui-helper-hidden">
-            <a class="prevPage" href="javascript:ocSeriesList.Configuration.startPage=0;ocSeriesList.askForSeries();">&laquo; first</a>
-            <a class="prevPage" href="javascript:ocSeriesList.previousPage();" id="previousPage">&lt;previous</a>
-                            </span>
-                            <span id="prevText">
-                              <span>&laquo; first</span>
-                              <span>&lt;previous</span>
-                            </span>
-                            <span id="pageList"></span>
-                            <span id="nextButtons">
-            <a class="nextPage" href="javascript:ocSeriesList.nextPage();" id="nextPage">next&gt;</a>
-            <a class="nextPage" href="javascript:ocSeriesList.Configuration.startPage = ocSeriesList.Configuration.lastPage;ocSeriesList.askForSeries();" id="lastPage">last &raquo;</a>
-                            </span>
-                            <span id="nextText" class="ui-helper-hidden">
-                              <span>next&gt;</span>
-                              <span>last &raquo;</span>
-                            </span>
-                        </span>
+	</div>
 
-<!--<div id="pageWidget" class="layout-inline">
-               
-                <a href="#" class="paging-nav-go-previous">&lt; Previous</a>
-                <span class="paging-nav-mocklink">&lt; Previous</span>
-                <span>
-                  Page
-                  <span class="paging-nav-current">1</span>
-                  of
-                  <span class="paging-nav-total">1</span>
-                </span>
-                <a href="#" class="paging-nav-go-next">Next &gt;</a>
-                <span class="paging-nav-mocklink">Next &gt;</span>
-                </div>-->
+	<span id="pageWidget" class="ui-widget ui-state-hover ui-corner-all layout-inline">
+		<span id="prevButtons">
+		    <span class="ui-icon ui-icon-seek-first ui-corner-all" id="firstPage" onclick="javascript:ocSeriesList.Configuration.startPage=0;ocSeriesList.askForSeries();"><!--&laquo; first--></span>
+		    <span class="ui-icon ui-icon-seek-prev ui-corner-all" id="prevPage" onclick="javascript:ocSeriesList.previousPage();" ><!--&lt;previous--></span>
+		</span> 
+		<span class="paging-nav">
+		Page <input id="goToPage" type="text" class="paging-nav-goto"> of  <span id="pageCount"></span>
+		</span>                                                                                  
+		<span id="nextButtons">
+		    <span class="ui-icon ui-icon-seek-next ui-corner-all" id="nextPage" onclick="javascript:ocSeriesList.nextPage();" ><!--next&gt;--></span>
+		    <span class="ui-icon ui-icon-seek-end ui-corner-all" id="lastPage" onclick="javascript:ocSeriesList.Configuration.startPage = ocSeriesList.Configuration.lastPage;ocSeriesList.askForSeries();" ><!--last &raquo;--></span>
+		</span>                                             
+	</span>
 </div>
 <!-- END Table pagination Options -->
 
@@ -176,8 +142,8 @@
                     <thead>
                       <tr>
                         <th id="sortTitle" width="25%" class="ui-widget-header sortable"><div>Title<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>
-			<th id="sortContributor" width="25%" class="ui-widget-header sortable"><div>Organizer<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>
-                        <th id="sortOrganizer" width="25%" class="ui-widget-header sortable"><div>Contributor<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>                        
+			<th id="sortCreator" width="25%" class="ui-widget-header sortable"><div>Organizer<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>
+                        <th id="sortContributor" width="25%" class="ui-widget-header sortable"><div>Contributor<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>                        
                         <th width="25%" class="ui-widget-header"><div>Action</div></th>
                       </tr>
                     </thead>
