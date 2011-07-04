@@ -196,7 +196,7 @@ Opencast.Initialize = (function ()
     {
         if(!keysSet)
         {
-            var asciiAlphabet = Opencast.Utils.getAsciiAlphabet();
+            var asciiAlphabet = $.getAsciiAlphabet();
             KEY_0 = asciiAlphabet['0'],
             KEY_1 = asciiAlphabet['1'],
             KEY_2 = asciiAlphabet['2'],
@@ -850,8 +850,8 @@ Opencast.Initialize = (function ()
         $('#oc_video-quality-options').change(function()
         {
             var videoQuality = $('#oc_video-quality-options').val();
-            Opencast.Utils.log("Request to set video quality to " + videoQuality + ", changing the URL...");
-            newLoc = Opencast.Utils.getCleanedURLAdvanced(false, true, videoQuality, true);
+            $.log("Request to set video quality to " + videoQuality + ", changing the URL...");
+            newLoc = $.getCleanedURLAdvanced(false, true, videoQuality, true);
             // change URL if new parameter
             if (loc != newLoc)
             {
@@ -860,7 +860,7 @@ Opencast.Initialize = (function ()
         });
         
         onPlayerReadyListener();
-        var mediaPackageId = Opencast.Utils.getURLParameter('id');
+        var mediaPackageId = $.getURLParameter('id');
         $.ajax(
         {
             url: '../../search/episode.json',

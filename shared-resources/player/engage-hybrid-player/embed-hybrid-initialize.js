@@ -132,7 +132,7 @@ Opencast.Initialize = (function ()
     {
         if(!keysSet)
         {
-            var asciiAlphabet = Opencast.Utils.getAsciiAlphabet();
+            var asciiAlphabet = $.getAsciiAlphabet();
             KEY_0 = asciiAlphabet['0'],
             KEY_1 = asciiAlphabet['1'],
             KEY_2 = asciiAlphabet['2'],
@@ -858,7 +858,7 @@ Opencast.Initialize = (function ()
         $("#oc_image").css('height', newPreviewImageHeight + 'px');
         $("#oc_image").css('width', newPreviewImageWidth + 'px');
         $("#oc_image").css('margin-top', previewImageMarginTop + 'px');
-        var coverUrl = Opencast.Utils.getURLParameter('coverUrl');
+        var coverUrl = $.getURLParameter('coverUrl');
         if (coverUrl === null)
         {
             var coverType;
@@ -868,7 +868,7 @@ Opencast.Initialize = (function ()
                 type: 'GET',
                 contentType: 'text/xml',
                 url: "../../search/episode.xml",
-                data: "id=" + Opencast.Utils.getURLParameter('id'),
+                data: "id=" + $.getURLParameter('id'),
                 dataType: 'xml',
                 success: function (xml)
                 {
