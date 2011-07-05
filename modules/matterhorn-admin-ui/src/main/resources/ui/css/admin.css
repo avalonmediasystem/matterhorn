@@ -17,8 +17,11 @@ table tr:hover a:hover { text-decoration: underline!important; }
 .center { text-align: center;}
 .recordings-page {margin: 30px;}
 
+.instruction-text { font-style: italic; color: #999; font-size: 0.85em}
+.instruction-text:hover { font-style: italic; color: #000; font-size: 0.85em}
+
 /* Icons */
-.icon { width:16px; height:16px; background-repeat: none; background-position: center center; float: left; }
+.icon { width:16px; height:16px; background-repeat: no-repeat; background-position: center center; float: left; }
 .icon-check {       background-image: url(../img/icons/tick.png); }
 .icon-error {       background-image: url(../img/icons/exclamation.png); }
 .icon-info {        background-image: url(../img/icons/information.png); }
@@ -85,7 +88,7 @@ ul.propnav li span.subnav { width: 17px; height: 35px; float: left; background: 
 ul.propnav li ul.itemnav { background-color : white; width : 400px; list-style: none; position: absolute; left: 0; top: 35px; margin: 0; padding: 0; display: none; float: left; border: 1px solid #111;  z-index:1; }
 ul.propnav li ul.itemnav li{ height : 2em; width : inherit; margin: 0; padding: 0; border-bottom: 1px solid #444; clear: both; }
 ul.propnav li span.device { float:left; padding: 10px 5px; display:block; }
-ul.itemnav li span.dev-prop { text-decoration : bold; float:left; padding-right: 10px; text-align:right; width:30%; font-weight:bold;}
+ul.itemnav li span.dev-prop { float:left; padding-right: 10px; text-align:right; width:30%; font-weight:bold;}
 ul.itemnav li span.dev-prop-val { text-align:left; width:70%;}
 
 #searchBox { width: 350px; float: right; }
