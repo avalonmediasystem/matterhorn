@@ -75,18 +75,16 @@ public class CaptureDeviceBin {
           CaptureDeviceNullPointerException, UnableToCreateElementException, NoProducerFoundException {
             
     this.captureDevice = captureDevice;
-    if (isFileBin()) {
+    if (isFile()) {
+      // if captureDevice is a file (or capture card with hardware encoding element) set ProducerType to FILE
       this.captureDevice = new CaptureDevice(captureDevice.getLocation(), 
               ProducerType.FILE, captureDevice.getFriendlyName(), captureDevice.getOutputPath());
       this.captureDevice.setProperties(captureDevice.getProperties());
     }
-//    if (isFileBin()) {
-//      addFileBin(captureDevice, properties);
-//    } else {
-      createProducer(this.captureDevice, properties);
-      createConsumers(this.captureDevice, properties, confidenceOnly);
-      linkProducerToConsumers();
-//    }
+    createProducer(this.captureDevice, properties);
+    createConsumers(this.captureDevice, properties, confidenceOnly);
+    linkProducerToConsumers();
+
   }
   
   /***
@@ -123,37 +121,11 @@ public class CaptureDeviceBin {
    * 
    * @return true if {@link captureDevice} is a file.
    */
-  private boolean isFileBin() {
+  private boolean isFile() {
     return captureDevice.getName() == ProducerType.FILE 
             || (captureDevice.getName() == ProducerType.HAUPPAUGE_WINTV
             && captureDevice.getProperties().getProperty("codec") == null
             && captureDevice.getProperties().getProperty("container") == null);
-  }
-
-  /**
-   * Adds a direct file transfer from one location to another of either a media file or a file capture device.
-   * 
-   * @param captureDevice
-   *          The details of the file to capture from and where to place it.
-   * @param properties
-   *          The confidence monitoring properties.
-   * @throws UnableToLinkGStreamerElementsException
-   *           If the src cannot be linked to the sink this Exception is thrown.
-   * @throws UnableToCreateGhostPadsForBinException
-   *           Does not get thrown from this function
-   * @throws UnableToSetElementPropertyBecauseElementWasNullException
-   *           If the filesrc or filesink is null when trying to set the location this is thrown.
-   * @throws CaptureDeviceNullPointerException
-   *           Thrown if the parameter captureDevice is null because it is necessary.
-   * @throws UnableToCreateElementException
-   *           Thrown if the filesrc or filesink cannot be created.
-   * **/
-  private void addFileBin(CaptureDevice captureDevice, Properties properties)
-          throws UnableToLinkGStreamerElementsException, UnableToCreateGhostPadsForBinException,
-          UnableToSetElementPropertyBecauseElementWasNullException, CaptureDeviceNullPointerException,
-          UnableToCreateElementException {
-    FileBin fileBin = new FileBin(captureDevice, properties);
-    bin.add(fileBin.getBin());
   }
 
   /**
@@ -253,7 +225,7 @@ public class CaptureDeviceBin {
           UnableToCreateGhostPadsForBinException, UnableToSetElementPropertyBecauseElementWasNullException,
           CaptureDeviceNullPointerException, UnableToCreateElementException {
     ConsumerBin consumerBin;
-    if (isFileBin()) {
+    if (isFile()) {
       consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.FILE_SINK, captureDevice, properties);
     } else if (producerBin.isVideoDevice()) {
       consumerBin = ConsumerFactory.getInstance().getSink(ConsumerType.VIDEO_FILE_SINK, captureDevice, properties);
@@ -306,6 +278,25 @@ public class CaptureDeviceBin {
     }
   }
   
+  /**
+   * Creates an monitoring Consumer for capture device described in {@code captureDevice}.
+   * @param captureDevice
+   *          The details of the capture device.
+   * @param properties
+   *          The confidence monitoring properties.
+   * @throws UnableToLinkGStreamerElementsException
+   *           If any of the Consumer Elements are unable to link this Exception is thrown.
+   * @throws UnableToCreateGhostPadsForBinException
+   *           If the beginning of the Consumer is unable to ghost its sink pad then this Exception is thrown.
+   * @throws UnableToSetElementPropertyBecauseElementWasNullException
+   *           If any of the Consumer Elements are null when their properties are set this Exception is thrown.
+   * @throws CaptureDeviceNullPointerException
+   *           Thrown if parameter captureDevice is null since it is necessary to creating a Consumer.
+   * @throws UnableToCreateElementException
+   *           Thrown if any of the Consumer Elements can't be created.
+   * @throws NoProducerFoundException
+   *           Thrown if the captureDevice.getName returns a ConsumerType that unrecognized.
+   */
   private void createMontoringConsumer(CaptureDevice captureDevice, Properties properties) 
           throws UnableToLinkGStreamerElementsException, UnableToCreateGhostPadsForBinException, 
           UnableToSetElementPropertyBecauseElementWasNullException, CaptureDeviceNullPointerException, 
@@ -402,13 +393,5 @@ public class CaptureDeviceBin {
   /** Returns the Bin that contains the Producer and Consumers. **/
   public Bin getBin() {
     return bin;
-  }
-  
-  public boolean isAudioDevice() {
-    return producerBin != null && producerBin.isAudioDevice();
-  }
-  
-  public boolean isVideoDevice() {
-    return isFileBin() || producerBin != null && producerBin.isVideoDevice();
   }
 }

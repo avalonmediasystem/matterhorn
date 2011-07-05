@@ -29,6 +29,7 @@ import org.gstreamer.Pad;
 import org.gstreamer.PadDirection;
 import org.gstreamer.State;
 import org.opencastproject.capture.impl.monitoring.ConfidenceMonitorImpl;
+import org.opencastproject.capture.impl.monitoring.MonitoringEntry;
 import org.opencastproject.capture.pipeline.bins.CaptureDevice;
 import org.opencastproject.capture.pipeline.bins.CaptureDeviceNullPointerException;
 import org.opencastproject.capture.pipeline.bins.GStreamerElementFactory;
@@ -271,9 +272,9 @@ public class AudioMonitoringConsumer extends ConsumerBin {
           for (String dataPart : data.split(", ")) {
             if (dataPart.startsWith("new-state=")) {
               if (dataPart.endsWith("GST_STATE_PLAYING")) {
-                monitoringService.createMonitoringEntry(name, ConfidenceMonitorImpl.MONITORING_TYPE.AUDIO, null);
+                monitoringService.createMonitoringEntry(name, MonitoringEntry.MONITORING_TYPE.AUDIO, null);
               } else if (dataPart.endsWith("GST_STATE_NULL")) {
-                monitoringService.removeMonitoringEntry(name, ConfidenceMonitorImpl.MONITORING_TYPE.AUDIO);
+                monitoringService.removeMonitoringEntry(name, MonitoringEntry.MONITORING_TYPE.AUDIO);
               }
             }
           }

@@ -59,7 +59,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.gstreamer.Pipeline;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.command.CommandProcessor;
@@ -107,7 +106,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.opencastproject.capture.pipeline.MonitoringGStreamerPipeline;
+import org.opencastproject.capture.impl.monitoring.ConfidenceMonitorImpl;
 
 /**
  * Implementation of the Capture Agent: using gstreamer, generates several Pipelines to store several tracks from a
@@ -125,14 +124,6 @@ public class CaptureAgentImpl implements CaptureAgent, StateService,  ManagedSer
 
   /** The amount of time between the recording load task running, measured in seconds **/
   private static final int RECORDING_LOAD_TASK_DELAY = 60;
-
-  /** The capture type for audio devices */
-  public static final String CAPTURE_TYPE_AUDIO = "audio";
-  /** The capture type for video devices */
-  public static final String CAPTURE_TYPE_VIDEO = "video";
-
-  /** Pipeline for confidence monitoring while agent is idle */
-  private Pipeline confidencePipe = null;
   
   /** Keeps the recordings which have not been successfully ingested yet. **/
   private Map<String, AgentRecording> pendingRecordings = new ConcurrentHashMap<String, AgentRecording>();
@@ -878,58 +869,22 @@ public class CaptureAgentImpl implements CaptureAgent, StateService,  ManagedSer
    */
   protected void setAgentState(String state) {
     if (confidence) {
-      if (state.equalsIgnoreCase(AgentState.CAPTURING) && confidencePipe != null) {
-        confidencePipe.stop();
-//         TODO: What if this loop never finishes?
-        while (true) {
-          if (confidencePipe.isPlaying())
-            continue;
-          break;
-        }
-        confidencePipe = null;
-//        MonitoringGStreamerPipeline.stopPipeline();
+      if (state.equalsIgnoreCase(AgentState.CAPTURING) && ConfidenceMonitorImpl.getInstance() != null) {
+        ConfidenceMonitorImpl.getInstance().stopMonitoring();
         logger.info("Confidence monitoring has been shut down.");
         // Gst.deinit();
-      } else if (state.equalsIgnoreCase(AgentState.IDLE)) {
+      } else if (state.equalsIgnoreCase(AgentState.IDLE) && ConfidenceMonitorImpl.getInstance() != null) {
+        
         try {
-          while (true) {
-            if (configService.getAllProperties().size() == 0)
-              continue;
-            break;
+          if (ConfidenceMonitorImpl.getInstance().startMonitoring()) {
+            logger.info("Confidence monitoring started.");
           }
-          // TODO Fix confidence monitoring
-//          if (MonitoringGStreamerPipeline.create(configService.getAllProperties()) != null) {
-//            MonitoringGStreamerPipeline.startPipeline();
-//          }
-          
-//          confidencePipe = PipelineFactory.create(configService.getAllProperties(), true, this);
-//          Bus bus = confidencePipe.getBus();
-//          bus.connect(new Bus.EOS() {
-//
-//            @Override
-//            public void endOfStream(GstObject source) {
-//              // TODO Auto-generated method stub
-//
-//            }
-//          });
-          confidencePipe = MonitoringGStreamerPipeline.create(configService.getAllProperties());
-          confidencePipe.play();
           // TODO: What if the pipeline crashes out? We just run without it?
-          logger.info("Confidence monitoring beginning.");
         } catch (Exception e) {
           logger.warn("Confidence monitoring not started: {}", e);
         }
       }
     }
-
-    /*
-     * // When returning to idle state reload Epiphan driver to prevent problems caused by // too many captures running
-     * without reloaded the driver. if (state.equals(AgentState.IDLE)){ try { Process p =
-     * Runtime.getRuntime().exec("reload_epiphan"); p.waitFor(); if (p.exitValue() == 0) {
-     * logger.debug("VGA2USB driver successfully reloaded"); } else {
-     * logger.warn("Unable to reload Epiphan VGA2USB driver."); } p.destroy(); } catch (Exception e) {
-     * logger.warn("Unable to reload Epiphan VGA2USB driver."); } }
-     */
 
     agentState = state;
   }

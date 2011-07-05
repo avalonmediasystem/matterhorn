@@ -25,6 +25,7 @@ import org.gstreamer.Pad;
 import org.gstreamer.PadDirection;
 import org.gstreamer.State;
 import org.opencastproject.capture.impl.monitoring.ConfidenceMonitorImpl;
+import org.opencastproject.capture.impl.monitoring.MonitoringEntry;
 import org.opencastproject.capture.pipeline.bins.CaptureDevice;
 import org.opencastproject.capture.pipeline.bins.CaptureDeviceNullPointerException;
 import org.opencastproject.capture.pipeline.bins.GStreamerElementFactory;
@@ -206,13 +207,13 @@ public class VideoMonitoringConsumer extends ConsumerBin {
         if (current == State.PLAYING) { 
           // add monitoring entry to ConfidenceMonitoring-Service
           if (monitoringService != null) {
-            monitoringService.createMonitoringEntry(captureDevice.getFriendlyName(), ConfidenceMonitorImpl.MONITORING_TYPE.VIDEO, 
+            monitoringService.createMonitoringEntry(captureDevice.getFriendlyName(), MonitoringEntry.MONITORING_TYPE.VIDEO, 
                   new File(confidenceMonitoringProperties.getImageloc(), confidenceMonitoringProperties.getDevice() + ".jpg").getAbsolutePath());
           }
         } else if (current == State.NULL) {
           // remove monitoring entry from ConfidenceMonitoring-Service
           if (monitoringService != null) {
-            monitoringService.removeMonitoringEntry(captureDevice.getFriendlyName(), ConfidenceMonitorImpl.MONITORING_TYPE.VIDEO);
+            monitoringService.removeMonitoringEntry(captureDevice.getFriendlyName(), MonitoringEntry.MONITORING_TYPE.VIDEO);
           }
         }
       }

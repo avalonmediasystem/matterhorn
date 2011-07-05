@@ -28,6 +28,10 @@ import org.opencastproject.capture.CaptureParameters;
 import org.opencastproject.capture.api.ConfidenceMonitor;
 import org.opencastproject.capture.impl.ConfigurationManager;
 import org.opencastproject.capture.impl.ConfigurationManagerListener;
+import org.opencastproject.capture.impl.monitoring.MonitoringEntry.MONITORING_TYPE;
+import org.opencastproject.capture.pipeline.CannotFindSourceFileOrDeviceException;
+import org.opencastproject.capture.pipeline.MonitoringGStreamerPipeline;
+import org.opencastproject.capture.pipeline.UnrecognizedDeviceException;
 import org.opencastproject.capture.pipeline.bins.consumers.AudioMonitoringConsumer;
 import org.opencastproject.util.ConfigurationException;
 import org.slf4j.Logger;
@@ -37,32 +41,37 @@ import org.slf4j.LoggerFactory;
  * Singleton Class to manage monitoring devices.
  */
 public final class ConfidenceMonitorImpl implements ConfidenceMonitor, ConfigurationManagerListener {
-  
-  private Logger logger = LoggerFactory.getLogger(ConfidenceMonitorImpl.class);
 
+  private Logger logger = LoggerFactory.getLogger(ConfidenceMonitorImpl.class);
   private static ConfidenceMonitorImpl instance = null;
   private ConfigurationManager configService;
-  
-  public enum MONITORING_TYPE {
-    AUDIO,  // Audio monitoring device type
-    VIDEO,  // Video monitoring device type
-    AV,     // Mixed monitoring device type
-    UNKNOWN // Unknown monitoring device type        
-  }
-  
   private static List<MonitoringEntry> monitoringEntries = Collections.synchronizedList(new LinkedList<MonitoringEntry>());
   private String coreURL = null;
-    
+
+  /**
+   * Returns an instance of ConfidenceMonitor implementation.
+   * @return ConfidenceMonitor implementation
+   */
   public static ConfidenceMonitorImpl getInstance() {
     return instance;
   }
-  
+
+  /**
+   * Seta for ConfigurationManager service.
+   * @param cfg ConfigurationManager
+   * @throws ConfigurationException 
+   */
   public void setConfigService(ConfigurationManager cfg) throws ConfigurationException {
     configService = cfg;
     configService.registerListener(this);
     refresh();
   }
-  
+
+  /**
+   * Returns MONITORING_TYPE value from String.
+   * @param type
+   * @return 
+   */
   public static MONITORING_TYPE getMonitoringTypeValue(String type) {
     type = type.toLowerCase().trim();
     if ("audio".equals(type)) {
@@ -71,9 +80,16 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
       return MONITORING_TYPE.VIDEO;
     } else if ("av".equals(type)) {
       return MONITORING_TYPE.AV;
-    } else return MONITORING_TYPE.UNKNOWN;
+    } else {
+      return MONITORING_TYPE.UNKNOWN;
+    }
   }
-  
+
+  /**
+   * Returns MonitoringEntry of the capture device with given friendlyName
+   * @param friendlyName friendly Name of capture device
+   * @return MonitoringEntry
+   */
   MonitoringEntry getMonitoringEntry(String friendlyName) {
     for (MonitoringEntry entry : monitoringEntries) {
       if (entry.getFriendlyName().equals(friendlyName)) {
@@ -82,17 +98,28 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
     }
     return null;
   }
-  
+
+  /**
+   * Creates and put the MonitoringEntry into known monitoring devices collection.
+   * @param friendlyName friendly name of the capture device
+   * @param type type of the capture  device (audio, video, ...)
+   * @param location fileoutput location for video devices
+   */
   public void createMonitoringEntry(String friendlyName, MONITORING_TYPE type, String location) {
     MonitoringEntry entry = new MonitoringEntry(friendlyName, type, location);
     monitoringEntries.add(entry);
     logger.info("Start {} monitoring for {}!", type.toString().toLowerCase(), friendlyName);
   }
-  
+
+  /**
+   * Removes MonitoringEntry from known monitoring devices collection.
+   * @param friendlyName friendly name of the capture device
+   * @param type type of the capture  device (audio, video, ...)
+   */
   public void removeMonitoringEntry(String friendlyName, MONITORING_TYPE type) {
     List<MonitoringEntry> entriesToRemove = new ArrayList<MonitoringEntry>();
     for (MonitoringEntry entry : monitoringEntries) {
-      if (entry.getFriendlyName().equals(friendlyName) 
+      if (entry.getFriendlyName().equals(friendlyName)
               && (entry.getType() == type || MONITORING_TYPE.UNKNOWN == type)) {
         entriesToRemove.add(entry);
       }
@@ -100,13 +127,15 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
     monitoringEntries.removeAll(entriesToRemove);
     logger.info("Stop {} monitoring for {}!", type.toString().toLowerCase(), friendlyName);
   }
-  
+
+  /**
+   * Removes all entiries from known monitoring devices collection.
+   */
   public void removeAllMonitoringEntries() {
     monitoringEntries.clear();
   }
-  
+
   /**
-   * 
    * {@inheritDoc}
    * 
    * @see org.opencastproject.capture.api.ConfidenceMonitor#grabFrame(java.lang.String)
@@ -117,7 +146,7 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
     if (entry == null || (entry.getType() != MONITORING_TYPE.VIDEO && entry.getType() != MONITORING_TYPE.AV)) {
       return null;
     }
-   
+
     // get the image for the device specified
     String location = entry.getLocation();
     File fimage = new File(location);
@@ -138,7 +167,6 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
   }
 
   /**
-   * 
    * {@inheritDoc}
    * 
    * @see org.opencastproject.capture.api.ConfidenceMonitor#getRMSValues(java.lang.String, double)
@@ -146,7 +174,7 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
   @Override
   public List<Double> getRMSValues(String friendlyName, double timestamp) {
     MonitoringEntry entry = getMonitoringEntry(friendlyName);
-    
+
     if (entry == null || (entry.getType() != MONITORING_TYPE.AUDIO && entry.getType() != MONITORING_TYPE.AV)) {
       return null;
     }
@@ -154,7 +182,6 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
   }
 
   /**
-   * 
    * {@inheritDoc}
    * 
    * @see org.opencastproject.capture.api.ConfidenceMonitor#getFriendlyNames()
@@ -169,7 +196,6 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
   }
 
   /**
-   * 
    * {@inheritDoc}
    * 
    * @see org.opencastproject.capture.api.ConfidenceMonitor#getCoreUrl()
@@ -178,12 +204,17 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
   public String getCoreUrl() {
     return coreURL;
   }
-  
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.capture.impl.ConfigurationManagerListener#refresh()
+   */
   @Override
   public void refresh() {
     coreURL = configService.getItem(CaptureParameters.CAPTURE_CORE_URL);
     boolean confidence = Boolean.valueOf(configService.getItem(CaptureParameters.CAPTURE_CONFIDENCE_ENABLE));
-    
+
     if (coreURL != null) {
       if (confidence && instance == null) {
         instance = this;
@@ -195,5 +226,33 @@ public final class ConfidenceMonitorImpl implements ConfidenceMonitor, Configura
         logger.info("Confidence monitoring disabled!");
       }
     }
+  }
+
+  /**
+   * Create and start monitoring Pipeline without creating an recording.
+   * @return true, if successful
+   */
+  @Override
+  public boolean startMonitoring() {
+    try {
+      if (MonitoringGStreamerPipeline.create(configService.getAllProperties()) != null) {
+        return MonitoringGStreamerPipeline.start();
+      } else {
+        return false;
+      }
+    } catch (CannotFindSourceFileOrDeviceException ex) {
+      logger.error("Can not start monitoring!", ex);
+    } catch (UnrecognizedDeviceException ex) {
+      logger.error("Can not start monitoring!", ex);
+    }
+    return false;
+  }
+
+  /**
+   * Stop monitoring Pipeline.
+   */
+  @Override
+  public void stopMonitoring() {
+    MonitoringGStreamerPipeline.stop();
   }
 }

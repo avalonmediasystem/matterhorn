@@ -19,6 +19,8 @@ import java.io.File;
 import java.util.Properties;
 import org.gstreamer.Gst;
 import org.gstreamer.Pipeline;
+import org.gstreamer.State;
+import org.gstreamer.StateChangeReturn;
 import org.opencastproject.capture.CaptureParameters;
 import org.opencastproject.capture.pipeline.bins.CaptureDevice;
 import org.opencastproject.capture.pipeline.bins.CaptureDeviceBin;
@@ -28,19 +30,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author opencast
+ * This class will create a pipeline to monitor all capture devices without capture an recording.
  */
 public final class MonitoringGStreamerPipeline {
 
   static final Logger logger = LoggerFactory.getLogger(MonitoringGStreamerPipeline.class);
   
+  private static Pipeline monitoringPipeline = null;
+  
   protected MonitoringGStreamerPipeline() { }
   
-  public static Pipeline create(Properties properties) throws CannotFindSourceFileOrDeviceException, UnrecognizedDeviceException {
+  /**
+   * Create a pipeline to monitor all capture devices without capture an recording.
+   * @param properties {@code Properties} object defining sources
+   * @return monitoring pipeline
+   * @throws CannotFindSourceFileOrDeviceException
+   * @throws UnrecognizedDeviceException 
+   */
+  public static Pipeline create(Properties properties) 
+          throws CannotFindSourceFileOrDeviceException, UnrecognizedDeviceException {
     
     Gst.init();
-    Pipeline monitoringPipeline = new Pipeline("Confidence-Monitoring");
+    monitoringPipeline = new Pipeline("Confidence-Monitoring");
 
     // get friendly names
     String[] friendlyNames;
@@ -63,6 +74,14 @@ public final class MonitoringGStreamerPipeline {
     return monitoringPipeline;
   }
   
+  /**
+   * Creates {@code CaptureDevice} for the device given by friendly name
+   * @param friendlyName friendly name of the capture device
+   * @param properties {@code Properties} object defining sources
+   * @return {@code CaptureDevice} for the device given by friendly name
+   * @throws CannotFindSourceFileOrDeviceException
+   * @throws UnrecognizedDeviceException 
+   */
   protected static CaptureDevice createCaptureDevice(String friendlyName, Properties properties) 
           throws CannotFindSourceFileOrDeviceException, UnrecognizedDeviceException {
     
@@ -97,6 +116,13 @@ public final class MonitoringGStreamerPipeline {
     return new CaptureDevice(srcLoc, devName, friendlyName, outputLoc);
   }
   
+  /**
+   * Creates and add {@code CaptureDeviceBin}s to the monitoring pipeline.
+   * @param captureDevice
+   * @param properties
+   * @param pipeline
+   * @return 
+   */
   protected static boolean addCaptureDeviceBinsToPipeline(CaptureDevice captureDevice, Properties properties, Pipeline pipeline) {
     CaptureDeviceBin captureDeviceBin = null;
     try {
@@ -106,5 +132,28 @@ public final class MonitoringGStreamerPipeline {
       logger.error("Can not create CaptureDeviceBin: ", e);
     }
     return false;
+  }
+  
+  /**
+   * Start monitoring Pipeline without capturing file(s).
+   * @return true if successfully, false otherwise
+   */
+  public static boolean start() {
+      if (monitoringPipeline == null) return false;
+      
+      return !monitoringPipeline.setState(State.PLAYING).equals(StateChangeReturn.FAILURE);
+  }
+  
+  /**
+   * Stop monitoring Pipeline.
+   * @return true if successfully, false otherwise.
+   */
+  public static boolean stop() {
+      if (monitoringPipeline == null) return true;
+      if (!monitoringPipeline.setState(State.NULL).equals(StateChangeReturn.FAILURE)) {
+          monitoringPipeline = null;
+          return true;
+      }
+      return false;
   }
 }

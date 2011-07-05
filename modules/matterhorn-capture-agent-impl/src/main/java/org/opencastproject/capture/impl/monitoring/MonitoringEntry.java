@@ -15,10 +15,15 @@
  */
 package org.opencastproject.capture.impl.monitoring;
 
-import org.opencastproject.capture.impl.monitoring.ConfidenceMonitorImpl.MONITORING_TYPE;
-
 public class MonitoringEntry {
-  
+
+  public enum MONITORING_TYPE {
+
+    AUDIO, // Audio monitoring device type
+    VIDEO, // Video monitoring device type
+    AV,    // Mixed monitoring device type
+    UNKNOWN // Unknown monitoring device type        
+  }
   private String friendlyName = null;
   private MONITORING_TYPE type = MONITORING_TYPE.UNKNOWN;
   private String location = null;
