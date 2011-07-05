@@ -130,7 +130,7 @@ var ocUpload = (function() {
   }
 
   this.backToRecordings = function() {
-    window.history.back();
+    document.location = "/admin/recordings.html";
   }
 
   return this;
