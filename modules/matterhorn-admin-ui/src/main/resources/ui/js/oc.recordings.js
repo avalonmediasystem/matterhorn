@@ -1116,16 +1116,21 @@ ocRecordings = new (function() {
     });
     if(eventIdList.length > 0){
       if(ocRecordings.Configuration.state === 'bulkedit') {
-        $('#progressIndicator').show();
-        $.ajax({
-          url: '/recordings/bulkaction',
-          type: 'PUT',
-          data: {
-            dublincore: ocRecordings.dublinCore.serialize(),
-            idlist: '[' + eventIdList.toString() + ']'
-          },
-          success: ocRecordings.bulkActionComplete
-        });
+        var cat = ocRecordings.dublinCore.serialize();
+        if(!cat) {
+          alert("Couldn't create dublincore catalog.");
+        } else {
+          $('#progressIndicator').show();
+          $.ajax({
+            url: '/recordings/bulkaction',
+            type: 'PUT',
+            data: {
+              dublincore: cat,
+              idlist: '[' + eventIdList.toString() + ']'
+            },
+            success: ocRecordings.bulkActionComplete
+          });
+        }
       } else if(ocRecordings.Configuration.state === 'bulkdelete') {
         if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming recordings? \nNo record of these will remain. You will need to reschedule if needed.') ){
         progressChunk = (100 / eventIdList.length)
@@ -1212,8 +1217,7 @@ ocRecordings = new (function() {
     {
       label: 'seriesLabel',
       errorField: 'missingSeries',
-      key: 'isPartOf',
-      required: true
+      key: 'isPartOf'
     },
 
     {
@@ -1233,48 +1237,37 @@ ocRecordings = new (function() {
         }
         return this.getValue() + '';
       },
-      validate: function(){
-        if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === ''){ //have text and no idea
-          this.createSeriesFromSearchText();
-        }
-        return true; //nothing, or we have an id.
-      },
-      toNode: function(parent){
-        if(parent){
-          doc = parent.ownerDocument;
-        }else{
-          doc = document;
-        }
-        if(this.getValue() != "" && this.asString() != ""){ //only add series if we have both id and name.
-          seriesId = doc.createElement(this.nodeKey[0]);
-          seriesId.appendChild(doc.createTextNode(this.getValue()));
-          seriesName = doc.createElement(this.nodeKey[1]);
-          seriesName.appendChild(doc.createTextNode(this.asString()));
-          if(parent && parent.nodeType){
-            parent.appendChild(seriesId);
-            parent.appendChild(seriesName);
-          }else{
-            ocUtils.log('Unable to append node to document. ', parent, seriesId, seriesName);
+      validate: function() {
+        var error = [];
+        if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === '') { //have text and no id
+          if(!this.createSeriesFromSearchText()) {
+            error.push(this.errors.seriesError); //failed to create series for some reason.
           }
         }
+        return error;
       },
       createSeriesFromSearchText: function(){
         var series, seriesComponent, seriesId;
         var creationSucceeded = false;
         if(this.fields.seriesSelect !== ''){
-          series = '<series><additionalMetadata><metadata><key>title</key><value>' + this.fields.seriesSelect.val() + '</value></metadata></additionalMetadata></series>';
+          series = '<dublincore xmlns="http://www.opencastproject.org/xsd/1.0/dublincore/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oc="http://www.opencastproject.org/matterhorn"><dcterms:title xmlns="">' + this.fields.seriesSelect.val() + '</dcterms:title></dublincore>'
           seriesComponent = this;
           $.ajax({
             async: false,
-            type: 'PUT',
+            type: 'POST',
             url: SERIES_URL + '/',
-            data: {
-              series: series
+            data: { 
+              series: series,
+              acl: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:acl xmlns:ns2="org.opencastproject.security"></ns2:acl>'
             },
-            dataType: 'json',
+            dataType: 'xml',
             success: function(data){
+              window.debug = data;
               creationSucceeded = true;
-              seriesComponent.fields.series.val(data.series['id']);
+              seriesComponent.fields.series.val($('dcterms\\:identifier',data).text());
+            },
+            error: function() {
+              creationSucceeded = false;
             }
           });
         }
