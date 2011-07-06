@@ -1306,13 +1306,6 @@ ocRecordings = new (function() {
 
       } else if (action == 'edit') {
         links.push('<a href="scheduler.html?eventId=' + id + '&edit=true">Edit</a>');
-      } else if(actions[index] === 'play') {
-        var workflow = ocRecordings.getWorkflow(id);
-        if (workflow) {
-          var mpId = workflow.mediapackage.id;
-          links.push('<a href="../engage/ui/watch.html?id=' + mpId + '">Play</a>');
-        }
-
       } else if (action == 'play') {
         var workflow = ocRecordings.getWorkflow(id);
         if (workflow) {
