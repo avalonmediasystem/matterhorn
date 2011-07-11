@@ -725,11 +725,11 @@ Opencast.Player = (function ()
             {
                 FLASH_PLAYERSTATE = playing;
                 setCurrentPlayPauseState(PLAYING);
-                if (displVidSizeControl)
+                if (displayVideoSizeControl())
                 {
                     // Bind the video size controls to its functions
                     Opencast.Initialize.bindVidSize();
-                    // Hide Screen Settings until clicked 'play'
+                    // Show Screen Settings
                     $("#oc_btn-dropdown").show();
                 }
             } else

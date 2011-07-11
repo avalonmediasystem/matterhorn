@@ -230,7 +230,7 @@ Opencast.Watch = (function ()
             Opencast.Utils.log("Mimetype 1: " + mimetypeOne);
             Opencast.Utils.log("Mimetype 2: " + mimetypeTwo);
             
-            // Hide Screen Settings until clicked 'play'
+            // Hide Screen Settings until clicked 'play' or autoplay
             $("#oc_btn-dropdown").css("display", 'none');
             $("#oc_player_video-dropdown").css("display", 'none');
             var userId = Opencast.Utils.getURLParameter('user');
