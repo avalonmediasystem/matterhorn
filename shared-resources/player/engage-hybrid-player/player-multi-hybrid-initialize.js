@@ -992,6 +992,8 @@ Opencast.Initialize = (function ()
         {
             newHeight = Math.round(newHeight);
             $('#oc_flash-player').css("height", newHeight + "px");
+            //Trigger Resize Event
+            $('#oc_flash-player').trigger('doResize');
         }
     }
     

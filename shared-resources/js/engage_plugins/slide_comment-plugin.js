@@ -17,42 +17,21 @@
 var Opencast = Opencast || {};
 
 /**
- * @namespace the global Opencast namespace Annotation_CommentPlugin
+ * @namespace the global Opencast namespace Slide_CommentPlugin
  */
-Opencast.Annotation_CommentPlugin = (function ()
+Opencast.Slide_CommentPlugin = (function ()
 {
     //place to render the data in the html ${(parseInt(a.inpoint) / parseInt(duration)) * 100} ;float:left 
-    var template = '<div ' +
-                      'id="annotation_comment_holder" ' +
-                      'style="width:100%;" >' +
-                      
-                   	 '{for a in comment}' +
-                       '<canvas id="comment${a.id}" style="z-index:10;width:15px;height:15px;top:90%;position:absolute;left:${(parseInt(a.inpoint) / parseInt(duration)) * 100}%;" '+
-                       'onmouseover="Opencast.Annotation_Comment.hoverComment(\'comment${a.id}\', \'${a.text}\')" ' +
-                       'onmouseout="Opencast.Annotation_Comment.hoverOutComment(\'comment${a.id}\', \'${a.text}\')" ' +
+    var template_slide =
+                     '{for a in comment}' +
+                       '<canvas id="slideComment${a.id}" style="z-index:10;width:18px;height:18px;top:${a.relPos.y}%;position:absolute;left:${a.relPos.x}%;" '+
+                       'onmouseover="Opencast.Annotation_Comment.hoverComment(\'slideComment${a.id}\', \'${a.text}\')" ' +
+                       'onmouseout="Opencast.Annotation_Comment.hoverOutComment(\'slideComment${a.id}\', \'${a.text}\')" ' +
                        '>' +
-                       
                        '</canvas>' +
-                     '{/for}' +
-
-                    '</div>';
-                    
-    var template1 = '<div ' +
-                      'id="annotation_comment_holder" ' +
-                      'style="width:100%;" >' +
-                      
-                     '{for a in annotation}' +
-                       '<canvas id="comment${a.annotationId}" style="z-index:10;width:15px;height:15px;top:90%;position:absolute;left:${(parseInt(a.inpoint) / parseInt(duration)) * 100}%;" '+
-                       'onmouseover="Opencast.Annotation_Comment.hoverComment(\'comment${a.annotationId}\', \'${a.text}\')" ' +
-                       'onmouseout="Opencast.Annotation_Comment.hoverOutComment(\'comment${a.annotationId}\', \'${a.text}\')" ' +
-                       '>' +
                        
-                       '</canvas>' +
-                     '{/for}' +
-
-                    '</div>';
+                     '{/for}';
         
-          
 
                     
     // The Element to put the div into
@@ -63,7 +42,7 @@ Opencast.Annotation_CommentPlugin = (function ()
     var processedTemplateData;
     
     /**
-     * @memberOf Opencast.Annotation_CommentPlugin
+     * @memberOf Opencast.Slide_CommentPlugin
      * @description Add As Plug-in
      * @param elem Element to put the Data into
      * @param data The Data to process
@@ -77,7 +56,7 @@ Opencast.Annotation_CommentPlugin = (function ()
     }
     
     /**
-     * @memberOf Opencast.Annotation_CommentPlugin
+     * @memberOf Opencast.Slide_CommentPlugin
      * @description Resize Plug-in
      * @return true if successfully processed, false else
      */
@@ -87,7 +66,7 @@ Opencast.Annotation_CommentPlugin = (function ()
     }
     
     /**
-     * @memberOf Opencast.Annotation_CommentPlugin
+     * @memberOf Opencast.Slide_CommentPlugin
      * @description Add annotations into template element
      * processing the template with service data
      * @return true if successfully processed, false else
@@ -97,11 +76,21 @@ Opencast.Annotation_CommentPlugin = (function ()
         if ((element !== undefined) &&
             (annotation_CommentData.comment !== undefined) &&
             (annotation_CommentData.comment.length > 0) &&
-            (annotation_CommentData.duration > 0))
+            (annotation_CommentData.type === "slide"))
         {
-            Opencast.Utils.log("Annotation Plugin: Data available, processing template");
-            processedTemplateData = template.process(annotation_CommentData);
+            Opencast.Utils.log("Slide Comment Plugin: Data available, processing template");
+            processedTemplateData = template_slide.process(annotation_CommentData);
+            //Opencast.Utils.log("processedTemplateData: "+processedTemplateData);
             element.html(processedTemplateData);
+            //draw balloons with html5
+            $(annotation_CommentData.comment).each(function (i)
+            {
+                var id = annotation_CommentData.comment[i].id;
+                var c_canvas = $("#slideComment"+id)[0];
+                
+                drawBalloon(c_canvas);
+            });
+            
             return true;
         }
         else
@@ -109,6 +98,38 @@ Opencast.Annotation_CommentPlugin = (function ()
             Opencast.Utils.log("Annotation Plugin: No data available");
             return false;
         }
+    }
+    
+     /**
+     * @memberOf Opencast.Slide_CommentPlugin
+     * @description draw the comment icon with the canvas element
+     * @param canvas DOM canvas element
+     */   
+    function drawBalloon(canvas){
+        var ctx = canvas.getContext('2d');
+        
+        ctx.save();
+        ctx.fillStyle = "rgba(167,33,35,0.9)";
+        
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 2;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+    
+        ctx.beginPath();
+        ctx.moveTo(70,0);
+        ctx.quadraticCurveTo(10,0,10,45);
+        ctx.lineTo(10,70);
+        ctx.quadraticCurveTo(10,110,60,110);
+        ctx.lineTo(150,110);
+        ctx.lineTo(130,145);
+        ctx.lineTo(200,110);
+        ctx.lineTo(230,110);
+        ctx.quadraticCurveTo(280,110,280,75);
+        ctx.lineTo(280,40);
+        ctx.quadraticCurveTo(280,0,220,0);
+        ctx.fill();
+        ctx.restore();
     }
     
     return {
