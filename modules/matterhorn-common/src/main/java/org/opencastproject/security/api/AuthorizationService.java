@@ -24,6 +24,17 @@ import org.opencastproject.mediapackage.MediaPackageException;
 public interface AuthorizationService {
 
   /**
+   * Determines whether the current mediapackage contains a security policy.
+   * 
+   * @param mediapackage
+   *          the mediapackage
+   * @return whether the current mediapackage contains a security policy
+   * @throws MediaPackageException
+   *           if the mediapackage can not be read
+   */
+  boolean hasPolicy(MediaPackage mediapackage) throws MediaPackageException;
+
+  /**
    * Determines whether the current user can take the specified action on the mediapackage.
    * 
    * @param mediapackage
@@ -67,7 +78,7 @@ public interface AuthorizationService {
   AccessControlList getAccessControlList(MediaPackage mediapackage) throws MediaPackageException;
 
   /**
-   * Attaches the provided policies to a mediapackage as a XACML attachment.
+   * Attaches the provided policies to a mediapackage as a XACML attachment, replacing any previous policy element.
    * 
    * @param mediapackage
    *          the mediapackage

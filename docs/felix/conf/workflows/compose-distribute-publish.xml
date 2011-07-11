@@ -427,10 +427,20 @@
       </configurations>
     </operation>
 
+    <!-- Apply ACL from series to the mediapackage -->
+
+    <operation
+      id="apply-acl"
+      fail-on-error="true"
+      exception-handler-workflow="error"
+      description="Applying access control rules">
+    </operation>
+
     <!-- Distribute to download server -->
     
     <operation
       id="distribute-download"
+      max-attempts="2"
       fail-on-error="true"
       exception-handler-workflow="error"
       description="Distributing to progressive downloads">
@@ -442,6 +452,7 @@
 
     <operation
       id="distribute-streaming"
+      max-attempts="2"
       fail-on-error="true"
       if="${org.opencastproject.streaming.url}"
       exception-handler-workflow="error"

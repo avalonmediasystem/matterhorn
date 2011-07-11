@@ -15,8 +15,8 @@
  */
 package org.opencastproject.capture.admin.api;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -69,7 +69,7 @@ public interface CaptureAgentStateService {
   int removeAgent(String agentName);
 
   /**
-   * Returns the list of known agents.
+   * Returns the list of known agents that the current user is authorized to schedule.
    * 
    * @return A {@link java.util.Map} of name-agent pairs.
    */
