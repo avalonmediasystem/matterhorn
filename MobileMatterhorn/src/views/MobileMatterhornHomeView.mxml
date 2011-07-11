@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:views="views.*"
+		creationComplete="init();" title="Matterhorn" >
+	<fx:Declarations>
+		
+		<!--<s:HTTPService id="srv" url="http://gruinard.virtuos.uos.de:8080/search/episode.xml?id=a3e2a717-242f-4f9c-960a-b7b43f75c348" result="showresults();" fault="failure();"/> -->
+		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			import mx.rpc.http.HTTPService;
+			import mx.rpc.events.ResultEvent;
+			import mx.collections.XMLListCollection;
+			
+			// The initialisation function
+			protected function init():void
+			{
+				var serviceObj:HTTPService = new HTTPService();
+				serviceObj.resultFormat = 'e4x';
+				serviceObj.method = 'GET';
+				serviceObj.useProxy = false;
+				serviceObj.addEventListener(ResultEvent.RESULT, processResult);
+				// eine Episode
+				//serviceObj.url = 'http://gruinard.virtuos.uos.de:8080/search/episode.xml?id=a3e2a717-242f-4f9c-960a-b7b43f75c348';
+				//alle Episoden
+				serviceObj.url = 'http://gruinard.virtuos.uos.de:8080/search/episode.xml';
+				serviceObj.send();
+			}
+			
+			private function failure():void{
+				trace("keine Daten");
+			}
+			
+			/*private function showresults():void{
+				trace("irgendwas da");
+			}*/
+			
+			// The result processing function
+			protected function processResult(response:ResultEvent):void
+			{
+				// make sure the response is cast as the correct data type
+				trace("Kommt der Titel an: "+response.result.result.dcTitle);
+				trace("Kommt der Titel aus dem Mediapackage an: "+response.result.result.mediapackage.title);
+				trace("Kommen die videourls an: "+response.result.result.mediapackage.media.track.url);
+				var XMLResults:XML = response.result as XML;
+				trace("was steht da drinnen: "+XMLResults.result.mediapackage.media.track.url);
+				//list.dataProvider = new XMLListCollection(XMLResults.result.mediapackage.media.track.url);
+				list.dataProvider = new XMLListCollection(XMLResults.result.mediapackage.title);
+				//list.dataProvider = response.result.result.dcTitle;
+			}
+			
+			protected function changeView():void{
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<s:actionContent>
+		<s:Button id="btn_search">
+			<s:icon>
+				<s:MultiDPIBitmapSource source160dpi="assets/search160.png"
+										source240dpi="assets/search240.png"
+										source320dpi="assets/search320.png"/>
+			</s:icon>
+		</s:Button>
+	</s:actionContent>
+	<s:titleContent>
+		<s:TextInput id="textinput_search" x="13" width="154" enabled="true" text="search recordings"/>
+	</s:titleContent>
+	<s:navigationContent>
+		<s:Image width="42" height="30" scaleMode="letterbox" smooth="true"
+				 smoothingQuality="default" source="assets/logo-matterhorn.gif"/>
+	</s:navigationContent>
+	
+	<s:List id="list" left="10" right="10" top="10" bottom="10" fontSize="8" click="changeView();"/>
+</s:View>
