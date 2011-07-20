@@ -330,8 +330,9 @@ var ocScheduler = (function() {
   };
 
   sched.cancelForm = function() {
-    document.location = 'recordings.html';
+    document.location = 'recordings.html'+window.location.search;
   };
+
 
   sched.handleAgentChange = function(elm){
     var time;
@@ -499,7 +500,7 @@ var ocScheduler = (function() {
 
   sched.eventSubmitComplete = function(xhr, status) {
     if(status == "success") {
-      document.location = RECORDINGS_URL;
+      document.location = RECORDINGS_URL+window.location.search;
     }
   }
 

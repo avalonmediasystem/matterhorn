@@ -130,7 +130,7 @@ var ocUpload = (function() {
   }
 
   this.backToRecordings = function() {
-    document.location = "/admin/recordings.html";
+    document.location = "/admin/recordings.html"+window.location.search;
   }
 
   return this;
@@ -192,7 +192,7 @@ ocUpload.UI = (function() {
         ocUtils.log('Loaded workflow definitions: ' + defs.join(', '));
       }
     });
-    $('.workflowConfigContainer').load(ocUpload.WORKFLOW_PANEL_URL + ocUpload.DEFAULT_WORKFLOW_DEFINITION);
+    $('.workflowConfigContainer').load(ocUpload.WORKFLOW_PANEL_URL + ocUpload.DEFAULT_WORKFLOW_DEFINITION); 
   }
 
   this.toggleUnfoldable = function() {
