@@ -131,6 +131,26 @@
             // put mediapackge into form (for upload of captions file)
             var mp = xmlToString(data).match(/<mediapackage(.*)mediapackage>/)[0];
             ocUploadListener.mediaPackage = mp;
+
+ 	    // populate series field if information present
+            var seriesid =  $(data.documentElement).find("mediapackage > series").text();
+            if (seriesid != '') {
+	      $('#info-series')[0].innerHTML = $(data.documentElement).find("mediapackage > seriestitle").text();
+            }
+
+            // load metadata from DC xml
+            catalogUrl = $(data.documentElement).find("mediapackage > metadata > catalog[type='dublincore/episode'] > url").text();
+            $.ajax({
+              url: catalogUrl,
+              dataType: 'xml', 	                 
+              success: function(data){		     
+                $(data.documentElement).children().each(function(index, elm){		
+                  var tagName = elm.tagName.split(/:/)[1];
+                  if (($(elm).text() != '')&&($('#info-' + tagName).length>0)) $('#info-' + tagName)[0].innerHTML = $(elm).text();
+                });
+		}
+            });
+
             /* --> not needed for current mock-up
             // load metadata
             var catalogUrl = $(data.documentElement).find("mediapackage > metadata > catalog[type='dublincore/episode'] > url").text();
@@ -211,6 +231,13 @@
     </script>
   </head>
   <body id="captions-container">
+	<div class="lectureInfo" style="">
+	  <h2 id="info-title"></h2>
+	  <h4 id="info-creator"></h4>
+	  <h4 id="info-series"></h4>
+	</div>
+
+<div class="holdStateUI" >
     <!-- control buttons in the upper right -->
     <h1>Upload Captions file</h1>
     <div class="spandiv">
@@ -277,6 +304,7 @@
         </li>
       </ul>
     </div>
+</div>
   </body>
 </html>
 

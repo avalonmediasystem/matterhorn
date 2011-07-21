@@ -627,7 +627,7 @@ ocRecordings = new (function() {
   }
 
   this.adjustHoldActionPanelHeight = function() {
-    var height = $('#holdActionUI').contents().find('html').height() + 10;
+    var height = $('#holdActionUI').contents().find('html').height() + 50;
     $('#holdActionUI').height(height);
   }
 

@@ -165,7 +165,6 @@ table#agentsTable th, table#seriesTable th, table#recordingsTable th, table#stat
 
 /* Schedule */
 .scheduler-selection-container { margin-top: 10px; text-align: center; }
-#workflowConfigContainer { padding: 20px; }
 #workflowConfigContainer legend { padding: 0 5px; }
 #workflowConfigContainer fieldset { padding: 10px; }
 .scheduler-day-table td, .scheduler-day-table th { padding: 4px; border: 1px solid #AAAAAA;}
@@ -198,3 +197,9 @@ table#agentsTable th, table#seriesTable th, table#recordingsTable th, table#stat
 .informationText {font-size: 90%; color:grey; margin: 5px 10px 5px 10px;}
 
 .label-error {color: red;}
+
+/* Hold UIs*/
+div.lectureInfo {float:left;margin:10px;margin: 10px 10px 10px 20px;}
+div.lectureInfo h2, div.lectureInfo h4 {margin:10px; display:inline; color: rgb(45, 143, 139);}
+.holdStateUI {margin: 0px 30px 30px; padding: 10px; display: inline-block; width: 90%; border: 3px solid rgb(45, 143, 139);}
+.holdStateUI h1{margin: 10px;}
