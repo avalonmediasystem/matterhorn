@@ -584,7 +584,8 @@ ocUpload.Ingest = (function() {
         ocUpload.Listener.ingestError('Could not create Series ' + name);
       },
       success: function(data){
-        id = $(data.getElementsByTagName('dcterms:identifier')).text();
+        window.debug = data;
+        id = $('identifier', data).text();
       }
     });
     return id;
