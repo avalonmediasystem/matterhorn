@@ -459,7 +459,7 @@ var ocScheduler = (function() {
   sched.loadKnownAgents = function() {
     $(this.agentList).empty();
     $(this.agentList).append($('<option></option>').val('').html('Choose one:'));
-    $.get(CAPTURE_ADMIN_URL + '/agents', this.handleAgentList, 'xml');
+    $.get(CAPTURE_ADMIN_URL + '/agents.xml', this.handleAgentList, 'xml');
   };
 
 /**
