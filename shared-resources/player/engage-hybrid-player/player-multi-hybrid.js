@@ -1512,6 +1512,16 @@ Opencast.Player = (function ()
         return displayMode;
     }
     
+    
+        /**
+     @memberOf Opencast.Player
+     @description Get the userid.
+     */
+    function getUserId()
+    {
+        return userId;
+    }
+    
     /**
      @memberOf Opencast.Player
      @description Set the displayMode.
@@ -1673,6 +1683,7 @@ Opencast.Player = (function ()
         getViewState: getViewState,
         getHtmlBool: getHtmlBool,
         getCurrentTime: getCurrentTime,
+        getUserId: getUserId,
         // setter
         setDragging: setDragging,
         setMediaURL: setMediaURL,

@@ -42,6 +42,7 @@ Opencast.segments_text = (function ()
     function showSegmentsText()
     {
         // Hide other Tabs
+        Opencast.Annotation_Comment_List.hideComments();
         Opencast.Description.hideDescription();
         Opencast.segments.hideSegments();
         Opencast.search.hideSearch();
@@ -125,6 +126,7 @@ Opencast.segments_text = (function ()
      */
     function hideSegmentsText()
     {
+        Opencast.Utils.log("hideSegmentsText");
         // Change Tab Caption
         $('#oc_btn-slidetext').attr(
         {
@@ -143,6 +145,8 @@ Opencast.segments_text = (function ()
     {
         if ($('#oc_btn-slidetext').attr("title") === SEGMENTS_TEXT)
         {
+            Opencast.Annotation_Comment_List.hideComments();
+            Opencast.Annotation_Comment_List.hideComments();
             Opencast.Description.hideDescription();
             Opencast.segments.hideSegments();
             showSegmentsText();

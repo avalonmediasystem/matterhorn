@@ -161,10 +161,10 @@ Opencast.segments = (function ()
             {
                 $container.css('width', ($panels[0].offsetWidth * $panels.length)).css('left', "0px");
                 // Disable and grey out "Annotation" Tab
-                $("#oc_ui_tabs").tabs(
-                {
-                    disabled: [4]
-                });
+                //$("#oc_ui_tabs").tabs(
+                //{
+                //    disabled: [4]
+                //});
             }
             var scroll = $('#slider .scroll').css('overflow', 'hidden');
             //when the left/right arrows are clicked
@@ -371,6 +371,7 @@ Opencast.segments = (function ()
     function showSegments()
     {
         // Hide other Tabs
+        Opencast.Annotation_Comment_List.hideComments();
         Opencast.Description.hideDescription();
         Opencast.segments_text.hideSegmentsText();
         Opencast.search.hideSearch();
@@ -493,6 +494,7 @@ Opencast.segments = (function ()
     {
         if ($('#oc_btn-slides').attr("title") === SEGMENTS)
         {
+            Opencast.Annotation_Comment_List.hideComments();
             Opencast.Description.hideDescription();
             Opencast.segments_text.hideSegmentsText();
             Opencast.search.hideSearch();

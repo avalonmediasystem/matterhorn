@@ -27,9 +27,9 @@ Opencast.Scrubber_CommentPlugin = (function ()
                       'style="width:100%;" >' +
                       
                      '{for a in comment}' +
-                       '<canvas id="scComment${a.id}" style="z-index:10;width:15px;height:15px;top:90%;position:absolute;left:${(parseInt(a.inpoint) / parseInt(duration)) * 100}%;" '+
-                       'onmouseover="Opencast.Annotation_Comment.hoverComment(\'scComment${a.id}\', \'${a.text}\')" ' +
-                       'onmouseout="Opencast.Annotation_Comment.hoverOutComment(\'scComment${a.id}\', \'${a.text}\')" ' +
+                       '<canvas id="scComment${a.id}" class="oc-comment-scrubber-baloon" style="left:${(parseInt(a.inpoint) / parseInt(duration)) * 100}%;" '+
+                       'onmouseover="Opencast.Annotation_Comment.hoverComment(\'scComment${a.id}\', \'${a.text}\',\'${a.inpoint}\',\'${a.user}\')" ' +
+                       'onmouseout="Opencast.Annotation_Comment.hoverOutComment()" ' +
                        '>' +
                        '</canvas>' +
                        
@@ -115,13 +115,18 @@ Opencast.Scrubber_CommentPlugin = (function ()
         var ctx = canvas.getContext('2d');
         
         ctx.save();
-        ctx.fillStyle = "rgba(167,33,35,0.9)";
+        //ctx.fillStyle = "rgba(167,33,35,0.9)";
+        ctx.fillStyle = "rgba(255, 140, 80, 1.0)";
+        //ctx.fillStyle = "rgba(83, 168, 253, 0.6)";
+        //ctx.strokeStyle = "rgba(0, 0, 0, 1.0)";
+        ctx.lineWidth   = 8;
+
         
         ctx.shadowOffsetX = 5;
         ctx.shadowOffsetY = 2;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 20;
         ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-    
+
         ctx.beginPath();
         ctx.moveTo(70,0);
         ctx.quadraticCurveTo(10,0,10,45);
@@ -134,7 +139,9 @@ Opencast.Scrubber_CommentPlugin = (function ()
         ctx.quadraticCurveTo(280,110,280,75);
         ctx.lineTo(280,40);
         ctx.quadraticCurveTo(280,0,220,0);
+        ctx.lineTo(70,0);
         ctx.fill();
+        ctx.stroke();
         ctx.restore();
     }
     

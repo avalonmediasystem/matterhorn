@@ -683,6 +683,9 @@ Opencast.Initialize = (function ()
                     Opencast.segments_text.doToggleSegmentsText();
                     break;
                 case 3:
+                    Opencast.Annotation_Comment_List.doToggleComments();
+                    break;
+                case 4:
                     // Have a look at the - (engage-ui) watch.html - search trigger-function
                     break;
                 }

@@ -254,6 +254,7 @@ Opencast.Watch = (function ()
             Opencast.Player.setMediaPackageId(mediaPackageId);
             Opencast.Annotation_Chapter.setMediaPackageId(mediaPackageId);
             Opencast.Annotation_Comment.setMediaPackageId(mediaPackageId);
+            Opencast.Annotation_Comment_List.setMediaPackageId(mediaPackageId);
             Opencast.Analytics.setMediaPackageId(mediaPackageId);
             Opencast.Series.setMediaPackageId(mediaPackageId);
             Opencast.Description.setMediaPackageId(mediaPackageId);
@@ -292,6 +293,7 @@ Opencast.Watch = (function ()
         Opencast.Annotation_Chapter.initialize();
         Opencast.Annotation_Comment.setDuration(parseInt(parseInt(dcExtent) / 1000));
         Opencast.Annotation_Comment.initialize();
+        Opencast.Annotation_Comment_List.initialize();
         $('#oc_body').bind('resize', function ()
         {
             Opencast.AnalyticsPlugin.resizePlugin();

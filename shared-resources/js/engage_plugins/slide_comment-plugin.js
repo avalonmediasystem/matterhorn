@@ -21,12 +21,12 @@ var Opencast = Opencast || {};
  */
 Opencast.Slide_CommentPlugin = (function ()
 {
-    //place to render the data in the html ${(parseInt(a.inpoint) / parseInt(duration)) * 100} ;float:left 
+    //place to render the data in the html
     var template_slide =
                      '{for a in comment}' +
                        '<canvas id="slideComment${a.id}" style="z-index:10;width:18px;height:18px;top:${a.relPos.y}%;position:absolute;left:${a.relPos.x}%;" '+
-                       'onmouseover="Opencast.Annotation_Comment.hoverComment(\'slideComment${a.id}\', \'${a.text}\')" ' +
-                       'onmouseout="Opencast.Annotation_Comment.hoverOutComment(\'slideComment${a.id}\', \'${a.text}\')" ' +
+                       'onmouseover="Opencast.Annotation_Comment.hoverSlideComment(\'slideComment${a.id}\',\'${a.text}\',\'${a.user}\',\'${a.slideNr}\')" ' +
+                       'onmouseout="Opencast.Annotation_Comment.hoverOutSlideComment()" ' +
                        '>' +
                        '</canvas>' +
                        
@@ -110,6 +110,7 @@ Opencast.Slide_CommentPlugin = (function ()
         
         ctx.save();
         ctx.fillStyle = "rgba(167,33,35,0.9)";
+        ctx.lineWidth   = 8;
         
         ctx.shadowOffsetX = 5;
         ctx.shadowOffsetY = 2;
@@ -128,7 +129,9 @@ Opencast.Slide_CommentPlugin = (function ()
         ctx.quadraticCurveTo(280,110,280,75);
         ctx.lineTo(280,40);
         ctx.quadraticCurveTo(280,0,220,0);
+        ctx.lineTo(70,0);
         ctx.fill();
+        ctx.stroke();
         ctx.restore();
     }
     

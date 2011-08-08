@@ -115,12 +115,6 @@ input.ui-button {
     height: 20px;
 }
 
-#annotation_comment {
-    z-index: 3;
-    margin-top: 8px;
-    display: none;
-}
-
 #analytics {
     z-index: 2;
 }
