@@ -16,7 +16,7 @@
         <script type="text/javascript">
             $(document).ready( function() {
 
-                $('#stage').xslt("../../capture-admin/agents", "xsl/agents_status.xsl", function() {
+                $('#stage').xslt("../../capture-admin/agents.xml", "xsl/agents_status.xsl", function() {
                     $('#agentsTable').tablesorter({ cssHeader: 'oc-ui-sortable', cssAsc: 'oc-ui-sortable-Ascending', cssDesc: 'oc-ui-sortable-Descending'});
 
                     //header underline

@@ -21,23 +21,30 @@
                     <th width="33%" class="ui-widget-header"><div>Status</div></th>
                 </tr>
             </thead>
+
             <tbody>
-                <xsl:for-each select="ns1:agent-state-updates/ns1:agent-state-update">
-                    <tr class="highlightable">
-                        <td class="ui-state-active">
-                            <xsl:value-of select="name" />
-                        </td>
-                        <td class="ui-state-active">
-                          <xsl:value-of select="capabilities" />
-                        </td>
-                        <td class="ui-state-active">
-                            <span>
-                                <xsl:attribute name="class">icon icon-<xsl:value-of select="state" /></xsl:attribute>
-                            </span>
-                            <span style="margin-left:20px;"><xsl:value-of select="state" /></span>
-                        </td>
-                    </tr>
-                </xsl:for-each>
+              <xsl:for-each select="agents/agent">
+                <tr class="highlightable">
+                  <td class="ui-state-active">
+                    <xsl:value-of select="name" />
+                  </td>
+                  <td class="ui-state-active">
+                    <table class="fl-theme-coal wu-table-list" width="100%" style="float:left;">
+                      <xsl:for-each select="capabilities/item">
+                        <tr>
+                          <td><xsl:value-of select="@key" /></td><td><xsl:value-of select="value" /></td>
+                        </tr>
+                      </xsl:for-each>
+                    </table>
+                  </td>
+                  <td class="ui-state-active">
+                    <span>
+                      <xsl:attribute name="class">icon icon-<xsl:value-of select="state" /></xsl:attribute>
+                    </span>
+                    <span style="margin-left:20px;"><xsl:value-of select="state" /></span>
+                  </td>
+                </tr>
+              </xsl:for-each>
             </tbody>
         </table>
     </xsl:template>
