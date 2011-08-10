@@ -32,6 +32,8 @@ CREATE TABLE `DICTIONARY` (
 
 CREATE TABLE `SCHED_EVENT` (
   `EVENT_ID` bigint(20) NOT NULL,
+  `CA_METADATA` longtext,
+  `DUBLIN_CORE` longtext,
   `STARTDATE` datetime default NULL,
   `RESOURCES` varchar(255) collate utf8_unicode_ci default NULL,
   `SERIES` varchar(255) collate utf8_unicode_ci default NULL,
