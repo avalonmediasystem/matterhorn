@@ -340,7 +340,7 @@ var ocScheduler = (function() {
     $(ocScheduler.inputList).empty();
     sched.recording.components.agentTimeZone = new ocAdmin.Component(['agentTimeZone'], {key: 'agentTimeZone'});
     if(agent){
-      $.get('/capture-admin/agents/' + agent + '/configuration',
+      $.get('/capture-admin/agents/' + agent + '/configuration.xml',
       function(doc){
         var devNames = [];
         var capabilities = [];
