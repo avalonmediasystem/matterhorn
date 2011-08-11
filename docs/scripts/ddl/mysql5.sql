@@ -1,3 +1,6 @@
+drop schema if exists matterhorn;
+create schema matterhorn;
+use matterhorn;
 CREATE TABLE `ANNOTATION` (
   `ID` bigint(20) NOT NULL,
   `OUTPOINT` int(11) default NULL,
