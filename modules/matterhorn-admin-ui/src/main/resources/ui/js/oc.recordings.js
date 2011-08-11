@@ -378,6 +378,7 @@ ocRecordings = new (function() {
     }
 
     // MH-6671 mark upcoming events with start date in the past
+    var recordingActions = ['view'];
     if (this.state == 'Upcoming') {
       $.each(wf.configurations.configuration, function(index, elm) {
         if (elm.key == 'schedule.start') {
@@ -387,13 +388,14 @@ ocRecordings = new (function() {
             self.error = 'It seems the core system did not recieve proper status updates from the Capture Agent that should have conducted this recording.';
             self.state = 'WARNING : Recording may have failed to start or ingest!';
           }
+          recordingActions.push('ignore');
         }
       });
       
     }
     
     // Actions
-    this.actions = ['view'];
+    this.actions = recordingActions;
     if (this.state == 'Upcoming') {
       this.actions.push('edit');
       this.actions.push('delete');

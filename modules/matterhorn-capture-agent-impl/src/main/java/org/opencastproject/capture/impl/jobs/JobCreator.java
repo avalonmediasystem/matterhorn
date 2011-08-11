@@ -86,6 +86,7 @@ public final class JobCreator {
     // Get the number of retries to allow.
     long retryLimit = getRetryLimit(configurationManager);
     trigger.getJobDataMap().put(CaptureParameters.INGEST_RETRY_LIMIT, retryLimit);
+    trigger.getJobDataMap().put(CaptureParameters.INGEST_RETRY_HARD_LIMIT, configurationManager.getItem(CaptureParameters.INGEST_RETRY_HARD_LIMIT));
     // Set the number of retries to start with.
     AtomicLong retriesLeft = new AtomicLong(retryLimit);
     trigger.getJobDataMap().put(IngestJob.RETRIES_LEFT, retriesLeft);

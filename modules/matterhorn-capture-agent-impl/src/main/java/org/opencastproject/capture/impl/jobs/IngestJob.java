@@ -141,13 +141,20 @@ public class IngestJob implements StatefulJob {
     int result = captureAgentImpl.ingest(recordingID);
     // Decrease the Number of Retries
     retriesLeft.set(retriesLeft.get() - 1);
-    if (result != HttpURLConnection.HTTP_OK) {
-      // Wait until the next fire to try again.
-      logger.error("Ingestion failed with a value of {}", result);
-    } else {
+    boolean hardLimit = "true".equals(ctx.getMergedJobDataMap().getString(CaptureParameters.INGEST_RETRY_HARD_LIMIT));
+    if (hardLimit) {
+      logger.info("Using hard retry limit.");
+    }
+    if (result == HttpURLConnection.HTTP_OK || (retriesLeft.get() <= 0 && hardLimit)) {
       logger.info("Ingestion finished");
+      if (retriesLeft.get() <= 0 && hardLimit) {
+        logger.info("Retry hard limit reached, ingest may not have been successful.");
+      }
       // Remove this job from the system because we are finished.
       removeJob(ctx, ctx.getJobDetail());
+    } else {
+      // Wait until the next fire to try again.
+      logger.error("Ingestion failed with a value of {}", result);
     }
   }
 

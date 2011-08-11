@@ -134,6 +134,9 @@ public interface CaptureParameters {
 
   /** The key for the workflow definition, if any, in the capture properties attached to the iCal event */
   String INGEST_WORKFLOW_DEFINITION = "org.opencastproject.workflow.definition";
+  
+  /** The use a hard retry limit. Once INGEST_RETRY_LIMIT is hit, the recording will be removed from the scheduler. **/
+  String INGEST_RETRY_HARD_LIMIT = "capture.ingest.retry.hard.limit";
 
   /** The path to png file to show, while recording hardware is unplugged (e.g. Epiphan devices). */
   String FALLBACK_PNG = "capture.fallback.png";
