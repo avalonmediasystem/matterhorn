@@ -134,6 +134,25 @@ public class AnnotationServiceJpaImpl implements AnnotationService {
     }
   }
 
+  public boolean removeAnnotation(Annotation a) {
+    EntityManager em = emf.createEntityManager();
+    EntityTransaction tx = em.getTransaction();
+    try {
+      tx.begin();
+      //first merge then remove element
+      em.remove(em.merge(a));
+      tx.commit();
+      return true;
+    } catch (Exception e) {
+      return false;
+    } finally {
+      if (tx.isActive()) {
+        tx.rollback();
+      }
+      em.close();
+    }
+  }
+
   public Annotation getAnnotation(long id) throws NotFoundException {
     EntityManager em = null;
     try {
