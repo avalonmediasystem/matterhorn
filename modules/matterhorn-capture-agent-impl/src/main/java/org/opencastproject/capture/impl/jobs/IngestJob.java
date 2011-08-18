@@ -146,8 +146,11 @@ public class IngestJob implements StatefulJob {
       logger.info("Using hard retry limit.");
     }
     if (result == HttpURLConnection.HTTP_OK || (retriesLeft.get() <= 0 && hardLimit)) {
-      logger.info("Ingestion finished");
-      if (retriesLeft.get() <= 0 && hardLimit) {
+      if(result == HttpURLConnection.HTTP_OK) {
+        logger.info("Ingestion finished");
+      } else {
+        //Remove the recording from the list of pending recordings, this will prevent it from being sent again on restart.
+        captureAgentImpl.movePendingToCompleted(recordingID);
         logger.info("Retry hard limit reached, ingest may not have been successful.");
       }
       // Remove this job from the system because we are finished.

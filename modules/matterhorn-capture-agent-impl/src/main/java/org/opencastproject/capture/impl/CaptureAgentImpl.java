@@ -1596,4 +1596,9 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
       return state.equals(AgentState.IDLE);
     }
   }
+  
+  public void movePendingToCompleted(String recID) {
+    completedRecordings.put(recID, pendingRecordings.get(recID));
+    pendingRecordings.remove(recID);
+  }
 }
