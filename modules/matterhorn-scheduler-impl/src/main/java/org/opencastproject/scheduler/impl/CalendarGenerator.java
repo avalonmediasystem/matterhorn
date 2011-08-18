@@ -46,6 +46,7 @@ import org.w3c.dom.Document;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.Date;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -140,7 +141,8 @@ public class CalendarGenerator {
 
       // TODO Organizer should be URI (email-address?) created fake address
       if (StringUtils.isNotEmpty(e.getCreator())) {
-        event.getProperties().add(new Organizer(pl, e.getCreator().replace(" ", "_") + "@matterhorn.opencast"));
+        URI organizer = new URI("mailto", e.getCreator() + "@matterhorn.opencast", null);
+        event.getProperties().add(new Organizer(pl, organizer));
       }
       if (StringUtils.isNotEmpty(e.getDescription())) {
         event.getProperties().add(new Description(e.getDescription()));
