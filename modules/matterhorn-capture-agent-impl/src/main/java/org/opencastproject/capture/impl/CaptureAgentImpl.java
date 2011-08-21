@@ -844,8 +844,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
 
     serializeRecording(recID);
     if (retValue == HttpURLConnection.HTTP_OK) {
-      completedRecordings.put(recID, recording);
-      pendingRecordings.remove(recID);
+      movePendingToCompleted(recID);
     }
     return retValue;
   }
