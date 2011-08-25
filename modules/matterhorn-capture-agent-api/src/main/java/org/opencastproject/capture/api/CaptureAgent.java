@@ -119,6 +119,8 @@ public interface CaptureAgent {
    */
   List<ScheduledEvent> getAgentSchedule();
   
+  void setRecordingState(String recordingID, String state);
+  
   /**
    * Move a recording from the pending array to the completed array
    *

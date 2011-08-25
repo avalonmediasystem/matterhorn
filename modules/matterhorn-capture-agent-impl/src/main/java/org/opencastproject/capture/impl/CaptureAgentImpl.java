@@ -823,6 +823,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
     try {
       logger.debug("Sending the file " + fileDesc.getAbsolutePath() + " with a size of " + fileDesc.length());
       response = client.execute(postMethod);
+      logger.info("Recieved HTTP Response: " + response.getStatusLine().toString());
     } catch (TrustedHttpClientException e) {
       logger.error("Unable to ingest recording {}, message reads: {}.", recID, e.getMessage());
     } catch (NullPointerException e) {
@@ -1007,7 +1008,7 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
    *          The state for the recording. Defined in RecordingState.
    * @see org.opencastproject.capture.admin.api.RecordingState
    */
-  protected void setRecordingState(String recordingID, String state) {
+  public void setRecordingState(String recordingID, String state) {
     if (recordingID != null && state != null) {
       AgentRecording rec = pendingRecordings.get(recordingID);
       if (rec != null) {
@@ -1322,35 +1323,40 @@ public class CaptureAgentImpl implements CaptureAgent, StateService, ConfidenceM
             // FIXME: This should be redone when the job refactoring ticket is finished (MH-5235).
             if (state.equals(RecordingState.CAPTURE_ERROR)) {
               logger.debug("Loaded recording {} with state {}."
-                      + "This is an error state so placing recording in completed index.", id, state);
+                      + " This is an error state so placing recording in completed index.", id, state);
               completedRecordings.put(id, rec);
             } else if (state.equals(RecordingState.CAPTURE_FINISHED) || state.equals(RecordingState.CAPTURING)) {
               logger.debug("Loaded recording {} with state {}."
-                      + "This is a completed recording so placing recording in pending index.", id, state);
+                      + " This is a completed recording so placing recording in pending index.", id, state);
               pendingRecordings.put(id, rec);
               scheduler.scheduleSerializationAndIngest(id);
             } else if (state.equals(RecordingState.MANIFEST) || state.equals(RecordingState.MANIFEST_ERROR)) {
               logger.debug("Loaded recording {} with state {}."
-                      + "This is ready to ingest so placing recording in pending index.", id, state);
+                      + " This is ready to ingest so placing recording in pending index.", id, state);
               pendingRecordings.put(id, rec);
               scheduler.scheduleSerializationAndIngest(id);
             } else if (state.equals(RecordingState.MANIFEST_FINISHED) || state.equals(RecordingState.COMPRESSING)
                     || state.equals(RecordingState.COMPRESSING_ERROR)) {
               logger.debug("Loaded recording {} with state {}."
-                      + "This is partially ingested so placing recording in pending index.", id, state);
+                      + " This is partially ingested so placing recording in pending index.", id, state);
               pendingRecordings.put(id, rec);
               scheduler.scheduleSerializationAndIngest(id);
             } else if (state.equals(RecordingState.UPLOAD_ERROR) || state.equals(RecordingState.UPLOADING)) {
-              logger.debug("Loaded recording {} with state {}."
-                      + "This is to upload so placing recording in pending index.", id, state);
-              pendingRecordings.put(id, rec);
-              scheduler.scheduleIngest(id);
+              logger.debug("Loaded recording {} with state {}.", id, state);
+              if ("true".equals(configService.getItem(CaptureParameters.INGEST_RETRY_HARD_LIMIT))) {
+                logger.debug("Hard retry limiting is on. This capture will be placed in completed recordings.");
+                completedRecordings.put(id, rec);
+              } else {
+                logger.debug("There was an error uploading so placing recording in pending index.");
+                pendingRecordings.put(id, rec);
+                scheduler.scheduleIngest(id);
+              }
             } else if (state.equals(RecordingState.UPLOAD_FINISHED)) {
               logger.debug("Loaded recording {} with state {}."
-                      + "This is a completed state so placing recording in completed index.", id, state);
+                      + " This is a completed state so placing recording in completed index.", id, state);
               completedRecordings.put(id, rec);
             } else if (state.equals(RecordingState.UNKNOWN)) {
-              logger.debug("Loaded recording {} with state {}." + "This is an unknown state, discarding.", id, state);
+              logger.debug("Loaded recording {} with state {}. This is an unknown state, discarding.", id, state);
             }
           }
         }
