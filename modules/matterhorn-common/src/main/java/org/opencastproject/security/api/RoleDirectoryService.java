@@ -15,8 +15,6 @@
  */
 package org.opencastproject.security.api;
 
-import org.opencastproject.util.NotFoundException;
-
 /**
  * A marker interface for the federation of all {@link RoleProvider}s.
  */
@@ -28,16 +26,5 @@ public interface RoleDirectoryService {
    * @return the roles
    */
   String[] getRoles();
-
-  /**
-   * Returns the local role name as defined by the organization or <code>null</code> if undefined. For example, the
-   * matterhorn role <code>{@link AuthorizationService#ADMIN}</code> would translate to the local role name
-   * <code>ucb_admin</code>.
-   * 
-   * @return the local role name
-   * @throws NotFoundException
-   *           if there is no mapping for role <code>role</code>
-   */
-  String getLocalRole(String role) throws NotFoundException;
 
 }

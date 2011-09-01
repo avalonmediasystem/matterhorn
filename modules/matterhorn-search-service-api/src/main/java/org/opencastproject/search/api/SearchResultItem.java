@@ -47,6 +47,13 @@ public interface SearchResultItem {
   MediaPackage getMediaPackage();
 
   /**
+   * Returns the organization that produced this item.
+   * 
+   * @return the organization identifier
+   */
+  String getOrganization();
+  
+  /**
    * @return the dcExtent
    */
   long getDcExtent();
@@ -145,6 +152,11 @@ public interface SearchResultItem {
    * @return the dcLicense
    */
   String getDcLicense();
+
+  /**
+   * @return the mediapackage serialized to XML
+   */
+  String getOcMediapackage();
 
   /**
    * @return the mediaType

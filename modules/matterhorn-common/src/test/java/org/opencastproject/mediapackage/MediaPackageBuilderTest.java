@@ -18,7 +18,10 @@ package org.opencastproject.mediapackage;
 
 import org.junit.Test;
 import org.opencastproject.util.ConfigurationException;
+import org.w3c.dom.Document;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
@@ -66,7 +69,7 @@ public class MediaPackageBuilderTest extends AbstractMediaPackageTest {
       assertEquals(2, mediaPackage.getAttachments().length);
 
     } catch (MediaPackageException e) {
-      fail("Media package excpetion while reading media package from manifest: " + e.getMessage());
+      fail("Media package exception while reading media package from manifest: " + e.getMessage());
     } catch (ConfigurationException e) {
       fail("Configuration exception while reading media package from manifest: " + e.getMessage());
     } catch (FileNotFoundException e) {
@@ -74,4 +77,34 @@ public class MediaPackageBuilderTest extends AbstractMediaPackageTest {
     }
   }
 
+  /**
+   * Test method for {@link org.opencastproject.mediapackage.MediaPackageBuilderImpl#loadFromXml(org.w3c.dom.Node)}.
+   */
+  @Test
+  public void testLoadFromNode() throws Exception {
+    try {
+      DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+      Document xml = docBuilder.parse(manifestFile);
+      MediaPackage mediaPackage = mediaPackageBuilder.loadFromXml(xml);
+
+      assertNotNull(mediaPackage.getTitle());
+      assertEquals(1, mediaPackage.getCreators().length);
+
+      // Test presence of tracks
+      assertEquals(2, mediaPackage.getTracks().length);
+
+      // Test presence of catalogs
+      assertEquals(3, mediaPackage.getCatalogs().length);
+      assertNotNull(mediaPackage.getCatalogs(MediaPackageElements.EPISODE));
+
+      // Test presence of attachments
+      assertEquals(2, mediaPackage.getAttachments().length);
+    } catch (MediaPackageException e) {
+      fail("Media package exception while reading media package from manifest: " + e.getMessage());
+    } catch (ConfigurationException e) {
+      fail("Configuration exception while reading media package from manifest: " + e.getMessage());
+    } catch (FileNotFoundException e) {
+      fail("Configuration exception while reading media package from manifest: " + e.getMessage());
+    }
+  }
 }

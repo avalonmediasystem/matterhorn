@@ -11,22 +11,20 @@
   <![CDATA[
     <fieldset>
       <legend>Holds</legend>
-      <span>Processing should be paused to allow for:</span>
-      <ul class="oc-ui-checkbox-list" id="hold-ul">
-        <li class="ui-helper-clearfix">
-          <span id="trimholdconfig">
-            <input id="trimHold" name="trimHold" type="checkbox" class="configField holdCheckbox" value="true" />
+      <ul class="oc-ui-form-list">       
+          <li class="ui-helper-clearfix"><label class="scheduler-label">Processing should be paused to allow for:</label></li>        
+	  <label class="scheduler-label"></label>
+	  <span id="trimholdconfig">
+            <input type="checkbox" id="trimHold" name="trimHold" class="configField holdCheckbox" value="true">
             <label for="trimHold" id="i18n_hold_for_trim">&nbsp;Review / Trim before encoding (with option to edit info)</label>
-          </span>
-        </li>
-        <li class="ui-helper-clearfix">
-          <span id="captionconfig">
-            <input id="captionHold" name="captionHold" type="checkbox" class="configField holdCheckbox" value="true"/>
+	  </span>
+          <label class="scheduler-label"></label>
+	  <span id="captionconfig">
+            <input type="checkbox" id="captionHold" name="captionHold" class="configField holdCheckbox" value="true">
             <label for="captionHold" id="i18n_hold_for_caption">&nbsp;Captions file upload</label>
           </span>
-        </li>
       </ul>
-    </fieldset>
+    </fieldset>    
     <fieldset>
       <legend>Distribution</legend>
       <ul class="oc-ui-form-list">
@@ -59,15 +57,15 @@
          */
         components['org.opencastproject.workflow.config.trimHold'] = new ocAdmin.Component(
           ['trimHold'],
-          {nodeKey: 'org.opencastproject.workflow.config.trimHold'});
+          {key: 'org.opencastproject.workflow.config.trimHold'});
           
         components['org.opencastproject.workflow.config.captionHold'] = new ocAdmin.Component(
           ['captionHold'],
-          {nodeKey: 'org.opencastproject.workflow.config.captionHold'});
+          {key: 'org.opencastproject.workflow.config.captionHold'});
           
-        components['license'] = new ocAdmin.Component(
+        ocScheduler.dublinCore.components['license'] = new ocAdmin.Component(
           ['license'],
-          {label: 'licenseLabel'});
+          {label: 'licenseLabel', key: 'license'});
           
           //etc...
       }
@@ -92,7 +90,31 @@
     </operation>
 
     <!-- prepare audio/video tracks -->
- 
+
+    <operation
+      id="compose"
+      fail-on-error="false"
+      exception-handler-workflow="error"
+      description="Splitting Epiphan Media (if needed)">
+      <configurations>
+        <configuration key="source-flavor">multitrack/source</configuration>
+        <configuration key="target-flavor">presenter/source</configuration>
+        <configuration key="encoding-profile">epiphan.presenter</configuration>
+      </configurations>
+    </operation>
+
+    <operation
+      id="compose"
+      fail-on-error="false"
+      exception-handler-workflow="error"
+      description="Splitting Epiphan Media (if needed)">
+      <configurations>
+        <configuration key="source-flavor">multitrack/source</configuration>
+        <configuration key="target-flavor">presentation/source</configuration>
+        <configuration key="encoding-profile">epiphan.presentation</configuration>
+      </configurations>
+    </operation>
+
     <operation
       id="prepare-av"
       fail-on-error="true"
@@ -403,10 +425,20 @@
       </configurations>
     </operation>
 
+    <!-- Apply ACL from series to the mediapackage -->
+
+    <operation
+      id="apply-acl"
+      fail-on-error="true"
+      exception-handler-workflow="error"
+      description="Applying access control rules">
+    </operation>
+
     <!-- Distribute to download server -->
     
     <operation
       id="distribute-download"
+      max-attempts="2"
       fail-on-error="true"
       exception-handler-workflow="error"
       description="Distributing to progressive downloads">
@@ -418,6 +450,7 @@
 
     <operation
       id="distribute-streaming"
+      max-attempts="2"
       fail-on-error="true"
       if="${org.opencastproject.streaming.url}"
       exception-handler-workflow="error"

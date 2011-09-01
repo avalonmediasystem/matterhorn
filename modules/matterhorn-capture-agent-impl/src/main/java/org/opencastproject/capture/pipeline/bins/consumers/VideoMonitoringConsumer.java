@@ -138,7 +138,8 @@ public class VideoMonitoringConsumer extends ConsumerBin {
     String location = confidenceMonitoringProperties.getImageloc();
     String device = confidenceMonitoringProperties.getDevice();
     
-    capsfilter.set(GStreamerProperties.CAPS, Caps.fromString("video/x-raw-yuv, framerate=1/" + interval));
+    capsfilter.set(GStreamerProperties.CAPS, Caps.fromString(GStreamerProperties.VIDEO_X_RAW_YUV + ", " 
+            + GStreamerProperties.FRAMERATE + "=1/" + interval));
     multifilesink.set(GStreamerProperties.LOCATION, new File(location, device + ".jpg").getAbsolutePath());
     multifilesink.set("async", "true");
   }

@@ -868,12 +868,13 @@ public class CaptureAgentImpl implements CaptureAgent, StateService,  ManagedSer
    * @see org.opencastproject.capture.admin.api.AgentState
    */
   protected void setAgentState(String state) {
-    if (confidence) {
-      if (state.equalsIgnoreCase(AgentState.CAPTURING) && ConfidenceMonitorImpl.getInstance() != null) {
+    // ConfidenceMonitorImp shoud be an singelton service and allways active
+    if (confidence && ConfidenceMonitorImpl.getInstance() != null) {
+      if (state.equalsIgnoreCase(AgentState.CAPTURING)) {
         ConfidenceMonitorImpl.getInstance().stopMonitoring();
         logger.info("Confidence monitoring has been shut down.");
         // Gst.deinit();
-      } else if (state.equalsIgnoreCase(AgentState.IDLE) && ConfidenceMonitorImpl.getInstance() != null) {
+      } else if (state.equalsIgnoreCase(AgentState.IDLE)) {
         
         try {
           if (ConfidenceMonitorImpl.getInstance().startMonitoring()) {

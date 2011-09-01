@@ -79,6 +79,9 @@ public class AudioMonitoringConsumer extends ConsumerBin {
 
   }
   
+  /** 1 sec = 1000000000 nanosec */
+  public static final long GST_NANOSECONDS = 1000000000L;
+  
   /** Map to store rms values for each audio device with timestamp. */
   private static HashMap<String, SortedSet<Pair>> deviceRMSValues;
   
@@ -171,10 +174,9 @@ public class AudioMonitoringConsumer extends ConsumerBin {
           UnableToSetElementPropertyBecauseElementWasNullException {
 
     int interval = confidenceMonitoringProperties.getInterval();
-    
     level.set("message", "true");
     // interval property in nano sec. (see gstreamer docs)
-    level.set("interval", "" + interval * 1000000000L);
+    level.set("interval", "" + interval * GST_NANOSECONDS);
   }
   
   /**

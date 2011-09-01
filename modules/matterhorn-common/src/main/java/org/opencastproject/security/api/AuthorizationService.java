@@ -24,6 +24,17 @@ import org.opencastproject.mediapackage.MediaPackageException;
 public interface AuthorizationService {
 
   /**
+   * Determines whether the current mediapackage contains a security policy.
+   * 
+   * @param mediapackage
+   *          the mediapackage
+   * @return whether the current mediapackage contains a security policy
+   * @throws MediaPackageException
+   *           if the mediapackage can not be read
+   */
+  boolean hasPolicy(MediaPackage mediapackage) throws MediaPackageException;
+
+  /**
    * Determines whether the current user can take the specified action on the mediapackage.
    * 
    * @param mediapackage
@@ -37,7 +48,26 @@ public interface AuthorizationService {
   boolean hasPermission(MediaPackage mediapackage, String action) throws MediaPackageException;
 
   /**
-   * Gets the permissions associated with this mediapackage, as specified by its XACML attachment.
+   * Gets the permissions associated with this mediapackage, as specified by its XACML attachment. The following rules
+   * are used to determine the access control:
+   * <ol>
+   * <li>If exactly zero {@link org.opencastproject.mediapackage.MediaPackageElements#XACML_POLICY} attachments are
+   * present, the returned ACL will be empty.</li>
+   * <li>If exactly one {@link org.opencastproject.mediapackage.MediaPackageElements#XACML_POLICY} is attached to the
+   * mediapackage, this is the source of authority</li>
+   * <li>If more than one {@link org.opencastproject.mediapackage.MediaPackageElements#XACML_POLICY} attachments are
+   * present, and one of them has no reference (
+   * {@link org.opencastproject.mediapackage.MediaPackageElement#getReference()} returns null), that attachment is
+   * presumed to be the source of authority</li>
+   * <li>If more than one {@link org.opencastproject.mediapackage.MediaPackageElements#XACML_POLICY} attachments are
+   * present, and more than one of them has no reference (
+   * {@link org.opencastproject.mediapackage.MediaPackageElement#getReference()} returns null), the returned ACL will be
+   * empty.</li>
+   * <li>If more than one {@link org.opencastproject.mediapackage.MediaPackageElements#XACML_POLICY} attachments are
+   * present, and all of them have references (
+   * {@link org.opencastproject.mediapackage.MediaPackageElement#getReference()} returns a non-null reference), the
+   * returned ACL will be empty.</li>
+   * </ol>
    * 
    * @param mediapackage
    *          the mediapackage
@@ -48,7 +78,7 @@ public interface AuthorizationService {
   AccessControlList getAccessControlList(MediaPackage mediapackage) throws MediaPackageException;
 
   /**
-   * Attaches the provided policies to a mediapackage as a XACML attachment.
+   * Attaches the provided policies to a mediapackage as a XACML attachment, replacing any previous policy element.
    * 
    * @param mediapackage
    *          the mediapackage

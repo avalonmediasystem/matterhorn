@@ -36,7 +36,6 @@ ocSeries.init = function(){
   //Load i18n strings and replace default english
   // disabled temporarily - see MH-6510
   ocSeries.Internationalize();
-  var anonymous_role = "";
   $.ajax({
     url: ANOYMOUS_URL,
     type: 'GET',
@@ -56,12 +55,12 @@ ocSeries.init = function(){
   
   //Add folding action for hidden sections.
   $('.oc-ui-collapsible-widget .form-box-head').click(
-    function() {
-      $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e');
-      $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-s');
-      $(this).next().toggle();
-      return false;
-    });
+  function() {
+    $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-e');
+    $(this).children('.ui-icon').toggleClass('ui-icon-triangle-1-s');
+    $(this).next().toggle();
+    return false;
+  });
     
   $('#additionalContentTabs').tabs();
   
@@ -85,14 +84,38 @@ ocSeries.init = function(){
   }
 
   var privilegeRow = '<tr>';
-  privilegeRow += '<td><input type="text" class="role_search oc-ui-form-field"/></td>';
+  privilegeRow += '<td><input type="text" class="role_search"/></td>';
   privilegeRow += '<td class="privilege_edit"><input type="checkbox" name="priv_view" class="privilege_edit" /></td>';
   privilegeRow += '<td class="privilege_edit"><input type="checkbox" name="priv_edit" class="privilege_edit" /></td>';
   privilegeRow += '<td class="privilege_edit"><img src="/img/icons/delete.png" alt="delete" title="Delete Role"></td>';
   privilegeRow += '</tr>';
   var $row;
+  
+  var sourceFunction = function(request, response) {
+    var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+    var matched = $.grep( ocSeries.roles, function(value) {
+      return matcher.test( value.label || value.value || value );
+    });
+    if($(matched).size() != 0) {
+      response(matched);
+    } else {
+      if(this.element.parent().find('p').size() == 0) {
+        this.element.parent().prepend('<p class="no_valid_rule" style="color: red;">Not a valid role</p>');
+      }
+      response(['No Match']);
+    }
+  };
+  
+  var closeFunction = function(event, ui) {
+    if($.inArray(ocSeries.roles, $(this).val()) == -1 && $(this).parent().find('p').size() == 0 && event.originalEvent.type != "menuselected") {
+      $(this).parent().prepend('<p class="no_valid_rule" style="color: red;">Not a valid role</p>');
+    }
+  }
 
   var append = function(event, ui) {
+    if(ui.item.value == 'No Match') {
+      return false;
+    }
     if($(this).attr('id') == "") {
       $row = $(privilegeRow);
       $row.find('[name|="priv_view"]').attr('checked', 'checked');
@@ -101,8 +124,9 @@ ocSeries.init = function(){
       $row.find('img').hide();
       $row.find('img').click(removeRole)
       $row.find('.role_search').autocomplete({
-        source: ocSeries.roles,
-        select: append
+        source: sourceFunction,
+        select: append,
+        close: closeFunction
       });
       $('#rolePrivilegeTable > tbody').append($row);
       var $tr = $(this).parent().parent();
@@ -111,6 +135,7 @@ ocSeries.init = function(){
       $tr.children().find('img').show();
     }
     $(this).attr('id', ui.item.value);
+    $(this).parent().find('p').remove();
   };
 
   var removeRole = function() {
@@ -123,14 +148,17 @@ ocSeries.init = function(){
     $row.find('[name|="priv_view"]').attr('disabled', 'disabled');
     $row.find('[name|="priv_edit"]').attr('disabled', 'disabled');
     $row.find('img').hide();
-    $row.find('img').click(removeRole)
+    $row.find('img').click(removeRole);
 
     $row.find('.role_search').autocomplete({
-      source: ocSeries.roles,
-      select: append
+      source: sourceFunction,
+      select: append,
+      close: closeFunction
     });
 
     $('#rolePrivilegeTable > tbody').append($row);
+    //activate public view by default
+    $('#anonymous_view').attr('checked', 'checked');
 
   } else if (ocSeries.mode == EDIT_MODE) {
     roles = false;
@@ -170,13 +198,14 @@ ocSeries.init = function(){
         $row.find('.role_search').attr('id', index);
         $row.find('img').click(removeRole)
         $row.find('.role_search').autocomplete({
-          source: ocSeries.roles,
-          select: append
+          source: sourceFunction,
+          select: append,
+          close: closeFunction
         });
-        if(value.edit) {
+        if(value.write) {
           $row.find('[name|="priv_edit"]').attr('checked', 'checked');
         }
-        if(value.view) {
+        if(value.read) {
           $row.find('[name|="priv_view"]').attr('checked', 'checked');
         }
         $('#rolePrivilegeTable > tbody').append($row);
@@ -188,11 +217,12 @@ ocSeries.init = function(){
     $row.find('[name|="priv_view"]').attr('disabled', 'disabled');
     $row.find('[name|="priv_edit"]').attr('disabled', 'disabled');
     $row.find('img').hide();
-    $row.click(removeRole)
+    $row.find('img').click(removeRole)
 
     $row.find('.role_search').autocomplete({
-      source: ocSeries.roles,
-      select: append
+      source: sourceFunction,
+      select: append,
+      close: closeFunction
     });
     $('#rolePrivilegeTable > tbody').append($row);
   }
@@ -220,57 +250,57 @@ ocSeries.loadSeries = function(data) {
 ocSeries.RegisterComponents = function(){
   //Core Metadata
   ocSeries.additionalComponents.title = new ocAdmin.Component(
-    ['title'],
-    {
-      label:'seriesLabel',
-      required:true
-    }
-    );
+  ['title'],
+  {
+    label:'seriesLabel',
+    required:true
+  }
+);
   
   ocSeries.additionalComponents.contributor = new ocAdmin.Component(
-    ['contributor'],
-    {
-      label:'contributorLabel'
-    }
-    );
+  ['contributor'],
+  {
+    label:'contributorLabel'
+  }
+);
   
   ocSeries.additionalComponents.creator = new ocAdmin.Component(
-    ['creator'],
-    {
-      label: 'creatorLabel'
-    }
-    );
+  ['creator'],
+  {
+    label: 'creatorLabel'
+  }
+);
   
   //Additional Metadata
   ocSeries.additionalComponents.subject = new ocAdmin.Component(
-    ['subject'],
-    {
-      label: 'subjectLabel'
-    }
-    )
+  ['subject'],
+  {
+    label: 'subjectLabel'
+  }
+)
   
   ocSeries.additionalComponents.language = new ocAdmin.Component(
-    ['language'],
-    {
-      label: 'languageLabel'
-    }
-    )
+  ['language'],
+  {
+    label: 'languageLabel'
+  }
+)
   
   ocSeries.additionalComponents.license = new ocAdmin.Component(
-    ['license'],
-    {
-      label: 'licenseLabel'
-    }
-    )
+  ['license'],
+  {
+    label: 'licenseLabel'
+  }
+)
   
   ocSeries.components.description = new ocAdmin.Component(
-    ['description'],
-    {
-      label: 'descriptionLabel'
-    }
-    )
+  ['description'],
+  {
+    label: 'descriptionLabel'
+  }
+)
   
-/*
+  /*
   //Extended Metadata
   ocAdmin.additionalComponents.type
   //ocAdmin.additionalComponents.subtype
@@ -282,7 +312,7 @@ ocSeries.RegisterComponents = function(){
   ocAdmin.additionalComponents.spatial
   ocAdmin.additionalComponents.temporal
   ocAdmin.additionalComponents.rights
-  */
+   */
 }
 
 ocSeries.createDublinCoreDocument = function() {
@@ -311,28 +341,28 @@ ocSeries.createACLDocument = function() {
   var out = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:acl xmlns:ns2="org.opencastproject.security">';
   $('.role_search').each(function () {
     var $field = $(this);
-    if ($field.attr('value') != "") {
+    //check whether there is a value and entered value is a valid role
+    if ($field.attr('value') != "" && $.inArray($field.attr('value'), ocSeries.roles) != -1) {
       if($field.parent().parent().children().find('[name|="priv_view"]').attr('checked')) {
         out += '<ace>';
         out += '<role>' + $field.attr('value') + '</role>';
-        out += '<action>view</action>';
+        out += '<action>read</action>';
         out += '<allow>true</allow>';
         out += '</ace>';
       }
       if($field.parent().parent().children().find('[name|="priv_edit"]').attr('checked')) {
         out += '<ace>';
         out += '<role>' + $field.attr('value') + '</role>';
-        out += '<action>edit</action>';
+        out += '<action>write</action>';
         out += '<allow>true</allow>';
         out += '</ace>';
       }
-      
     }
   });
   if($('#anonymous_view').attr('checked')) {
     out += '<ace>';
     out += '<role>' + ocSeries.anonymous_role + '</role>';
-    out += '<action>view</action>';
+    out += '<action>read</action>';
     out += '<allow>true</allow>';
     out += '</ace>';
   }
@@ -360,7 +390,7 @@ ocSeries.SeriesSubmitComplete = function(xhr, status){
   if(xhr.status == 201 || xhr.status == 204){
     document.location = SERIES_LIST_URL;
   }
-/*for(var k in ocSeries.components){
+  /*for(var k in ocSeries.components){
     if(i18n[k]){
       $("#data-" + k).show();
       $("#data-" + k + " > .data-label").text(i18n[k].label + ":");

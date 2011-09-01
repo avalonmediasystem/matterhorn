@@ -106,6 +106,7 @@ public final class GStreamerPipeline {
       wait = 5; // Default taken from gstreamer docs
     }
 
+    pipeline.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_ALL, pipeline.getName());
     // Try and start the pipeline
     pipeline.play();
     if (pipeline.getState(wait * GStreamerPipeline.GST_SECOND) != State.PLAYING) {

@@ -47,6 +47,7 @@ public interface GStreamerElements {
   String MULTIFILESRC = "multifilesrc";
   String PNGDEC = "pngdec";
   String PULSESRC = "pulsesrc";
+  String RTPH264PAY = "rtph264pay";
   String V4L2SRC = "v4l2src";
 
   /** Source Module: gst-plugins-bad **/

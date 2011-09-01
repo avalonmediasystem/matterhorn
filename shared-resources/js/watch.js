@@ -21,15 +21,17 @@ var Opencast = Opencast || {};
  */
 Opencast.Watch = (function ()
 {
+    var advancedPlayer = true;
+
     var MULTIPLAYER = "Multiplayer",
         SINGLEPLAYER = "Singleplayer",
         SINGLEPLAYERWITHSLIDES = "SingleplayerWithSlides",
         AUDIOPLAYER = "Audioplayer",
         PLAYERSTYLE = "advancedPlayer",
-        mediaUrlOne = "",
-        mediaUrlTwo = "",
         mediaResolutionOne = "",
         mediaResolutionTwo = "",
+        mediaUrlOne = "",
+        mediaUrlTwo = "",
         mimetypeOne = "",
         mimetypeTwo = "",
         coverUrlOne = "",
@@ -37,6 +39,7 @@ Opencast.Watch = (function ()
         slideLength = 0,
         timeoutTime = 400,
         duration = 0,
+        mediaPackageIdAvailable = true,
         durationSetSuccessfully = false,
         mediaPackageId;
         
@@ -182,10 +185,22 @@ Opencast.Watch = (function ()
      */
     function onPlayerReady()
     {
-        var logsEnabled = (Opencast.Utils.getURLParameter('log') == "true") ? true : false;
-        Opencast.Utils.enableLogging(logsEnabled);
+        var logsEnabled = ($.getURLParameter('log') == "true") ? true : false;
+        $.enableLogging(logsEnabled);
         
-        Opencast.Utils.log("Player ready");
+        $.log("Player ready");
+        
+        // check if advanced player or embed player
+        var loc = window.location.href;
+        if(loc.search(/embed.html.+/g) != -1)
+        {
+            advancedPlayer = false;
+            $.log("Player is: Embed Player");
+            PLAYERSTYLE = "embedPlayer";
+        } else
+        {
+            $.log("Player is: Advanced Player");
+        }
          
         // Parse the plugin URLs
         $.getJSON('js/servicedata.json', function(data)
@@ -201,19 +216,19 @@ Opencast.Watch = (function ()
             seriesSeriesURL = data.plugin_urls.series.series;
             seriesEpisodeURL = data.plugin_urls.series.episode;
             
-            Opencast.Utils.log("Plugin URLs");
-            Opencast.Utils.log("Analytics URL: " + analyticsURL);
-            Opencast.Utils.log("Annotation URL: " + annotationURL);
-            Opencast.Utils.log("Description (Episode) URL: " + descriptionEpisodeURL);
-            Opencast.Utils.log("Description (Stats) URL: " + descriptionStatsURL);
-            Opencast.Utils.log("Search URL: " + searchURL);
-            Opencast.Utils.log("Segments (Text) URL: " + segmentsTextURL);
-            Opencast.Utils.log("Segments (UI) URL: " + segmentsUIURL);
-            Opencast.Utils.log("Segments URL: " + segmentsURL);
-            Opencast.Utils.log("Series (Series) URL: " + seriesSeriesURL);
-            Opencast.Utils.log("Series (Episode) URL: " + seriesEpisodeURL);
+            $.log("Plugin URLs");
+            $.log("Analytics URL: " + analyticsURL);
+            $.log("Annotation URL: " + annotationURL);
+            $.log("Description (Episode) URL: " + descriptionEpisodeURL);
+            $.log("Description (Stats) URL: " + descriptionStatsURL);
+            $.log("Search URL: " + searchURL);
+            $.log("Segments (Text) URL: " + segmentsTextURL);
+            $.log("Segments (UI) URL: " + segmentsUIURL);
+            $.log("Segments URL: " + segmentsURL);
+            $.log("Series (Series) URL: " + seriesSeriesURL);
+            $.log("Series (Episode) URL: " + seriesEpisodeURL);
             
-            mediaPackageId = (data.mediaDebugInfo.mediaPackageId == "") ? Opencast.Utils.getURLParameter('id') : data.mediaDebugInfo.mediaPackageId;
+            mediaPackageId = (data.mediaDebugInfo.mediaPackageId == "") ? $.getURLParameter('id') : data.mediaDebugInfo.mediaPackageId;
             mediaUrlOne = (data.mediaDebugInfo.mediaUrlOne == "") ? null : data.mediaDebugInfo.mediaUrlOne;
             mediaUrlTwo = (data.mediaDebugInfo.mediaUrlTwo == "") ? null : data.mediaDebugInfo.mediaUrlTwo;
             mediaResolutionOne = (data.mediaDebugInfo.mediaResolutionOne == "") ? null : data.mediaDebugInfo.mediaResolutionOne;
@@ -221,34 +236,66 @@ Opencast.Watch = (function ()
             mimetypeOne = (data.mediaDebugInfo.mimetypeOne == "") ? null : data.mediaDebugInfo.mimetypeOne;
             mimetypeTwo = (data.mediaDebugInfo.mimetypeTwo == "") ? null : data.mediaDebugInfo.mimetypeTwo;
             
-            Opencast.Utils.log("Media Debug Info");
-            Opencast.Utils.log("Mediapackage ID: " + mediaPackageId);
-            Opencast.Utils.log("Media URL 1: " + mediaUrlOne);
-            Opencast.Utils.log("Media URL 2: " + mediaUrlTwo);
-            Opencast.Utils.log("Media resolution 1: " + mediaResolutionOne);
-            Opencast.Utils.log("Media resolution 1: " + mediaResolutionTwo);
-            Opencast.Utils.log("Mimetype 1: " + mimetypeOne);
-            Opencast.Utils.log("Mimetype 2: " + mimetypeTwo);
+            $.log("Media Debug Info");
+            $.log("Mediapackage ID: " + mediaPackageId);
+            $.log("Media URL 1: " + mediaUrlOne);
+            $.log("Media URL 2: " + mediaUrlTwo);
+            $.log("Media resolution 1: " + mediaResolutionOne);
+            $.log("Media resolution 1: " + mediaResolutionTwo);
+            $.log("Mimetype 1: " + mimetypeOne);
+            $.log("Mimetype 2: " + mimetypeTwo);
             
-            // Hide Screen Settings until clicked 'play'
-            $("#oc_btn-dropdown").css("display", 'none');
-            $("#oc_player_video-dropdown").css("display", 'none');
-            var userId = Opencast.Utils.getURLParameter('user');
-            var restEndpoint = Opencast.engage.getSearchServiceEpisodeIdURL() + mediaPackageId;
-            Opencast.Player.setSessionId(Opencast.engage.getCookie("JSESSIONID"));
-            Opencast.Player.setUserId(userId);
-            // Set MediaPackage ID's in the Plugins
-            Opencast.Player.setMediaPackageId(mediaPackageId);
-            Opencast.Annotation_Chapter.setMediaPackageId(mediaPackageId);
-            Opencast.Analytics.setMediaPackageId(mediaPackageId);
-            Opencast.Series.setMediaPackageId(mediaPackageId);
-            Opencast.Description.setMediaPackageId(mediaPackageId);
-            Opencast.segments_ui.setMediaPackageId(mediaPackageId);
-            Opencast.segments.setMediaPackageId(mediaPackageId);
-            Opencast.segments_text.setMediaPackageId(mediaPackageId);
-            Opencast.search.setMediaPackageId(mediaPackageId);
-            // Initialize Segments UI
-            Opencast.segments_ui.initialize();
+            if(advancedPlayer)
+            {
+                // Hide Screen Settings until clicked 'play'
+                $("#oc_btn-dropdown").css("display", 'none');
+                $("#oc_player_video-dropdown").css("display", 'none');
+                var userId = $.getURLParameter('user');
+                var restEndpoint = Opencast.engage.getSearchServiceEpisodeIdURL() + mediaPackageId;
+                Opencast.Player.setSessionId(Opencast.engage.getCookie("JSESSIONID"));
+                Opencast.Player.setUserId(userId);
+                // Set MediaPackage ID's in the Plugins
+                Opencast.Player.setMediaPackageId(mediaPackageId);
+                Opencast.Annotation_Chapter.setMediaPackageId(mediaPackageId);
+                Opencast.Analytics.setMediaPackageId(mediaPackageId);
+                Opencast.Series.setMediaPackageId(mediaPackageId);
+                Opencast.Description.setMediaPackageId(mediaPackageId);
+                Opencast.segments_ui.setMediaPackageId(mediaPackageId);
+                Opencast.segments.setMediaPackageId(mediaPackageId);
+                Opencast.segments_text.setMediaPackageId(mediaPackageId);
+                Opencast.search.setMediaPackageId(mediaPackageId);
+                // Initialize Segments UI
+                Opencast.segments_ui.initialize();
+            } else
+            {
+                var userId = $.getURLParameter('user');
+                if (mediaPackageId === null)
+                {
+                    mediaPackageIdAvailable = false;
+                }
+                var restEndpoint = Opencast.engage.getSearchServiceEpisodeIdURL() + mediaPackageId;
+                restEndpoint = $.getURLParameter('videoUrl') !== null ? "preview.xml" : restEndpoint;
+                Opencast.Player.setSessionId(Opencast.engage.getCookie("JSESSIONID"));
+                Opencast.Player.setUserId(userId);
+                if (mediaPackageIdAvailable)
+                {
+                    // Set MediaPackage ID's in the Plugins
+                    Opencast.Player.setMediaPackageId(mediaPackageId);
+                    Opencast.Series.setMediaPackageId(mediaPackageId);
+                    Opencast.Description.setMediaPackageId(mediaPackageId);
+                    Opencast.segments_ui.setMediaPackageId(mediaPackageId);
+                    Opencast.segments.setMediaPackageId(mediaPackageId);
+                    Opencast.segments_text.setMediaPackageId(mediaPackageId);
+                    // Initialize Segments UI
+                    Opencast.segments_ui.initialize();
+                }
+                else
+                {
+                    $('#oc_btn-skip-backward').hide();
+                    $('#oc_btn-skip-forward').hide();
+                    continueProcessing();
+                }
+            }
         });
     }
     
@@ -260,27 +307,43 @@ Opencast.Watch = (function ()
     function continueProcessing(error)
     {
         var err = error || false;
-        Opencast.Utils.log("Continue processing (" + (error ? "with error" : "without error") + ")");
+        $.log("Continue processing (" + (error ? "with error" : "without error") + ")");
         if (error)
         {
-            $('#oc_Videodisplay').hide();
-            $('#initializing').html('The media is not available.');
-            $('#oc_flash-player-loading').css('width', '60%');
-            $('#loading-init').hide();
-            return;
+            if(advancedPlayer)
+            {
+                $('#oc_Videodisplay').hide();
+                $('#initializing').html('The media is not available.');
+                $('#oc_flash-player-loading').css('width', '60%');
+                $('#loading-init').hide();
+                return;
+            } else
+            {
+                $('body').css('background-color', '#FFFFFF');
+                $('body').html('<span id="initializing-matter">matter</span><span id="initializing-horn">horn</span><span id="initializing">&nbsp;The media is not available.</span>');
+                $('#initializing').css('color', '#000000');
+                return;
+            }
         }
-        // set the title of the page
-        document.title = $('#oc-title').html() + " | Opencast Matterhorn - Media Player";
-        var dcExtent = parseInt($('#dc-extent').html());
-        Opencast.Analytics.setDuration(parseInt(parseInt(dcExtent) / 1000));
-        Opencast.Analytics.initialize();
-        Opencast.Annotation_Chapter.setDuration(parseInt(parseInt(dcExtent) / 1000));
-        Opencast.Annotation_Chapter.initialize();
-        $('#oc_body').bind('resize', function ()
+        if(advancedPlayer)
         {
-            Opencast.AnalyticsPlugin.resizePlugin();
-        });
-        $('#oc_segment-table').html($('#oc-segments').html());
+            // set the title of the page
+            document.title = $('#oc-title').html() + " | Opencast Matterhorn - Media Player";
+            var dcExtent = parseInt($('#dc-extent').html());
+            Opencast.Analytics.setDuration(parseInt(parseInt(dcExtent) / 1000));
+            Opencast.Analytics.initialize();
+            Opencast.Annotation_Chapter.setDuration(parseInt(parseInt(dcExtent) / 1000));
+            Opencast.Annotation_Chapter.initialize();
+            $('#oc_body').bind('resize', function ()
+            {
+                Opencast.AnalyticsPlugin.resizePlugin();
+            });
+            $('#oc_segment-table').html($('#oc-segments').html());
+            $('#oc_search').show();
+        } else
+        {
+            $(".segments").css("margin-top", "-3px");
+        }
         $('#oc-segments').html("");
         // set the media URLs
         if(mediaUrlOne === null)
@@ -371,11 +434,25 @@ Opencast.Watch = (function ()
         mediaResolutionOne = mediaResolutionOne === null ? '' : mediaResolutionOne;
         mediaResolutionTwo = mediaResolutionTwo === null ? '' : mediaResolutionTwo;
         
+        // Check for videoUrl and videoUrl2 URL Parameters
+        var mediaUrlTmp = $.getURLParameter('videoUrl');
+        mediaUrlOne = (mediaUrlTmp == null) ? mediaUrlOne : mediaUrlTmp;
+        if(mediaUrlTmp != null)
+        {
+            $.log('Set Video URL 1 manually');
+        }
+        mediaUrlTmp = $.getURLParameter('videoUrl2');
+        mediaUrlTwo = (mediaUrlTmp == null) ? mediaUrlTwo : mediaUrlTmp;
+        if(mediaUrlTmp != null)
+        {
+            $.log('Set Video URL 2 manually');
+        }
+        
         // If URL Parameter display exists and is set to revert
-        var display = Opencast.Utils.getURLParameter('display');
+        var display = $.getURLParameter('display');
         if ((display != null) && (display.toLowerCase() == 'invert') && (mediaUrlTwo != ''))
         {
-            Opencast.Utils.log("Inverting the displays and its covers");
+            $.log("Inverting the displays and its covers");
             // Invert the displays and its covers
             var tmpMediaURLOne = mediaUrlOne;
             var tmpCoverURLOne = coverUrlOne;
@@ -391,39 +468,76 @@ Opencast.Watch = (function ()
             mediaResolutionTwo = tmpMediaResolution;
         }
         
-        Opencast.Utils.log("Final Mediadata");
-        Opencast.Utils.log("Mediapackage ID: " + mediaPackageId);
-        Opencast.Utils.log("Media URL 1: " + mediaUrlOne);
-        Opencast.Utils.log("Media URL 2: " + mediaUrlTwo);
-        Opencast.Utils.log("Media resolution 1: " + mediaResolutionOne);
-        Opencast.Utils.log("Media resolution 1: " + mediaResolutionTwo);
-        Opencast.Utils.log("Mimetype 1: " + mimetypeOne);
-        Opencast.Utils.log("Mimetype 2: " + mimetypeTwo);
+        $.log("Final Mediadata");
+        $.log("Mediapackage ID: " + mediaPackageId);
+        $.log("Media URL 1: " + mediaUrlOne);
+        $.log("Media URL 2: " + mediaUrlTwo);
+        $.log("Media resolution 1: " + mediaResolutionOne);
+        $.log("Media resolution 1: " + mediaResolutionTwo);
+        $.log("Mimetype 1: " + mimetypeOne);
+        $.log("Mimetype 2: " + mimetypeTwo);
         
-        // init the segements
-        Opencast.segments.initialize();
-        // init the segements_text
-        Opencast.segments_text.initialize();
-        slideLength = Opencast.segments.getSlideLength();
-        Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo, PLAYERSTYLE, slideLength);
-        if (mediaUrlOne !== '' && mediaUrlTwo !== '')
+        if(advancedPlayer)
         {
-            Opencast.Player.setVideoSizeList(MULTIPLAYER);
-        }
-        else if (mediaUrlOne !== '' && mediaUrlTwo === '')
-        {
-            var pos = mimetypeOne.lastIndexOf("/");
-            var fileType = mimetypeOne.substring(0, pos);
-            if (fileType === 'audio')
+            // init the segements
+            Opencast.segments.initialize();
+            // init the segements_text
+            Opencast.segments_text.initialize();
+            slideLength = Opencast.segments.getSlideLength();
+            Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo, PLAYERSTYLE, slideLength);
+            if (mediaUrlOne !== '' && mediaUrlTwo !== '')
             {
-                Opencast.Player.setVideoSizeList(AUDIOPLAYER);
+                Opencast.Player.setVideoSizeList(MULTIPLAYER);
+            }
+            else if (mediaUrlOne !== '' && mediaUrlTwo === '')
+            {
+                var pos = mimetypeOne.lastIndexOf("/");
+                var fileType = mimetypeOne.substring(0, pos);
+                if (fileType === 'audio')
+                {
+                    Opencast.Player.setVideoSizeList(AUDIOPLAYER);
+                }
+                else
+                {
+                    Opencast.Player.setVideoSizeList(SINGLEPLAYER);
+                }
+            }
+            Opencast.Initialize.setMediaResolution(mediaResolutionOne, mediaResolutionTwo);
+        } else
+        {
+            if (mediaPackageIdAvailable)
+            {
+                // Initialize the Segements
+                Opencast.segments.initialize();
+                slideLength = Opencast.segments.getSlideLength();
             }
             else
             {
-                Opencast.Player.setVideoSizeList(SINGLEPLAYER);
+                slideLength = 0;
             }
+            Opencast.Player.setMediaURL(coverUrlOne, coverUrlTwo, mediaUrlOne, mediaUrlTwo, mimetypeOne, mimetypeTwo, PLAYERSTYLE, slideLength);
+            if (mediaUrlOne !== '' && mediaUrlTwo !== '')
+            {
+                Opencast.Initialize.setMediaResolution(mediaResolutionOne, mediaResolutionTwo);
+                Opencast.Player.setVideoSizeList(SINGLEPLAYERWITHSLIDES);
+                Opencast.Player.videoSizeControlMultiOnlyLeftDisplay();
+            }
+            else if (mediaUrlOne !== '' && mediaUrlTwo === '')
+            {
+                var pos = mediaUrlOne.lastIndexOf(".");
+                var fileType = mediaUrlOne.substring(pos + 1);
+                if (fileType === 'mp3')
+                {
+                    Opencast.Player.setVideoSizeList(AUDIOPLAYER);
+                }
+                else
+                {
+                    Opencast.Initialize.setMediaResolution(mediaResolutionOne, mediaResolutionTwo);
+                    Opencast.Player.setVideoSizeList(SINGLEPLAYER);
+                }
+            }
+            Opencast.Initialize.doResize();
         }
-        Opencast.Initialize.setMediaResolution(mediaResolutionOne, mediaResolutionTwo);
         // Set the caption
         // oc-captions using caption file generated by Opencaps
         var captionsUrl = $('#oc-captions').html();
@@ -448,40 +562,47 @@ Opencast.Watch = (function ()
         {
             Opencast.Player.stopFastForward();
         });
-        // init the search
-        Opencast.search.initialize();
-        Opencast.Bookmarks.initialize();
-        getClientShortcuts();
-        // init
-        Opencast.Initialize.init();
-        // Segments Text View
-        $('.segments-time').each(function ()
+        if(advancedPlayer)
         {
-            var seconds = $(this).html();
-            $(this).html(Opencast.Utils.formatSeconds(seconds));
-        });
-        // Set the Controls visible
-        $('#oc_video-player-controls').show();
-         /**
-         * !!!
-         * Opencast.ariaSpinbutton.initialize has to be called after #oc_video-player-controls
-         * is visible!
-         * !!!
-         */ 
-        Opencast.ariaSpinbutton.initialize('oc_volume-container', 'oc_volume-back', 'oc_volume-front', 8, 0, 100);
+            // init the search
+            Opencast.search.initialize();
+            Opencast.Bookmarks.initialize();
+        }
+        getClientShortcuts();
+        if(advancedPlayer)
+        {
+            // init
+            Opencast.Initialize.init();
+            // Segments Text View
+            $('.segments-time').each(function ()
+            {
+                var seconds = $(this).html();
+                $(this).html($.formatSeconds(seconds));
+            });
+            // Hide loading indicators
+            if (parseQueryString(window.location.search.substring(1)).embed)
+            {
+                $('#oc_title-bar').hide();
+                $('#oc_btn-embed').hide();
+                $('#oc_slidetext').addClass('scroll');
+            }
+        }
+        
         // Hide loading indicators
         $('#oc_flash-player-loading').hide();
-        if (parseQueryString(window.location.search.substring(1)).embed)
-        {
-            $('#oc_title-bar').hide();
-            $('#oc_btn-embed').hide();
-            $('#oc_slidetext').addClass('scroll');
-        }
         // Show video controls and data
         $('#data').show();
-        $('#oc_player-head-right').show();
-        $('#oc_ui_tabs').show();
+        if(advancedPlayer)
+        {
+            $('#oc_player-head-right').show();
+            $('#oc_ui_tabs').show();
         $('#oc_video-player-controls').show();
+        } else
+        {
+            $('#oc_video-time').show();
+            $('#oc_sound').show();
+        $('#oc_video-controls').show();
+        }
         // Set Duration
         var durDiv = $('#dc-extent').html();
         if ((durDiv !== undefined) && (durDiv !== null) && (durDiv != ''))
@@ -492,10 +613,18 @@ Opencast.Watch = (function ()
                 Opencast.Player.setDuration(duration);
             }
         }
-        var formattedSecs = Opencast.Utils.formatSeconds(Opencast.Player.getDuration());
+        if(!advancedPlayer)
+        {
+            // adjust the slider height
+            if(!(Opencast.segments.getNumberOfSegments() > 0))
+            {
+                $('.progress-list').height("6px");
+            }
+        }
+        var formattedSecs = $.formatSeconds(Opencast.Player.getDuration());
         Opencast.Player.setTotalTime(formattedSecs);
         
-        Opencast.Utils.log("Media duration: " + formattedSecs);
+        $.log("Media duration: " + formattedSecs);
         
         // Give the player a second to finish loading, then proceed
         setTimeout(function()
@@ -503,7 +632,12 @@ Opencast.Watch = (function ()
             Opencast.Watch.durationSet();
         }, 1000);
 
-        $('#oc_player_video-dropdown').hide();
+        if(advancedPlayer)
+        {
+            $('#oc_player_video-dropdown').hide();
+        }
+        // Opencast.ariaSpinbutton.initialize has to be called after #oc_video-player-controls is visible!
+        Opencast.ariaSpinbutton.initialize('oc_volume-container', 'oc_volume-back', 'oc_volume-front', 8, 0, 100, true);
     }
     
     /**
@@ -515,40 +649,81 @@ Opencast.Watch = (function ()
     {
         if(!durationSetSuccessfully)
         {
-            var playParam = Opencast.Utils.getURLParameter('play');
-            var timeParam = Opencast.Utils.getURLParameter('t');
+            var playParam = $.getURLParameter('play');
+            var timeParam = $.getURLParameter('t');
+            var previewParam = $.getURLParameter('preview');
+            previewParam = previewParam == null ? false : true;
             var durationStr = $('#oc_duration').text();
-            var durTextSet = (durationStr != 'Initializing') && (Opencast.Utils.getTimeInMilliseconds(durationStr) != 0);
+            var durTextSet = (durationStr != 'Initializing') && ($.getTimeInMilliseconds(durationStr) != 0);
             var autoplay = (playParam !== null) && (playParam.toLowerCase() == 'true');
-            var time = (timeParam === null) ? 0 : Opencast.Utils.parseSeconds(timeParam);
+            if(!advancedPlayer)
+            {
+                autoplay = ((playParam !== null) && (playParam.toLowerCase() == 'true')) || (!mediaPackageIdAvailable && !previewParam);
+            }
+            var time = (timeParam === null) ? 0 : $.parseSeconds(timeParam);
             time = (time < 0) ? 0 : time;
             var rdy = false;
-            // duration set
-            if (durTextSet)
+            if(advancedPlayer)
             {
-                // autoplay and jump to time OR autoplay and not jump to time
-                if (autoplay)
+                // duration set
+                if (durTextSet)
                 {
-                    // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
-                    if (Opencast.Player.doPlay() && jumpToTime(time))
+                    // autoplay and jump to time OR autoplay and not jump to time
+                    if (autoplay)
                     {
-                        Opencast.Utils.log("Autoplay: true");
-                        rdy = true;
+                        // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
+                        if (Opencast.Player.doPlay() && jumpToTime(time))
+                        {
+                            $.log("Autoplay: true");
+                            rdy = true;
+                        }
+                    }
+                    // not autoplay and jump to time
+                    else
+                    {
+                        if (jumpToTime(time))
+                        {
+                            $.log("Autoplay: false");
+                            rdy = true;
+                        }
                     }
                 }
-                // not autoplay and jump to time
                 else
                 {
-                    if (jumpToTime(time))
+                    rdy = false;
+                }
+            } else
+            {
+                // duration set
+                if (durTextSet||!mediaPackageIdAvailable)
+                {
+                    // autoplay and jump to time OR autoplay and not jump to time
+                    if (autoplay)
                     {
-                        Opencast.Utils.log("Autoplay: false");
-                        rdy = true;
+                        // attention: first call 'play', after that 'jumpToTime', otherwise nothing happens!
+                        if (Opencast.Player.doPlay() && jumpToTime(time))
+                        {
+                            $.log("Autoplay: true");
+                            rdy = true;
+                        }
+                    }
+                    // not autoplay and jump to time
+                    else
+                    {
+                        if(previewParam) {
+                           Opencast.Player.doPause();
+                        }
+                        if (jumpToTime(time))
+                        {
+                            $.log("Autoplay: false");
+                            rdy = true;
+                        }
                     }
                 }
-            }
-            else
-            {
-                rdy = false;
+                else
+                {
+                    rdy = false;
+                }
             }
             if (!rdy)
             {
@@ -573,12 +748,12 @@ Opencast.Watch = (function ()
     {
         if(time > 0)
         {
-            Opencast.Utils.log("Jump to time: true (" + time +"s)");
+            $.log("Jump to time: true (" + time +"s)");
             var seekSuccessful = Videodisplay.seek(time);
             return seekSuccessful;
         } else
         {
-            Opencast.Utils.log("Jump to time: false");
+            $.log("Jump to time: false");
             return true;
         }
     }
@@ -594,6 +769,7 @@ Opencast.Watch = (function ()
     {
         var eventSeek = Videodisplay.seek(seconds);
     }
+    
     
     /**
      * @memberOf Opencast.Watch
@@ -644,5 +820,5 @@ Opencast.Watch = (function ()
         continueProcessing: continueProcessing,
         durationSet: durationSet,
         getClientShortcuts: getClientShortcuts
-    };
+    };          
 }());

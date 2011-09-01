@@ -623,7 +623,7 @@ public class SchedulerServiceSolrIndex implements SchedulerServiceIndex {
   }
 
   /**
-   * Builds a solr search query from a {@link SeriesQuery}.
+   * Builds a solr search query from a {@link org.opencastproject.series.api.SeriesQuery}.
    * 
    * @param query
    *          the series query
@@ -724,6 +724,7 @@ public class SchedulerServiceSolrIndex implements SchedulerServiceIndex {
     }
     String solrQueryString = buildSolrQueryString(query);
     solrQuery.setQuery(solrQueryString);
+    solrQuery.setRows(Integer.MAX_VALUE);
 
     if (query.getSort() != null) {
       SolrQuery.ORDER order = query.isSortAscending() ? SolrQuery.ORDER.asc : SolrQuery.ORDER.desc;

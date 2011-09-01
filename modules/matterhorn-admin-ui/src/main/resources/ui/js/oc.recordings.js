@@ -863,7 +863,7 @@ ocRecordings = new (function() {
   this.stopWorkflow = function(id) {
     var wf = ocRecordings.getWorkflow(id);
     if (wf) {
-      if(confirm('Are you sure you wish to delete ' + wf.title + '?')){
+      if(confirm('Are you sure you wish to delete ' + wf.mediapackage.title + '?')){
         $.ajax({
           url: WORKFLOW_URL + '/stop',
           type: 'POST',
@@ -1247,7 +1247,7 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
 
       } else if (action == 'edit') {
         links.push('<a href="scheduler.html?eventId=' + id + '&edit=true">Edit</a>');
-      } else if(actions[i] === 'play') {
+      } else if(actions[index] === 'play') {
         var workflow = ocRecordings.getWorkflow(id);
         if (workflow) {
           var mpId = workflow.mediapackage.id;
@@ -1285,7 +1285,7 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
         links.push('<a href="javascript:ocRecordings.stopWorkflow(\'' + id + '\')">Ignore</a>');
       }
     });
-    return links.join(' \n');
+    return links.join(' | \n');
   }
 
   return this;

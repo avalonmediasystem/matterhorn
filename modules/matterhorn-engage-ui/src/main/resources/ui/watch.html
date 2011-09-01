@@ -18,13 +18,14 @@
         <script type="text/javascript" src="jquery/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="jquery/plugins/jquery.xslt.js"></script>
         <script type="text/javascript" src="jquery/plugins/jquery.hotkeys-0.7.9.js"></script>
+        <script type="text/javascript" src="js/jquery.utils-1.0.js"></script>
         <script type="text/javascript" src="engage-hybrid-player/bridge/lib/FABridge.js"></script>
         <script type="text/javascript" src="engage-hybrid-player/bridge/Videodisplay.js"></script>
         <script type="text/javascript" src="jquery/plugins/jARIA.js"></script>
+        <script type="text/javascript" src="jquery/plugins/jquery.cookie.js"></script>
         <script type="text/javascript" src="jquery/jquery-ui-1.8.1.custom.min.js"></script>
         <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-scubber.js"></script>
         <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid.js"></script>
-        <script type="text/javascript" src="engage-hybrid-player/aria/js/ariaSpinbutton.js"></script>
         <script type="text/javascript" src="engage-hybrid-player/aria/js/ariaSpinbutton.js"></script>
         <script type="text/javascript" src="jquery/plugins/jwysiwyg/jquery.wysiwyg.js"></script>
         <script type="text/javascript" src="jquery/plugins/jquery.client.js"></script>
@@ -33,7 +34,6 @@
         <script type="text/javascript" src="js/jquery.timers-1.2.js"></script>
         <script type="text/javascript" src="js/bookmarks.js"></script>
         <script type="text/javascript" src="js/engage_plugins/json2.js"></script>
-        <script type="text/javascript" src="js/utils.js"></script>
         <script type="text/javascript" src="js/engage_plugins/description.js"></script>
         <script type="text/javascript" src="js/engage_plugins/description-plugin.js"></script>
         <script type="text/javascript" src="js/engage_plugins/segments_ui.js"></script>
@@ -75,17 +75,15 @@
                         <div id="matterhorn-main-logo"></div>
                     </a>
                 </div>
-                <!-- START: Hide when no Javascript is activated -->
-                <script type="text/javascript">
-                    document.write('<div id="oc_search">');
-                        document.write('<form action="index.html">');
-                            document.write('<label id="skip" for="oc_searchField">');
-                                document.write('Search Media');
-                            document.write('</label>');
-                            document.write('<input id="oc_searchField" class="oc_search-Field handcursor ui-corner-all" type="text" name="q" value="Search Media" tabindex="40" />');
-                            document.write('<input id="oc_btn-search" class="handcursor" type="image" src="img/space.png" name="search" title="do search Matterhorn" value="Search" tabindex="50" aria-label="do search Matterhorn" />');
-                        document.write('</form>');
-                    document.write('</div>');
+                <div id="oc_search">
+                	<form action="index.html">
+                    	<label id="skip" for="oc_searchField">
+                        	Search Media
+                        </label>
+                        <input id="oc_searchField" class="oc_search-Field handcursor ui-corner-all" type="text" name="q" value="Search Media" tabindex="40" />
+                        <input id="oc_btn-search" class="handcursor" type="image" src="img/space.png" name="search" title="do search Matterhorn" value="Search" tabindex="50" aria-label="do search Matterhorn" />
+                    </form>
+                </div>
                 </script>
                 <div id="oc_title-bar-gallery-link">
                     <a href="index.html" title="go to Media Gallery" tabindex="30">

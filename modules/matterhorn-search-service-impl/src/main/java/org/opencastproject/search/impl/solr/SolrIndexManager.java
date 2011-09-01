@@ -20,7 +20,6 @@ import static org.opencastproject.search.api.SearchService.READ_PERMISSION;
 import static org.opencastproject.search.api.SearchService.WRITE_PERMISSION;
 import static org.opencastproject.util.RequireUtil.notNull;
 
-import org.apache.solr.common.SolrInputDocument;
 import org.opencastproject.mediapackage.Attachment;
 import org.opencastproject.mediapackage.Catalog;
 import org.opencastproject.mediapackage.MediaPackage;
@@ -74,6 +73,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.servlet.SolrRequestParsers;
 import org.slf4j.Logger;
@@ -175,15 +175,12 @@ public class SolrIndexManager {
 
   /**
    * Creates a new management instance for the search index.
-   *
+   * 
    * @param connection
    *          connection to the database
    */
-  public SolrIndexManager(SolrServer connection, Workspace workspace,
-          List<StaticMetadataService> mdServices,
-          SeriesService seriesService,
-          Mpeg7CatalogService mpeg7CatalogService,
-          SecurityService securityService) {
+  public SolrIndexManager(SolrServer connection, Workspace workspace, List<StaticMetadataService> mdServices,
+          SeriesService seriesService, Mpeg7CatalogService mpeg7CatalogService, SecurityService securityService) {
 
     this.solrServer = notNull(connection, "solr connection");
     this.workspace = notNull(workspace, "workspace");
@@ -195,7 +192,7 @@ public class SolrIndexManager {
 
   /**
    * Clears the search index. Make sure you know what you are doing.
-   *
+   * 
    * @throws SolrServerException
    *           if an errors occurs while talking to solr
    */
@@ -210,7 +207,7 @@ public class SolrIndexManager {
 
   /**
    * Removes the entry with the given <code>id</code> from the database. The entry can either be a series or an episode.
-   *
+   * 
    * @param id
    *          identifier of the series or episode to delete
    * @throws SolrServerException
@@ -253,9 +250,9 @@ public class SolrIndexManager {
   /**
    * Posts the media package to solr. Depending on what is referenced in the media package, the method might create one
    * or two entries: one for the episode and one for the series that the episode belongs to.
-   *
+   * 
    * This implementation of the search service removes all references to non "engage/download" media tracks
-   *
+   * 
    * @param sourceMediaPackage
    *          the media package to post
    * @param acl
@@ -271,6 +268,9 @@ public class SolrIndexManager {
     try {
       episodeDocument = createEpisodeInputDocument(sourceMediaPackage, acl);
       seriesDocument = createSeriesInputDocument(sourceMediaPackage.getSeries(), acl);
+      if (seriesDocument != null) {
+        Schema.enrich(episodeDocument, seriesDocument);
+      }
     } catch (Exception e) {
       throw new SolrServerException(e);
     }
@@ -280,11 +280,6 @@ public class SolrIndexManager {
     if (episodeDocument == null && seriesDocument == null) {
       logger.warn("Neither episode nor series metadata found");
       return false;
-    }
-
-    // Add the episode metadata
-    if (episodeDocument != null && seriesDocument != null) {
-      Schema.setDcIsPartOf(episodeDocument, Schema.getId(seriesDocument));
     }
 
     // Post everything to the search index
@@ -302,7 +297,7 @@ public class SolrIndexManager {
 
   /**
    * Creates a solr input document for the episode metadata of the media package.
-   *
+   * 
    * @param mediaPackage
    *          the media package
    * @param acl
@@ -319,9 +314,10 @@ public class SolrIndexManager {
 
     // Fill the input document
     Schema.setId(doc, mediaPackageId);
-    ///
+    // /
     // OC specific fields
     Schema.setOcMediatype(doc, SearchResultItemType.AudioVisual.toString());
+    Schema.setOrganization(doc, securityService.getOrganization().getId());
     Schema.setOcModified(doc, new Date());
     Schema.setOcMediapackage(doc, MediaPackageParser.getAsXml(mediaPackage));
     Schema.setOcElementtags(doc, tags(mediaPackage));
@@ -332,13 +328,13 @@ public class SolrIndexManager {
       Schema.setOcCover(doc, cover[0].getURI().toString());
     }
 
-    ///
+    // /
     // Add standard dublin core fields
     // naive approach. works as long as only setters, not adders are available in the schema
     for (StaticMetadata md : getMetadata(mdServices, mediaPackage))
       addEpisodeMetadata(doc, md);
 
-    ///
+    // /
     // Add mpeg7
     logger.debug("Looking for mpeg-7 catalogs containing segment texts");
     Catalog[] mpeg7Catalogs = mediaPackage.getCatalogs(MediaPackageElements.TEXTS);
@@ -354,7 +350,7 @@ public class SolrIndexManager {
       logger.debug("No segmentation catalog found");
     }
 
-    ///
+    // /
     // Add authorization
     setAuthorization(doc, securityService, acl);
 
@@ -365,6 +361,11 @@ public class SolrIndexManager {
     Schema.fill(doc, new Schema.FieldCollector() {
       @Override
       public Option<String> getId() {
+        return Option.none();
+      }
+
+      @Override
+      public Option<String> getOrganization() {
         return Option.none();
       }
 
@@ -556,12 +557,13 @@ public class SolrIndexManager {
   }
 
   static List<DField<String>> fromMValue(List<MetadataValue<String>> as) {
-    return CollectionUtil.map(as, new ArrayList<DField<String>>(), new Function<MetadataValue<String>, DField<String>>() {
-      @Override
-      public DField<String> apply(MetadataValue<String> v) {
-        return new DField<String>(v.getValue(), v.getLanguage());
-      }
-    });
+    return CollectionUtil.map(as, new ArrayList<DField<String>>(),
+            new Function<MetadataValue<String>, DField<String>>() {
+              @Override
+              public DField<String> apply(MetadataValue<String> v) {
+                return new DField<String>(v.getValue(), v.getLanguage());
+              }
+            });
   }
 
   static List<DField<String>> fromDCValue(List<DublinCoreValue> as) {
@@ -575,7 +577,7 @@ public class SolrIndexManager {
 
   /**
    * Adds authorization fields to the solr document.
-   *
+   * 
    * @param doc
    *          the solr document
    * @param acl
@@ -652,15 +654,15 @@ public class SolrIndexManager {
 
   /**
    * Creates a solr input document for the series metadata of the media package.
-   *
+   * 
    * @param seriesId
    *          the id of the series
    * @param acl
    *          the access control list for this mediapackage
    * @return an input document ready to be posted to solr or null
    */
-  private SolrInputDocument createSeriesInputDocument(String seriesId, AccessControlList acl)
-          throws IOException {
+  private SolrInputDocument createSeriesInputDocument(String seriesId, AccessControlList acl) throws IOException,
+          UnauthorizedException {
 
     if (seriesId == null)
       return null;
@@ -695,8 +697,9 @@ public class SolrIndexManager {
 
     // Fill document
     Schema.setId(doc, seriesId);
-    ///
+
     // OC specific fields
+    Schema.setOrganization(doc, securityService.getOrganization().getId());
     Schema.setOcMediatype(doc, SearchResultItemType.Series.toString());
     Schema.setOcModified(doc, new Date());
 
@@ -711,7 +714,7 @@ public class SolrIndexManager {
 
   /**
    * Add the standard dublin core fields to a series document.
-   *
+   * 
    * @param doc
    *          the solr document to fill
    * @param dc
@@ -722,6 +725,11 @@ public class SolrIndexManager {
       @Override
       public Option<String> getId() {
         return Option.some(dc.getFirst(DublinCore.PROPERTY_IDENTIFIER));
+      }
+
+      @Override
+      public Option<String> getOrganization() {
+        return Option.none();
       }
 
       @Override
@@ -884,7 +892,7 @@ public class SolrIndexManager {
 
   /**
    * Add the mpeg 7 catalog data to the solr document.
-   *
+   * 
    * @param doc
    *          the input document to the solr index
    * @param mpeg7
@@ -1026,7 +1034,7 @@ public class SolrIndexManager {
 
   /**
    * Generates a string with the most important kewords from the text annotation.
-   *
+   * 
    * @param sortedAnnotations
    * @return The keyword string.
    */
@@ -1100,7 +1108,7 @@ public class SolrIndexManager {
 
   /**
    * Gets the maximum confidence for a given keyword in the text annotation.
-   *
+   * 
    * @param keyword
    * @param sortedAnnotations
    * @return The maximum confidence value.
@@ -1128,7 +1136,7 @@ public class SolrIndexManager {
 
   /**
    * Gets the maximum relevance for a given keyword in the text annotation.
-   *
+   * 
    * @param keyword
    * @param sortedAnnotations
    * @return The maximum relevance value.
@@ -1163,7 +1171,7 @@ public class SolrIndexManager {
               @Override
               public Collection<StaticMetadata> apply(StaticMetadataService s) {
                 StaticMetadata md = s.getMetadata(mp);
-                return md != null ? Arrays.asList(md) : Collections.<StaticMetadata>emptyList();
+                return md != null ? Arrays.asList(md) : Collections.<StaticMetadata> emptyList();
               }
             });
   }

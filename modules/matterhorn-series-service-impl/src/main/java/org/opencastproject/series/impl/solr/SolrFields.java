@@ -20,14 +20,20 @@ package org.opencastproject.series.impl.solr;
  */
 public interface SolrFields {
 
-  /** The key in solr documents representing the workflow's ID */
-  String ID_KEY = "id";
+  /** The key in solr documents representing the composite series and organization IDs */
+  String COMPOSITE_ID_KEY = "composite_id";
 
   /** The key in solr documents representing series DC as xml */
   String XML_KEY = "xml";
   
   /** The key representing Access Control List */
   String ACCESS_CONTROL_KEY = "access_control";
+
+  /** The key representing the roles that can contribute to the series */
+  String ACCESS_CONTROL_CONTRIBUTE = "acl_contribute";
+
+  /** The key representing the roles that can edit the series */
+  String ACCESS_CONTROL_EDIT = "acl_edit";
 
   /** Dublin core fields */
   String TITLE_KEY = "dc_title";
@@ -49,6 +55,7 @@ public interface SolrFields {
   String TYPE_KEY = "dc_type";
   String ACCESS_RIGHTS_KEY = "dc_access_rights";
   String LICENSE_KEY = "dc_license";
+  String ORGANIZATION = "organization";
 
   /** Fulltext search field */
   String FULLTEXT_KEY = "fulltext";

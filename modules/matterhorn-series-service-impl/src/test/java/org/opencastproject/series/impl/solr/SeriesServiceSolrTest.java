@@ -20,6 +20,10 @@ import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
 import org.opencastproject.security.api.AccessControlEntry;
 import org.opencastproject.security.api.AccessControlList;
+import org.opencastproject.security.api.DefaultOrganization;
+import org.opencastproject.security.api.SecurityConstants;
+import org.opencastproject.security.api.SecurityService;
+import org.opencastproject.security.api.User;
 import org.opencastproject.series.api.SeriesQuery;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.PathSupport;
@@ -28,6 +32,7 @@ import junit.framework.Assert;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,10 +57,19 @@ public class SeriesServiceSolrTest {
    */
   @Before
   public void setUp() throws Exception {
+    // Mock up a security service
+    SecurityService securityService = EasyMock.createNiceMock(SecurityService.class);
+    User user = new User("admin", SecurityConstants.DEFAULT_ORGANIZATION_ID,
+            new String[] { SecurityConstants.GLOBAL_ADMIN_ROLE });
+    EasyMock.expect(securityService.getOrganization()).andReturn(new DefaultOrganization()).anyTimes();
+    EasyMock.expect(securityService.getUser()).andReturn(user).anyTimes();
+    EasyMock.replay(securityService);
+
     index = new SeriesServiceSolrIndex();
     index.solrRoot = PathSupport.concat("target", Long.toString(System.currentTimeMillis()));
     dcService = new DublinCoreCatalogService();
     index.setDublinCoreService(dcService);
+    index.setSecurityService(securityService);
     index.activate(null);
 
     InputStream in = null;

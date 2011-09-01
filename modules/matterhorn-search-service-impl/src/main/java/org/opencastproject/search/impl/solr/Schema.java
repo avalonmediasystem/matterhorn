@@ -16,18 +16,20 @@
 
 package org.opencastproject.search.impl.solr;
 
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrInputDocument;
-import org.opencastproject.util.data.CollectionUtil;
-import org.opencastproject.util.data.Function;
-import org.opencastproject.util.data.Option;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.SolrInputField;
+import org.opencastproject.util.data.CollectionUtil;
+import org.opencastproject.util.data.Function;
+import org.opencastproject.util.data.Option;
+
 /**
- * This class reflects the solr schema.xml. Please access the index _only_ by means of this class.
+ * This class reflects the solr schema.xml. Note that all getters returning simple values may always return null. Please
+ * access the index _only_ by means of this class.
  */
 public final class Schema {
 
@@ -65,11 +67,16 @@ public final class Schema {
   public static final String DC_ACCESS_RIGHTS_PREFIX = "dc_access_rights_";
   public static final String DC_LICENSE_PREFIX = "dc_license_";
 
+  // Filters for audio and video files
+  public static final String HAS_AUDIO = "has_audio_file";
+  public static final String HAS_VIDEO = "has_video_file";
+
   // Suffixes
   public static final String SUFFIX_FROM = "from";
   public static final String SUFFIX_TO = "to";
 
   // Additional fields
+  public static final String OC_ORGANIZATION = "oc_organization";
   public static final String OC_MEDIAPACKAGE = "oc_mediapackage";
   public static final String OC_KEYWORDS = "oc_keywords";
   public static final String OC_COVER = "oc_cover";
@@ -126,6 +133,8 @@ public final class Schema {
    */
   interface FieldCollector {
     Option<String> getId();
+
+    Option<String> getOrganization();
 
     Option<Date> getDcCreated();
 
@@ -192,6 +201,8 @@ public final class Schema {
   public static void fill(SolrInputDocument doc, FieldCollector fields) {
     if (fields.getId().isSome())
       setId(doc, fields.getId().get());
+    if (fields.getOrganization().isSome())
+      setOrganization(doc, fields.getOrganization().get());
     if (fields.getDcCreated().isSome())
       setDcCreated(doc, fields.getDcCreated().get());
     if (fields.getDcExtent().isSome())
@@ -252,16 +263,48 @@ public final class Schema {
       setSegmentHint(doc, v);
   }
 
+  /**
+   * Adds one solr document's data as unstructured, full-text searchable data to another document.
+   * 
+   * @param docToEnrich
+   *          the solr document to enrich with the other additional metadata
+   * 
+   * @param additionalMetadata
+   *          the solr document containing the additional metadata
+   * @throws IllegalArgumentException
+   *           if either of the documents are null
+   */
+  public static void enrich(SolrInputDocument docToEnrich, SolrInputDocument additionalMetadata)
+          throws IllegalArgumentException {
+    if (docToEnrich == null || additionalMetadata == null) {
+      throw new IllegalArgumentException("Documents must not be null");
+    }
+    for (String fieldName : additionalMetadata.getFieldNames()) {
+      for (Object value : additionalMetadata.getFieldValues(fieldName)) {
+        docToEnrich.addField(FULLTEXT, value);
+      }
+    }
+  }
+
   public static String getId(SolrDocument doc) {
     return mkString(doc.get(ID));
   }
 
+  public static String getOrganization(SolrDocument doc) {
+    return mkString(doc.get(OC_ORGANIZATION));
+  }
+
   public static String getId(SolrInputDocument doc) {
-    return mkString(doc.get(ID));
+    SolrInputField f = doc.get(ID);
+    return f != null ? mkString(f.getFirstValue()) : null;
   }
 
   public static void setId(SolrInputDocument doc, String id) {
     doc.setField(ID, id);
+  }
+
+  public static void setOrganization(SolrInputDocument doc, String organization) {
+    doc.setField(OC_ORGANIZATION, organization);
   }
 
   public static Date getDcCreated(SolrDocument doc) {
@@ -430,7 +473,8 @@ public final class Schema {
   }
 
   public static String getOcKeywords(SolrInputDocument doc) {
-    return mkString(doc.get(OC_KEYWORDS));
+    SolrInputField f = doc.get(OC_KEYWORDS);
+    return f != null ? mkString(f.getFirstValue()) : null;
   }
 
   public static void setOcKeywords(SolrInputDocument doc, String keywords) {
@@ -520,7 +564,7 @@ public final class Schema {
   }
 
   private static String mkString(Object v) {
-    return v != null ? v.toString() : "";
+    return v != null ? v.toString() : null;
   }
 
   private static Date mkDate(Object v) {
