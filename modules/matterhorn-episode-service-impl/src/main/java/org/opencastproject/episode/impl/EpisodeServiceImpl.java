@@ -213,7 +213,7 @@ public final class EpisodeServiceImpl implements EpisodeService {
           String storageDir = cc.getBundleContext().getProperty("org.opencastproject.storage.dir");
           if (storageDir == null)
             throw new IllegalStateException("Storage dir must be set (org.opencastproject.storage.dir)");
-          String solrRoot = PathSupport.concat(storageDir, "searchindex");
+          String solrRoot = PathSupport.concat(storageDir, "archive");
           try {
             return setupSolr(new File(solrRoot));
           } catch (IOException e) {
@@ -475,6 +475,19 @@ public final class EpisodeServiceImpl implements EpisodeService {
       }
     }
     return workflows.toArray(new WorkflowInstance[0]);
+  }
+
+  @Override
+  public WorkflowInstance[] applyWorkflow(String workflowDefinitionId, List<String> mediaPackageIds) throws EpisodeServiceException, UnauthorizedException {
+    final WorkflowDefinition workflowDefinition;
+    try {
+      workflowDefinition = workflowService.getWorkflowDefinitionById(workflowDefinitionId);
+    } catch (WorkflowDatabaseException e) {
+      throw new EpisodeServiceException(e);
+    } catch (NotFoundException e) {
+      throw new EpisodeServiceException(e);
+    }
+    return applyWorkflow(workflowDefinition, mediaPackageIds);
   }
 
   /**

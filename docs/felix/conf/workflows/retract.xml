@@ -6,10 +6,18 @@
     <!-- Retract from distribution channels -->
 
     <operation
-      id="retract"
+      id="retract-download"
       fail-on-error="true"
       exception-handler-workflow="error"
-      description="Retract media package from distribution channels">
+      description="Retract media package from the download distribution channels">
+    </operation>
+
+    <operation
+      id="retract-streaming"
+      fail-on-error="true"
+      exception-handler-workflow="error"
+      if="${org.opencastproject.streaming.url}"
+      description="Retract media package from the streaming distribution channels">
     </operation>
 
     <!-- Remove from search index -->

@@ -116,6 +116,19 @@ public interface EpisodeService {
   WorkflowInstance[] applyWorkflow(WorkflowDefinition workflowDefinition, List<String> mediaPackageIds) throws EpisodeServiceException, UnauthorizedException;
 
   /**
+   * Process all media packages with workflow <code>workflowDefinition</code>.
+   *
+   * @param mediaPackageIds
+   *          list of media package ids
+   * @param workflowDefinitionId
+   *          the workflow to apply to all found media packages
+   * @return a list of started workflows todo should report about failed workflow starts
+   * @throws EpisodeServiceException
+   * @throws UnauthorizedException
+   */
+  WorkflowInstance[] applyWorkflow(String workflowDefinitionId, List<String> mediaPackageIds) throws EpisodeServiceException, UnauthorizedException;
+
+  /**
    * Find search results based on the specified query object
    *
    * @param q

@@ -4,6 +4,7 @@ ocRecordings = new (function() {
   var WORKFLOW_LIST_URL = '../workflow/instances.json';          // URL of workflow instances list endpoint
   var WORKFLOW_INSTANCE_URL = '';                                // URL of workflow instance endpoint
   var WORKFLOW_STATISTICS_URL = '../workflow/statistics.json';   // URL of workflow instances statistics endpoint
+  var EPISODE_LIST_URL = '../episode/episode.json';   // URL of workflow instances statistics endpoint
   var SERIES_URL = '/series';
   var SEARCH_URL = '../search';
   var ENGAGE_URL = '';
@@ -109,36 +110,71 @@ ocRecordings = new (function() {
       params.push('compact=true');
       // 'state' to display
       var state = ocRecordings.Configuration.state;
+
+      // generic function to create the json url
+      function mkUrl(baseUrl, startPageParam, countParam, params) {
+        var p = $.merge([], params);
+        p.push(countParam + "=" + ocRecordings.Configuration.pageSize);
+        p.push(startPageParam + "=" + ocRecordings.Configuration.page);
+        return baseUrl + "?" + p.join("&");
+      }
+
+      var workflowUrlHandler = {
+        createUrl: function(params) {
+          return mkUrl(WORKFLOW_LIST_URL, "startPage", "count", $.merge(["jsonp=?"], params));
+        },
+        extractData: function(json) {
+          return {
+            raw: json,
+            totalCount: json.workflows.totalCount,
+            count: json.workflows.count,
+            mkRenderData: function() {
+              return makeRenderDataWorkflows(json);
+            }
+          }
+        }
+      };
+
+      // a URL handler is an object containing the two functions
+      // createUrl(params) and extractData(json). See the workflowUrlHandler for an example
+      var urlHandler = workflowUrlHandler;
+
       params.push('state=-stopped');
       if (state == 'upcoming') {
         params.push('state=paused');
         params.push('state=running');
         params.push('op=schedule');
+        urlHandler = workflowUrlHandler;
       }
       else if (state == 'capturing') {
         params.push('state=paused');
         params.push('op=capture');
         params.push('op=ingest');
+        urlHandler = workflowUrlHandler;
       }
       else if (state == 'processing') {
         params.push('state=running');
         params.push('op=-schedule');
         params.push('op=-capture');
+        urlHandler = workflowUrlHandler;
       }
       else if (state == 'finished') {
         params.push('state=succeeded');
         params.push('op=-schedule');
         params.push('op=-capture');
+        urlHandler = workflowUrlHandler;
       }
       else if (state == 'hold') {
         params.push('state=paused');
         params.push('op=-schedule');
         params.push('op=-capture');
         params.push('op=-ingest');
+        urlHandler = workflowUrlHandler;
       }
       else if (state == 'failed') {
         params.push('state=failed');
         params.push('state=failing');
+        urlHandler = workflowUrlHandler;
       }
       else if (state === 'bulkedit' || state === 'bulkdelete') {
         ocRecordings.Configuration.pageSize = 100;
@@ -146,7 +182,27 @@ ocRecordings = new (function() {
         params.push('state=paused');
         params.push('state=running');
         params.push('op=schedule');
+        urlHandler = workflowUrlHandler;
       }
+      else if (state === 'archive') {
+        params.push('state=succeeded');
+        urlHandler = {
+          createUrl: function(params) {
+            return mkUrl(EPISODE_LIST_URL, "offset", "limit", params);
+          },
+          extractData: function(json) {
+            return {
+              raw: json,
+              totalCount: json["search-results"].total,
+              count: json["search-results"].limit,
+              mkRenderData: function() {
+                return makeRenderDataEpisodes(json);
+              }
+            }
+          }
+        }
+      }
+
       // sorting if specified
       if (ocRecordings.Configuration.sortField != null) {
         var sort = SORT_FIELDS[ocRecordings.Configuration.sortField];
@@ -159,19 +215,14 @@ ocRecordings = new (function() {
       if (ocRecordings.Configuration.filterText != '') {
         params.push(ocRecordings.Configuration.filterField + '=' + encodeURI(ocRecordings.Configuration.filterText));
       }
-      // paging
-      params.push('count=' + ocRecordings.Configuration.pageSize);
-      params.push('startPage=' + ocRecordings.Configuration.page);
-      params.push('jsonp=?');
-      var url = WORKFLOW_LIST_URL + '?' + params.join('&');
-      $.ajax(
-      {
-        url: url,
+
+      // issue the ajax request
+      $.ajax({
+        url: urlHandler.createUrl(params),
         dataType: 'jsonp',
         jsonp: 'jsonp',
-        success: function (data)
-        {
-          ocRecordings.render(data);
+        success: function(data) {
+          ocRecordings.render(urlHandler.extractData(data));
         }
       });
     }
@@ -410,12 +461,23 @@ ocRecordings = new (function() {
     return this;
   }
 
+  /** Create an object representing an episode from json.
+   *  @param json -- json data from the episode service
+   */
+  function Episode(json) {
+    this.id = json.id;
+    this.title = json.dcTitle;
+    this.creators = ocUtils.joinArray(json.mediapackage.creators, ", ");
+    this.date = ocUtils.fromUTCDateStringToFormattedTime(json.mediapackage.start);
+  }
+
   /** Prepare data delivered by workflow instances list endpoint for template
  *  rendering.
+   *  @param json -- the json data as it is returned by the server
  */
-  function makeRenderData(data) {
+  function makeRenderDataWorkflows(json) {
     var recordings = [];
-    var wfs = ocUtils.ensureArray(data.workflows.workflow);
+    var wfs = ocUtils.ensureArray(json.workflows.workflow);
     $.each(wfs, function(index, wf) {
       recordings.push(new Recording(wf));
     });
@@ -424,27 +486,44 @@ ocRecordings = new (function() {
     };
   }
 
+  /** Prepare json data delivered by episode service endpoint for template rendering.
+   *  @param json -- the json data as it is returned by the server
+   */
+  function makeRenderDataEpisodes(json) {
+    return {
+      episodes: $.map(ocUtils.ensureArray(json["search-results"].result), function(elem, i) {
+        return new Episode(elem);
+      })
+    }
+  }
+
   /** JSONP callback for calls to the workflow instances list endpoint.
+   *  @param pdata -- "parsed data", the data structure as it is created by the url handler
  */
-  this.render = function(data) {
+  this.render = function(pdata) {
+    // select template
     var template = 'tableTemplate';
     var registerRecordingSelectHandler = false;
-    if(ocRecordings.Configuration.state === 'bulkedit' || ocRecordings.Configuration.state === 'bulkdelete') {
+    if (ocRecordings.Configuration.state === 'bulkedit' || ocRecordings.Configuration.state === 'bulkdelete') {
       template = 'tableSelectTemplate'
       $('#controlsFoot').hide();
       registerRecordingSelectHandler = true;
+    } else if (ocRecordings.Configuration.state === "archive") {
+      template = "archiveTemplate";
     } else {
       $('#controlsFoot').show();
     }
+
     refreshing = false;
-    ocRecordings.data = data;
-    ocRecordings.totalRecordings = parseInt(data.workflows.totalCount);
-    if(ocRecordings.totalRecordings >= data.workflows.count) {
-      ocRecordings.currentShownRecordings = parseInt(data.workflows.count);
+
+    ocRecordings.data = pdata.raw;
+    ocRecordings.totalRecordings = parseInt(pdata.totalCount);
+    if(ocRecordings.totalRecordings >= pdata.count) {
+      ocRecordings.currentShownRecordings = parseInt(pdata.count);
     } else {
       ocRecordings.currentShownRecordings = ocRecordings.totalRecordings;
     }
-    var result = TrimPath.processDOMTemplate(template, makeRenderData(data));
+    var result = TrimPath.processDOMTemplate(template, pdata.mkRenderData());
     $( '#tableContainer' ).empty().append(result);
     
     if(registerRecordingSelectHandler) {
@@ -476,18 +555,18 @@ ocRecordings = new (function() {
     
     // display number of matches if filtered
     if (ocRecordings.Configuration.filterText) {
-      if (data.workflows.totalCount == '0') {
+      if (pdata.totalCount == '0') {
         $('#filterRecordingCount').css('color', 'red');
       } else {
         $('#filterRecordingCount').css('color', 'black');
       }
-      $('#filterRecordingCount').text(data.workflows.totalCount + ' found').show();
+      $('#filterRecordingCount').text(pdata.totalCount + ' found').show();
     } else {
       $('#filterRecordingCount').hide();
     }
 
     var page = parseInt(ocRecordings.Configuration.page) + 1;
-    var pageCount = Math.ceil(data.workflows.totalCount / ocRecordings.Configuration.pageSize);
+    var pageCount = Math.ceil(pdata.totalCount / ocRecordings.Configuration.pageSize);
     pageCount = pageCount == 0 ? 1 : pageCount;
     $('#pageList').text( page + " of " + pageCount);
     if (page == 1) {
@@ -698,6 +777,23 @@ ocRecordings = new (function() {
     }
   }
 
+  this.retract = function(mediaPackageId) {
+    $.ajax({
+      type: "POST",
+      url: "../episode/applyworkflow",
+      data: {
+        id: mediaPackageId,
+        definitionId: "retract"
+      },
+      error: function(xhr, status, e) {
+        alert("An error occured: " + status);
+      },
+      success: function(data) {
+        ocRecordings.reload();
+      }
+    });
+  }
+
   /** $(document).ready()
  *
  */
@@ -723,8 +819,8 @@ ocRecordings = new (function() {
 
     // ocRecordings state selectors
     $( '#state-' +  ocRecordings.Configuration.state).attr('checked', true);
-    $( '#runningStatesContainer, #notRunningStatesContainer' ).buttonset();
-    $( '#runningStatesContainer input, #notRunningStatesContainer input' ).click( function() {
+    $( '#runningStatesContainer, #notRunningStatesContainer, #otherActionsContainer' ).buttonset();
+    $( '#runningStatesContainer input, #notRunningStatesContainer input, #otherActionsContainer input' ).click( function() {
       ocRecordings.Configuration.filterText = '';
       ocRecordings.Configuration.filterField = '';
       ocRecordings.Configuration.state = $(this).val();

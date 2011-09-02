@@ -197,12 +197,15 @@ ocUtils.getDuration = function(duration) {
 
 /** converts a date to a human readable date and time string
  * @param UTCDate
+ * @param [duration] -- the duration
  * @return formatted date and time string
  */
 ocUtils.fromUTCDateStringToFormattedTime = function(UTCDate, duration) {
   var dateTimeSeparator = " - ";
   var date = ocUtils.fromUTCDateString(UTCDate);
-  return duration!=null ? (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date) + ocUtils.getDuration(duration)) : (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date)) ;
+  return duration != null && duration
+      ? (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date) + ocUtils.getDuration(duration))
+      : (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date));
 }
 
 /* Convert Date object to yyyy-MM-dd'T'HH:mm:ss'Z' string.
@@ -300,4 +303,17 @@ ocUtils.sizeOf = function(obj) {
     }
   }
   return length;
+}
+
+/** Join all elements of an array with separator string "sep".
+ *  @param as -- an array, a single value or "undefined"
+ *  @param sep -- the separator string
+ *  @return the array elements joined or "" if as is undefined
+ */
+ocUtils.joinArray = function(as, sep) {
+  if (as !== undefined) {
+    return ocUtils.ensureArray(as).join(sep);
+  } else {
+    return "";
+  }
 }

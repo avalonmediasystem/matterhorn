@@ -190,10 +190,13 @@ public class EpisodeRestService {
 
   @POST
   @Path("applyworkflow")
-  @RestQuery(name = "applyworkflow", description = "Apply a workflow to a list of media packages",
+  @RestQuery(name = "applyworkflow", description = "Apply a workflow to a list of media packages. Choose to either provide "
+      + "a workflow definition or a workflow definition identifier.",
       restParameters = {
           @RestParameter(description = "The workflow definition in XML format.",
-              isRequired = true, name = "definition", type = RestParameter.Type.TEXT),
+              isRequired = false, name = "definition", type = RestParameter.Type.TEXT),
+          @RestParameter(description = "The workflow definition ID.",
+              isRequired = false, name = "definition", type = RestParameter.Type.TEXT),
           @RestParameter(description = "A list of media package ids.",
               isRequired = true, name = "id", type = RestParameter.Type.STRING)
       },
@@ -202,11 +205,15 @@ public class EpisodeRestService {
       },
       returnDescription = "No content is returned.")
   public Response applyWorkflow(@FormParam("definition") String workflowDefinitionXml,
+                                @FormParam("definitionId") String workflowDefinitionId,
                                 @FormParam("id") List<String> mediaPackageId) throws UnauthorizedException {
     if (mediaPackageId == null || mediaPackageId.size() == 0)
       throw new WebApplicationException(Response.Status.BAD_REQUEST);
-    if (StringUtils.isBlank(workflowDefinitionXml))
+    boolean workflowDefinitionXmlPresent = StringUtils.isNotBlank(workflowDefinitionXml);
+    boolean workflowDefinitionIdPresent = StringUtils.isNotBlank(workflowDefinitionId);
+    if (!(workflowDefinitionXmlPresent ^ workflowDefinitionIdPresent))
       throw new WebApplicationException(Response.Status.BAD_REQUEST);
+    if (workflowDefinitionXmlPresent) {
     WorkflowDefinition workflowDefinition;
     try {
       workflowDefinition = WorkflowParser.parseWorkflowDefinition(workflowDefinitionXml);
@@ -215,6 +222,10 @@ public class EpisodeRestService {
     }
     episodeService.applyWorkflow(workflowDefinition, mediaPackageId);
     return Response.noContent().build();
+    } else {
+      episodeService.applyWorkflow(workflowDefinitionId, mediaPackageId);
+      return Response.noContent().build();
+    }
   }
 
   @GET

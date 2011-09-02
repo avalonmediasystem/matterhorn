@@ -128,6 +128,10 @@
           <input type="radio" name="stateSelect" value="hold" id="state-hold" /><label for="state-hold">On Hold<span id="stats-hold"></span></label>
           <input type="radio" name="stateSelect" value="failed" id="state-failed" /><label for="state-failed">Failed<span id="stats-failed"></span></label>
         </div>
+
+        <div id="otherActionsContainer">
+          <input type="radio" name="stateSelect" value="archive" id="archive" /><label for="archive">Archive<span id="stats-archive"></span></label>
+        </div>
       </div>
                     <div id="searchBox" class="ui-state-hover"></div>
                     <div class="clear"></div>
@@ -285,22 +289,44 @@
                         <iframe id="holdActionUI" border="0" frameborder="0" style="height:640px;"></iframe>
     </div>
 
+        <!-- ############### -->
+        <!-- Table templates -->
+        <!-- ############### -->
     <div id="templates" style="display:none;">
       <textarea id="tableTemplate">
-<table id="recordingsTable" class="ui-widget" cellspacing="0" width="100%">
+            <table id="recordingsTable" class="ui-widget" cellspacing="0" width="100%">
   <thead>
                             <tr id="bulkHeader">
                                 <th colspan="6">&nbsp;</th>
-      <th class="recordings-table-head ui-helper-hidden" id="bulkActionButton"><a href="javascript:ocRecordings.displayBulkAction()">Bulk Action</a></th>
+                <th class="recordings-table-head ui-helper-hidden" id="bulkActionButton"><a
+                    href="javascript:ocRecordings.displayBulkAction()">Bulk Action</a></th>
     </tr>
     <tr>
-                                <th id="sortTitle" width="25%" class="ui-widget-header sortable"><div>Title<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>
-                                <th id="sortPresenter" width="15%" class="ui-widget-header sortable"><div>Presenter<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>
-                                <th id="sortSeries" width="15%" class="ui-widget-header sortable"><div>Course/Series<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>
+                <th id="sortTitle" width="25%" class="ui-widget-header sortable">
+                  <div>Title
+                    <div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div>
+                  </div>
+                </th>
+                <th id="sortPresenter" width="15%" class="ui-widget-header sortable">
+                  <div>Presenter
+                    <div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div>
+                  </div>
+                </th>
+                <th id="sortSeries" width="15%" class="ui-widget-header sortable">
+                  <div>Course/Series
+                    <div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div>
+                  </div>
+                </th>
                                 {if ocRecordings.Configuration.state == 'upcoming' || ocRecordings.Configuration.state == 'capturing'}
-                                <th class="ui-widget-header" style="white-space:nowrap;padding-left:5px;padding-right:5px;">Capture Agent</th>
+                <th class="ui-widget-header" style="white-space:nowrap;padding-left:5px;padding-right:5px;">Capture
+                  Agent
+                </th>
                                 {/if}
-                                <th id="sortDate" width="18%" class="ui-widget-header sortable"><div>Recording Date&amp;Time<div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div></div></th>
+                <th id="sortDate" width="18%" class="ui-widget-header sortable">
+                  <div>Recording Date&amp;Time
+                    <div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div>
+                  </div>
+                </th>
                                 <th width="17%" class="ui-widget-header">Status</th>
                                 <th width="10%" class="ui-widget-header">Action</th>
     </tr>
@@ -351,7 +377,8 @@
                                 <td class="ui-state-active">
           ${ocRecordings.makeActions(recording, recording.actions)}
           {if recording.holdAction}
-                                        <br /><a href="javascript:ocRecordings.displayHoldUI(${recording.id});" title="${recording.holdAction.title}">${recording.holdAction.title}</a>
+                  <br/><a href="javascript:ocRecordings.displayHoldUI(${recording.id});"
+                          title="${recording.holdAction.title}">${recording.holdAction.title}</a>
           {/if}
         </td>
       </tr>
@@ -363,8 +390,69 @@
       </tr>
     {/for}
   </tbody>
-</table>
+            </table>
       </textarea>
+
+          <textarea id="archiveTemplate">
+            <table id="archiveTable" class="ui-widget" cellspacing="0" width="100%">
+              <thead>
+              <tr>
+                <!--<th class="ui-state-default"><input type="checkbox" id="selectAllRecordings"-->
+                                                    <!--onclick="ocRecordings.selectAll(this.checked);"/></th>-->
+                <th id="sortTitle" width="25%" class="ui-widget-header sortable">
+                  <div>Title
+                    <div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div>
+                  </div>
+                </th>
+                <th id="sortPresenter" width="15%" class="ui-widget-header sortable">
+                  <div>Presenter
+                    <div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div>
+                  </div>
+                </th>
+                <th id="sortSeries" width="15%" class="ui-widget-header sortable">
+                  <div>Course/Series
+                    <div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div>
+                  </div>
+                </th>
+                <th id="sortDate" width="18%" class="ui-widget-header sortable">
+                  <div>Recording Date&amp;Time
+                    <div class="sort-icon ui-icon ui-icon-triangle-2-n-s"></div>
+                  </div>
+                </th>
+                <th width="10%" class="ui-widget-header">Action</th>
+              </tr>
+              </thead>
+              <tbody>
+              {for mp in episodes}
+              <tr valign="top">
+                <!--<td class="ui-state-active"><input type="checkbox" value="${mp.id}" class="selectRecording"/></td>-->
+                <td class="ui-state-active">
+                  ${mp.title}
+                </td>
+                <td class="ui-state-active">
+                  ${mp.creators}
+                </td>
+                <td class="ui-state-active">
+                  ${mp.seriesTitle}
+                </td>
+                <td class="ui-state-active">
+                  ${mp.date}
+                </td>
+                <td class="ui-state-active">
+                  <a href="javascript:ocRecordings.retract('${mp.id}');">Retract</a>
+                </td>
+              </tr>
+              {forelse}
+              <tr>
+                <td colspan="6" align="center">
+                  No Recordings found
+                </td>
+              </tr>
+              {/for}
+              </tbody>
+            </table>
+          </textarea>
+
 
       <textarea id="tableSelectTemplate">
 <table id="recordingsTable" class="ui-widget" cellspacing="0" width="100%">
