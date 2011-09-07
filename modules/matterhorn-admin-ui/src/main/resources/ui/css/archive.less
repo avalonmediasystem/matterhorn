@@ -1,0 +1,15 @@
+@spacing: 10px;
+
+.spaced() {
+  margin-top: @spacing;
+}
+
+#page-archive {
+  #searchBox, #tableContainer {
+    .spaced;
+  }
+  #search-result {
+    margin-top: @spacing / 2;
+    margin-bottom: @spacing;
+  }
+}

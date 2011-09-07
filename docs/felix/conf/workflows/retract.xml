@@ -26,6 +26,8 @@
       id="searchindex-remove"
       description="Remove media package from search index">
     </operation>
+
+    <!-- todo clean up the episode from the working file repository -->
   
   </operations>
   

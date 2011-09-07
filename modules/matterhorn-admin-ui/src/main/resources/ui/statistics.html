@@ -19,30 +19,8 @@
         <script type="text/javascript" src="js/oc.statistics.js"></script>	
 
         <script type="text/javascript">
-            $(document).ready( function() {
-              $("#tabsWrapper").tabs({
-                select: function (event, ui) {
-                  switch (ui.index) {
-                    case 0:
-                      window.location = 'recordings.html';
-                      return false;
-                      break;
-                    case 1:
-                      window.location = 'series_list.html';
-                      return false;
-                      break;
-                    case 2:
-                      window.location = 'agents_status.html';
-                      return false;
-                      break;
-                    case 3:
-                      window.location = 'statistics.html';
-                      return false;
-                      break;
-                  }
-                },
-                selected: 3
-              });
+            $(function() {
+              ocUtils.injectTabs($("#tabs"));
             });
         </script>
     </head>
@@ -84,20 +62,7 @@
             </div>
 
             <div id="tabsWrapper" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
-                <ul id="tabs">
-                    <li>
-                        <a href="#recordings" id="i18n_tab_recording">Recordings</a>
-                    </li>
-                    <li>
-                        <a href="#series" id="i18n_tab_series">Series</a>
-                    </li>
-                    <li>
-                        <a href='#agents_status' id="i18n_tab_agent">Capture Agents</a>
-                    </li>
-                    <li>
-                        <a href="#statistics" id="i18n_tab_statistics">Statistics</a>
-                    </li>
-                </ul>
+                <div id="tabs"></div>
                 <div id="stage" class="ui-widget">
                     <!-- div id="controlsTopStatistic" class="ui-widget-header ui-corner-top ui-helper-clearfix" -->
                     <div id="controlsTopStatistic" class="ui-helper-clearfix">

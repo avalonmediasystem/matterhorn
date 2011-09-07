@@ -196,7 +196,7 @@ public class EpisodeRestService {
           @RestParameter(description = "The workflow definition in XML format.",
               isRequired = false, name = "definition", type = RestParameter.Type.TEXT),
           @RestParameter(description = "The workflow definition ID.",
-              isRequired = false, name = "definition", type = RestParameter.Type.TEXT),
+              isRequired = false, name = "definitionId", type = RestParameter.Type.TEXT),
           @RestParameter(description = "A list of media package ids.",
               isRequired = true, name = "id", type = RestParameter.Type.STRING)
       },
@@ -214,74 +214,74 @@ public class EpisodeRestService {
     if (!(workflowDefinitionXmlPresent ^ workflowDefinitionIdPresent))
       throw new WebApplicationException(Response.Status.BAD_REQUEST);
     if (workflowDefinitionXmlPresent) {
-    WorkflowDefinition workflowDefinition;
-    try {
-      workflowDefinition = WorkflowParser.parseWorkflowDefinition(workflowDefinitionXml);
-    } catch (WorkflowParsingException e) {
-      throw new WebApplicationException(e);
-    }
-    episodeService.applyWorkflow(workflowDefinition, mediaPackageId);
-    return Response.noContent().build();
+      WorkflowDefinition workflowDefinition;
+      try {
+        workflowDefinition = WorkflowParser.parseWorkflowDefinition(workflowDefinitionXml);
+      } catch (WorkflowParsingException e) {
+        throw new WebApplicationException(e);
+      }
+      episodeService.applyWorkflow(workflowDefinition, mediaPackageId);
+      return Response.noContent().build();
     } else {
       episodeService.applyWorkflow(workflowDefinitionId, mediaPackageId);
       return Response.noContent().build();
     }
   }
 
-  @GET
-  @Path("series.{format:xml|json}")
-  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-  @RestQuery(name = "series", description = "Search for series matching the query parameters.",
-      pathParameters = {
-          @RestParameter(description = "The output format (json or xml) of the response body.", isRequired = true, name = "format", type = RestParameter.Type.STRING)
-      },
-      restParameters = {
-          @RestParameter(description = "The series ID. If the additional boolean parameter \"episodes\" is \"true\", "
-              + "the result set will include this series episodes.", isRequired = false, name = "id", type = RestParameter.Type.STRING),
-          @RestParameter(description = "Any series that matches this free-text query. If the additional boolean parameter \"episodes\" is \"true\", "
-              + "the result set will include this series episodes.", isRequired = false, name = "q", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "false", description = "Whether to include this series episodes. This can be used in combination with \"id\" or \"q\".", isRequired = false, name = "episodes", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "false", description = "Whether to include this series information itself. This can be used in combination with \"id\" or \"q\".", isRequired = false, name = "series", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "0", description = "The maximum number of items to return per page.", isRequired = false, name = "limit", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "0", description = "The page number.", isRequired = false, name = "offset", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "false", description = "Whether this is an administrative query", isRequired = false, name = "admin", type = RestParameter.Type.STRING)
-      },
-      reponses = {
-          @RestResponse(description = "The request was processed succesfully.", responseCode = HttpServletResponse.SC_OK)
-      },
-      returnDescription = "The search results, expressed as xml or json.")
-  public Response getEpisodeAndSeriesById(@QueryParam("id") String id, @QueryParam("q") String text,
-                                          @QueryParam("episodes") boolean includeEpisodes, @QueryParam("series") boolean includeSeries,
-                                          @QueryParam("limit") int limit, @QueryParam("offset") int offset, @PathParam("format") String format) {
-
-    EpisodeQuery query = new EpisodeQuery();
-
-    // If id is specified, do a search based on id
-    if (!StringUtils.isBlank(id)) {
-      query.withId(id);
-    }
-
-    // Include series data in the results?
-    query.includeSeries(includeSeries);
-
-    // Include episodes in the result?
-    query.includeEpisodes(includeEpisodes);
-
-    // Include free-text search?
-    if (!StringUtils.isBlank(text)) {
-      query.withText(text);
-    }
-
-    query.withPublicationDateSort(true);
-    query.withLimit(limit);
-    query.withOffset(offset);
-
-    // Return the right format
-    if ("json".equals(format))
-      return Response.ok(episodeService.getByQuery(query)).type(MediaType.APPLICATION_JSON).build();
-    else
-      return Response.ok(episodeService.getByQuery(query)).type(MediaType.APPLICATION_XML).build();
-  }
+//  @GET
+//  @Path("series.{format:xml|json}")
+//  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+//  @RestQuery(name = "series", description = "Search for series matching the query parameters.",
+//      pathParameters = {
+//          @RestParameter(description = "The output format (json or xml) of the response body.", isRequired = true, name = "format", type = RestParameter.Type.STRING)
+//      },
+//      restParameters = {
+//          @RestParameter(description = "The series ID. If the additional boolean parameter \"episodes\" is \"true\", "
+//              + "the result set will include this series episodes.", isRequired = false, name = "id", type = RestParameter.Type.STRING),
+//          @RestParameter(description = "Any series that matches this free-text query. If the additional boolean parameter \"episodes\" is \"true\", "
+//              + "the result set will include this series episodes.", isRequired = false, name = "q", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "false", description = "Whether to include this series episodes. This can be used in combination with \"id\" or \"q\".", isRequired = false, name = "episodes", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "false", description = "Whether to include this series information itself. This can be used in combination with \"id\" or \"q\".", isRequired = false, name = "series", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "0", description = "The maximum number of items to return per page.", isRequired = false, name = "limit", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "0", description = "The page number.", isRequired = false, name = "offset", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "false", description = "Whether this is an administrative query", isRequired = false, name = "admin", type = RestParameter.Type.STRING)
+//      },
+//      reponses = {
+//          @RestResponse(description = "The request was processed succesfully.", responseCode = HttpServletResponse.SC_OK)
+//      },
+//      returnDescription = "The search results, expressed as xml or json.")
+//  public Response getEpisodeAndSeriesById(@QueryParam("id") String id, @QueryParam("q") String text,
+//                                          @QueryParam("episodes") boolean includeEpisodes, @QueryParam("series") boolean includeSeries,
+//                                          @QueryParam("limit") int limit, @QueryParam("offset") int offset, @PathParam("format") String format) {
+//
+//    EpisodeQuery query = new EpisodeQuery();
+//
+//    // If id is specified, do a search based on id
+//    if (!StringUtils.isBlank(id)) {
+//      query.withId(id);
+//    }
+//
+//    // Include series data in the results?
+//    query.includeSeries(includeSeries);
+//
+//    // Include episodes in the result?
+//    query.includeEpisodes(includeEpisodes);
+//
+//    // Include free-text search?
+//    if (!StringUtils.isBlank(text)) {
+//      query.withText(text);
+//    }
+//
+//    query.withPublicationDateSort(true);
+//    query.withLimit(limit);
+//    query.withOffset(offset);
+//
+//    // Return the right format
+//    if ("json".equals(format))
+//      return Response.ok(episodeService.getByQuery(query)).type(MediaType.APPLICATION_JSON).build();
+//    else
+//      return Response.ok(episodeService.getByQuery(query)).type(MediaType.APPLICATION_XML).build();
+//  }
 
   @GET
   @Path("episode.{format:xml|json}")
@@ -302,9 +302,13 @@ public class EpisodeRestService {
           @RestResponse(description = "The request was processed succesfully.", responseCode = HttpServletResponse.SC_OK)
       },
       returnDescription = "The search results, expressed as xml or json.")
-  public Response getEpisode(@QueryParam("id") String id, @QueryParam("q") String text,
-                             @QueryParam("tag") String[] tags, @QueryParam("flavor") String[] flavors, @QueryParam("limit") int limit,
-                             @QueryParam("offset") int offset, @PathParam("format") String format) {
+  public Response getEpisode(@QueryParam("id") String id,
+                             @QueryParam("q") String text,
+                             @QueryParam("tag") String[] tags,
+                             @QueryParam("flavor") String[] flavors,
+                             @QueryParam("limit") int limit,
+                             @QueryParam("offset") int offset,
+                             @PathParam("format") String format) {
 
     // Prepare the flavors
     List<MediaPackageElementFlavor> flavorSet = new ArrayList<MediaPackageElementFlavor>();
@@ -318,102 +322,101 @@ public class EpisodeRestService {
       }
     }
 
-    EpisodeQuery search = new EpisodeQuery();
-    search.withId(id).withElementFlavors(flavorSet.toArray(new MediaPackageElementFlavor[flavorSet.size()]))
-        .withElementTags(tags).withLimit(limit).withOffset(offset);
-    if (!StringUtils.isBlank(text))
-      search.withText(text);
-    else
-      search.withPublicationDateSort(true);
+    final EpisodeQuery search = new EpisodeQuery()
+        .withId(id)
+        .withElementFlavors(flavorSet.toArray(new MediaPackageElementFlavor[flavorSet.size()]))
+        .withElementTags(tags)
+        .withLimit(limit)
+        .withOffset(offset)
+        .withText(StringUtils.trimToNull(text))
+        .withCreationDateSort(true);
 
     // Return the results using the requested format
-    if ("json".equals(format))
-      return Response.ok(episodeService.getByQuery(search)).type(MediaType.APPLICATION_JSON).build();
-    else
-      return Response.ok(episodeService.getByQuery(search)).type(MediaType.APPLICATION_XML).build();
+    final String type = "json".equals(format) ? MediaType.APPLICATION_JSON : MediaType.APPLICATION_XML;
+    return Response.ok(episodeService.getByQuery(search)).type(type).build();
   }
 
-  @GET
-  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-  @RestQuery(name = "episodesAndSeries", description = "Search for episodes and series matching the query parameters.",
-      restParameters = {
-          @RestParameter(description = "The output format (json or xml) of the response body.", isRequired = false, name = "format", type = RestParameter.Type.STRING),
-          @RestParameter(description = "Any episode or series that matches this free-text query.", isRequired = false, name = "q", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "0", description = "The maximum number of items to return per page.", isRequired = false, name = "limit", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "0", description = "The page number.", isRequired = false, name = "offset", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "false", description = "Whether this is an administrative query", isRequired = false, name = "admin", type = RestParameter.Type.STRING)
-      },
-      reponses = {
-          @RestResponse(description = "The request was processed succesfully.", responseCode = HttpServletResponse.SC_OK),
-          @RestResponse(description = "Wrong output format specified.", responseCode = HttpServletResponse.SC_NOT_ACCEPTABLE)
-      },
-      returnDescription = "The search results, expressed as xml or json.")
-  public Response getEpisodesAndSeries(@QueryParam("q") String text, @QueryParam("limit") int limit,
-                                       @QueryParam("offset") int offset, @QueryParam("format") String format, @QueryParam("admin") boolean admin)
-      throws EpisodeServiceException, UnauthorizedException {
+//  @GET
+//  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+//  @RestQuery(name = "episodesAndSeries", description = "Search for episodes and series matching the query parameters.",
+//      restParameters = {
+//          @RestParameter(description = "The output format (json or xml) of the response body.", isRequired = false, name = "format", type = RestParameter.Type.STRING),
+//          @RestParameter(description = "Any episode or series that matches this free-text query.", isRequired = false, name = "q", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "0", description = "The maximum number of items to return per page.", isRequired = false, name = "limit", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "0", description = "The page number.", isRequired = false, name = "offset", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "false", description = "Whether this is an administrative query", isRequired = false, name = "admin", type = RestParameter.Type.STRING)
+//      },
+//      reponses = {
+//          @RestResponse(description = "The request was processed succesfully.", responseCode = HttpServletResponse.SC_OK),
+//          @RestResponse(description = "Wrong output format specified.", responseCode = HttpServletResponse.SC_NOT_ACCEPTABLE)
+//      },
+//      returnDescription = "The search results, expressed as xml or json.")
+//  public Response getEpisodesAndSeries(@QueryParam("q") String text, @QueryParam("limit") int limit,
+//                                       @QueryParam("offset") int offset, @QueryParam("format") String format, @QueryParam("admin") boolean admin)
+//      throws EpisodeServiceException, UnauthorizedException {
+//
+//    // format may be null or empty (not specified), or 'json' or 'xml'
+//    if ((format == null) || format.matches("(json|xml)?")) {
+//      EpisodeQuery query = new EpisodeQuery();
+//      query.includeEpisodes(true);
+//      query.includeSeries(true);
+//      query.withLimit(limit);
+//      query.withOffset(offset);
+//      if (!StringUtils.isBlank(text))
+//        query.withText(text);
+//      else
+//        query.withPublicationDateSort(true);
+//
+//      // Build the response
+//      ResponseBuilder rb = Response.ok();
+//
+//      if (admin) {
+//        rb.entity(episodeService.getForAdministrativeRead(query)).type(MediaType.APPLICATION_JSON);
+//      } else {
+//        rb.entity(episodeService.getByQuery(query)).type(MediaType.APPLICATION_JSON);
+//      }
+//
+//      if ("json".equals(format)) {
+//        rb.type(MediaType.APPLICATION_JSON);
+//      } else {
+//        rb.type(MediaType.TEXT_XML);
+//      }
+//
+//      return rb.build();
+//    }
+//
+//    return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+//  }
 
-    // format may be null or empty (not specified), or 'json' or 'xml'
-    if ((format == null) || format.matches("(json|xml)?")) {
-      EpisodeQuery query = new EpisodeQuery();
-      query.includeEpisodes(true);
-      query.includeSeries(true);
-      query.withLimit(limit);
-      query.withOffset(offset);
-      if (!StringUtils.isBlank(text))
-        query.withText(text);
-      else
-        query.withPublicationDateSort(true);
-
-      // Build the response
-      ResponseBuilder rb = Response.ok();
-
-      if (admin) {
-        rb.entity(episodeService.getForAdministrativeRead(query)).type(MediaType.APPLICATION_JSON);
-      } else {
-        rb.entity(episodeService.getByQuery(query)).type(MediaType.APPLICATION_JSON);
-      }
-
-      if ("json".equals(format)) {
-        rb.type(MediaType.APPLICATION_JSON);
-      } else {
-        rb.type(MediaType.TEXT_XML);
-      }
-
-      return rb.build();
-    }
-
-    return Response.status(Response.Status.NOT_ACCEPTABLE).build();
-  }
-
-  @GET
-  @Path("lucene.{format:xml|json}")
-  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-  @RestQuery(name = "lucene", description = "Search a lucene query.",
-      pathParameters = {
-          @RestParameter(description = "The output format (json or xml) of the response body.", isRequired = true, name = "format", type = RestParameter.Type.STRING)
-      },
-      restParameters = {
-          @RestParameter(defaultValue = "", description = "The lucene query.", isRequired = false, name = "q", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "0", description = "The maximum number of items to return per page.", isRequired = false, name = "limit", type = RestParameter.Type.STRING),
-          @RestParameter(defaultValue = "0", description = "The page number.", isRequired = false, name = "offset", type = RestParameter.Type.STRING)
-      },
-      reponses = {
-          @RestResponse(description = "The request was processed succesfully.", responseCode = HttpServletResponse.SC_OK)
-      },
-      returnDescription = "The search results, expressed as xml or json")
-  public Response getByLuceneQuery(@QueryParam("q") String q, @QueryParam("limit") int limit,
-                                   @QueryParam("offset") int offset, @PathParam("format") String format) {
-    EpisodeQuery query = new EpisodeQuery();
-    if (!StringUtils.isBlank(q))
-      query.withQuery(q);
-    else
-      query.withPublicationDateSort(true);
-    query.withLimit(limit);
-    query.withOffset(offset);
-
-    if ("json".equals(format))
-      return Response.ok(episodeService.getByQuery(query)).type(MediaType.APPLICATION_JSON).build();
-    else
-      return Response.ok(episodeService.getByQuery(query)).type(MediaType.APPLICATION_XML).build();
-  }
+//  @GET
+//  @Path("lucene.{format:xml|json}")
+//  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+//  @RestQuery(name = "lucene", description = "Search a lucene query.",
+//      pathParameters = {
+//          @RestParameter(description = "The output format (json or xml) of the response body.", isRequired = true, name = "format", type = RestParameter.Type.STRING)
+//      },
+//      restParameters = {
+//          @RestParameter(defaultValue = "", description = "The lucene query.", isRequired = false, name = "q", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "0", description = "The maximum number of items to return per page.", isRequired = false, name = "limit", type = RestParameter.Type.STRING),
+//          @RestParameter(defaultValue = "0", description = "The page number.", isRequired = false, name = "offset", type = RestParameter.Type.STRING)
+//      },
+//      reponses = {
+//          @RestResponse(description = "The request was processed succesfully.", responseCode = HttpServletResponse.SC_OK)
+//      },
+//      returnDescription = "The search results, expressed as xml or json")
+//  public Response getByLuceneQuery(@QueryParam("q") String q, @QueryParam("limit") int limit,
+//                                   @QueryParam("offset") int offset, @PathParam("format") String format) {
+//    EpisodeQuery query = new EpisodeQuery();
+//    if (!StringUtils.isBlank(q))
+//      query.withQuery(q);
+//    else
+//      query.withPublicationDateSort(true);
+//    query.withLimit(limit);
+//    query.withOffset(offset);
+//
+//    if ("json".equals(format))
+//      return Response.ok(episodeService.getByQuery(query)).type(MediaType.APPLICATION_JSON).build();
+//    else
+//      return Response.ok(episodeService.getByQuery(query)).type(MediaType.APPLICATION_XML).build();
+//  }
 }
