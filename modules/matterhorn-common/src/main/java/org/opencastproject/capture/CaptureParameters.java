@@ -267,12 +267,4 @@ public interface CaptureParameters {
    * tries to start a second capture while the first is still in progress.
    */
   String CAPTURE_SCHEDULE_INTEREVENT_BUFFERTIME = "capture.schedule.event.buffertime";
-  
-  
-  String CAPTURE_RTP_CONSUMER_ENCODER = ".rtpConsumer.encoder";
-  String CAPTURE_RTP_CONSUMER_PAYLOADER = ".rtpConsumer.payloader";
-  String CAPTURE_RTP_CONSUMER_HOST = ".rtpConsumer.host";
-  String CAPTURE_RTP_CONSUMER_RTP_PORT = ".rtpConsumer.rtpPort";
-  String CAPTURE_RTP_CONSUMER_RTCP_PORT_OUT = ".rtpConsumer.rtcpPort.out";
-  String CAPTURE_RTP_CONSUMER_RTCP_PORT_IN = ".rtpConsumer.rtcpPort.in";
 }
