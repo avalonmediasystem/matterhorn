@@ -496,7 +496,7 @@ public class SchedulerServiceImplTest {
     events = service.findConflictingEvents("Device A", start, end);
     Assert.assertEquals(1, events.size());
 
-    events = service.findConflictingEvents("Device A", "FREQ=WEEKLY;BYDAY=SU,MO,TU,WE,TH,FR,SA", start,
+    events = service.findConflictingEvents("Device A", "America/Chicago", "FREQ=WEEKLY;BYDAY=SU,MO,TU,WE,TH,FR,SA", start,
             new Date(start.getTime() + (48 * 60 * 60 * 1000)), new Long(36000));
     Assert.assertEquals(2, events.size());
   }

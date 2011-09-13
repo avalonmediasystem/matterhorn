@@ -334,7 +334,7 @@ ocScheduler.HandleAgentChange = function(elm){
       });
   }else{
     // no valid agent, change time to local form what ever it was before.
-    delete ocScheduler.additionalMetadataComponents.agentTimeZone; //Being empty will end up defaulting to the server's Timezone.
+    ocScheduler.additionalMetadataComponents.agentTimeZone.setValue(''); //Being empty will end up defaulting to the server's Timezone.
     if(ocScheduler.type === SINGLE_EVENT){
       time = ocScheduler.components.startDate.getValue();
     }else if(ocScheduler.type === MULTIPLE_EVENTS){
@@ -547,6 +547,9 @@ ocScheduler.CheckForConflictingEvents = function(){
       data.end = ocScheduler.components.recurrenceEnd.getValue();
       data.duration = ocScheduler.components.recurrenceDuration.getValue();
       data.rrule = ocScheduler.components.recurrence.getValue();
+      if(!!ocScheduler.additionalMetadataComponents.agentTimeZone) {
+        data.timezone = ocScheduler.additionalMetadataComponents.agentTimeZone.getValue();
+      }
     }else{
       return false;
     }

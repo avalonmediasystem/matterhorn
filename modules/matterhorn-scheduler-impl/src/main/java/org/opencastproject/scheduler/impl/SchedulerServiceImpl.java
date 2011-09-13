@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -712,7 +713,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     return getEvents(filter);
   }
 
-  public List<Event> findConflictingEvents(String device, String rrule, Date startDate, Date endDate, Long duration)
+  public List<Event> findConflictingEvents(String device, String deviceTZ, String rrule, Date startDate, Date endDate, Long duration)
           throws ParseException, ValidationException {
     RRule rule = new RRule(rrule);
     rule.validate();
@@ -723,11 +724,25 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     end.setUtc(true);
     DateList dates = recur.getDates(start, end, Value.DATE_TIME);
     List<Event> events = new ArrayList<Event>();
-
-    for (Object d : dates) {
-      Date filterStart = (Date) d;
-      SchedulerFilter filter = new SchedulerFilter().withDeviceFilter(device).withStart(filterStart)
-              .withStop(new Date(filterStart.getTime() + duration));
+    TimeZone tz = TimeZone.getDefault(); // Create timezone based on CA's reported TZ.
+    if (StringUtils.isNotEmpty(deviceTZ)) {
+      tz = TimeZone.getTimeZone(deviceTZ);
+    }
+    
+    for (Object date : dates) {
+      Date d = (Date) date;
+      // Adjust for DST, if start of event
+      if (tz.inDaylightTime(start)) { // Event starts in DST
+        if (!tz.inDaylightTime(d)) { // Date not in DST?
+          d.setTime(d.getTime() + tz.getDSTSavings()); // Ajust for Fall back one hour
+        }
+      } else { // Event doesn't start in DST
+        if (tz.inDaylightTime(d)) {
+          d.setTime(d.getTime() - tz.getDSTSavings()); // Adjust for Spring forward one hour
+        }
+      }
+      SchedulerFilter filter = new SchedulerFilter().withDeviceFilter(device).withStart(d)
+              .withStop(new Date(d.getTime() + duration));
       List<Event> filterEvents = getEvents(filter);
       events.addAll(filterEvents);
     }

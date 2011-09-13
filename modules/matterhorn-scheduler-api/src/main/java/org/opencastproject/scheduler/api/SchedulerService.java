@@ -190,7 +190,7 @@ public interface SchedulerService {
    * @param duration
    * @return A list of events that conflict with the start, or end dates of provided event.
    */
-  List<Event> findConflictingEvents(String device, String rrule, Date startDate, Date endDate, Long duration)
+  List<Event> findConflictingEvents(String device, String deviceTZ, String rrule, Date startDate, Date endDate, Long duration)
           throws ParseException, ValidationException;
 
   /**

@@ -403,9 +403,9 @@ public class SchedulerRestService {
   @POST
   @Produces(MediaType.TEXT_XML)
   @Path("conflict.xml")
-  public Response getConflictingEventsXml(@FormParam("device") String device, @FormParam("start") Long startDate,
+  public Response getConflictingEventsXml(@FormParam("device") String device,  @FormParam("timezone") String deviceTZ, @FormParam("start") Long startDate,
           @FormParam("end") Long endDate, @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
-    return getConflictingEvents(device, new Date(startDate), new Date(endDate), duration, rrule);
+    return getConflictingEvents(device, deviceTZ, new Date(startDate), new Date(endDate), duration, rrule);
   }
 
   /**
@@ -418,18 +418,19 @@ public class SchedulerRestService {
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path("conflict.json")
-  public Response getConflictingEventsJson(@FormParam("device") String device, @FormParam("start") Long startDate,
+  public Response getConflictingEventsJson(@FormParam("device") String device, @FormParam("timezone") String deviceTZ, @FormParam("start") Long startDate,
           @FormParam("end") Long endDate, @FormParam("duration") Long duration, @FormParam("rrule") String rrule) {
     logger.debug("Checking for conflicts");
-    return getConflictingEvents(device, new Date(startDate), new Date(endDate), duration, rrule);
+    return getConflictingEvents(device, deviceTZ, new Date(startDate), new Date(endDate), duration, rrule);
   }
 
-  private Response getConflictingEvents(String device, Date startDate, Date endDate, Long duration, String rrule) {
+  private Response getConflictingEvents(String device, String deviceTZ, Date startDate, Date endDate, Long duration, String rrule) {
     if (StringUtils.isNotEmpty(device) && startDate != null && endDate != null && duration > 0) {
       try {
         List<Event> events = null;
         if (StringUtils.isNotEmpty(rrule)) {
-          events = service.findConflictingEvents(device, rrule, startDate, endDate, duration);
+          logger.info("Finding events with RRULE: " + rrule);
+          events = service.findConflictingEvents(device, deviceTZ, rrule, startDate, endDate, duration);
         } else {
           events = service.findConflictingEvents(device, startDate, endDate);
         }
