@@ -17,6 +17,13 @@ table tr:hover a:hover { text-decoration: underline!important; }
 .center { text-align: center;}
 .recordings-page {margin-left: 30px; margin-right: 30px;}
 
+.instruction-text { font-style: italic; color: #999; font-size: 0.85em}
+.instruction-text:hover { font-style: italic; color: #000; font-size: 0.85em}
+
+li#titleNote {padding:0 0 4px 0;}
+.scheduler-instruction-text { font-style: italic; color: #999; font-size: 0.89em; padding:0 0 4px 0;}
+.scheduler-instruction-text-hover { font-style: italic; color: #000; font-size: 0.88em;  padding:0 0 4px 0; }
+
 /* Icons */
 .icon { width:16px; height:16px; background-repeat: none; background-position: center center; float: left; }
 .icon-check {       background-image: url(../img/icons/tick.png); }
@@ -69,6 +76,10 @@ table tr:hover a:hover { text-decoration: underline!important; }
 #prevPage { float: left; }
 #pageWidget { float: right; }
 
+/* page: episodes */
+#episodesTable {margin-top: 15px}
+#episodes-header {padding-top: 15px}
+
 /* page: capture_agents */
 /*#captureTable {margin-top:30px;}*/
 #captureTable th div { position: relative; padding: 2px;}
@@ -80,7 +91,7 @@ ul.propnav { list-style: none; padding: 0 20px; margin: 0; float: left;}
 ul.propnav li { float: left; margin-right: 10px; position: relative; }
 ul.propnav li:hover { background:#CCCCCC; float: left; position: relative; }
 ul.propnav li span.subnav { width: 17px; height: 35px; float: left; background: url("../img/icons/arrow-down.png") no-repeat center center; }
-ul.propnav li ul.itemnav { background-color : white; width : 400px; list-style: none; position: absolute; left: 0; top: 35px; margin: 0; padding: 0; display: none; float: left; border: 1px solid #111;  z-index:1; }
+ul.propnav li ul.itemnav { background-color : white; width : 400px; list-style: none; position: absolute; left: 0; top: 30px; margin: 0; padding: 0; display: none; float: left; border: 1px solid #111;  z-index:1; }
 ul.propnav li ul.itemnav li{ height : 2em; width : inherit; margin: 0; padding: 0; border-bottom: 1px solid #444; clear: both; }
 ul.propnav li span.device { float:left; padding: 10px 5px; display:block; }
 ul.itemnav li span.dev-prop { text-decoration : bold; float:left; padding-right: 10px; text-align:right; width:30%; font-weight:bold;}
@@ -89,7 +100,7 @@ ul.itemnav li span.dev-prop-val { text-align:left; width:70%;}
 #searchBox { width: 350px; float: right; }
 #search-result { width: 360px; float: right;}
 .searchbox-text-input:focus { outline: none; border: none;}
-#controlsTop { width: 60%; float: left; }
+#controlsTop { width: 100%; float: left; }
 #runningStatesContainer, #notRunningStatesContainer, #otherActionsContainer, .IE_buffer { float: left;}
 #runningStatesContainer, #notRunningStatesContainer, #otherActionsContainer { margin-right: 20px; }
 #uploadContainer button { float: right; margin: 7px 0 28px 10px;}
@@ -137,7 +148,7 @@ table#agentsTable th, table#seriesTable th, table#recordingsTable th, table#stat
 /* FORM LISTS */
 .lbl_radio { vertical-align: 10% }
 .oc-ui-form-list li { padding: 4px 0; }
-.oc-ui-form-list .scheduler-label { display: inline-block; width: 35%; text-align: right; vertical-align: top; }
+.oc-ui-form-list .scheduler-label, .scheduler-label { display: inline-block; width: 35%; text-align: right; vertical-align: top; }
 .oc-ui-form-field { border: 1px #aaa solid; width: 450px; }
 .oc-ui-checkbox-list { padding-left: 30px; }
 .oc-ui-collapsible-widget > .ui-widget-content { display: none; }

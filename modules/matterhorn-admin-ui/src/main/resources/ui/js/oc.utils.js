@@ -17,64 +17,6 @@ var ocUtils = ocUtils || {};
 
 ocUtils.templateRoot = "jst/";
 
-/** Load and process a template file from `url` with `data`, then call function `f` with the
- *  resulting HTML wrapped in a jQuery object.
- */
-ocUtils.loadTemplate = function(url, data, f) {
-  return $.ajax({
-    url: url,
-    dataType: "text",
-    success: function(tmpl) {
-      f($(tmpl.process(data)));
-    }
-  });
-};
-
-/** Inject tab HTML and functionality.
- *  @param $e -- jQuery object to replace with the tabs' HTML
- *    Note: Please do not use empty element tags as placeholdes since it causes
- *    trouble when they are being replaced by jQuery. Use something like <div id="tabs"></div> instead.
- */
-ocUtils.injectTabs = function($e) {
-  // map page url to tab id
-  var pages = {
-    "recordings.html": "i18n_tab_recording",
-    "scheduler.html": "i18n_tab_recording",
-    "upload.html": "i18n_tab_recording",
-    "series_list.html": "i18n_tab_series",
-    "series.html": "i18n_tab_series",
-    "agents_status.html": "i18n_tab_agent",
-    "statistics.html": "i18n_tab_statistics",
-    "archive.html": "i18n_tab_archive"
-  };
-  var tabTemplate = "tabs.jst.html";
-
-  ocUtils.loadTemplate(tabTemplate, {}, function($html) {
-    // render tabs
-    $e.replaceWith($html);
-    // get the tab id
-    var tabId = pages[window.location.pathname.match(/.*\/(.*?)$/).pop()];
-    // ...and determine it's number
-    var tabNr = $("a", $html).map(function(i) {
-      return this.id == tabId ? i : -1
-    }).toArray().sort().pop();
-    // set up interaction
-    $("#tabsWrapper").tabs({
-      select: function (event, ui) {
-        $.each(pages, function(k, v) {
-          // set new location according to the clicked tab
-          if (ui.tab.id == v) {
-            window.location = k;
-            return false;
-          }
-        });
-      },
-      // set the index of the currently selected tab
-      selected: tabNr
-    });
-  });
-};
-
 ocUtils.formatInt = function(value){
    var groupingSeparator= ',',       
        formatted = '';
@@ -374,4 +316,15 @@ ocUtils.joinArray = function(as, sep) {
   } else {
     return "";
   }
+}
+
+/** Map undefined or null values to the empty string.
+ *  @param s -- a string
+ */
+ocUtils.emptyUndef = function(s) {
+  if (typeof s === "undefined")
+    return "";
+  if (s === null)
+    return "";
+  return s
 }

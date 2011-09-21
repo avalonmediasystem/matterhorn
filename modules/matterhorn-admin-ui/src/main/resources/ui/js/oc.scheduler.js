@@ -49,6 +49,9 @@ var ocScheduler = (function() {
   });
 
   sched.init = function init(){
+    
+    $('#addHeader').jqotesubtpl('templates/scheduler.tpl', {});
+    
     this.internationalize();
     this.registerCatalogs();
     this.registerEventHandlers();
@@ -231,6 +234,12 @@ var ocScheduler = (function() {
     $('#recurDurationMin').change(this.checkForConflictingEvents);
     $('#recurAgent').change(this.checkForConflictingEvents);
     $('#daySelect :checkbox').change(this.checkForConflictingEvents);
+
+    $('input#title,span.scheduler-instruction-text').hover(function(){
+	$('li#titleNote span.scheduler-instruction-text').addClass('scheduler-instruction-text-hover');
+    }, function(){
+	$('li#titleNote span.scheduler-instruction-text').removeClass('scheduler-instruction-text-hover');
+    });
   }
 
   sched.changeRecordingType = function changeRecordingType(recType){
@@ -628,7 +637,7 @@ ocScheduler.DeleteForm = function(){
           eid = events[i].id;
           if(sched.mode === CREATE_MODE || (sched.mode === EDIT_MODE && curId !== eid)) {
             sched.conflictingEvents = true;
-            $('#conflictingEvents').append('<li><a href="scheduler.html?eventId=' + events[i].id + '&edit=true" target="_new">' + events[i].title + '</a></li>');
+            $('#conflictingEvents').append('<li><a href="index.html#/scheduler?eventId=' + events[i].id + '&edit=true" target="_new">' + events[i].title + '</a></li>');
           }
         }
         if(sched.conflictingEvents) {

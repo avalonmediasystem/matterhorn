@@ -18,6 +18,7 @@ var ocUpload = (function() {
    */
   this.init = function() {
     ocUtils.log('Initializing UI');
+    $('#addHeader').jqotesubtpl('templates/upload.tpl', {});
     $('.unfoldable-header').click(ocUpload.UI.toggleUnfoldable);
     $('.dc-metadata-field').change(ocUpload.UI.formFieldChanged);
     $('.uploadtype-select').click(ocUpload.UI.selectUploadType);
@@ -115,7 +116,7 @@ var ocUpload = (function() {
   }
 
   this.backToRecordings = function() {
-    window.history.back();
+    location.href = "/admin/index.html";
   }
 
   return this;
