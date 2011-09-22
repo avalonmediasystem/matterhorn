@@ -62,6 +62,7 @@ public class SeriesFeedService extends AbstractFeedService implements FeedGenera
       SearchQueryImpl q = new SearchQueryImpl();
       q.includeEpisodes(true);
       q.includeSeries(true);
+      q.withLimit(size);
       q.withId(id.toString());
       SearchResult result = searchService.getByQuery(q);
       if (result != null && result.size() > 0) {
