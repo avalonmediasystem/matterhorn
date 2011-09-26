@@ -112,7 +112,7 @@ ocUtils.getDateString = function(date) {
   var dateSeparator = " ";
   var yearSeparator = " ";
   var d = date;
-  var datestring = days[(d.getDate() + 1) % 7];
+  var datestring = days[d.getDay()];
   datestring += daySeparator;
   datestring += months[d.getMonth() % 12];
   datestring += dateSeparator;
@@ -197,15 +197,12 @@ ocUtils.getDuration = function(duration) {
 
 /** converts a date to a human readable date and time string
  * @param UTCDate
- * @param [duration] -- the duration
  * @return formatted date and time string
  */
 ocUtils.fromUTCDateStringToFormattedTime = function(UTCDate, duration) {
   var dateTimeSeparator = " - ";
   var date = ocUtils.fromUTCDateString(UTCDate);
-  return duration != null && duration
-      ? (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date) + ocUtils.getDuration(duration))
-      : (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date));
+  return duration!=null ? (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date) + ocUtils.getDuration(duration)) : (ocUtils.getDateString(date) + dateTimeSeparator + ocUtils.getTimeString(date)) ;
 }
 
 /* Convert Date object to yyyy-MM-dd'T'HH:mm:ss'Z' string.
@@ -303,6 +300,32 @@ ocUtils.sizeOf = function(obj) {
     }
   }
   return length;
+}
+
+ocUtils.exists = function(obj) {
+  if(typeof obj !== 'undefined') {
+    return true;
+  }
+  return false;
+};
+
+ocUtils.contains = function(array, value) {
+  return array.indexOf(value) >= 0;
+}
+
+ocUtils.getDCJSONParam = function(dcJSON, param, namespace) {
+  namespace = 'http://purl.org/dc/terms/' || namespace;
+  for (var i in dcJSON) {
+    var metadata = dcJSON[i];
+    if (i === namespace) {
+      for (var j in metadata) {
+        if (j === param) {
+          return metadata[param][0].value;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 /** Join all elements of an array with separator string "sep".

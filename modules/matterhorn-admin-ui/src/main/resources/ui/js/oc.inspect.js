@@ -9,13 +9,26 @@ Opencast.WorkflowInspect = (function() {
   var templateId;
   var instanceView;     // view of the workflow instance data
   var targetView;       // indicates if technical details or info page should be rendered ('details' | 'info')
-  this.workflow;
+  var workflow;
   
   this.initialize = function()
   {
     $('#addHeader').jqotesubtpl('templates/viewinfo-header.tpl', {});
     var id = ocUtils.getURLParam('id');
     Opencast.WorkflowInspect.renderInfo(id, 'infoContainer', 'info');
+  }
+  
+  this.getWorklfow = function()
+  {
+    return workflow;
+  }
+  
+  this.initInspect = function()
+  {
+    
+    $('#addHeader').jqotesubtpl('templates/inspect-header.tpl', {});
+    var id = ocUtils.getURLParam('id');
+    Opencast.WorkflowInspect.renderDetails(id, 'inspectContainer', 'inspect');
   }
 
   this.renderInfo = function(id, container, template) {
@@ -46,7 +59,7 @@ Opencast.WorkflowInspect = (function() {
    */
   this.rx = function(data) {
     instanceView = buildInstanceView(data.workflow);
-    this.workflow = data.workflow;
+    workflow = data.workflow;
     if (targetView == 'details') {
       renderDetailsView(instanceView, $container);
     } else if (targetView == 'info') {
@@ -167,13 +180,13 @@ Opencast.WorkflowInspect = (function() {
     //    $target.append(result);
     $target.jqoteapptpl("templates/viewinfo-" + templateId + ".tpl", workflow);
     $target.tabs({
-      select: function (event, ui) {
-        if(ui.index == 3 && window.location.hash != '#performance')
-        {
-          window.location.hash = '#performance';
-          window.location.reload();
-        }
-      }
+//      select: function (event, ui) {
+//        if(ui.index == 3 && window.location.hash != '#performance')
+//        {
+//          window.location.hash = '#performance';
+//          window.location.reload();
+//        }
+//      }
     });
     $('.unfoldable-tr').click(function() {
       var $content = $(this).find('.unfoldable-content');
@@ -383,5 +396,10 @@ Opencast.RenderUtils = (function() {
     };
   }
 
-  return this;
+  return {
+    DCXMLtoObj: DCXMLtoObj,
+    extractScalars: extractScalars,
+    ensureString: ensureString,
+    ensureArray: ensureArray
+  };
 }());
