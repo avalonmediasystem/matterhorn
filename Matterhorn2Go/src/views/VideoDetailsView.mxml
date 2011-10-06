@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The Matterhorn2Go Project
+Copyright (C) 2011  University of Osnabrück; Part of the Opencast Matterhorn Project
+
+This project is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 
+USA 
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		title="Video-Details"
+		xmlns:views="views.*"
+		viewActivate="init()"
+		backKeyPressed="loadNewView()">
+	<fx:Declarations>
+		
+		<!-- Platzieren Sie nichtvisuelle Elemente (z. B. Dienste, Wertobjekte) hier -->
+		
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import business.datahandler.DataHandler;
+			import business.datahandler.SegmentDataHandler;
+			import business.datahandler.XMLHandler;
+			
+			import events.SegmentLoadedEvent;
+			import events.VideosLoadedEvent;
+			
+			import mx.collections.XMLListCollection;
+			import mx.events.ResizeEvent;
+			
+			private var xpathValue:XMLHandler;
+			
+			[Bindable]
+			protected var height_num:Number = 0;
+			
+			[Bindable]
+			protected var width_num:Number = 0;
+			
+			private var xmlData:DataHandler;
+			private var dataHandler:SegmentDataHandler;
+			
+			// The initialisation function
+			protected function init():void
+			{	
+				xpathValue = new XMLHandler();
+				detailTitle.text = xpathValue.getResult("mediapackage/title", data); //data.title;
+				detailSeriesTitle.text = xpathValue.getResult("mediapackage/seriestitle", data);//data.seriestitle;
+				detailCreator.text = xpathValue.getResult("mediapackage/creators/creator", data);//data.creators.creator;
+
+				var str:String = xpathValue.getResult("mediapackage/@start", data); //data.@start;
+				var pattern:RegExp = /(\d+)-(\d+)-(\d+)/g;
+				var re:RegExp = /(T)/;
+				str = str.split(re)[0];
+				detailDate.text = str.replace(pattern, "$3.$2.$1");
+			
+				var imagePath:String = "mediapackage/attachments/attachment[@ref='attachment:attachment-2']/url";
+				detailImage.source = xpathValue.getResult(imagePath, data);
+				play_icon.source ="assets/button_play48x48.png";
+							
+				dataHandler = SegmentDataHandler.getInstance(xpathValue.getResult("mediapackage/@id", data));
+				dataHandler.addEventListener(SegmentLoadedEvent.SEGMENTLOADED, setDescription);
+				
+				height_num = navigator.height - 70;
+				width_num = navigator.width - 10;
+				
+				this.navigator.addEventListener(ResizeEvent.RESIZE, setSize);
+			}
+			
+			public function setDescription(event:SegmentLoadedEvent):void
+			{
+				var xmlList:XMLListCollection = dataHandler.getDescriptionListCollection();
+				//trace(xmlList)
+				description.text = String(xmlList);//xpathValue.getResult("dcDescription", Object(dataHandler.getMediapackageListCollection()));
+			}
+			
+			public function setSize(event:ResizeEvent):void
+			{	
+				height_num = this.navigator.height -70;
+				width_num = this.navigator.width -10;
+			}
+			
+			protected function loadVideoView():void
+			{
+				this.navigator.removeEventListener(ResizeEvent.RESIZE, setSize);
+				this.navigator.popView();
+				this.navigator.pushView(PlayerView, data);
+			}
+			
+			protected function popThisView():void
+			{
+				this.navigator.removeEventListener(ResizeEvent.RESIZE, setSize);
+				navigator.popView();
+			}
+			
+			protected function loadNewView():void
+			{
+				popThisView();
+				navigator.pushView(MobileMatterhornHomeView);					
+			}
+		]]>
+	</fx:Script>
+	
+	<s:actionContent>
+		<s:Button id="pop_view_button" click="popThisView();">
+			<s:icon>
+				<s:MultiDPIBitmapSource source160dpi="assets/BackIcon48x48.png"
+										source240dpi="assets/BackIcon72x72.png"
+										source320dpi="assets/BackIcon96x96.png"/>
+			</s:icon>
+		</s:Button>
+	</s:actionContent>
+	
+	<s:VGroup paddingLeft="10" paddingTop="0">
+		<s:Scroller width="{width_num}" height="{height_num}">
+			<s:Group>
+				<s:HGroup x="10" y="0">
+					<s:VGroup>
+						<s:Group>
+							<s:Label text="Title: "
+									 y="30" 
+									 fontFamily="_sans" 
+									 fontWeight="bold"/>
+							<s:Label text="Serie: "
+									 y="60" 
+									 fontFamily="_sans"
+									 fontWeight="bold"/>
+							<s:Label text="Presenter: " 
+									 y="90"
+									 fontFamily="_sans"
+									 fontWeight="bold"/>
+							<s:Label text="Date: "
+									 y="120"
+									 fontFamily="_sans"
+									 fontWeight="bold"/>
+						</s:Group>
+					</s:VGroup>
+					
+					<s:VGroup>
+						<s:Group>
+							<s:Label id="detailTitle"
+									 y="30"
+									 fontFamily="_sans"/>
+							<s:Label id="detailSeriesTitle"
+									 y="60"
+									 fontFamily="_sans"/>
+							<s:Label id="detailCreator"
+									 y="90"
+									 fontFamily="_sans"/>
+							<s:Label id="detailDate"
+									 y="120"
+									 fontFamily="_sans"/>
+						</s:Group>
+					</s:VGroup>
+				</s:HGroup>
+				<s:Image id="detailImage"
+						 x="50" y="150" 
+						 height="150" width="200"
+						 click="loadVideoView();"/>
+				<s:Image id="play_icon"
+						 x="125" y="200"
+						 click="loadVideoView();"/>
+				<s:Label id="textAreaLabel" 
+						 text ="Description:"
+						 x="10" y="320"
+						 fontWeight="bold"/>
+				<s:TextArea id="description"
+							x="10" y="340"
+							fontFamily="_sans"
+							width="280" height="100"
+							enabled="true" editable="false"/>
+			</s:Group>
+		</s:Scroller>
+	</s:VGroup> 
+</s:View>

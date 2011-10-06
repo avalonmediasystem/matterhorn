@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The Matterhorn2Go Project
+Copyright (C) 2011  University of Osnabrück; Part of the Opencast Matterhorn Project
+
+This project is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 
+USA 
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:views="views.*"
+		xmlns:events="events.*"
+		title="Matterhorn"  
+		creationComplete="init()">
+	
+	<fx:Script>
+		<![CDATA[
+			import business.Paging;
+			import business.datahandler.DataHandler;
+			
+			import events.VideosLoadedEvent;
+			
+			import flash.events.Event;
+			
+			import mx.collections.XMLListCollection;
+			import mx.events.FlexEvent;
+		
+			[Bindable]
+			public var videos:XMLListCollection;
+			private var xmlData:DataHandler;
+			private var paging:Paging;
+			private var text_result:String = "Results: ";
+			
+			[Bindable]
+			private var search_result:String;
+			
+			[Bindable]
+			private var footer_text:String;
+			
+			public function init():void
+			{	
+				panel.setStyle("chromeColor", "white");
+				xmlData = DataHandler.getInstance();
+				xmlData.init();
+				xmlData.addEventListener(VideosLoadedEvent.VIDEOSLOADED, getXMLListCollection);
+				textinput_search.addEventListener(FlexEvent.ENTER, getVideo);
+			}
+			
+			public function getXMLListCollection(event:VideosLoadedEvent):void
+			{
+				videos = xmlData.getXMLListCollection();
+
+				paging = Paging.getInstance();
+				
+				textinput_search.text  = xmlData.getText();
+				
+				panel.title = text_result + xmlData.getTotal() as String;
+				
+				footer_text = paging.getFooter();
+			}
+			
+			public function getVideo(event:FlexEvent):void
+			{
+				xmlData.search(textinput_search.text, String(0));
+			}
+			
+			public function loadNewView():void
+			{
+				navigator.pushView(VideoDetailsView, list.selectedItem);
+			}
+		
+			public function applicationExit():void 
+			{
+				var exitingEvent:Event = new Event(Event.EXITING, false, true);
+				NativeApplication.nativeApplication.dispatchEvent(exitingEvent);
+				if (!exitingEvent.isDefaultPrevented()) {
+					NativeApplication.nativeApplication.exit();
+				}
+			}
+			
+			public function showInfo():void 
+			{
+				navigator.pushView(InfoView, data);
+			}
+			
+			public function showConfig():void 
+			{
+				navigator.pushView(ConfigurationView, data);
+			}
+			
+			public function backPage():void
+			{
+				if(videos == null)
+				{
+					panel.title = "URL error";
+				}
+				else
+				{
+					paging.backPage(textinput_search.text);
+				}
+			}
+			
+			public function nextPage():void
+			{
+				if(videos == null)
+				{
+					panel.title = "URL error";
+				}
+				else
+				{
+					paging.nextPage(textinput_search.text);
+				}
+			}
+		]]>
+	</fx:Script>
+			
+	<s:actionContent>
+		<s:Button id="btn_search" click="getVideo(null)">
+			<s:icon>
+				<s:MultiDPIBitmapSource source160dpi="assets/search48.png"
+										source240dpi="assets/search72.png"
+										source320dpi="assets/search96.png"/>
+			</s:icon>
+		</s:Button>
+	</s:actionContent>
+	
+	<s:titleContent>
+		<s:TextInput id="textinput_search" x="13" width="154" enabled="true" text=""/>
+	</s:titleContent>
+	
+	<s:navigationContent>
+		<s:Image width="42" height="30" scaleMode="letterbox" smooth="true"
+				 smoothingQuality="default" source="assets/logo-matterhorn.gif"/>
+	</s:navigationContent>	
+	
+	<s:Panel id="panel" width="100%" height="100%">
+		
+		<s:List id="list" width="100%" height="100%"
+				dataProvider="{videos}"
+				itemRenderer="business.renderers.VideosItemRenderer"
+				change="loadNewView()"/>
+		
+		<s:controlBarContent>
+			<s:Group>
+				<s:Button id="b_button" click="backPage();" x="0" y="0">
+					<s:icon>
+						<s:MultiDPIBitmapSource source160dpi="assets/prev48x48.png"
+												source240dpi="assets/prev72x72.png"
+												source320dpi="assets/prev96x96.png"/>
+					</s:icon>
+				</s:Button>
+
+				<s:Label id="text" width="115"
+						 x="{(navigator.width - 92) / 2 + 5}" y="25" text="{footer_text}"/>
+				
+				<s:Button id="n_button" click="nextPage();" x="{navigator.width - 92}" y="0">
+					<s:icon>
+						<s:MultiDPIBitmapSource source160dpi="assets/next48x48.png"
+												source240dpi="assets/next72x72.png"
+												source320dpi="assets/next96x96.png"/>
+					</s:icon>
+				</s:Button>
+			</s:Group>	
+		</s:controlBarContent>
+		
+	</s:Panel>
+	
+	<s:viewMenuItems>		
+		<s:ViewMenuItem label="Info" click="showConfig();"
+						icon="assets/infoicon_48x48.png"
+						iconPlacement="left"/>
+		
+		<s:ViewMenuItem label="Info" click="showInfo();"
+						icon="assets/infoicon_48x48.png"
+						iconPlacement="left"/>
+		
+		<s:ViewMenuItem label="close" click="applicationExit();"
+						icon="assets/exit48x48.png"
+						iconPlacement="left"/>
+	</s:viewMenuItems>
+</s:View>
