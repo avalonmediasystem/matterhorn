@@ -15,6 +15,7 @@
  */
 package org.opencastproject.scheduler.impl;
 
+import org.opencastproject.mediapackage.EName;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageBuilderFactory;
 import org.opencastproject.mediapackage.MediaPackageException;
@@ -28,7 +29,9 @@ import org.opencastproject.metadata.dublincore.EncodingSchemeUtils;
 import org.opencastproject.metadata.dublincore.Precision;
 import org.opencastproject.scheduler.api.SchedulerException;
 import org.opencastproject.scheduler.api.SchedulerQuery;
+import org.opencastproject.scheduler.api.SchedulerQuery.Sort;
 import org.opencastproject.scheduler.api.SchedulerService;
+import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
@@ -232,7 +235,11 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
           throws WorkflowException, MediaPackageException {
     // Build a mediapackage using the event metadata
     MediaPackage mediapackage = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder().createNew();
-    populateMediapackageWithStandardDCFields(mediapackage, event);
+    try {
+      populateMediapackageWithStandardDCFields(mediapackage, event);
+    } catch (Exception e) {
+      throw new MediaPackageException(e);
+    }
 
     mediapackage.setDate(startDate);
     mediapackage.setDuration(endDate.getTime() - startDate.getTime());
@@ -262,9 +269,11 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    *           if workflow with ID from DublinCore cannot be found
    * @throws WorkflowException
    *           if update fails
+   * @throws UnauthorizedException
+   *           if the current user is not authorized to update the workflow
    */
   protected void updateWorkflow(DublinCoreCatalog event, Date startDate, Date endDate) throws SchedulerException,
-          NotFoundException, WorkflowException {
+          NotFoundException, WorkflowException, UnauthorizedException {
     WorkflowInstance workflow = workflowService.getWorkflowById(Long.parseLong(event
             .getFirst(DublinCore.PROPERTY_IDENTIFIER)));
     WorkflowOperationInstance scheduleOperation = workflow.getCurrentOperation();
@@ -290,7 +299,13 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     }
 
     // set new values
+    try {
     populateMediapackageWithStandardDCFields(mediapackage, event);
+    } catch (NotFoundException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new SchedulerException(e);
+    }
 
     mediapackage.setDate(startDate);
     mediapackage.setDuration(endDate.getTime() - startDate.getTime());
@@ -314,11 +329,22 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * @param catalog
    *          {@link DublinCoreCatalog} for event
    */
-  private void populateMediapackageWithStandardDCFields(MediaPackage mediapackage, DublinCoreCatalog catalog) {
+  private void populateMediapackageWithStandardDCFields(MediaPackage mediapackage, DublinCoreCatalog catalog) throws Exception {
     mediapackage.setTitle(catalog.getFirst(DublinCore.PROPERTY_TITLE));
     mediapackage.setLanguage(catalog.getFirst(DublinCore.PROPERTY_LANGUAGE));
     mediapackage.setLicense(catalog.getFirst(DublinCore.PROPERTY_LICENSE));
     mediapackage.setSeries(catalog.getFirst(DublinCore.PROPERTY_IS_PART_OF));
+    
+    if (StringUtils.isNotEmpty(mediapackage.getSeries())) {
+      try {
+        DublinCoreCatalog s = seriesService.getSeries(catalog.getFirst(DublinCore.PROPERTY_IS_PART_OF));
+        mediapackage.setSeriesTitle(s.getFirst(DublinCore.PROPERTY_TITLE));
+      } catch (Exception e) {
+        logger.error("Unable to find series: " + catalog.getFirst(DublinCore.PROPERTY_IS_PART_OF), e);
+        throw e;
+      }
+    }
+    
     for (DublinCoreValue value : catalog.get(DublinCore.PROPERTY_CREATOR)) {
       mediapackage.addCreator(value.getValue());
     }
@@ -337,8 +363,10 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    *          workflow to be stopped
    * @throws NotFoundException
    *           if there is no workflow with specified ID
+   * @throws UnauthorizedException
+   *           if the current user is not authorized to stop the workflow
    */
-  protected void stopWorkflowInstance(long eventID) throws NotFoundException {
+  protected void stopWorkflowInstance(long eventID) throws NotFoundException, UnauthorizedException {
     try {
       workflowService.stop(eventID);
     } catch (WorkflowException e) {
@@ -364,7 +392,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * , java.lang.String)
    */
   @Override
-  public Long addEvent(final DublinCoreCatalog eventCatalog) throws SchedulerException {
+  public Long addEvent(final DublinCoreCatalog eventCatalog) throws SchedulerException, UnauthorizedException {
     DCMIPeriod period = EncodingSchemeUtils.decodeMandatoryPeriod(eventCatalog.getFirst(DublinCore.PROPERTY_TEMPORAL));
     if (!period.hasEnd() || !period.hasStart()) {
       throw new IllegalArgumentException(
@@ -427,11 +455,10 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * DublinCoreCatalog, java.lang.String, java.util.Date, java.util.Date, long)
    */
   @Override
-  public Long[] addReccuringEvent(DublinCoreCatalog templateCatalog, String recPattern, Date beginning, Date end,
-          long duration, String timeZone) throws SchedulerException {
+  public Long[] addReccuringEvent(DublinCoreCatalog templateCatalog) throws SchedulerException, UnauthorizedException {
     final List<DublinCoreCatalog> eventList;
     try {
-      eventList = createEventCatalogsFromReccurence(templateCatalog, recPattern, beginning, end, duration, timeZone);
+      eventList = createEventCatalogsFromReccurence(templateCatalog);
     } catch (Exception e) {
       logger.error("Could not create Dublin Cores for events from template: {}", e.getMessage());
       throw new SchedulerException(e);
@@ -439,8 +466,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     List<Long> eventsIDs = new ArrayList<Long>();
 
     for (DublinCoreCatalog event : eventList) {
-      DCMIPeriod period = EncodingSchemeUtils.decodeMandatoryPeriod(templateCatalog
-              .getFirst(DublinCore.PROPERTY_TEMPORAL));
+      DCMIPeriod period = EncodingSchemeUtils.decodeMandatoryPeriod(event.getFirst(DublinCore.PROPERTY_TEMPORAL));
       if (!period.hasEnd() || !period.hasStart()) {
         throw new IllegalArgumentException(
                 "Dublin core field dc:temporal does not contain information about start and end of event");
@@ -590,7 +616,8 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * DublinCoreCatalog)
    */
   @Override
-  public void updateEvent(final DublinCoreCatalog eventCatalog) throws NotFoundException, SchedulerException {
+  public void updateEvent(final DublinCoreCatalog eventCatalog) throws NotFoundException, SchedulerException,
+          UnauthorizedException {
     if (eventCatalog == null) {
       logger.warn("Cannot update <null> event.");
       return;
@@ -633,6 +660,34 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       throw new SchedulerException(e);
     }
   }
+  
+  /**
+   * TODO: Update this function so that it uses a new service function with a single transaction so that it is not slow.
+   */
+  public void updateEvents(List<String> idList, final DublinCoreCatalog eventCatalog)  throws NotFoundException, SchedulerException, UnauthorizedException {
+    SchedulerQuery q = new SchedulerQuery();
+    q.withIdInList(idList);
+    q.withSort(Sort.EVENT_START);
+    List<DublinCoreCatalog> catalogs = search(q).getCatalogList();
+    for (int i = 0; i < catalogs.size(); i++) {
+      DublinCoreCatalog cat = catalogs.get(i);
+      for (EName prop : eventCatalog.getProperties()) {
+        if (!eventCatalog.get(prop).isEmpty()) {
+          List<DublinCoreValue> vals = eventCatalog.get(prop);
+          if (DublinCore.PROPERTY_TITLE.equals(prop)) {
+            List<DublinCoreValue> incrementedVals = new ArrayList<DublinCoreValue>();
+            for (DublinCoreValue v : vals) {
+              incrementedVals.add(new DublinCoreValue(v.getValue().concat(" " + String.valueOf(i + 1)), v.getLanguage(), v.getEncodingScheme()));
+            }
+            cat.set(prop, incrementedVals);
+          } else {
+            cat.set(prop, vals);
+          }
+        }
+      }
+      updateEvent(cat);
+    }
+  }
 
   /**
    * Given recurrence pattern and template DublinCore, DublinCores for multiple events are generated. Each event will
@@ -655,24 +710,31 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
    * @throws ParseException
    *           if recurrence pattern cannot be parsed
    */
-  protected List<DublinCoreCatalog> createEventCatalogsFromReccurence(DublinCoreCatalog template, String rrule,
-          Date start, Date end, long duration, String timeZone) throws ParseException {
-    if (StringUtils.isEmpty(rrule)) {
+  protected List<DublinCoreCatalog> createEventCatalogsFromReccurence(DublinCoreCatalog template)
+         throws ParseException, IllegalArgumentException {
+    
+    if (!template.hasValue(DublinCoreCatalogImpl.PROPERTY_RECURRENCE)) {
       throw new IllegalArgumentException("Event has no recurrence pattern.");
     }
+    
+    DCMIPeriod temporal = EncodingSchemeUtils.decodeMandatoryPeriod(template.getFirst(DublinCore.PROPERTY_TEMPORAL));
+    if (!temporal.hasEnd() || !temporal.hasStart()) {
+      throw new IllegalArgumentException(
+              "Dublin core field dc:temporal does not contain information about start and end of event");
+    }
+    
+    Date start = temporal.getStart();
+    Date end   = temporal.getEnd();
+    Long duration = (end.getTime() % (60 * 60 * 1000)) - (start.getTime() % (60 * 60 * 1000));
+    
     TimeZone tz = null; // Create timezone based on CA's reported TZ.
-    if (StringUtils.isNotEmpty(timeZone)) {
-      tz = TimeZone.getTimeZone(timeZone);
+    if (template.hasValue(DublinCoreCatalogImpl.PROPERTY_AGENT_TIMEZONE)) {
+      tz = TimeZone.getTimeZone(template.getFirst(DublinCoreCatalogImpl.PROPERTY_AGENT_TIMEZONE));
     } else { // No timezone was present, assume the serve's local timezone.
       tz = TimeZone.getDefault();
     }
-    Recur recur = new RRule(rrule).getRecur();
-    if (start == null) {
-      start = new Date(System.currentTimeMillis());
-    }
-    if (end == null) {
-      throw new IllegalArgumentException("Event has no end date.");
-    }
+    
+    Recur recur = new RRule(template.getFirst(DublinCoreCatalogImpl.PROPERTY_RECURRENCE)).getRecur();
     DateTime seed = new DateTime(true);
     DateTime period = new DateTime(true);
     if (tz.inDaylightTime(start) && !tz.inDaylightTime(end)) {
@@ -687,6 +749,7 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
     }
     DateList dates = recur.getDates(seed, period, Value.DATE_TIME);
     logger.debug("DateList: {}", dates);
+    
     List<DublinCoreCatalog> events = new LinkedList<DublinCoreCatalog>();
     int i = 1;
     for (Object date : dates) {
@@ -703,11 +766,12 @@ public class SchedulerServiceImpl implements SchedulerService, ManagedService {
       }
       DublinCoreCatalog event = (DublinCoreCatalog) ((DublinCoreCatalogImpl) template).clone();
       event.set(DublinCore.PROPERTY_TITLE, template.getFirst(DublinCore.PROPERTY_TITLE) + " " + i);
-
+      
       DublinCoreValue eventTime = EncodingSchemeUtils.encodePeriod(new DCMIPeriod(d, new Date(d.getTime() + duration)),
               Precision.Second);
       event.set(DublinCore.PROPERTY_TEMPORAL, eventTime);
       events.add(event);
+      i++;
     }
     return events;
   }

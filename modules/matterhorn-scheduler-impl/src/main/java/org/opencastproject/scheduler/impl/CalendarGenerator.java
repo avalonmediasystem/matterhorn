@@ -20,6 +20,7 @@ import org.opencastproject.metadata.dublincore.DublinCore;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreValue;
 import org.opencastproject.metadata.dublincore.EncodingSchemeUtils;
+import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.series.api.SeriesException;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.NotFoundException;
@@ -50,6 +51,8 @@ import org.w3c.dom.Document;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -62,7 +65,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 /**
- * Create an iCalendar from the provided {@link Event}s.
+ * Create an iCalendar from the provided dublin core events.
  * 
  */
 public class CalendarGenerator {
@@ -132,6 +135,10 @@ public class CalendarGenerator {
 
     DateTime startDate = new DateTime(period.getStart());
     DateTime endDate = new DateTime(period.getEnd());
+    if (endDate.before(new Date())) {
+      logger.debug("Event has already passed, skipping!");
+      return false;
+    }
     startDate.setUtc(true);
     endDate.setUtc(true);
     String seriesID = null;
@@ -146,9 +153,8 @@ public class CalendarGenerator {
 
       // TODO Organizer should be URI (email-address?) created fake address
       if (StringUtils.isNotEmpty(catalog.getFirst(DublinCore.PROPERTY_CREATOR))) {
-        event.getProperties().add(
-                new Organizer(pl, catalog.getFirst(DublinCore.PROPERTY_CREATOR).replace(" ", "_")
-                        + "@matterhorn.opencast"));
+        URI organizer = new URI("mailto", catalog.getFirst(DublinCore.PROPERTY_CREATOR) + "@matterhorn.opencast", null);
+        event.getProperties().add(new Organizer(pl, organizer));
       }
       if (StringUtils.isNotEmpty(catalog.getFirst(DublinCore.PROPERTY_DESCRIPTION))) {
         event.getProperties().add(new Description(catalog.getFirst(DublinCore.PROPERTY_DESCRIPTION)));
@@ -241,8 +247,10 @@ public class CalendarGenerator {
    * @param seriesID
    *          {@link DublinCoreCatalog} to be retrieved
    * @return DC serialized to string or null
+   * @throws UnauthorizedException
+   *           if the current user is not allowed to view this series
    */
-  private String getSeriesDublinCoreAsString(String seriesID) {
+  private String getSeriesDublinCoreAsString(String seriesID) throws UnauthorizedException {
     if (StringUtils.isBlank(seriesID))
       return null;
     if (seriesService == null) {

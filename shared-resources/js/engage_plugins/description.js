@@ -33,6 +33,7 @@ Opencast.Description = (function ()
     function showDescription()
     {
         Opencast.Utils.log("showDescription");
+        Opencast.Player.addEvent("SHOW-DESCRIPTION");
         // Hide other Tabs
         Opencast.Annotation_Comment_List.hideComments();
         Opencast.segments.hideSegments();
@@ -52,14 +53,14 @@ Opencast.Description = (function ()
         // If cashed data are available
         if (Opencast.Description_Plugin.createDescriptionFromCashe())
         {
-            Opencast.Utils.log("Cashing description plugin: yes");
+            $.log("Cashing description plugin: yes");
             // Make visible
             $('#description-loading').hide();
             $('#oc-description').show();
         }
         else
         {
-            Opencast.Utils.log("Cashing description plugin: no");
+            $.log("Cashing description plugin: no");
             // Request JSONP data
             $.ajax(
             {
@@ -69,7 +70,7 @@ Opencast.Description = (function ()
                 jsonp: 'jsonp',
                 success: function (data)
                 {
-                    Opencast.Utils.log("Description AJAX call #1: Requesting data succeeded");
+                    $.log("Description AJAX call #1: Requesting data succeeded");
                     if ((data === undefined) || (data['search-results'] === undefined) || (data['search-results'].result === undefined))
                     {
                         displayNoDescriptionAvailable("No data defined");
@@ -87,8 +88,8 @@ Opencast.Description = (function ()
                     // format date if date is available
                     if (data['search-results'].result.dcCreated != defaultChar)
                     {
-                        var sd = Opencast.Utils.dateStringToDate(data['search-results'].result.dcCreated);
-                        data['search-results'].result.dcCreated = Opencast.Utils.getDateString(sd) + ' - ' + Opencast.Utils.getTimeString(sd);
+                        var sd = $.dateStringToDate(data['search-results'].result.dcCreated);
+                        data['search-results'].result.dcCreated = $.getDateString(sd) + ' - ' + $.getTimeString(sd);
                     }
                     // Request JSONP data (Stats)
                     $.ajax(
@@ -99,7 +100,7 @@ Opencast.Description = (function ()
                         jsonp: 'jsonp',
                         success: function (result)
                         {
-                            Opencast.Utils.log("Description AJAX call #2: Requesting data succeeded");
+                            $.log("Description AJAX call #2: Requesting data succeeded");
                             var views = checkForNullUndef(result.stats.views);
                             if ((result.stats.views == 0) || (views != defaultChar))
                             {
@@ -121,7 +122,8 @@ Opencast.Description = (function ()
                         // If no data comes back (JSONP-Call #2)
                         error: function (xhr, ajaxOptions, thrownError)
                         {
-                            Opencast.Utils.log("Description Ajax call #1: Requesting data failed");
+                            $.log("Description Ajax call #1: Requesting data failed");
+                            Opencast.Player.addEvent("DESCRIPTION-AJAX-1-FAILED");
                             displayNoDescriptionAvailable("No data available");
                         }
                     });
@@ -129,7 +131,8 @@ Opencast.Description = (function ()
                 // If no data comes back (JSONP-Call #1)
                 error: function (xhr, ajaxOptions, thrownError)
                 {
-                    Opencast.Utils.log("Description Ajax call #2: Requesting data failed");
+                    $.log("Description Ajax call #2: Requesting data failed");
+                    Opencast.Player.addEvent("DESCRIPTION-AJAX-2-FAILED");
                     displayNoDescriptionAvailable("No data available");
                 }
             });

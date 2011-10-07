@@ -15,35 +15,47 @@
  */
 package org.opencastproject.series.impl;
 
+import static org.opencastproject.event.EventAdminConstants.ID;
+import static org.opencastproject.event.EventAdminConstants.PAYLOAD;
+import static org.opencastproject.event.EventAdminConstants.SERIES_ACL_TOPIC;
+import static org.opencastproject.event.EventAdminConstants.SERIES_TOPIC;
+import static org.opencastproject.security.api.SecurityConstants.DEFAULT_ORGANIZATION_ID;
+import static org.opencastproject.security.api.SecurityConstants.GLOBAL_ADMIN_ROLE;
 import static org.opencastproject.util.RequireUtil.notNull;
 
+import java.io.IOException;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.lang.StringUtils;
 import org.opencastproject.metadata.dublincore.DublinCore;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogList;
 import org.opencastproject.security.api.AccessControlList;
+import org.opencastproject.security.api.AccessControlParser;
+import org.opencastproject.security.api.DefaultOrganization;
+import org.opencastproject.security.api.SecurityService;
+import org.opencastproject.security.api.UnauthorizedException;
+import org.opencastproject.security.api.User;
 import org.opencastproject.series.api.SeriesException;
 import org.opencastproject.series.api.SeriesQuery;
 import org.opencastproject.series.api.SeriesService;
 import org.opencastproject.util.NotFoundException;
-
-import org.apache.commons.lang.StringUtils;
 import org.osgi.framework.ServiceException;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Dictionary;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Implements {@link SeriesService}. Uses {@link SeriesServiceDatabase} for permanent storage and
  * {@link SeriesServiceIndex} for searching.
  * 
  */
-public class SeriesServiceImpl implements SeriesService, ManagedService {
+public class SeriesServiceImpl implements SeriesService {
 
   /** Logging utility */
   private static final Logger logger = LoggerFactory.getLogger(SeriesServiceImpl.class);
@@ -53,6 +65,12 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
 
   /** Persistent storage */
   protected SeriesServiceDatabase persistence;
+
+  /** The security service */
+  protected SecurityService securityService;
+
+  /** The OSGI event admin service */
+  protected EventAdmin eventAdmin;
 
   /**
    * OSGi callback for setting index.
@@ -73,6 +91,25 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   }
 
   /**
+   * OSGi callback for setting the security service.
+   * 
+   * @param securityService
+   *          the security service
+   */
+  public void setSecurityService(SecurityService securityService) {
+    this.securityService = securityService;
+  }
+
+  /**
+   * OSGi callback for setting the event admin.
+   * 
+   * @param eventAdmin
+   */
+  public void setEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
+  }
+
+  /**
    * Activates Series Service. Checks whether we are using synchronous or asynchronous indexing. If asynchronous is
    * used, Executor service is set. If index is empty, persistent storage is queried if it contains any series. If that
    * is the case, series are retrieved and indexed.
@@ -84,6 +121,21 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   public void activate(ComponentContext cc) throws Exception {
     logger.info("Activating Series Service");
 
+    try {
+      // Run as the superuser so we get all series, regardless of organization or role
+      securityService.setOrganization(new DefaultOrganization());
+      securityService.setUser(new User("seriesadmin", DEFAULT_ORGANIZATION_ID, new String[] { GLOBAL_ADMIN_ROLE }));
+      populateSolr();
+    } finally {
+      securityService.setOrganization(null);
+      securityService.setUser(null);
+    }
+  }
+
+  /**
+   * If the solr index is empty, but there are series in the database, populate the solr index.
+   */
+  private void populateSolr() {
     long instancesInSolr = 0L;
     try {
       instancesInSolr = this.index.count();
@@ -116,21 +168,12 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
   /*
    * (non-Javadoc)
    * 
-   * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
-   */
-  @Override
-  public void updated(@SuppressWarnings("unchecked") Dictionary properties) throws ConfigurationException {
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
    * @see
    * org.opencastproject.series.api.SeriesService#updateSeries(org.opencastproject.metadata.dublincore.DublinCoreCatalog
    * )
    */
   @Override
-  public DublinCoreCatalog updateSeries(final DublinCoreCatalog dc) throws SeriesException {
+  public DublinCoreCatalog updateSeries(final DublinCoreCatalog dc) throws SeriesException, UnauthorizedException {
     if (dc == null) {
       throw new IllegalArgumentException("DC argument for updating series must not be null");
     }
@@ -156,6 +199,14 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
       logger.error("Unable to index series {}: {}", dc.getFirst(DublinCore.PROPERTY_IDENTIFIER), e.getMessage());
       throw new SeriesException(e);
     }
+
+    String xml = null;
+    try {
+      xml = dc.toXmlString();
+    } catch (IOException e) {
+      throw new SeriesException(e);
+    }
+    sendEvent(SERIES_TOPIC, identifier, xml);
 
     return newSeries;
   }
@@ -192,7 +243,32 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
       throw new SeriesException(e);
     }
 
+    String xml = null;
+    try {
+      xml = AccessControlParser.toXml(accessControl);
+    } catch (IOException e) {
+      throw new SeriesException(e);
+    }
+    sendEvent(SERIES_ACL_TOPIC, seriesID, xml);
+
     return updated;
+  }
+
+  /**
+   * Sends an OSGI Event.
+   * 
+   * @param topic
+   *          the event topic
+   * @param objectId
+   *          the series identifier
+   * @param payload
+   *          the event payload
+   */
+  private void sendEvent(String topic, String objectId, String payload) {
+    Dictionary<String, String> eventProperties = new Hashtable<String, String>();
+    eventProperties.put(ID, objectId);
+    eventProperties.put(PAYLOAD, payload);
+    eventAdmin.postEvent(new Event(topic, eventProperties));
   }
 
   /*
@@ -227,6 +303,7 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
     try {
       List<DublinCoreCatalog> result = index.search(query);
       DublinCoreCatalogList dcList = new DublinCoreCatalogList();
+      dcList.setCatalogCount(getSeriesCount());
       dcList.setCatalogList(result);
       return dcList;
     } catch (SeriesServiceDatabaseException e) {
@@ -262,6 +339,15 @@ public class SeriesServiceImpl implements SeriesService, ManagedService {
     } catch (SeriesServiceDatabaseException e) {
       logger.error("Exception occurred while retrieving access control rules for series {}: {}", seriesID,
               e.getMessage());
+      throw new SeriesException(e);
+    }
+  }
+  
+  public int getSeriesCount() throws SeriesException {
+    try {
+      return persistence.countSeries();
+    } catch (SeriesServiceDatabaseException e) {
+      logger.error("Exception occured while counting series.", e);
       throw new SeriesException(e);
     }
   }

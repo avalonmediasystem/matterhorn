@@ -26,7 +26,6 @@ import org.gstreamer.Caps;
 import org.gstreamer.Element;
 import org.gstreamer.Pipeline;
 import org.gstreamer.elements.AppSink;
-
 import org.gstreamer.event.EOSEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,12 +136,12 @@ public class EpiphanVGA2USBV4LSubTestSrcBin extends EpiphanVGA2USBV4LSubAbstract
    */
   protected void setElementProperties() {
     src.set(GStreamerProperties.PATTERN, "0");
-    src.set(GStreamerProperties.IS_LIVE, "true");
     src.set(GStreamerProperties.DO_TIMESTAP, "false");
     capsFilter.setCaps(Caps.fromString(caps));
     sink.set(GStreamerProperties.EMIT_SIGNALS, "false");
-    sink.set(GStreamerProperties.DROP, "true");
-    sink.set(GStreamerProperties.MAX_BUFFERS, "1");
+    sink.set(GStreamerProperties.DROP, "false");
+    sink.set(GStreamerProperties.ASYNC, "true");
+    sink.set(GStreamerProperties.MAX_BUFFERS, "5");
     sink.setCaps(Caps.fromString(caps));
   }
 

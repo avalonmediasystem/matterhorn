@@ -18,8 +18,8 @@ package org.opencastproject.feed.impl;
 
 import org.opencastproject.feed.api.Feed.Type;
 import org.opencastproject.feed.api.FeedGenerator;
+import org.opencastproject.search.api.SearchQuery;
 import org.opencastproject.search.api.SearchResult;
-import org.opencastproject.search.impl.SearchQueryImpl;
 
 import java.util.Properties;
 
@@ -59,7 +59,7 @@ public class SeriesFeedService extends AbstractFeedService implements FeedGenera
 
     try {
       // To check if we can accept the query it is enough to query for just one result
-      SearchQueryImpl q = new SearchQueryImpl();
+      SearchQuery q = new SearchQuery();
       q.includeEpisodes(true);
       q.includeSeries(true);
       q.withId(id.toString());
@@ -100,8 +100,12 @@ public class SeriesFeedService extends AbstractFeedService implements FeedGenera
    * @see org.opencastproject.feed.impl.AbstractFeedGenerator#getDescription()
    */
   public String getDescription() {
+    String dcAbstract = null;
     SearchResult rs = seriesData.get();
-    return (rs != null) ? rs.getItems()[0].getDcAbstract() : super.getDescription();
+    if (rs != null) {
+      dcAbstract = rs.getItems()[0].getDcAbstract();
+    }
+    return dcAbstract == null ? super.getDescription() : dcAbstract;
   }
 
   /**

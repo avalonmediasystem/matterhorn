@@ -17,6 +17,22 @@ var ocUtils = ocUtils || {};
 
 ocUtils.templateRoot = "jst/";
 
+ocUtils.formatInt = function(value){
+   var groupingSeparator= ',',       
+       formatted = '';
+
+   if (typeof value == 'number') value += '';	
+   var count=0, i=value.length;  
+   while (i--) {
+      if (count !== 0 && count % 3 === 0) {
+	   formatted = groupingSeparator + formatted;    
+      }
+      formatted = value.substr(i, 1) + formatted;
+      count++;
+   }    
+   return formatted;
+}
+
 ocUtils.internationalize = function(obj, prefix){
   for(var i in obj){
     if(typeof obj[i] == 'object'){
@@ -86,18 +102,22 @@ ocUtils.makeLocaleDateString = function(timestamp) {
 }
 
 /** converts a date to a human readable date string
- * @param date
- * @return formatted date string
+ *  @param date
+ *  @param compact -- (boolean) without day name
+ *  @return formatted date string
  */
-ocUtils.getDateString = function(date) {
+ocUtils.getDateString = function(date, compact) {
   var days = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ];
   var months = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
   var daySeparator = ", ";
   var dateSeparator = " ";
   var yearSeparator = " ";
   var d = date;
-  var datestring = days[(d.getDate() + 1) % 7];
-  datestring += daySeparator;
+  var datestring = "";
+  if (compact == undefined || !compact) {
+    datestring += days[d.getDay()];
+    datestring += daySeparator;
+  }
   datestring += months[d.getMonth() % 12];
   datestring += dateSeparator;
   datestring += (d.getDate() >= 10) ? d.getDate() : "0".concat(d.getDate());
@@ -108,9 +128,10 @@ ocUtils.getDateString = function(date) {
 
 /** converts a date to a human readable time string
  * @param date
+ * @param withSeconds -- boolean
  * @return formatted time string
  */
-ocUtils.getTimeString = function(date) {
+ocUtils.getTimeString = function(date, withSeconds) {
   var timeSeparator = ":";
   var d = date;
   var h = (d.getHours() >= 10) ? d.getHours() : "0".concat(d.getHours());
@@ -118,7 +139,16 @@ ocUtils.getTimeString = function(date) {
   .concat(d.getMinutes());
   var s = (d.getSeconds() >= 10) ? d.getSeconds() : "0"
   .concat(d.getSeconds());
-  return (h + timeSeparator + m /* + timeSeparator + s*/);
+  return (h + timeSeparator + m + (withSeconds ? timeSeparator + s : ""));
+}
+
+/** Converts a date to a human readable date and time string.
+ *  @param date
+ *  @param withSeconds -- boolean
+ *  @return formatted time string
+ */
+ocUtils.getDateTimeStringCompact = function(date, withSeconds) {
+  return ocUtils.getDateString(date, true) + " " + ocUtils.getTimeString(date, withSeconds);
 }
 
 ocUtils.fromUTCDateString = function(UTCDate) {
@@ -193,6 +223,8 @@ ocUtils.fromUTCDateStringToFormattedTime = function(UTCDate, duration) {
  *
  */
 ocUtils.toISODate = function(date, utc) {
+//align date format
+var date = new Date(date);
   var out;
   if(typeof utc == 'undefined') {
     utc = true;
@@ -282,4 +314,66 @@ ocUtils.sizeOf = function(obj) {
     }
   }
   return length;
+}
+
+ocUtils.exists = function(obj) {
+  if(typeof obj !== 'undefined') {
+    return true;
+  }
+  return false;
+};
+
+ocUtils.contains = function(array, value) {
+  return array.indexOf(value) >= 0;
+}
+
+ocUtils.getDCJSONParam = function(dcJSON, param, namespace) {
+  namespace = 'http://purl.org/dc/terms/' || namespace;
+  for (var i in dcJSON) {
+    var metadata = dcJSON[i];
+    if (i === namespace) {
+      for (var j in metadata) {
+        if (j === param) {
+          return metadata[param][0].value;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/** Join all elements of an array with separator string "sep".
+ *  @param as -- an array, a single value or "undefined"
+ *  @param sep -- the separator string
+ *  @return the array elements joined or "" if as is undefined
+ */
+ocUtils.joinArray = function(as, sep) {
+  if (as !== undefined) {
+    return ocUtils.ensureArray(as).join(sep);
+  } else {
+    return "";
+  }
+}
+
+/** Return the first argument that is neither undefined nor null.
+ *  @param a variable list of arguments
+ */
+ocUtils.dflt = function() {
+  // arguments is an object _not_ an array so let's turn it into one
+  return _.detect(_.toArray(arguments).concat(""), function(a) {
+    return typeof a !== "undefined" && a != null;
+  });
+}
+
+/** Return the first element of array a. If a is not an array return a. Return undefined if the array is empty.
+ */
+ocUtils.first = function(a) {
+  return ocUtils.ensureArray(a)[0];
+}
+
+/** Return the last element of array a. If a is not an array return a. Return undefined if the array is empty.
+ */
+ocUtils.last = function(a) {
+  var aa = ocUtils.ensureArray(a);
+  return aa[aa.length - 1];
 }

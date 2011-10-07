@@ -5,7 +5,7 @@ img{border:0;}
 html{font:13px/1.231 arial,helvetica,clean,sans-serif; }
 ul,li {list-style: none;}
 input:focus, button:focus { outline: 1px #999 solid; }
-table tr td { background: white!important; color: black!important; }
+table tr td { background: white!important; color: black; }
 table tr:hover td { background: silver!important; color: black!important; }
 table tr:hover a { color: black!important; font-weight: bold!important; }
 table tr:hover a:hover { text-decoration: underline!important; }
@@ -17,6 +17,13 @@ table tr:hover a:hover { text-decoration: underline!important; }
 .center { text-align: center;}
 .recordings-page {margin-left: 30px; margin-right: 30px;}
 
+.instruction-text { font-style: italic; color: #999; font-size: 0.85em}
+.instruction-text:hover { font-style: italic; color: #000; font-size: 0.85em}
+
+li#titleNote {padding:0 0 4px 0;}
+.scheduler-instruction-text { font-style: italic; color: #999; font-size: 0.89em; padding:0 0 4px 0;}
+.scheduler-instruction-text-hover { font-style: italic; color: #000; font-size: 0.88em;  padding:0 0 4px 0; }
+
 /* Icons */
 .icon { width:16px; height:16px; background-repeat: none; background-position: center center; float: left; }
 .icon-check {       background-image: url(../img/icons/tick.png); }
@@ -25,8 +32,10 @@ table tr:hover a:hover { text-decoration: underline!important; }
 .icon-running {     background-image: url(../img/icons/cog.png); }
 .icon-add {         background-image: url(../img/icons/add.png); margin-right: 10px; }
 .icon-delete {      background-image: url(../img/icons/delete.png); }
-.icon-idle {        background-image: url(../img/icons/cup.png); }
+.icon-idle 	{   background-image: url(../img/icons/cup.png); margin: 0px 10px; }
 .icon-capturing {   background-image: url(../img/icons/camera.png); }
+.icon-online {	    background-image: url(../img/icons/available.png); }
+.icon-offline {     background-image: url(../img/icons/offline.png); margin: 0px 10px; }
 .icon-arrow-right { background-image: url(../img/icons/arrow-right.png); background-position: 0 0;}
 .icon-arrow-down {  background-image: url(../img/icons/arrow-down.png); background-position: 0 0; }
 .icon-help {        background-image: url(../img/icons/help.png); background-position: 0 0; vertical-align: top; }
@@ -59,6 +68,7 @@ table tr:hover a:hover { text-decoration: underline!important; }
 #recordingsTable th div { position: relative; padding: 2px;}
 #recordingsTable th div.sort-icon {position: absolute; right: 5px; top: 0.1em; padding: 0px;}
 #recordingsTable tr {height:30px;}
+#recordingsTable tr td, #seriesTable tr td, #captureTable tr td, #statsTable tr td {color: black;}
 #bulkHeader {height:13px !important;}
 
 #holdActionPanelIframe { border: medium none; width: 100%; height:400px;}
@@ -67,13 +77,33 @@ table tr:hover a:hover { text-decoration: underline!important; }
 #prevPage { float: left; }
 #pageWidget { float: right; }
 
+/* page: episodes */
+#episodesTable {margin-top: 15px}
+#episodes-header {padding-top: 15px}
+
+/* page: capture_agents */
+/*#captureTable {margin-top:30px;}*/
+#captureTable th div { position: relative; padding: 2px;}
+#captureTable th div.sort-icon {position: absolute; right: 5px; top: 0.1em; padding: 0px;}
+#captureTable tr {height:30px;}
+#captureTable .sortable {cursor:pointer;}
+
+ul.propnav { list-style: none; padding: 0 20px; margin: 0; float: left;}
+ul.propnav li { float: left; margin-right: 10px; position: relative; }
+ul.propnav li:hover { background:#CCCCCC; float: left; position: relative; }
+ul.propnav li span.subnav { width: 17px; height: 35px; float: left; background: url("../img/icons/arrow-down.png") no-repeat center center; }
+ul.propnav li ul.itemnav { background-color : white; width : 400px; list-style: none; position: absolute; left: 0; top: 30px; margin: 0; padding: 0; display: none; float: left; border: 1px solid #111;  z-index:1; }
+ul.propnav li ul.itemnav li{ height : 2em; width : inherit; margin: 0; padding: 0; border-bottom: 1px solid #444; clear: both; }
+ul.propnav li span.device { float:left; padding: 10px 5px; display:block; }
+ul.itemnav li span.dev-prop { text-decoration : bold; float:left; padding-right: 10px; text-align:right; width:30%; font-weight:bold;}
+ul.itemnav li span.dev-prop-val { text-align:left; width:70%;}
 
 #searchBox { width: 350px; float: right; }
 #search-result { width: 360px; float: right;}
 .searchbox-text-input:focus { outline: none; border: none;}
-#controlsTop { width: 60%; float: left; }
-#runningStatesContainer, #notRunningStatesContainer, .IE_buffer { float: left;}
-#runningStatesContainer { margin-right: 20px; }
+#controlsTop { width: 100%; float: left; }
+#runningStatesContainer, #notRunningStatesContainer, #otherActionsContainer, .IE_buffer { float: left;}
+#runningStatesContainer, #notRunningStatesContainer, #otherActionsContainer { margin-right: 20px; }
 #uploadContainer button { float: right; margin: 7px 0 28px 10px;}
 #uploadContainer button span.ui-button-text { padding: 0.4em 1em 0.4em 2.1em; }
 #uploadContainer button span.ui-button-icon-primary { left: 0.5em; }
@@ -109,18 +139,18 @@ table tr:hover a:hover { text-decoration: underline!important; }
 { cursor:pointer; background: url(../../img/icons/bg.gif) no-repeat center right transparent;}
 .oc-ui-sortable-Ascending div { background-image:url(../../img/icons/asc.gif); }
 .oc-ui-sortable-Descending div { background-image:url(../../img/icons/desc.gif); }
-table#agentsTable, table#seriesTable
+table#agentsTable, table#seriesTable, table#captureTable
 { margin-top: 30px;}
-table#agentsTable td, table#seriesTable td, table#recordingsTable td, table#statsTable td
+table#agentsTable td, table#seriesTable td, table#recordingsTable td, table#statsTable td, table#captureTable td
 { padding: 1px 3px; }
-table#agentsTable th, table#seriesTable th, table#recordingsTable th, table#statsTable th
+table#agentsTable th, table#seriesTable th, table#recordingsTable th, table#statsTable th, table#captureTable td
 { padding: 2px 0; }
 
 /* FORM LISTS */
 .lbl_radio { vertical-align: 10% }
 .oc-ui-form-list li { padding: 4px 0; }
-.oc-ui-form-list .scheduler-label { display: inline-block; width: 30%; text-align: right; vertical-align: top; }
-.oc-ui-form-field { border: 1px #aaa solid; width: 500px; }
+.oc-ui-form-list .scheduler-label, .scheduler-label { display: inline-block; width: 35%; text-align: right; vertical-align: top; }
+.oc-ui-form-field { border: 1px #aaa solid; width: 450px; }
 .oc-ui-checkbox-list { padding-left: 30px; }
 .oc-ui-collapsible-widget > .ui-widget-content { display: none; }
 .form-box { margin-top: 10px; width: 800px; }
@@ -142,7 +172,6 @@ table#agentsTable th, table#seriesTable th, table#recordingsTable th, table#stat
 
 /* Schedule */
 .scheduler-selection-container { margin-top: 10px; text-align: center; }
-#workflowConfigContainer { padding: 20px; }
 #workflowConfigContainer legend { padding: 0 5px; }
 #workflowConfigContainer fieldset { padding: 10px; }
 .scheduler-day-table td, .scheduler-day-table th { padding: 4px; border: 1px solid #AAAAAA;}
@@ -174,3 +203,26 @@ table#agentsTable th, table#seriesTable th, table#recordingsTable th, table#stat
 .rolePrivilegeTable .roleName {padding-right:20px;}*/
 
 .informationText {font-size: 90%; color:grey; margin: 5px 10px 5px 10px;}
+/*
+for inspect
+*/
+.kvtable tr {margin-bottom:3px; border-bottom:1px solid silver;}
+.subtable {border-top:1px solid silver;}
+.subtable tr {margin-bottom:3px; border:none;}
+.td-key {font-weight:bold;text-align:right;vertical-align: top;}
+.td-value {font-weight:normal; text-align:left; padding-left:5px;}
+.unfoldable-tr {cursor:pointer;}
+.unfoldable-tr :hover {background: silver;}
+.unfoldable-content {display:none;}
+.subdetails {float:left;margin-right:5px;margin-top:5px;}
+
+/* Episode */
+#episode-detail-header h2 {text-align: center}
+#episode-detail-header .section {margin: 15px 0px 30px 10px}
+#episode-detail-header .section-title {font-size: 15px; margin: 0 0 5px -10px}
+#episodesTable th div {position: relative; padding: 2px;}
+#episodesTable th div.sort-icon {position: absolute; right: 5px; top: 0.1em; padding: 0px;}
+#episodesTable tr {height: 30px;}
+#episodesTable tr td {color: black;}
+#episodesTable .sortable {cursor: pointer;}
+

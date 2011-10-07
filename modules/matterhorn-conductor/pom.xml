@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.3-SNAPSHOT</version>
+    <version>1.4-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
@@ -38,7 +38,17 @@
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-series-service-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-search-service-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-episode-service-api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -147,10 +157,16 @@
             <Export-Package>
               org.opencastproject.workflow.handler;version=${project.version}
             </Export-Package>
+            <Private-Package>
+              org.opencastproject.event.handler;version=${project.version}
+            </Private-Package>
             <Service-Component>
+              OSGI-INF/events/series-updated.xml,
               OSGI-INF/operations/analyze-text.xml,
               OSGI-INF/operations/analyze-videosegments.xml,
               OSGI-INF/operations/append.xml,
+              OSGI-INF/operations/apply-acl.xml,
+              OSGI-INF/operations/archive.xml,
               OSGI-INF/operations/capture.xml,
               OSGI-INF/operations/caption.xml,
               OSGI-INF/operations/cli.xml,
@@ -166,11 +182,15 @@
               OSGI-INF/operations/inspect.xml,
               OSGI-INF/operations/prepare-av.xml,
               OSGI-INF/operations/publish.xml,
+              OSGI-INF/operations/retract-download.xml,
+              OSGI-INF/operations/retract-streaming.xml,
               OSGI-INF/operations/review.xml,
+              OSGI-INF/operations/searchindex-remove.xml,
               OSGI-INF/operations/schedule.xml,
               OSGI-INF/operations/segmentpreviews.xml,
               OSGI-INF/operations/trim.xml,
-              OSGI-INF/operations/zip.xml
+              OSGI-INF/operations/zip.xml,
+              OSGI-INF/operations/watermark.xml
               <!-- OSGI-INF/operations/distribute-itunesu.xml, OSGI-INF/operations/distribute-youtube.xml, -->
             </Service-Component>
           </instructions>

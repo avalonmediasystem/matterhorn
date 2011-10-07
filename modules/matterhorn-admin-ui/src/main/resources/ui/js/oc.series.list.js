@@ -17,55 +17,93 @@ ocSeriesList = {} || ocSeriesList;
 ocSeriesList.views = {} || ocSeriesList.views;
 ocSeriesList.views.seriesView = {} || ocSeriesList.seriesView;
 
+ocSeriesList.Configuration = new (function(){
+  //default configuration
+  this.count = 10;
+  this.total = 10;
+  this.startPage = 0;  
+  this.lastPage = 0;
+  this.sort = 'TITLE_ASC';  
+});
+
 ocSeriesList.init = function(){
+  $('#addHeader').jqotesubtpl('templates/series_list-header.tpl', {});
+  
+  $.ajax({
+    url: "/series/series.json?edit=true",
+    type: "GET",
+    success: function(data)
+    {
+      ocSeriesList.buildSeriesView(data);
+    }
+  });
+  
   $("#addSeriesButton").button({
     icons:{
       primary:"ui-icon-circle-plus"
     }
   });
-var result = TrimPath.processDOMTemplate("seriesTemplate", ocSeriesList.views);
-  $('#seriesTableContainer').html(result);
 }
 
+ocSeriesList.buildURLparams = function() {
+  var pa = [];
+  for (p in ocSeriesList.Configuration) {
+    if (ocSeriesList.Configuration[p] != null) {	
+      pa.push(p + '=' + escape(this.Configuration[p]));
+    }
+  }
+  return pa.join('&');
+}
+ 
+
 ocSeriesList.buildSeriesView = function(data) {
-  ocUtils.log($.isArray(data));
-  for(var i = 0; i < data.length; i++) {
-    var s = ocSeriesList.views.seriesView[data[i]['http://purl.org/dc/terms/']['identifier'][0].value] = {};
-    s.id = data[i]['http://purl.org/dc/terms/']['identifier'][0].value;
-    for(var key in data[i]['http://purl.org/dc/terms/']) {
+  var PURL = "http://purl.org/dc/terms/";
+  var sorting;
+  for(var i = 0; i < data.catalogs.length; i++) {
+    var s = ocSeriesList.views.seriesView[data.catalogs[i][PURL]['identifier'][0].value] = {};
+    s.id = data.catalogs[i][PURL]['identifier'][0].value;
+    for(var key in data.catalogs[i][PURL]) {
       if(key === 'title'){
-        s.title = data[i]['http://purl.org/dc/terms/'][key][0].value
+        s.title = data.catalogs[i][PURL][key][0].value
       } else if(key === 'creator') {
-        s.creator = data[i]['http://purl.org/dc/terms/'][key][0].value
+        s.creator = data.catalogs[i][PURL][key][0].value
       } else if(key  === 'contributor') {
-        s.contributor = data[i]['http://purl.org/dc/terms/'][key][0].value
+        s.contributor = data.catalogs[i][PURL][key][0].value
       }
     }
   }
-//  if(typeof data.seriesList === 'object'){
-//    if(!$.isArray(data.seriesList.series)){
-//      data.seriesList.series = [data.seriesList.series]
-//    }
-//    $.each(data.seriesList.series, function(i,series){
-//      var s = ocSeriesList.views.seriesView[series.id] = {};
-//      s.id = series.id;
-//      if(typeof series.additionalMetadata === 'object') {
-//        if(!$.isArray(series.additionalMetadata.metadata)){
-//          series.additionalMetadata.metadata = [series.additionalMetadata.metadata];
-//        }
-//        for(var j=0; j < series.additionalMetadata.metadata.length; j++){
-//          var metadata = series.additionalMetadata.metadata[j];
-//          if(metadata.key === 'title'){
-//            s.title = metadata.value;
-//          } else if(metadata.key === 'creator') {
-//            s.creator = metadata.value;
-//          } else if(metadata.key  === 'contributor') {
-//            s.contributor = metadata.value;
-//          }
-//        }
-//      }
-//    });
-//  }
+  if($.cookie('column') == null) 
+  {
+    $.cookie('column', 0)
+  }
+  if($.cookie('direction') == null) 
+  {
+    $.cookie('direction', 0) //standard is ASC
+  }
+  sorting = [[$.cookie('column'), $.cookie('direction')]];
+  $('#seriesTableContainer').jqotesubtpl("templates/series_list-table.tpl", ocSeriesList.views);
+  $('#seriesTable').tablesorter({
+    cssHeader: 'oc-ui-sortable',
+    cssAsc: 'oc-ui-sortable-Ascending',
+    cssDesc: 'oc-ui-sortable-Descending' ,
+    headers: {
+      3: {
+        sorter: false
+      }
+    },
+    sortList: sorting
+  });
+  $('#seriesTable th').click(function(){
+    var index = $(this).parent().children().index($(this));
+    if(index != 3)
+    {
+      if(index == $.cookie('column'))
+      {
+          $.cookie('direction', $.cookie('direction') == 0 ? 1 : 0);
+      }
+      $.cookie('column', index)
+    }
+  });
 }
 
 ocSeriesList.deleteSeries = function(seriesId, title) {

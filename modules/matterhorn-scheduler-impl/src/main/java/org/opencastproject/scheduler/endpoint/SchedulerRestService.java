@@ -17,6 +17,7 @@ package org.opencastproject.scheduler.endpoint;
 
 //import org.opencastproject.metadata.dublincore.DublinCore;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
+import org.opencastproject.metadata.dublincore.DublinCoreCatalogImpl;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogList;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
 import org.opencastproject.rest.RestConstants;
@@ -35,6 +36,9 @@ import org.opencastproject.util.doc.rest.RestService;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,15 +48,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Date;
-//import java.util.List;
-//import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DELETE;
-//import javax.ws.rs.FormParam;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -67,6 +70,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 
 /**
  * REST Endpoint for Scheduler Service
@@ -137,7 +141,7 @@ public class SchedulerRestService {
    */
   @GET
   @Produces(MediaType.TEXT_XML)
-  @Path("{id}.xml")
+  @Path("{id:.+}.xml")
   @RestQuery(name = "recordingsasxml", description = "Retrieves DublinCore for specified event", returnDescription = "DublinCore in XML", pathParameters = { @RestParameter(name = "id", isRequired = true, description = "ID of event for which DublinCore will be retrieved", type = Type.STRING) }, reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "DublinCore of event is in the body of response"),
           @RestResponse(responseCode = HttpServletResponse.SC_NOT_FOUND, description = "Event with specified ID does not exist") })
@@ -164,7 +168,7 @@ public class SchedulerRestService {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Path("{id}.json")
+  @Path("{id:.+}.json")
   @RestQuery(name = "recordingsasjson", description = "Retrieves DublinCore for specified event", returnDescription = "DublinCore in JSON", pathParameters = { @RestParameter(name = "id", isRequired = true, description = "ID of event for which DublinCore will be retrieved", type = Type.STRING) }, reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "DublinCore of event is in the body of response"),
           @RestResponse(responseCode = HttpServletResponse.SC_NOT_FOUND, description = "Event with specified ID does not exist") })
@@ -190,7 +194,7 @@ public class SchedulerRestService {
    */
   @GET
   @Produces(MediaType.TEXT_PLAIN)
-  @Path("{id}/agent.properties")
+  @Path("{id:.+}/agent.properties")
   @RestQuery(name = "recordingsagentproperties", description = "Retrieves Capture Agent properties for specified event", returnDescription = "Capture Agent properties in the form of key, value pairs", pathParameters = { @RestParameter(name = "id", isRequired = true, description = "ID of event for which agent properties will be retrieved", type = Type.STRING) }, reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "Capture Agent properties of event is in the body of response"),
           @RestResponse(responseCode = HttpServletResponse.SC_NOT_FOUND, description = "Event with specified ID does not exist") })
@@ -233,24 +237,20 @@ public class SchedulerRestService {
   @RestQuery(name = "newrecordings", description = "Creates new event or group of event with specified parameters", returnDescription = "If events were successfully generated, status CREATED is returned, otherwise BAD REQUEST",
           restParameters = {
           @RestParameter(name = "dublincore", isRequired = true, type = Type.TEXT, description = "Dublin Core describing event", defaultValue = "${this.sampleDublinCore}"),
-          @RestParameter(name = "caproperties", isRequired = true, type = Type.TEXT, description = "Capture agent properties for event", defaultValue = "${this.sampleCAProperties}"),
+          @RestParameter(name = "agentparameters", isRequired = true, type = Type.TEXT, description = "Capture agent properties for event", defaultValue = "${this.sampleCAProperties}"),
           @RestParameter(name = "event", isRequired = false, type = Type.TEXT, description = "Catalog containing information about the event that doesn't exist in DC (IE: Recurrence rule)") }, 
           reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_CREATED, description = "Event or events were successfully created"),
           @RestResponse(responseCode = HttpServletResponse.SC_BAD_REQUEST, description = "Missing or invalid information for this request") })
   public Response addEvent(MultivaluedMap<String,String> catalogs) {
     DublinCoreCatalog eventCatalog;
-    Properties recordingProperties;
     Properties caProperties = null;
-    String start;
-    String end;
-    String duration;
-    String recurrence;
-    String timezone;
-    
+
     if (catalogs.containsKey("dublincore")) {
+      logger.debug("DublinCore catalog found.");
       try {
         eventCatalog = parseDublinCore(catalogs.getFirst("dublincore"));
+        logger.debug(eventCatalog.toXmlString());
       } catch (Exception e) {
         logger.warn("Could not parse Dublin core catalog: {}",e);
         return Response.status(Status.BAD_REQUEST).build();
@@ -258,45 +258,6 @@ public class SchedulerRestService {
     } else {
       logger.warn("Cannot add event without dublin core catalog.");
       return Response.status(Status.BAD_REQUEST).build();
-    }
-    
-    if (catalogs.containsKey("event")) {
-      try {
-        recordingProperties = parseProperties(catalogs.getFirst("event"));
-      } catch (Exception e) {
-        logger.warn("Could not parse event catalog: {}", catalogs.getFirst("event"));
-        return Response.status(Status.BAD_REQUEST).build();
-      }
-      start = recordingProperties.getProperty("start");
-      end = recordingProperties.getProperty("end");
-      duration = recordingProperties.getProperty("duration");
-      recurrence = recordingProperties.getProperty("recurrence");
-      timezone = recordingProperties.getProperty("timezone");
-    } else {
-      logger.warn("Cannot add event without event catalog.");
-      return Response.status(Status.BAD_REQUEST).build();
-    }
-    
-    Long startAsLong = null;
-    Long endAsLong = null;
-    Long durationAsLong = null;
-    if (StringUtils.isNotEmpty(recurrence)) {
-      if (end == null || duration == null) {
-        logger.warn("For creating recurrent event end date and duration of each event must be specified.");
-        return Response.status(Status.BAD_REQUEST).build();
-      }
-      try {
-        if (start == null) {
-          startAsLong = System.currentTimeMillis();
-        } else {
-          startAsLong = Long.parseLong(start);
-        }
-        endAsLong = Long.parseLong(end);
-        durationAsLong = Long.parseLong(duration);
-      } catch (NumberFormatException e) {
-        logger.warn("Expected time in milliseconds for start, end and duration: {}", e.getMessage());
-        return Response.status(Status.BAD_REQUEST).build();
-      }
     }
     
     if (catalogs.containsKey("agentparameters")) {
@@ -312,10 +273,9 @@ public class SchedulerRestService {
     }
     
     try {
-      if (StringUtils.isNotEmpty(recurrence)) {
+      if (eventCatalog.hasValue(DublinCoreCatalogImpl.PROPERTY_RECURRENCE)) {
         // try to create event and it's recurrences
-        Long[] createdIDs = service.addReccuringEvent(eventCatalog, recurrence, new Date(startAsLong), new Date(
-                endAsLong), durationAsLong, timezone);
+        Long[] createdIDs = service.addReccuringEvent(eventCatalog);
         if (caProperties != null) {
           service.updateCaptureAgentMetadata(caProperties, createdIDs);
         }
@@ -336,6 +296,57 @@ public class SchedulerRestService {
       throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
     }
   }
+  
+  @PUT
+  @Produces(MediaType.TEXT_PLAIN)
+  @Path("bulkaction")
+  @RestQuery(name = "bulkaction", description = "Updates the dublin core catalog of a set of recordings.", returnDescription = "No body returned.",
+          restParameters = {
+            @RestParameter(name = "idlist", description = "JSON Array of ids.", isRequired = true, type = Type.STRING),
+            @RestParameter(name = "dublinecore", description = "The dublin core catalog of updated fields", isRequired = true, type = Type.STRING)
+          },
+          reponses = {
+            @RestResponse(responseCode = HttpServletResponse.SC_NO_CONTENT, description = "Events were updated successfully.")
+          })
+  public Response bulkUpdate(@FormParam("idlist") String idList, @FormParam("dublincore") String dublinCore) {
+    JSONParser parser = new JSONParser();
+    JSONArray ids = new JSONArray();
+    DublinCoreCatalog eventCatalog;
+    try {
+      if (idList != null && !idList.isEmpty()) {
+        ids = (JSONArray) parser.parse(idList);
+      }
+    } catch (ParseException e) {
+      logger.warn("Unable to parse json id list: {}", e);
+      return Response.status(Status.BAD_REQUEST).build();
+    }
+    if (StringUtils.isNotEmpty(dublinCore)) {
+      try {
+        eventCatalog = parseDublinCore(dublinCore);
+      } catch (Exception e) {
+        logger.warn("Could not parse Dublin core catalog: {}",e);
+        return Response.status(Status.BAD_REQUEST).build();
+      }
+    } else {
+      logger.warn("Cannot add event without dublin core catalog.");
+      return Response.status(Status.BAD_REQUEST).build();
+    }
+    if (!ids.isEmpty() && eventCatalog != null) {
+      try {
+        ArrayList<String> stringIds = new ArrayList<String>();
+        for (int i = 0; i < ids.size(); i++) {
+          stringIds.add(Long.toString((Long)ids.get(i)));
+        }
+        service.updateEvents(stringIds, eventCatalog);
+        return Response.noContent().type("").build(); // remove content-type, no message-body.
+      } catch (Exception e) {
+        logger.warn("Unable to update event with id " + ids.toString() + ": {}", e);
+        return Response.serverError().build();
+      }
+    } else {
+      return Response.status(Status.BAD_REQUEST).build();
+    }
+  }
 
   /**
    * 
@@ -346,14 +357,15 @@ public class SchedulerRestService {
    * @return true if the event was found and could be deleted.
    */
   @DELETE
-  @Path("{id}")
+  @Path("{id:.+}")
+  @Produces(MediaType.TEXT_PLAIN)
   @RestQuery(name = "deleterecordings", description = "Removes scheduled event with specified ID.", returnDescription = "OK if event were successfully removed or NOT FOUND if event with specified ID does not exist", pathParameters = { @RestParameter(name = "id", isRequired = true, description = "Event ID", type = Type.STRING) }, reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "Event was successfully removed"),
           @RestResponse(responseCode = HttpServletResponse.SC_NOT_FOUND, description = "Event with specified ID does not exist") })
   public Response deleteEvent(@PathParam("id") long eventId) {
     try {
       service.removeEvent(eventId);
-      return Response.ok().build();
+      return Response.status(Response.Status.NO_CONTENT).build();
     } catch (NotFoundException e) {
       logger.warn("Event with id '{}' does not exist.", eventId);
       return Response.status(Status.NOT_FOUND).build();
@@ -375,9 +387,9 @@ public class SchedulerRestService {
    * @return
    */
   @PUT
-  @Path("{id}")
+  @Path("{id:[0-9]+}")
   @RestQuery(name = "updaterecordings", description = "Updates Dublin Core of specified event", returnDescription = "Status OK is returned if event was successfully updated, NOT FOUND if specified event does not exist or BAD REQUEST if data is missing or invalid", pathParameters = { @RestParameter(name = "id", description = "ID of event to be updated", isRequired = true, type = Type.STRING) }, restParameters = {
-          @RestParameter(name = "event", isRequired = false, description = "Updated Dublin Core for event", type = Type.TEXT),
+          @RestParameter(name = "dublincore", isRequired = false, description = "Updated Dublin Core for event", type = Type.TEXT),
           @RestParameter(name = "agentproperties", isRequired = false, description = "Updated Capture Agent properties", type = Type.TEXT) }, reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "Event was successfully updated"),
           @RestResponse(responseCode = HttpServletResponse.SC_NOT_FOUND, description = "Event with specified ID does not exist"),
@@ -749,17 +761,21 @@ public class SchedulerRestService {
   @Path("conflicts.xml")
   @RestQuery(name = "conflictingrecordingsasxml", description = "Searches for conflicting recordings based on parameters", returnDescription = "Returns NO CONTENT if no recordings are in conflict within specified period or list of conflicting recordings in XML", restParameters = {
           @RestParameter(name = "device", description = "Device identifier for which conflicts will be searched", isRequired = false, type = Type.TEXT),
-          @RestParameter(name = "start", description = "Start time of conflicting period", isRequired = false, type = Type.STRING),
-          @RestParameter(name = "end", description = "End time of conflicting period", isRequired = false, type = Type.STRING),
-          @RestParameter(name = "duration", description = "If recurrence rule is specified duration of each conflicting period", isRequired = false, type = Type.STRING),
-          @RestParameter(name = "rrule", description = "Rule for recurrent conflicting period", isRequired = false, type = Type.STRING) }, reponses = {
+          @RestParameter(name = "start", description = "Start time of conflicting period, in milliseconds", isRequired = false, type = Type.STRING),
+          @RestParameter(name = "end", description = "End time of conflicting period, in milliseconds", isRequired = false, type = Type.STRING),
+          @RestParameter(name = "duration", description = "If recurrence rule is specified duration of each conflicting period, in milliseconds", isRequired = false, type = Type.STRING),
+          @RestParameter(name = "rrule", description = "Rule for recurrent conflicting, specified as: \"FREQ=WEEKLY;BYDAY=day(s);BYHOUR=hour;BYMINUTE=minute\". FREQ is required. BYDAY may include one or more (separated by commas) of the following: SU,MO,TU,WE,TH,FR,SA.", isRequired = false, type = Type.STRING) }, reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_NO_CONTENT, description = "No conflicting events found"),
           @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "Found conflicting events, returned in body of response"),
           @RestResponse(responseCode = HttpServletResponse.SC_BAD_REQUEST, description = "Missing or invalid parameters") })
   public Response getConflictingEventsXml(@QueryParam("device") String device, @QueryParam("start") String startDate,
           @QueryParam("end") String endDate, @QueryParam("duration") String duration, @QueryParam("rrule") String rrule) {
-    if (StringUtils.isEmpty(device) || startDate == null || endDate == null || duration == null) {
+    if (StringUtils.isEmpty(device) || startDate == null || endDate == null) {
       logger.warn("Either device, start date, end date or duration were not specified");
+      return Response.status(Status.BAD_REQUEST).build();
+    }
+    if (StringUtils.isNotEmpty(rrule) && duration == null) {
+      logger.warn("If checking recurrence, must include duration.");
       return Response.status(Status.BAD_REQUEST).build();
     }
     Long startDateAsLong;
@@ -816,26 +832,32 @@ public class SchedulerRestService {
   @Path("conflicts.json")
   @RestQuery(name = "conflictingrecordingsasxml", description = "Searches for conflicting recordings based on parameters", returnDescription = "Returns NO CONTENT if no recordings are in conflict within specified period or list of conflicting recordings in JSON", restParameters = {
           @RestParameter(name = "device", description = "Device identifier for which conflicts will be searched", isRequired = false, type = Type.TEXT),
-          @RestParameter(name = "start", description = "Start time of conflicting period", isRequired = false, type = Type.STRING),
-          @RestParameter(name = "end", description = "End time of conflicting period", isRequired = false, type = Type.STRING),
-          @RestParameter(name = "duration", description = "If recurrence rule is specified duration of each conflicting period", isRequired = false, type = Type.STRING),
-          @RestParameter(name = "rrule", description = "Rule for recurrent conflicting period", isRequired = false, type = Type.STRING) }, reponses = {
+          @RestParameter(name = "start", description = "Start time of conflicting period, in milliseconds", isRequired = false, type = Type.STRING),
+          @RestParameter(name = "end", description = "End time of conflicting period, in milliseconds", isRequired = false, type = Type.STRING),
+          @RestParameter(name = "duration", description = "If recurrence rule is specified duration of each conflicting period, in milliseconds", isRequired = false, type = Type.STRING),
+          @RestParameter(name = "rrule", description = "Rule for recurrent conflicting, specified as: \"FREQ=WEEKLY;BYDAY=day(s);BYHOUR=hour;BYMINUTE=minute\". FREQ is required. BYDAY may include one or more (separated by commas) of the following: SU,MO,TU,WE,TH,FR,SA.", isRequired = false, type = Type.STRING) }, reponses = {
           @RestResponse(responseCode = HttpServletResponse.SC_NO_CONTENT, description = "No conflicting events found"),
           @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "Found conflicting events, returned in body of response"),
           @RestResponse(responseCode = HttpServletResponse.SC_BAD_REQUEST, description = "Missing or invalid parameters") })
   public Response getConflictingEventsJSON(@QueryParam("device") String device, @QueryParam("start") String startDate,
           @QueryParam("end") String endDate, @QueryParam("duration") String duration, @QueryParam("rrule") String rrule) {
-    if (StringUtils.isEmpty(device) || startDate == null || endDate == null || duration == null) {
+    if (StringUtils.isEmpty(device) || startDate == null || endDate == null) {
       logger.warn("Either device, start date, end date or duration were not specified");
+      return Response.status(Status.BAD_REQUEST).build();
+    }
+    if (StringUtils.isNotEmpty(rrule) && duration == null) {
+      logger.warn("If checking recurrence, must include duration.");
       return Response.status(Status.BAD_REQUEST).build();
     }
     Long startDateAsLong;
     Long endDateAsLong;
-    Long durationAsLong;
+    Long durationAsLong = 0L;
     try {
       startDateAsLong = Long.parseLong(startDate);
       endDateAsLong = Long.parseLong(endDate);
-      durationAsLong = Long.parseLong(duration);
+      if (duration != null) {
+        durationAsLong = Long.parseLong(duration);
+      }
     } catch (NumberFormatException e) {
       logger.warn("Invalid number parameter: {}", e.getMessage());
       return Response.status(Status.BAD_REQUEST).build();

@@ -15,6 +15,8 @@
  */
 package org.opencastproject.kernel.userdirectory;
 
+import static org.opencastproject.security.api.UserProvider.ALL_ORGANIZATIONS;
+
 import org.opencastproject.security.api.Organization;
 import org.opencastproject.security.api.RoleDirectoryService;
 import org.opencastproject.security.api.RoleProvider;
@@ -114,7 +116,9 @@ public class UserAndRoleDirectoryServiceImpl implements UserDirectoryService, Us
     SortedSet<String> roles = new TreeSet<String>();
     for (RoleProvider roleProvider : roleProviders) {
       for (String role : roleProvider.getRoles()) {
-        if (!roleProvider.getOrganization().equals(org.getId())) {
+        String currentOrgId = org.getId();
+        String providerOrgId = roleProvider.getOrganization();
+        if (!currentOrgId.equals(providerOrgId) && !ALL_ORGANIZATIONS.equals(providerOrgId)) {
           continue;
         }
         roles.add(role);
@@ -134,10 +138,13 @@ public class UserAndRoleDirectoryServiceImpl implements UserDirectoryService, Us
     if (org == null) {
       throw new IllegalStateException("No organization is set");
     }
+    String orgId = org.getId();
+
     // Collect all of the roles known from each of the user providers for this user
     User user = null;
     for (UserProvider userProvider : userProviders) {
-      if (!userProvider.getOrganization().equals(org.getId())) {
+      String providerOrgId = userProvider.getOrganization();
+      if (!ALL_ORGANIZATIONS.equals(providerOrgId) && !orgId.equals(providerOrgId)) {
         continue;
       }
       User providerUser = userProvider.loadUser(userName);

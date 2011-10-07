@@ -18,12 +18,6 @@ package org.opencastproject.search.api;
 
 import org.opencastproject.mediapackage.MediaPackage;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -32,6 +26,11 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * This class models an item in the search result. It represents a 'video' or 'series' object. It does not, however,
@@ -49,6 +48,9 @@ public class SearchResultItemImpl implements SearchResultItem {
   @XmlID
   @XmlAttribute(name = "id")
   private String id = "";
+
+  @XmlAttribute(name = "org")
+  private String organization;
 
   /** The media package */
   @XmlElement(name = "mediapackage")
@@ -134,6 +136,9 @@ public class SearchResultItemImpl implements SearchResultItem {
   @XmlElement
   private String dcLicense = null;
 
+  /** Field oc_mediapackage */
+  private String ocMediapackage;
+
   /** Search result item type */
   @XmlElement
   private SearchResultItemType mediaType = null;
@@ -174,6 +179,24 @@ public class SearchResultItemImpl implements SearchResultItem {
    */
   public void setId(String id) {
     this.id = id;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.search.api.SearchResultItem#getOrganization()
+   */
+  @Override
+  public String getOrganization() {
+    return organization;
+  }
+
+  /**
+   * @param organization
+   *          the organization to set
+   */
+  public void setOrganization(String organization) {
+    this.organization = organization;
   }
 
   /**
@@ -525,6 +548,15 @@ public class SearchResultItemImpl implements SearchResultItem {
     return mediaType;
   }
 
+  @Override
+  public String getOcMediapackage() {
+    return ocMediapackage;
+  }
+
+  public void setOcMediapackage(String mediapackage) {
+    this.ocMediapackage = mediapackage;
+  }
+
   /**
    * @param mediaType
    *          the mediaType to set
@@ -649,8 +681,10 @@ public class SearchResultItemImpl implements SearchResultItem {
   /**
    * Build a result item from an anonymously implemented interface to ensure you don't miss any fields.
    */
-  public static SearchResultItemImpl fill(SearchResultItemImpl item, SearchResultItem from) {
+  public static SearchResultItemImpl fill(SearchResultItem from) {
+    SearchResultItemImpl item = new SearchResultItemImpl();
     item.setId(from.getId());
+    item.setOrganization(from.getOrganization());
     item.setMediaPackage(from.getMediaPackage());
     item.setDcExtent(from.getDcExtent());
     item.setDcTitle(from.getDcTitle());
@@ -672,6 +706,7 @@ public class SearchResultItemImpl implements SearchResultItem {
     item.setDcType(from.getDcType());
     item.setDcAccessRights(from.getDcAccessRights());
     item.setDcLicense(from.getDcLicense());
+    item.setOcMediapackage(from.getOcMediapackage());
     item.setMediaType(from.getType());
     for (String k : from.getKeywords())
       item.addKeyword(k);

@@ -15,39 +15,7 @@
  */
 package org.opencastproject.series.impl.solr;
 
-import org.opencastproject.metadata.dublincore.DCMIPeriod;
-import org.opencastproject.metadata.dublincore.DublinCore;
-import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
-import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
-import org.opencastproject.metadata.dublincore.DublinCoreValue;
-import org.opencastproject.metadata.dublincore.EncodingSchemeUtils;
-import org.opencastproject.metadata.dublincore.Temporal;
-import org.opencastproject.security.api.AccessControlList;
-import org.opencastproject.security.api.AccessControlParser;
-import org.opencastproject.series.api.SeriesException;
-import org.opencastproject.series.api.SeriesQuery;
-import org.opencastproject.series.impl.SeriesServiceDatabaseException;
-import org.opencastproject.series.impl.SeriesServiceIndex;
-import org.opencastproject.solr.SolrServerFactory;
-import org.opencastproject.util.NotFoundException;
-import org.opencastproject.util.PathSupport;
-import org.opencastproject.util.SolrUtils;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrInputDocument;
-import org.osgi.service.component.ComponentContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.opencastproject.security.api.SecurityConstants.GLOBAL_ADMIN_ROLE;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,19 +30,57 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
+import org.opencastproject.metadata.dublincore.DCMIPeriod;
+import org.opencastproject.metadata.dublincore.DublinCore;
+import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
+import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
+import org.opencastproject.metadata.dublincore.DublinCoreValue;
+import org.opencastproject.metadata.dublincore.EncodingSchemeUtils;
+import org.opencastproject.metadata.dublincore.Temporal;
+import org.opencastproject.security.api.AccessControlEntry;
+import org.opencastproject.security.api.AccessControlList;
+import org.opencastproject.security.api.AccessControlParser;
+import org.opencastproject.security.api.Organization;
+import org.opencastproject.security.api.SecurityService;
+import org.opencastproject.security.api.User;
+import org.opencastproject.series.api.SeriesException;
+import org.opencastproject.series.api.SeriesQuery;
+import org.opencastproject.series.api.SeriesService;
+import org.opencastproject.series.impl.SeriesServiceDatabaseException;
+import org.opencastproject.series.impl.SeriesServiceIndex;
+import org.opencastproject.solr.SolrServerFactory;
+import org.opencastproject.util.NotFoundException;
+import org.opencastproject.util.PathSupport;
+import org.opencastproject.util.SolrUtils;
+import org.osgi.service.component.ComponentContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Implements {@link SeriesServiceIndex}.
  */
 public class SeriesServiceSolrIndex implements SeriesServiceIndex {
-
-  /** The logger */
-  private static final Logger logger = LoggerFactory.getLogger(SeriesServiceSolrIndex.class);
 
   /** Configuration key for a remote solr server */
   public static final String CONFIG_SOLR_URL = "org.opencastproject.series.solr.url";
 
   /** Configuration key for an embedded solr configuration and data directory */
   public static final String CONFIG_SOLR_ROOT = "org.opencastproject.series.solr.dir";
+  
+  /** the default series index suffix */
+  public static final String SOLR_ROOT_SUFFIX = "/seriesindex";
 
   /** Delimeter used for concatenating multivalued fields for sorting fields in solr */
   public static final String SOLR_MULTIVALUED_DELIMETER = "; ";
@@ -82,8 +88,11 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
   /** Date format supported by solr */
   public static final String SOLR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z";
 
+  /** The logger */
+  protected static final Logger logger = LoggerFactory.getLogger(SeriesServiceSolrIndex.class);
+
   /** Connection to the solr server. Solr is used to search for workflows. The workflow data are stored as xml files. */
-  private SolrServer solrServer = null;
+  protected SolrServer solrServer = null;
 
   /** The root directory to use for solr config and data files */
   protected String solrRoot = null;
@@ -93,6 +102,9 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
 
   /** Dublin core service */
   protected DublinCoreCatalogService dcService;
+
+  /** The security service */
+  protected SecurityService securityService;
 
   /** Whether indexing is synchronous or asynchronous */
   protected boolean synchronousIndexing;
@@ -124,6 +136,16 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
   }
 
   /**
+   * OSGi callback for setting Dublin core service.
+   * 
+   * @param securityService
+   *          the securityService to set
+   */
+  public void setSecurityService(SecurityService securityService) {
+    this.securityService = securityService;
+  }
+
+  /**
    * Callback from the OSGi environment on component registration. Retrieves location of the solr index.
    * 
    * @param cc
@@ -150,7 +172,7 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
         String storageDir = cc.getBundleContext().getProperty("org.opencastproject.storage.dir");
         if (storageDir == null)
           throw new IllegalStateException("Storage dir must be set (org.opencastproject.storage.dir)");
-        solrRoot = PathSupport.concat(storageDir, "series");
+        solrRoot = PathSupport.concat(storageDir + SOLR_ROOT_SUFFIX, "series");
       }
 
       Object syncIndexingConfig = cc.getProperties().get("synchronousIndexing");
@@ -303,7 +325,7 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
               solrServer.commit();
             }
           } catch (Exception e) {
-            logger.warn("Unable to index series {}: {}", doc.getFieldValue(SolrFields.ID_KEY), e.getMessage());
+            logger.warn("Unable to index series {}: {}", doc.getFieldValue(SolrFields.COMPOSITE_ID_KEY), e.getMessage());
           }
         }
       });
@@ -338,6 +360,13 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
 
     final SolrInputDocument inputDoc = ClientUtils.toSolrInputDocument(seriesDoc);
     inputDoc.setField(SolrFields.ACCESS_CONTROL_KEY, serializedAC);
+    for (AccessControlEntry ace : accessControl.getEntries()) {
+      if (SeriesService.CONTRIBUTE_CONTENT_PERMISSION.equals(ace.getAction()) && ace.isAllow()) {
+        inputDoc.addField(SolrFields.ACCESS_CONTROL_CONTRIBUTE, ace.getRole());
+      } else if (SeriesService.EDIT_SERIES_PERMISSION.equals(ace.getAction()) && ace.isAllow()) {
+        inputDoc.addField(SolrFields.ACCESS_CONTROL_EDIT, ace.getRole());
+      }
+    }
 
     if (synchronousIndexing) {
       try {
@@ -358,7 +387,7 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
               solrServer.commit();
             }
           } catch (Exception e) {
-            logger.warn("Unable to index ACL for series {}: {}", inputDoc.getFieldValue(SolrFields.ID_KEY),
+            logger.warn("Unable to index ACL for series {}: {}", inputDoc.getFieldValue(SolrFields.COMPOSITE_ID_KEY),
                     e.getMessage());
           }
         }
@@ -375,8 +404,10 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
    */
   protected SolrInputDocument createDocument(DublinCoreCatalog dc) {
     final SolrInputDocument doc = new SolrInputDocument();
-
-    doc.addField(SolrFields.ID_KEY, dc.getFirst(DublinCore.PROPERTY_IDENTIFIER));
+    String dublinCoreId = dc.getFirst(DublinCore.PROPERTY_IDENTIFIER);
+    String orgId = securityService.getOrganization().getId();
+    doc.addField(SolrFields.COMPOSITE_ID_KEY, getCompositeKey(dublinCoreId, orgId));
+    doc.addField(SolrFields.ORGANIZATION, ClientUtils.escapeQueryChars(orgId));
     try {
       doc.addField(SolrFields.XML_KEY, serializeDublinCore(dc));
     } catch (IOException e1) {
@@ -456,6 +487,24 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
   }
 
   /**
+   * Builds a composite key for use in solr.
+   * 
+   * @param dublinCoreId
+   *          the DC identifier, which must be unique for an organization
+   * @param orgId
+   *          the organization identifier
+   * @return the composite key, or null if either dublinCoreId or orgId are empty
+   */
+  protected String getCompositeKey(String dublinCoreId, String orgId) {
+    if (StringUtils.isEmpty(dublinCoreId) || StringUtils.isEmpty(orgId)) {
+      logger.debug("can not create a composite key without values for series and organization IDs");
+      return null;
+    } else {
+      return new StringBuilder(orgId).append("_").append(dublinCoreId).toString();
+    }
+  }
+
+  /**
    * Add field to solr document that can contain multiple values. For sorting field, those values are concatenated and
    * multivalued field delimiter is used.
    * 
@@ -522,6 +571,36 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
   }
 
   /**
+   * Appends a multivalued query parameter to a solr query
+   * 
+   * @param sb
+   *          The {@link StringBuilder} containing the query
+   * @param key
+   *          the key for this search parameter
+   * @param values
+   *          the values for this search parameter
+   * @return the appended {@link StringBuilder}
+   */
+  private StringBuilder append(StringBuilder sb, String key, String[] values) {
+    if (StringUtils.isBlank(key) || values.length == 0) {
+      return sb;
+    }
+    if (sb.length() > 0) {
+      sb.append(" AND (");
+    }
+    for (int i = 0; i < values.length; i++) {
+      if (i > 0) {
+        sb.append(" OR ");
+      }
+      sb.append(key);
+      sb.append(":");
+      sb.append(ClientUtils.escapeQueryChars(values[i]));
+    }
+    sb.append(")");
+    return sb;
+  }
+
+  /**
    * Appends query parameters to a solr query in a way that they are found even though they are not treated as a full
    * word in solr.
    * 
@@ -581,11 +660,14 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
    * 
    * @param query
    *          the series query
+   * @param forEdit
+   *          if this query should return only series available to the current user for editing
    * @return the solr query string
    */
-  protected String buildSolrQueryString(SeriesQuery query) {
+  protected String buildSolrQueryString(SeriesQuery query, boolean forEdit) {
+    String orgId = securityService.getOrganization().getId();
     StringBuilder sb = new StringBuilder();
-    append(sb, SolrFields.ID_KEY, query.getSeriesId());
+    append(sb, SolrFields.COMPOSITE_ID_KEY, getCompositeKey(query.getSeriesId(), orgId));
     appendFuzzy(sb, SolrFields.TITLE_KEY, query.getSeriesTitle());
     appendFuzzy(sb, SolrFields.FULLTEXT_KEY, query.getText());
     appendFuzzy(sb, SolrFields.CREATOR_KEY, query.getCreator());
@@ -599,13 +681,34 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
     appendFuzzy(sb, SolrFields.RIGHTS_HOLDER_KEY, query.getRightsHolder());
     appendFuzzy(sb, SolrFields.SUBJECT_KEY, query.getSubject());
     append(sb, SolrFields.CREATED_KEY, query.getCreatedFrom(), query.getCreatedTo());
+    append(sb, SolrFields.ORGANIZATION, orgId);
 
-    // If we're looking for anything, set the query to a wildcard search
-    if (sb.length() == 0) {
-      sb.append("*:*");
-    }
+    appendAuthorization(sb, forEdit);
 
     return sb.toString();
+  }
+
+  /**
+   * Appends the authorization information to the solr query string
+   * 
+   * @param sb
+   *          the {@link StringBuilder} containing the query
+   * @param forEdit
+   *          if this query should return only series available to the current user for editing
+   * 
+   * @return the appended {@link StringBuilder}
+   */
+  protected StringBuilder appendAuthorization(StringBuilder sb, boolean forEdit) {
+    User currentUser = securityService.getUser();
+    Organization currentOrg = securityService.getOrganization();
+    if (!currentUser.hasRole(currentOrg.getAdminRole()) && !currentUser.hasRole(GLOBAL_ADMIN_ROLE)) {
+      if (forEdit) {
+        append(sb, SolrFields.ACCESS_CONTROL_EDIT, currentUser.getRoles());
+      } else {
+        append(sb, SolrFields.ACCESS_CONTROL_CONTRIBUTE, currentUser.getRoles());
+      }
+    }
+    return sb;
   }
 
   /**
@@ -617,46 +720,46 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
    */
   protected String getSortField(SeriesQuery.Sort sort) {
     switch (sort) {
-    case ABSTRACT:
-      return SolrFields.ABSTRACT_KEY;
-    case ACCESS:
-      return SolrFields.ACCESS_RIGHTS_KEY;
-    case AVAILABLE_FROM:
-      return SolrFields.AVAILABLE_FROM_KEY;
-    case AVAILABLE_TO:
-      return SolrFields.AVAILABLE_TO_KEY;
-    case CONTRIBUTOR:
-      return SolrFields.CONTRIBUTOR_KEY;
-    case CREATED:
-      return SolrFields.CREATED_KEY;
-    case CREATOR:
-      return SolrFields.CREATOR_KEY;
-    case DESCRIPTION:
-      return SolrFields.DESCRIPTION_KEY;
-    case IS_PART_OF:
-      return SolrFields.IS_PART_OF_KEY;
-    case LANGUAGE:
-      return SolrFields.LANGUAGE_KEY;
-    case LICENCE:
-      return SolrFields.LICENSE_KEY;
-    case PUBLISHER:
-      return SolrFields.PUBLISHER_KEY;
-    case REPLACES:
-      return SolrFields.REPLACES_KEY;
-    case RIGHTS_HOLDER:
-      return SolrFields.RIGHTS_HOLDER_KEY;
-    case SPATIAL:
-      return SolrFields.SPATIAL_KEY;
-    case SUBJECT:
-      return SolrFields.SUBJECT_KEY;
-    case TEMPORAL:
-      return SolrFields.TEMPORAL_KEY;
-    case TITLE:
-      return SolrFields.TITLE_KEY;
-    case TYPE:
-      return SolrFields.TYPE_KEY;
-    default:
-      throw new IllegalArgumentException("No mapping found between sort field and index");
+      case ABSTRACT:
+        return SolrFields.ABSTRACT_KEY;
+      case ACCESS:
+        return SolrFields.ACCESS_RIGHTS_KEY;
+      case AVAILABLE_FROM:
+        return SolrFields.AVAILABLE_FROM_KEY;
+      case AVAILABLE_TO:
+        return SolrFields.AVAILABLE_TO_KEY;
+      case CONTRIBUTOR:
+        return SolrFields.CONTRIBUTOR_KEY;
+      case CREATED:
+        return SolrFields.CREATED_KEY;
+      case CREATOR:
+        return SolrFields.CREATOR_KEY;
+      case DESCRIPTION:
+        return SolrFields.DESCRIPTION_KEY;
+      case IS_PART_OF:
+        return SolrFields.IS_PART_OF_KEY;
+      case LANGUAGE:
+        return SolrFields.LANGUAGE_KEY;
+      case LICENCE:
+        return SolrFields.LICENSE_KEY;
+      case PUBLISHER:
+        return SolrFields.PUBLISHER_KEY;
+      case REPLACES:
+        return SolrFields.REPLACES_KEY;
+      case RIGHTS_HOLDER:
+        return SolrFields.RIGHTS_HOLDER_KEY;
+      case SPATIAL:
+        return SolrFields.SPATIAL_KEY;
+      case SUBJECT:
+        return SolrFields.SUBJECT_KEY;
+      case TEMPORAL:
+        return SolrFields.TEMPORAL_KEY;
+      case TITLE:
+        return SolrFields.TITLE_KEY;
+      case TYPE:
+        return SolrFields.TYPE_KEY;
+      default:
+        throw new IllegalArgumentException("No mapping found between sort field and index");
     }
   }
 
@@ -674,7 +777,8 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
     solrQuery.setRows(count);
     solrQuery.setStart(startPage * count);
 
-    String solrQueryString = buildSolrQueryString(query);
+    String solrQueryString = null;
+    solrQueryString = buildSolrQueryString(query, query.isEdit());
     solrQuery.setQuery(solrQueryString);
 
     if (query.getSort() != null) {
@@ -687,7 +791,7 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
     }
 
     List<DublinCoreCatalog> result;
-
+    
     try {
       QueryResponse response = solrServer.query(solrQuery);
       SolrDocumentList items = response.getResults();
@@ -716,7 +820,7 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
     if (synchronousIndexing) {
       try {
         synchronized (solrServer) {
-          solrServer.deleteById(id);
+          solrServer.deleteById(getCompositeKey(id, securityService.getOrganization().getId()));
           solrServer.commit();
         }
       } catch (Exception e) {
@@ -800,8 +904,11 @@ public class SeriesServiceSolrIndex implements SeriesServiceIndex {
    *           if exception occurred
    */
   protected SolrDocument getSolrDocumentByID(String id) throws SeriesServiceDatabaseException {
-    String solrQueryString = SolrFields.ID_KEY + ":" + ClientUtils.escapeQueryChars(id);
-    SolrQuery q = new SolrQuery(solrQueryString);
+    String orgId = securityService.getOrganization().getId();
+    StringBuilder solrQueryString = new StringBuilder(SolrFields.COMPOSITE_ID_KEY).append(":").append(
+            getCompositeKey(id, orgId));
+
+    SolrQuery q = new SolrQuery(solrQueryString.toString());
     QueryResponse response;
     try {
       response = solrServer.query(q);

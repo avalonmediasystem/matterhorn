@@ -370,6 +370,7 @@ Opencast.segments = (function ()
      */
     function showSegments()
     {
+        Opencast.Player.addEvent("SHOW-SEGMENTS");
         // Hide other Tabs
         Opencast.Annotation_Comment_List.hideComments();
         Opencast.Description.hideDescription();
@@ -392,7 +393,7 @@ Opencast.segments = (function ()
         // If cashed data are available
         if (cashe && Opencast.segments_Plugin.createSegmentsFromCashe())
         {
-            Opencast.Utils.log("Cashing segments plugin: yes");
+            $.log("Cashing segments plugin: yes");
             // Request JSONP data -- senseless but otherwise weirdly no correct css parsing?!
             $.ajax(
             {
@@ -402,7 +403,7 @@ Opencast.segments = (function ()
                 jsonp: 'jsonp',
                 success: function (data)
                 {
-                    Opencast.Utils.log("Segments AJAX call: Requesting data succeeded");
+                    $.log("Segments AJAX call: Requesting data succeeded");
                     // Hide the loading Image
                     $('#segments-loading').hide();
                     $('#oc_slides').show();
@@ -414,7 +415,8 @@ Opencast.segments = (function ()
                 // If no data comes back
                 error: function (xhr, ajaxOptions, thrownError)
                 {
-                    Opencast.Utils.log("Segments Ajax call: Requesting data failed");
+                    $.log("Segments Ajax call: Requesting data failed");
+                    Opencast.Player.addEvent("SEGMENTS-AJAX-FAILED");
                     $('#scrollcontainer').html('No Slides available');
                     $('#scrollcontainer').hide();
                 }
@@ -423,7 +425,7 @@ Opencast.segments = (function ()
         else
         {
             cashe = true;
-            Opencast.Utils.log("Cashing segments plugin: no");
+            $.log("Cashing segments plugin: no");
             // Request JSONP data // TODO: Remove Ajax, we're getting the data from segments_ui -- senseless but otherwise weirdly no correct css parsing?!
             $.ajax(
             {
@@ -433,18 +435,18 @@ Opencast.segments = (function ()
                 jsonp: 'jsonp',
                 success: function (data)
                 {
-                    Opencast.Utils.log("Segments AJAX call: Requesting data succeeded");
+                    $.log("Segments AJAX call: Requesting data succeeded");
                     // get rid of every '@' in the JSON data
                     // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
                     if ((data === undefined) || (data['search-results'] === undefined) || (data['search-results'].result === undefined) || (data['search-results'].result.segments === undefined))
                     {
-                        Opencast.Utils.log("Segments AJAX call: Data not available");
+                        $.log("Segments AJAX call: Data not available");
                         $('#scrollcontainer').html('No Slides available');
                         $('#scrollcontainer').hide();
                     }
                     else
                     {
-                        Opencast.Utils.log("Segments AJAX call: Data available");
+                        $.log("Segments AJAX call: Data available");
                         imgURLs = Opencast.segments_ui.getImgURLArray();
                         newSegments = Opencast.segments_ui.getSegments();
                         
@@ -462,7 +464,7 @@ Opencast.segments = (function ()
                 // If no data comes back
                 error: function (xhr, ajaxOptions, thrownError)
                 {
-                    Opencast.Utils.log("Segments Ajax call: Requesting data failed");
+                    $.log("Segments Ajax call: Requesting data failed");
                     $('#scrollcontainer').html('No Slides available');
                     $('#scrollcontainer').hide();
                 }

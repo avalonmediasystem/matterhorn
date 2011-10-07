@@ -25,12 +25,13 @@ cd "${dir}-win32"
 #
 ./configure \
 --extra-cflags="-I${MINGW32_PREFIX}/include/pthread" \
---host=${MINGW32} --cross-prefix=${MINGW32}-
+--host=${MINGW32} --cross-prefix=${MINGW32}- \
+--enable-shared
 [ $? -ne 0 ] && exit 1
 make
 [ $? -ne 0 ] && exit 1
 #
-sudox cp x264.h ${MINGW32_PREFIX}/include
+sudox cp x264.h x264_config.h ${MINGW32_PREFIX}/include
 [ $? -ne 0 ] && exit 1
 sudox cp libx264.a ${MINGW32_PREFIX}/lib
 [ $? -ne 0 ] && exit 1

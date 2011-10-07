@@ -11,6 +11,8 @@ ocRecordings = new (function() {
   var STATISTICS_DELAY = 3000;     // time interval for statistics update
 
   var UPCOMMING_EVENTS_GRACE_PERIOD = 30 * 1000;
+  
+  
 
   var SORT_FIELDS = {
     'Title' : 'TITLE',
@@ -38,6 +40,7 @@ ocRecordings = new (function() {
   this.currentShownRecordings = 0;
   this.numSelectedRecordings = 0;
   this.changedBulkEditFields = {};
+  this.recordings = {};
 
   // components
   this.searchbox = null;
@@ -50,8 +53,6 @@ ocRecordings = new (function() {
   this.refreshingStats = false; // indicates if JSONP requesting statistics data is in progress
   this.refreshInterval = null;
   this.statsInterval = null;
-  
-  this.bulkEditComponents = {};
 
   // object that holds the workflow and the operation object for the hold state UI currently displayed
   this.Hold = {
@@ -361,13 +362,13 @@ ocRecordings = new (function() {
           };
         }
       } else {
-        ocUtils.log('No current operation for worklfow ' + wf.id);
+        ocUtils.log('No current operation for workflow ' + wf.id);
         this.state = 'Paused';
       }
     } else if (wf.state == 'RUNNING') {
       if (op) {
-          this.state = 'Processing';
-          this.operation = op.description;
+        this.state = 'Processing';
+        this.operation = op.description;
       } else {
         this.state = 'Running';
       }
@@ -378,6 +379,8 @@ ocRecordings = new (function() {
     }
 
     // MH-6671 mark upcoming events with start date in the past
+    // Actions
+    var recordingActions = ['view'];
     if (this.state == 'Upcoming') {
       $.each(wf.configurations.configuration, function(index, elm) {
         if (elm.key == 'schedule.start') {
@@ -386,14 +389,14 @@ ocRecordings = new (function() {
           if (parseInt(start) < now) {
             self.error = 'It seems the core system did not recieve proper status updates from the Capture Agent that should have conducted this recording.';
             self.state = 'WARNING : Recording may have failed to start or ingest!';
+            recordingActions.push('ignore');
           }
         }
       });
-      
     }
     
-    // Actions
-    this.actions = ['view'];
+    this.actions = recordingActions;
+    
     if (this.state == 'Upcoming') {
       this.actions.push('edit');
       this.actions.push('delete');
@@ -411,8 +414,8 @@ ocRecordings = new (function() {
   }
 
   /** Prepare data delivered by workflow instances list endpoint for template
- *  rendering.
- */
+   *  rendering.
+   */
   function makeRenderData(data) {
     var recordings = [];
     var wfs = ocUtils.ensureArray(data.workflows.workflow);
@@ -425,7 +428,7 @@ ocRecordings = new (function() {
   }
 
   /** JSONP callback for calls to the workflow instances list endpoint.
- */
+   */
   this.render = function(data) {
     var template = 'tableTemplate';
     var registerRecordingSelectHandler = false;
@@ -444,8 +447,8 @@ ocRecordings = new (function() {
     } else {
       ocRecordings.currentShownRecordings = ocRecordings.totalRecordings;
     }
-    var result = TrimPath.processDOMTemplate(template, makeRenderData(data));
-    $( '#tableContainer' ).empty().append(result);
+    
+    $('#tableContainer').jqotesubtpl("templates/recordings-table.tpl", makeRenderData(data));
     
     if(registerRecordingSelectHandler) {
       $('.selectRecording').click(function() {
@@ -566,7 +569,7 @@ ocRecordings = new (function() {
   }
 
   /** Make the page reload with the currently set configuration
-  */
+   */
   this.reload = function() {
     var url = document.location.href.split('?', 2)[0];
     url += '?' + ocRecordings.buildURLparams();
@@ -574,8 +577,8 @@ ocRecordings = new (function() {
   }
   
   /** Returns the workflow with the specified id from the currently loaded
- *  workflow data or false if workflow with given Id was not found.
- */
+   *  workflow data or false if workflow with given Id was not found.
+   */
   this.getWorkflow = function(wfId) {
     var out = false;
     $.each(ocUtils.ensureArray(this.data.workflows.workflow), function(index, workflow) {
@@ -609,6 +612,7 @@ ocRecordings = new (function() {
 
   this.displayHoldUI = function(wfId) {
     var workflow = ocRecordings.getWorkflow(wfId);
+    location.hash = "#/hold";
     if (workflow) {
       var operation = workflow.operations.operation;  // ocRecordings.findFirstOperation(workflow, 'PAUSED');
       if (operation !== false && operation.holdurl !== undefined) {
@@ -616,7 +620,7 @@ ocRecordings = new (function() {
         this.Hold.operation = operation;
         $('#holdWorkflowId').val(wfId);     // provide Id of hold actions workflow as value of html element (for backwards compatibility)
         $('#holdActionUI').attr('src', operation.holdurl);
-        $('#stage').hide();
+        $('#addHeader').hide();
         $('#holdActionStage').show();
       } else {
         ocUtils.log('Warning: could not display hold action UI: hold operation not found (id=' + wfId + ')');
@@ -627,7 +631,7 @@ ocRecordings = new (function() {
   }
 
   this.adjustHoldActionPanelHeight = function() {
-    var height = $('#holdActionUI').contents().find('html').height() + 10;
+    var height = $('#holdActionUI').contents().find('html').height() + 50;
     $('#holdActionUI').height(height);
   }
 
@@ -699,9 +703,11 @@ ocRecordings = new (function() {
   }
 
   /** $(document).ready()
- *
- */
+   *
+   */
   this.init = function() {
+    
+    $('#addHeader').jqotesubtpl('templates/recordings-header.tpl', {});
 
     // upload/schedule button
     $('#uploadButton').button({
@@ -710,7 +716,7 @@ ocRecordings = new (function() {
       }
     })
     .click( function() {
-      window.location.href = '../../admin/upload.html' + '?' + ocRecordings.buildURLparams();
+      window.location.href = '../../admin/index.html#/upload' + '?' + ocRecordings.buildURLparams();
     });
     $('#scheduleButton').button({
       icons:{
@@ -718,7 +724,7 @@ ocRecordings = new (function() {
       }
     })
     .click( function() {
-      window.location.href = '../../admin/scheduler.html';
+      window.location.href = '../../admin/index.html#/scheduler';
     });
 
     // ocRecordings state selectors
@@ -802,7 +808,18 @@ ocRecordings = new (function() {
     $('#applyBulkAction').click(ocRecordings.applyBulkAction);
     
     $('#seriesSelect').autocomplete({
-      source: SERIES_URL + '/search',
+      source: function(search, callback){
+        $.ajax({
+          type: 'get',
+          url: SERIES_URL + '/series.json',
+          data: {
+            q: search.term
+            },
+          success: function(data){
+            handleSeriesSearch(data, callback);
+          }
+        });
+      },
       select: function(event, ui){
         $('#series').val(ui.item.id);
       },
@@ -833,6 +850,12 @@ ocRecordings = new (function() {
       }
     });
 
+    // Catalogs
+    ocRecordings.dublinCore = new ocAdmin.Catalog({ //DC Metadata catalog
+      name: 'dublincore',
+      serializer: new ocAdmin.DublinCoreSerializer()
+    });
+    
     // set up statistics update
     ocRecordings.startStatisticsUpdate();
 
@@ -845,16 +868,47 @@ ocRecordings = new (function() {
     }
   };
   
+  function handleSeriesSearch(data, callback) {
+    var catalogs = data.catalogs;
+    var source = [];
+    for (var i in catalogs) {
+      var series = catalogs[i];
+      if (ocUtils.exists(series['http://purl.org/dc/terms/'])) {
+        series = series['http://purl.org/dc/terms/'];
+        var item = {
+          label: series.title[0].value + ' - ' + series.creator[0].value,
+          value: series.title[0].value,
+          id: series.identifier[0].value
+        }
+        source.push(item);
+      }
+    }
+    callback(source);
+  }
+  
   this.removeRecording = function(id, title) {
     if(confirm('Are you sure you wish to delete ' + title + '?')){
       $.ajax({
-        url: '/scheduler/'+id,
+        url: '/recordings/'+id,
         type: 'DELETE',
+        dataType: 'text',
         error: function(XHR,status,e){
           alert('Could not remove Recording ' + title);
         },
         success: function(){
-          ocRecordings.reload();
+          $.ajax({
+            url: WORKFLOW_URL + '/stop',
+            type: 'POST',
+            data: {
+              id: id
+            },
+            error: function(XHR,status,e){
+              alert('Could not stop Processing.');
+            },
+            success: function(){
+              ocRecordings.reload();
+            }
+          });
         }
       });
     }
@@ -863,22 +917,22 @@ ocRecordings = new (function() {
   this.stopWorkflow = function(id) {
     var wf = ocRecordings.getWorkflow(id);
     if (wf) {
-      if(confirm('Are you sure you wish to delete ' + wf.title + '?')){
+      if(confirm('Are you sure you wish to delete " ' + wf.mediapackage.title + ' "?')){
         $.ajax({
           url: WORKFLOW_URL + '/stop',
           type: 'POST',
-        data       : {
-          id: id
-        },
-        error      : function(XHR,status,e){
+          data: {
+            id: id
+          },
+          error: function(XHR,status,e){
             alert('Could not stop Processing.');
-        },
+          },
           success: function(){
-          ocRecordings.reload();
-        }
-      });
+            ocRecordings.reload();
+          }
+        });
+      }
     }
-  }
   }
 
   this.publishRecording = function(wfId) {
@@ -1009,6 +1063,7 @@ ocRecordings = new (function() {
         $('#bulkDeletePanel').hide();
         $('#bulkActionApply').show();
         $('#cancelBulkAction').hide();
+        $('#i18n_button_apply_bulk_action').html("Apply Changes");
         ocRecordings.registerBulkEditComponents();
         ocRecordings.Configuration.state = 'bulkedit'
       } else if (action === 'delete') {
@@ -1017,11 +1072,12 @@ ocRecordings = new (function() {
         $('#bulkDeletePanel').show();
         $('#bulkActionApply').show();
         $('#cancelBulkAction').hide();
+        $('#i18n_button_apply_bulk_action').html("Delete Recordings");
         ocRecordings.Configuration.state = 'bulkdelete'
       }
-        refresh();
-      }
+      refresh();
     }
+  }
   
   function bulkEditApplyMessage() {
     return "Changes will be made in " + ocUtils.sizeOf(ocRecordings.changedBulkEditFields) +
@@ -1072,61 +1128,105 @@ ocRecordings = new (function() {
     });
     if(eventIdList.length > 0){
       if(ocRecordings.Configuration.state === 'bulkedit') {
-        manager = new ocAdmin.Manager('event', '', ocRecordings.bulkEditComponents);
-        event = manager.serialize();
-        $('#progressIndicator').show();
-        $.post('/scheduler/', 
-        {
-          event: event,
-          idList: '[' + eventIdList.toString() + ']'
-        },
-        ocRecordings.bulkActionComplete);
-      } else if(ocRecordings.Configuration.state === 'bulkdelete') {
-if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming recordings? \nNo record of these will remain. You will need to reschedule if needed.') ){
-        progressChunk = (100 / eventIdList.length)
-        $('#deleteProgress').progressbar({
-          value: 0,
-          complete: function(){
-            $('#deleteModal').dialog('destroy');
-            ocRecordings.bulkActionComplete();
-          }
-        });
-        $('#deleteModal').dialog({
-          modal: true,
-          resizable: false,
-          draggable: false,
-          create: function (event, ui)
-          {
-            $('.ui-dialog-titlebar-close').hide();
-          }
-        });
-        var toid = setInterval(function(){
-          var id = eventIdList.pop();
-          if(typeof id === 'undefined'){
-            clearInterval(toid);
-            ocUtils.log(progress);
-            $('#deleteProgress').progressbar('value', ++progress);
-            if(failed > 0) {
-              $('#deleteError').show();
-            }
-            return;
-          }
+        var cat = ocRecordings.dublinCore.serialize();
+        if(!cat) {
+          alert("Couldn't create dublincore catalog.");
+        } else {
+          $('#progressIndicator').show();
           $.ajax({
-            url: '/scheduler/'+id,
-            type: 'DELETE',
-            complete: function(xhr, status) {
-              if(xhr.status == 500) {
-                failed++;
-                $('#deleteErrorMessage').text('Failed to delete ' + failed + ' recordings.');
-              } else {
-              progress = progress + progressChunk;
-              $('#deleteProgress').progressbar('value', progress);
-            }
+            url: '/recordings/bulkaction',
+            type: 'PUT',
+            data: {
+              dublincore: cat,
+              idlist: '[' + eventIdList.toString() + ']'
+            },
+            success: ocRecordings.bulkActionComplete
+          });
+        }
+      } else if(ocRecordings.Configuration.state === 'bulkdelete') {
+        if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming recordings? \nNo record of these will remain. You will need to reschedule if needed.') ){
+          progressChunk = (100 / eventIdList.length)
+          $('#deleteProgress').progressbar({
+            value: 0,
+            complete: function(){
+              $('#deleteModal').dialog('destroy');
+              ocRecordings.bulkActionComplete();
             }
           });
-        }, 250);
+          $('#deleteModal').dialog({
+            modal: true,
+            resizable: false,
+            draggable: false,
+            create: function (event, ui)
+            {
+              $('.ui-dialog-titlebar-close').hide();
+            }
+          });
+          var toid = setInterval(function(){
+            var id = eventIdList.pop();
+            if(typeof id === 'undefined'){
+              clearInterval(toid);
+              ocUtils.log(progress);
+              $('#deleteProgress').progressbar('value', ++progress);
+              if(failed > 0) {
+                $('#deleteError').show();
+              }
+              return;
+            }
+            $.ajax({
+              url: '/recordings/'+id,
+              type: 'DELETE',
+              complete: function(xhr, status) {
+                if(xhr.status == 500) {
+                  failed++;
+                  $('#deleteErrorMessage').text('Failed to delete ' + failed + ' recordings.');
+                } else {
+                  $.ajax({
+                    url: WORKFLOW_URL + '/stop',
+                    type: 'POST',
+                    data: {
+                      id: id
+                    },
+                    error: function(XHR,status,e){
+                      failed++;
+                      $('#deleteErrorMessage').text('Could not stop Processing ' + failed + ' recordings.');
+                    },
+                    success: function(){
+                      progress = progress + progressChunk;
+                      $('#deleteProgress').progressbar('value', progress);
+                    }
+                  });
+                }
+              }
+            });
+            var toid = setInterval(function(){
+              var id = eventIdList.pop();
+              if(typeof id === 'undefined'){
+                clearInterval(toid);
+                ocUtils.log(progress);
+                $('#deleteProgress').progressbar('value', ++progress);
+                if(failed > 0) {
+                  $('#deleteError').show();
+                }
+                return;
+              }
+              $.ajax({
+                url: '/scheduler/'+id,
+                type: 'DELETE',
+                complete: function(xhr, status) {
+                  if(xhr.status == 500) {
+                    failed++;
+                    $('#deleteErrorMessage').text('Failed to delete ' + failed + ' recordings.');
+                  } else {
+                    progress = progress + progressChunk;
+                    $('#deleteProgress').progressbar('value', progress);
+                  }
+                }
+              });
+            }, 250);
+          });
+        }
       }
-}
     }
   }
 
@@ -1138,21 +1238,23 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
   }
 
   this.registerBulkEditComponents = function() {
-    ocRecordings.bulkEditComponents.title = new ocAdmin.Component(['title'], {
-      label: 'titleLabel'
+    ocRecordings.dublinCore.components.title = new ocAdmin.Component(['title'], {
+      label: 'titleLabel',
+      key: 'title'
     });
-    ocRecordings.bulkEditComponents.creator = new ocAdmin.Component(['creator'], {
-      label: 'creatorLabel'
+    ocRecordings.dublinCore.components.creator = new ocAdmin.Component(['creator'], {
+      label: 'creatorLabel',
+      key: 'creator'
     });
-    ocRecordings.bulkEditComponents.contributor = new ocAdmin.Component(['contributor'], {
-      label: 'contributorLabel'
+    ocRecordings.dublinCore.components.contributor = new ocAdmin.Component(['contributor'], {
+      label: 'contributorLabel',
+      key: 'contributor'
     });
-    ocRecordings.bulkEditComponents.seriesId = new ocAdmin.Component(['series', 'seriesSelect'],
+    ocRecordings.dublinCore.components.seriesId = new ocAdmin.Component(['series', 'seriesSelect'],
     {
       label: 'seriesLabel',
       errorField: 'missingSeries',
-      nodeKey: ['seriesId', 'series'],
-      required: true
+      key: 'isPartOf'
     },
 
     {
@@ -1172,62 +1274,54 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
         }
         return this.getValue() + '';
       },
-      validate: function(){
-        if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === ''){ //have text and no idea
-          return this.createSeriesFromSearchText();
-        }
-        return true; //nothing, or we have an id.
-      },
-      toNode: function(parent){
-        if(parent){
-          doc = parent.ownerDocument;
-        }else{
-          doc = document;
-        }
-        if(this.getValue() != "" && this.asString() != ""){ //only add series if we have both id and name.
-          seriesId = doc.createElement(this.nodeKey[0]);
-          seriesId.appendChild(doc.createTextNode(this.getValue()));
-          seriesName = doc.createElement(this.nodeKey[1]);
-          seriesName.appendChild(doc.createTextNode(this.asString()));
-          if(parent && parent.nodeType){
-            parent.appendChild(seriesId);
-            parent.appendChild(seriesName);
-          }else{
-            ocUtils.log('Unable to append node to document. ', parent, seriesId, seriesName);
+      validate: function() {
+        var error = [];
+        if(this.fields.seriesSelect.val() !== '' && this.fields.series.val() === '') { //have text and no id
+          if(!this.createSeriesFromSearchText()) {
+            error.push(this.errors.seriesError); //failed to create series for some reason.
           }
         }
+        return error;
       },
       createSeriesFromSearchText: function(){
         var series, seriesComponent, seriesId;
         var creationSucceeded = false;
         if(this.fields.seriesSelect !== ''){
-          series = '<series><additionalMetadata><metadata><key>title</key><value>' + this.fields.seriesSelect.val() + '</value></metadata></additionalMetadata></series>';
+          series = '<dublincore xmlns="http://www.opencastproject.org/xsd/1.0/dublincore/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oc="http://www.opencastproject.org/matterhorn"><dcterms:title xmlns="">' + this.fields.seriesSelect.val() + '</dcterms:title></dublincore>'
           seriesComponent = this;
           $.ajax({
             async: false,
-            type: 'PUT',
+            type: 'POST',
             url: SERIES_URL + '/',
-            data: {
-              series: series
+            data: { 
+              series: series,
+              acl: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:acl xmlns:ns2="org.opencastproject.security"><ace><role>anonymous</role><action>read</action><allow>true</allow></ace></ns2:acl>'
             },
-            dataType: 'json',
+            dataType: 'xml',
             success: function(data){
+              window.debug = data;
               creationSucceeded = true;
-              seriesComponent.fields.series.val(data.series['id']);
+              seriesComponent.fields.series.val($('dcterms\\:identifier',data).text());
+            },
+            error: function() {
+              creationSucceeded = false;
             }
           });
         }
         return creationSucceeded;
       }
     });
-    ocRecordings.bulkEditComponents.subject = new ocAdmin.Component(['subject'], {
-      label: 'subjectLabel'
+    ocRecordings.dublinCore.components.subject = new ocAdmin.Component(['subject'], {
+      label: 'subjectLabel',
+      key: 'subject'
     });
-    ocRecordings.bulkEditComponents.language = new ocAdmin.Component(['language'], {
-      label: 'languageLabel'
+    ocRecordings.dublinCore.components.language = new ocAdmin.Component(['language'], {
+      label: 'languageLabel',
+      key: 'language'
     });
-    ocRecordings.bulkEditComponents.description = new ocAdmin.Component(['description'], {
-      label: 'descriptionLabel'
+    ocRecordings.dublinCore.components.description = new ocAdmin.Component(['description'], {
+      label: 'descriptionLabel',
+      key: 'description'
     });
   }
   
@@ -1236,24 +1330,15 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
     refresh();
   }
   
-  $(document).ready(this.init);
-
   this.makeActions = function(recording, actions) {
     var id = recording.id;
     var links = [];
     $.each(actions, function(index, action) {
       if (action == 'view') {
-        links.push('<a href="viewinfo.html?id=' + id + '">View Info</a>');
+        links.push('<a href="index.html#/viewinfo?id=' + id + '">View Info</a>');
 
       } else if (action == 'edit') {
-        links.push('<a href="scheduler.html?eventId=' + id + '&edit=true">Edit</a>');
-      } else if(actions[index] === 'play') {
-        var workflow = ocRecordings.getWorkflow(id);
-        if (workflow) {
-          var mpId = workflow.mediapackage.id;
-          links.push('<a href="../engage/ui/watch.html?id=' + mpId + '">Play</a>');
-        }
-
+        links.push('<a href="index.html#/scheduler?eventId=' + id + '&edit=true">Edit</a>');
       } else if (action == 'play') {
         var workflow = ocRecordings.getWorkflow(id);
         if (workflow) {
@@ -1269,7 +1354,7 @@ if( confirm('Are you sure you wish to delete ' + eventIdList.length + ' upcoming
             data = $.parseJSON(data);
             ENGAGE_URL = data.engage;
           }
-          links.push('<a href="' + ENGAGE_URL + '/engage/ui/watch.html?id=' + mpId + '">Play</a>');
+          links.push('<a href="' + ENGAGE_URL + '/engage/ui/watch.html?id=' + mpId + '" title="Go to Matterhorn Media Module Watch page to view this recording">Play</a>');
         }
 
       } else if (action == 'delete') {

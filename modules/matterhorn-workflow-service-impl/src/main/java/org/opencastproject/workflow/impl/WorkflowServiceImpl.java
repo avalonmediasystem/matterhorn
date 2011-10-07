@@ -16,6 +16,7 @@
 package org.opencastproject.workflow.impl;
 
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.opencastproject.security.api.SecurityConstants.GLOBAL_ADMIN_ROLE;
 import static org.opencastproject.workflow.api.WorkflowInstance.WorkflowState.FAILED;
 import static org.opencastproject.workflow.api.WorkflowInstance.WorkflowState.FAILING;
 import static org.opencastproject.workflow.api.WorkflowInstance.WorkflowState.INSTANTIATED;
@@ -29,14 +30,15 @@ import org.opencastproject.job.api.Job.Status;
 import org.opencastproject.job.api.JobProducer;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageException;
-import org.opencastproject.metadata.api.MediaPackageMetadata;
 import org.opencastproject.mediapackage.MediaPackageParser;
+import org.opencastproject.metadata.api.MediaPackageMetadata;
 import org.opencastproject.metadata.api.MediaPackageMetadataService;
 import org.opencastproject.security.api.AccessControlList;
 import org.opencastproject.security.api.AuthorizationService;
 import org.opencastproject.security.api.Organization;
 import org.opencastproject.security.api.OrganizationDirectoryService;
 import org.opencastproject.security.api.SecurityService;
+import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.security.api.User;
 import org.opencastproject.security.api.UserDirectoryService;
 import org.opencastproject.series.api.SeriesException;
@@ -165,14 +167,14 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   /** The authorization service */
   protected AuthorizationService authorizationService = null;
 
-  /** The series service */
-  private SeriesService seriesService;
-
   /** The user directory service */
   protected UserDirectoryService userDirectoryService = null;
 
   /** The organization directory service */
   protected OrganizationDirectoryService organizationDirectoryService = null;
+
+  /** The series service */
+  protected SeriesService seriesService;
 
   static {
     YES = new HashSet<String>(Arrays.asList(new String[] { "yes", "true", "on" }));
@@ -428,13 +430,16 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * 
    * @see org.opencastproject.workflow.api.WorkflowService#getWorkflowById(long)
    */
-  public WorkflowInstanceImpl getWorkflowById(long id) throws WorkflowDatabaseException, NotFoundException {
+  public WorkflowInstanceImpl getWorkflowById(long id) throws WorkflowDatabaseException, NotFoundException,
+          UnauthorizedException {
     try {
       Job job = serviceRegistry.getJob(id);
       if (Status.DELETED.equals(job.getStatus()))
         throw new NotFoundException("Workflow '" + id + "' has been deleted");
       if (JOB_TYPE.equals(job.getJobType()) && Operation.START_WORKFLOW.toString().equals(job.getOperation())) {
-        return WorkflowParser.parseWorkflowInstance(job.getPayload());
+        WorkflowInstanceImpl workflow = WorkflowParser.parseWorkflowInstance(job.getPayload());
+        assertPermission(workflow, READ_PERMISSION);
+        return workflow;
       } else {
         throw new NotFoundException("'" + id + "' is a job identifier, but it is not a workflow identifier");
       }
@@ -442,6 +447,8 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       throw new IllegalStateException("The workflow job payload is malformed");
     } catch (ServiceRegistryException e) {
       throw new IllegalStateException("Error loading workflow job from the service registry");
+    } catch (MediaPackageException e) {
+      throw new IllegalStateException("Unable to read mediapackage from workflow " + id, e);
     }
   }
 
@@ -493,8 +500,13 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
       throw new IllegalArgumentException("workflow definition must not be null");
     if (sourceMediaPackage == null)
       throw new IllegalArgumentException("mediapackage must not be null");
-    if (parentWorkflowId != null && getWorkflowById(parentWorkflowId) == null)
-      throw new IllegalArgumentException("Parent workflow " + parentWorkflowId + " not found");
+    if (parentWorkflowId != null) {
+      try {
+        getWorkflowById(parentWorkflowId); // Let NotFoundException bubble up
+      } catch (UnauthorizedException e) {
+        throw new IllegalArgumentException("Parent workflow " + parentWorkflowId + " not visible to this user");
+      }
+    }
 
     User currentUser = securityService.getUser();
     WorkflowInstance workflowInstance = new WorkflowInstanceImpl(workflowDefinition, sourceMediaPackage,
@@ -506,6 +518,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
     populateMediaPackageMetadata(updatedMediaPackage);
     String seriesId = updatedMediaPackage.getSeries();
     if (seriesId != null) {
+
       // If the mediapackage contains a series, find the series ACLs and add the security information to the
       // mediapackage
       try {
@@ -515,6 +528,8 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
         throw new WorkflowDatabaseException(e);
       } catch (MediaPackageException e) {
         throw new WorkflowDatabaseException(e);
+      } catch (NotFoundException e) {
+        logger.warn("Series {} not found, unable to set ACLs", seriesId);
       }
     }
 
@@ -643,7 +658,8 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @throws WorkflowParsingException
    *           if the workflow instance can't be parsed
    */
-  protected Job runWorkflow(WorkflowInstance workflow) throws WorkflowDatabaseException, WorkflowParsingException {
+  protected Job runWorkflow(WorkflowInstance workflow) throws WorkflowDatabaseException, WorkflowParsingException,
+          UnauthorizedException {
     if (!INSTANTIATED.equals(workflow.getState()))
       throw new IllegalStateException("Cannot start a workflow in state '" + workflow.getState() + "'");
 
@@ -690,7 +706,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    *           if the workflow can't be parsed
    */
   protected WorkflowOperationInstance runWorkflowOperation(WorkflowInstance workflow, Map<String, String> properties)
-          throws WorkflowDatabaseException, WorkflowParsingException {
+          throws WorkflowDatabaseException, WorkflowParsingException, UnauthorizedException {
     WorkflowOperationInstance processingOperation = workflow.getCurrentOperation();
     if (processingOperation == null)
       throw new IllegalStateException("No operation to run, workflow is " + workflow.getState());
@@ -753,10 +769,12 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
         dbWorkflowState = getWorkflowById(workflow.getId()).getState();
       } catch (WorkflowDatabaseException e) {
         throw new IllegalStateException("The workflow with ID " + workflow.getId()
-                + " can not be accessed in the database");
+                + " can not be accessed in the database", e);
       } catch (NotFoundException e) {
         throw new IllegalStateException("The workflow with ID " + workflow.getId()
-                + " can not be found in the database");
+                + " can not be found in the database", e);
+      } catch (UnauthorizedException e) {
+        throw new IllegalStateException("The workflow with ID " + workflow.getId() + " can not be read", e);
       }
 
       // If somebody changed the workflow state from the outside, that state should take precedence
@@ -826,7 +844,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @see org.opencastproject.workflow.api.WorkflowService#stop(long)
    */
   public WorkflowInstance stop(long workflowInstanceId) throws WorkflowDatabaseException, WorkflowParsingException,
-          NotFoundException {
+          NotFoundException, UnauthorizedException {
     WorkflowInstanceImpl instance = (WorkflowInstanceImpl) getWorkflowById(workflowInstanceId);
     instance.setState(STOPPED);
     update(instance);
@@ -839,7 +857,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @see org.opencastproject.workflow.api.WorkflowService#suspend(long)
    */
   public WorkflowInstance suspend(long workflowInstanceId) throws WorkflowDatabaseException, WorkflowParsingException,
-          NotFoundException {
+          NotFoundException, UnauthorizedException {
     WorkflowInstanceImpl instance = (WorkflowInstanceImpl) getWorkflowById(workflowInstanceId);
     instance.setState(PAUSED);
     update(instance);
@@ -852,17 +870,18 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @see org.opencastproject.workflow.api.WorkflowService#resume(long)
    */
   @Override
-  public WorkflowInstance resume(long id) throws WorkflowDatabaseException, WorkflowParsingException, NotFoundException {
+  public WorkflowInstance resume(long id) throws WorkflowDatabaseException, WorkflowParsingException,
+          NotFoundException, UnauthorizedException {
     return resume(id, null);
   }
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.api.WorkflowService#resume(long)
+   * @see org.opencastproject.workflow.api.WorkflowService#resume(long, Map)
    */
   public WorkflowInstance resume(long workflowInstanceId, Map<String, String> properties)
-          throws WorkflowDatabaseException, WorkflowParsingException, NotFoundException {
+          throws WorkflowDatabaseException, WorkflowParsingException, NotFoundException, UnauthorizedException {
 
     WorkflowInstance workflowInstance = getWorkflowById(workflowInstanceId);
     workflowInstance = updateConfiguration(workflowInstance, properties);
@@ -933,16 +952,59 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   }
 
   /**
+   * Asserts that the current user has permission to take the provided action on a workflow instance.
+   * 
+   * @param workflow
+   *          the workflow instance
+   * @param action
+   *          the action to ensure is permitted
+   * @throws UnauthorizedException
+   *           if the action is not authorized
+   * @throws MediaPackageException
+   *           if there is an error accessing the workflow's security policy in its mediapackage
+   */
+  protected void assertPermission(WorkflowInstance workflow, String action) throws UnauthorizedException,
+          MediaPackageException {
+    User currentUser = securityService.getUser();
+    Organization currentOrg = securityService.getOrganization();
+    String currentOrgAdminRole = currentOrg.getAdminRole();
+    String currentOrgId = currentOrg.getId();
+
+    MediaPackage mediapackage = workflow.getMediaPackage();
+    User workflowCreator = workflow.getCreator();
+    String workflowOrgId = workflowCreator.getOrganization();
+
+    boolean authorized = currentUser.hasRole(GLOBAL_ADMIN_ROLE)
+            || (currentUser.hasRole(currentOrgAdminRole) && currentOrgId.equals(workflowOrgId))
+            || currentUser.equals(workflowCreator)
+            || (authorizationService.hasPermission(mediapackage, WRITE_PERMISSION) && currentOrgId
+                    .equals(workflowOrgId));
+
+    if (!authorized) {
+      throw new UnauthorizedException(currentUser, action);
+    }
+  }
+
+  /**
    * {@inheritDoc}
    * 
    * @see org.opencastproject.workflow.api.WorkflowService#update(org.opencastproject.workflow.api.WorkflowInstance)
    */
-  public void update(final WorkflowInstance workflowInstance) throws WorkflowDatabaseException {
+  public void update(final WorkflowInstance workflowInstance) throws WorkflowDatabaseException,
+          WorkflowParsingException, UnauthorizedException {
     WorkflowInstance originalWorkflowInstance = null;
     try {
       originalWorkflowInstance = getWorkflowById(workflowInstance.getId());
     } catch (NotFoundException e) {
       // That's fine, it's a new workflow instance
+    }
+
+    if (originalWorkflowInstance != null) {
+      try {
+        assertPermission(originalWorkflowInstance, WRITE_PERMISSION);
+      } catch (MediaPackageException e) {
+        throw new WorkflowParsingException(e);
+      }
     }
 
     // Before we persist this, extract the metadata
@@ -1076,39 +1138,48 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @throws WorkflowParsingException
    */
   protected WorkflowInstance handleOperationException(WorkflowInstance workflow, WorkflowOperationException e)
-          throws WorkflowDatabaseException, WorkflowParsingException {
+          throws WorkflowDatabaseException, WorkflowParsingException, UnauthorizedException {
     // Add the exception's localized message to the workflow instance
     workflow.addErrorMessage(e.getLocalizedMessage());
 
-    WorkflowOperationInstance currentOperation = e.getOperation();
-    String errorDefId = currentOperation.getExceptionHandlingWorkflow();
+    WorkflowOperationInstanceImpl currentOperation = (WorkflowOperationInstanceImpl) e.getOperation();
+    int failedAttempt = currentOperation.getFailedAttempts() + 1;
+    currentOperation.setFailedAttempts(failedAttempt);
 
-    // Adjust the workflow state according to the setting on the operation
-    if (currentOperation.isFailWorkflowOnException()) {
-      if (StringUtils.isBlank(errorDefId)) {
-        workflow.setState(FAILED);
-      } else {
-        workflow.setState(FAILING);
+    if (failedAttempt == currentOperation.getMaxAttempts()) {
+      String errorDefId = currentOperation.getExceptionHandlingWorkflow();
 
-        // Remove the rest of the original workflow
-        int currentOperationPosition = workflow.getOperations().indexOf(currentOperation);
-        List<WorkflowOperationInstance> operations = new ArrayList<WorkflowOperationInstance>();
-        operations.addAll(workflow.getOperations().subList(0, currentOperationPosition + 1));
-        workflow.setOperations(operations);
+      // Adjust the workflow state according to the setting on the operation
+      if (currentOperation.isFailWorkflowOnException()) {
+        if (StringUtils.isBlank(errorDefId)) {
+          workflow.setState(FAILED);
+        } else {
+          workflow.setState(FAILING);
 
-        // Append the operations
-        WorkflowDefinition errorDef = null;
-        try {
-          errorDef = getWorkflowDefinitionById(errorDefId);
-          workflow.extend(errorDef);
-        } catch (NotFoundException notFoundException) {
-          throw new IllegalStateException("Unable to find the error workflow definition '" + errorDefId + "'");
+          // Remove the rest of the original workflow
+          int currentOperationPosition = workflow.getOperations().indexOf(currentOperation);
+          List<WorkflowOperationInstance> operations = new ArrayList<WorkflowOperationInstance>();
+          operations.addAll(workflow.getOperations().subList(0, currentOperationPosition + 1));
+          workflow.setOperations(operations);
+
+          // Append the operations
+          WorkflowDefinition errorDef = null;
+          try {
+            errorDef = getWorkflowDefinitionById(errorDefId);
+            workflow.extend(errorDef);
+          } catch (NotFoundException notFoundException) {
+            throw new IllegalStateException("Unable to find the error workflow definition '" + errorDefId + "'");
+          }
         }
       }
-    }
 
-    // Fail the current operation
-    currentOperation.setState(OperationState.FAILED);
+      // Fail the current operation
+      currentOperation.setState(OperationState.FAILED);
+    } else {
+      // We're going to try again, so set the current operation to instantiated
+      currentOperation.setState(OperationState.INSTANTIATED);
+      runWorkflowOperation(workflow, null); // I *think* we don't need properties here, since this isn't a resume (jmh)
+    }
     return workflow;
   }
 
@@ -1538,16 +1609,6 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
   }
 
   /**
-   * Callback for setting the series service
-   * 
-   * @param seriesService
-   *          the series service
-   */
-  public void setSeriesService(SeriesService seriesService) {
-    this.seriesService = seriesService;
-  }
-
-  /**
    * Callback for setting the user directory service
    * 
    * @param userDirectoryService
@@ -1575,6 +1636,16 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    */
   protected void setDao(WorkflowServiceIndex index) {
     this.index = index;
+  }
+
+  /**
+   * Sets the series service
+   * 
+   * @param seriesService
+   *          the seriesService to set
+   */
+  public void setSeriesService(SeriesService seriesService) {
+    this.seriesService = seriesService;
   }
 
   /**

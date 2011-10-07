@@ -16,8 +16,6 @@
 
 package org.opencastproject.metadata.dublincore;
 
-import static org.opencastproject.metadata.dublincore.DublinCore.PROPERTY_CREATED;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -28,6 +26,7 @@ import static org.opencastproject.metadata.dublincore.DublinCore.ENC_SCHEME_URI;
 import static org.opencastproject.metadata.dublincore.DublinCore.LANGUAGE_ANY;
 import static org.opencastproject.metadata.dublincore.DublinCore.LANGUAGE_UNDEFINED;
 import static org.opencastproject.metadata.dublincore.DublinCore.PROPERTY_CONTRIBUTOR;
+import static org.opencastproject.metadata.dublincore.DublinCore.PROPERTY_CREATED;
 import static org.opencastproject.metadata.dublincore.DublinCore.PROPERTY_CREATOR;
 import static org.opencastproject.metadata.dublincore.DublinCore.PROPERTY_FORMAT;
 import static org.opencastproject.metadata.dublincore.DublinCore.PROPERTY_IDENTIFIER;
@@ -215,9 +214,9 @@ public class DublinCoreTest {
       dcNew.add(PROPERTY_LICENSE, new DublinCoreValue("http://www.opencastproject.org/license",
               DublinCore.LANGUAGE_UNDEFINED, ENC_SCHEME_URI));
       // Don't forget to bind the namespace...
-      dcNew.bindPrefix("octest", "http://www.opencastproject.org");
+      dcNew.bindPrefix("octest", "http://www.opencastproject.org/octest");
       dcNew.add(PROPERTY_PROMOTED, new DublinCoreValue("true", DublinCore.LANGUAGE_UNDEFINED, new EName(
-              "http://www.opencastproject.org", "Boolean")));
+              "http://www.opencastproject.org/octest", "Boolean")));
       try {
         dcNew.add(PROPERTY_PROMOTED, new DublinCoreValue("true", DublinCore.LANGUAGE_UNDEFINED, new EName(
                 "http://www.opencastproject.org/enc-scheme", "Boolean")));

@@ -41,6 +41,7 @@ Opencast.segments_text = (function ()
      */
     function showSegmentsText()
     {
+        Opencast.Player.addEvent("SHOW-TEXT-SEGMENTS");
         // Hide other Tabs
         Opencast.Annotation_Comment_List.hideComments();
         Opencast.Description.hideDescription();
@@ -61,7 +62,7 @@ Opencast.segments_text = (function ()
         // If cashed data are available
         if (Opencast.segments_text_Plugin.createSegmentsTextFromCashe())
         {
-            Opencast.Utils.log("Cashing segments text plugin: yes");
+            $.log("Cashing segments text plugin: yes");
             // Make visible
             $('#oc_slidetext').show();
             $('#segments_text-loading').hide();
@@ -70,7 +71,7 @@ Opencast.segments_text = (function ()
         }
         else
         {
-            Opencast.Utils.log("Cashing segments text plugin: no");
+            $.log("Cashing segments text plugin: no");
             // Request JSONP data
             $.ajax(
             {
@@ -80,16 +81,16 @@ Opencast.segments_text = (function ()
                 jsonp: 'jsonp',
                 success: function (data)
                 {
-                    Opencast.Utils.log("Segments Text AJAX call: Requesting data succeeded");
+                    $.log("Segments Text AJAX call: Requesting data succeeded");
                     // get rid of every '@' in the JSON data
                     // data = $.parseJSON(JSON.stringify(data).replace(/@/g, ''));
                     if ((data === undefined) || (data['search-results'] === undefined) || (data['search-results'].result === undefined) || (data['search-results'].result.segments === undefined))
                     {
-                        Opencast.Utils.log("Segments Text AJAX call: Data not available");
+                        $.log("Segments Text AJAX call: Data not available");
                     } else
                     {
-                        Opencast.Utils.log("Segments Text AJAX call: Data available");
-                        data['search-results'].result.segments.currentTime = Opencast.Utils.getTimeInMilliseconds(Opencast.Player.getCurrentTime());
+                        $.log("Segments Text AJAX call: Data available");
+                        data['search-results'].result.segments.currentTime = $.getTimeInMilliseconds(Opencast.Player.getCurrentTime());
                         // Set Duration until this Segment ends
                         var completeDuration = 0;
                         $.each(data['search-results'].result.segments.segment, function (i, value)
@@ -112,7 +113,8 @@ Opencast.segments_text = (function ()
                 // If no data comes back
                 error: function (xhr, ajaxOptions, thrownError)
                 {
-                    Opencast.Utils.log("Segments Text Ajax call: Requesting data failed");
+                    $.log("Segments Text Ajax call: Requesting data failed");
+                    Opencast.Player.addEvent("SEGMENTS-TEXT-AJAX-FAILED");
                     $('#oc-segments_text').html('No Segment Text available');
                     $('#oc-segments_text').hide();
                 }

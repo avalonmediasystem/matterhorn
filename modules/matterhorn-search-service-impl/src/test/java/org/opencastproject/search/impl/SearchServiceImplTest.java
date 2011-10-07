@@ -26,6 +26,27 @@ import static org.opencastproject.security.api.SecurityConstants.DEFAULT_ORGANIZ
 import static org.opencastproject.security.api.SecurityConstants.DEFAULT_ORGANIZATION_NAME;
 import static org.opencastproject.util.UrlSupport.DEFAULT_BASE_URL;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import junit.framework.Assert;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.solr.client.solrj.SolrServer;
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.opencastproject.job.api.JaxbJob;
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.Job.Status;
@@ -39,6 +60,7 @@ import org.opencastproject.mediapackage.identifier.IdBuilderFactory;
 import org.opencastproject.metadata.api.StaticMetadataService;
 import org.opencastproject.metadata.dublincore.StaticMetadataServiceDublinCoreImpl;
 import org.opencastproject.metadata.mpeg7.Mpeg7CatalogService;
+import org.opencastproject.search.api.SearchQuery;
 import org.opencastproject.search.api.SearchResult;
 import org.opencastproject.search.api.SearchResultItem;
 import org.opencastproject.search.api.SearchService;
@@ -57,28 +79,6 @@ import org.opencastproject.series.impl.SeriesServiceImpl;
 import org.opencastproject.series.impl.solr.SeriesServiceSolrIndex;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.workspace.api.Workspace;
-
-import junit.framework.Assert;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrServer;
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Tests the functionality of the search service.
@@ -177,7 +177,7 @@ public class SearchServiceImplTest {
     service.setMpeg7CatalogService(mpeg7CatalogService);
     service.setSecurityService(securityService);
     service.setServiceRegistry(serviceRegistry);
-    SolrServer solrServer = service.setupSolr(new File(solrRoot));
+    SolrServer solrServer = SearchServiceImpl.setupSolr(new File(solrRoot));
     service.testSetup(solrServer, new SolrRequester(solrServer, securityService), new SolrIndexManager(solrServer,
             workspace, Arrays.asList(mdService), seriesService, mpeg7CatalogService, securityService));
 
@@ -216,11 +216,11 @@ public class SearchServiceImplTest {
   }
 
   /**
-   * Test wether an empty search index will work.
+   * Test whether an empty search index will work.
    */
   @Test
   public void testEmptySearchIndex() {
-    SearchResult result = service.getByQuery(new SearchQueryImpl().withId("foo"));
+    SearchResult result = service.getByQuery(new SearchQuery().withId("foo"));
     assertEquals(0, result.size());
   }
 
@@ -229,20 +229,7 @@ public class SearchServiceImplTest {
    */
   @Test
   public void testGetMediaPackage() throws Exception {
-    MediaPackageBuilderFactory builderFactory = MediaPackageBuilderFactory.newInstance();
-    MediaPackageBuilder mediaPackageBuilder = builderFactory.newMediaPackageBuilder();
-    URL rootUrl = SearchServiceImplTest.class.getResource("/");
-    mediaPackageBuilder.setSerializer(new DefaultMediaPackageSerializerImpl(rootUrl));
-
-    // Load the simple media package
-    MediaPackage mediaPackage = null;
-    InputStream is = null;
-    try {
-      is = SearchServiceImplTest.class.getResourceAsStream("/manifest-simple.xml");
-      mediaPackage = mediaPackageBuilder.loadFromXml(is);
-    } finally {
-      IOUtils.closeQuietly(is);
-    }
+    MediaPackage mediaPackage = getMediaPackage("/manifest-simple.xml");
 
     // Make sure our mocked ACL has the read and write permission
     acl.getEntries()
@@ -254,7 +241,7 @@ public class SearchServiceImplTest {
     service.add(mediaPackage);
 
     // Make sure it's properly indexed and returned for authorized users
-    SearchQueryImpl q = new SearchQueryImpl();
+    SearchQuery q = new SearchQuery();
     q.includeEpisodes(true);
     q.includeSeries(false);
     q.withId("10.0000/1");
@@ -269,18 +256,14 @@ public class SearchServiceImplTest {
     service.add(mediaPackage);
 
     // This mediapackage should not be readable by the current user (due to the lack of role ROLE_UNKNOWN)
-    q = new SearchQueryImpl();
+    q = new SearchQuery();
     q.includeEpisodes(true);
     q.includeSeries(false);
     q.withId("10.0000/1");
     assertEquals(0, service.getByQuery(q).size());
   }
 
-  /**
-   * Adds a simple media package that has a dublin core for the episode only.
-   */
-  @Test
-  public void testAddSimpleMediaPackage() throws Exception {
+  private MediaPackage getMediaPackage(String path) throws MediaPackageException {
     MediaPackageBuilderFactory builderFactory = MediaPackageBuilderFactory.newInstance();
     MediaPackageBuilder mediaPackageBuilder = builderFactory.newMediaPackageBuilder();
     URL rootUrl = SearchServiceImplTest.class.getResource("/");
@@ -290,11 +273,35 @@ public class SearchServiceImplTest {
     MediaPackage mediaPackage = null;
     InputStream is = null;
     try {
-      is = SearchServiceImplTest.class.getResourceAsStream("/manifest-simple.xml");
+      is = SearchServiceImplTest.class.getResourceAsStream(path);
       mediaPackage = mediaPackageBuilder.loadFromXml(is);
     } finally {
       IOUtils.closeQuietly(is);
     }
+    return mediaPackage;
+  }
+
+  /**
+   * Tests whether an episode can be found based on its series metadata.
+   */
+  @Test
+  public void testSearchForEpisodeWithSeriesMetadata() throws Exception {
+    MediaPackage mediaPackage = getMediaPackage("/manifest-full.xml");
+    service.add(mediaPackage);
+
+    SearchResult episodeMetadataResult = service.getByQuery(new SearchQuery().withText("Vegetation"));
+    SearchResult seriesMetadataResult = service.getByQuery(new SearchQuery().withText("Atmospheric Science"));
+
+    assertTrue(episodeMetadataResult.getItems().length == 1);
+    assertTrue(seriesMetadataResult.getItems().length == 1);
+  }
+
+  /**
+   * Adds a simple media package that has a dublin core for the episode only.
+   */
+  @Test
+  public void testAddSimpleMediaPackage() throws Exception {
+    MediaPackage mediaPackage = getMediaPackage("/manifest-simple.xml");
 
     // Make sure our mocked ACL has the read and write permission
     acl.getEntries()
@@ -306,20 +313,20 @@ public class SearchServiceImplTest {
     service.add(mediaPackage);
 
     // Make sure it's properly indexed and returned
-    SearchQueryImpl q = new SearchQueryImpl();
+    SearchQuery q = new SearchQuery();
     q.includeEpisodes(true);
     q.includeSeries(false);
     q.withId("10.0000/1");
     assertEquals(1, service.getByQuery(q).size());
 
-    q = new SearchQueryImpl();
+    q = new SearchQuery();
     q.includeEpisodes(true);
     q.includeSeries(false);
 
     assertEquals(1, service.getByQuery(q).size());
 
     // Test for various fields
-    q = new SearchQueryImpl();
+    q = new SearchQuery();
     q.includeEpisodes(true);
     q.includeSeries(false);
     q.withId("10.0000/1");
@@ -360,7 +367,7 @@ public class SearchServiceImplTest {
     service.add(mediaPackage);
 
     // Make sure it's properly indexed and returned
-    SearchQueryImpl q = new SearchQueryImpl();
+    SearchQuery q = new SearchQuery();
     q.includeEpisodes(true);
     q.includeSeries(false);
     q.withId("10.0000/2");
@@ -374,20 +381,7 @@ public class SearchServiceImplTest {
    */
   @Test
   public void testDeleteMediaPackage() throws Exception {
-    MediaPackageBuilderFactory builderFactory = MediaPackageBuilderFactory.newInstance();
-    MediaPackageBuilder mediaPackageBuilder = builderFactory.newMediaPackageBuilder();
-    URL rootUrl = SearchServiceImplTest.class.getResource("/");
-    mediaPackageBuilder.setSerializer(new DefaultMediaPackageSerializerImpl(rootUrl));
-
-    // Load the simple media package
-    MediaPackage mediaPackage = null;
-    InputStream is = null;
-    try {
-      is = SearchServiceImplTest.class.getResourceAsStream("/manifest-simple.xml");
-      mediaPackage = mediaPackageBuilder.loadFromXml(is);
-    } finally {
-      IOUtils.closeQuietly(is);
-    }
+    MediaPackage mediaPackage = getMediaPackage("/manifest-simple.xml");
 
     // Make sure our mocked ACL has the read and write permission
     acl.getEntries()
@@ -417,7 +411,7 @@ public class SearchServiceImplTest {
     userResponder.setResponse(defaultUser);
     organizationResponder.setResponse(defaultOrganization);
 
-    SearchQueryImpl q = new SearchQueryImpl();
+    SearchQuery q = new SearchQuery();
     q.includeEpisodes(true);
     q.includeSeries(false);
     q.withId("10.0000/1");
@@ -425,7 +419,7 @@ public class SearchServiceImplTest {
     q.withId(null); // Clear the ID requirement
     assertEquals(0, service.getByQuery(q).size());
 
-    q = new SearchQueryImpl();
+    q = new SearchQuery();
     q.withDeletedSince(deletedDate);
     assertEquals(1, service.getByQuery(q).size());
   }
@@ -465,7 +459,7 @@ public class SearchServiceImplTest {
     service.add(mediaPackage);
 
     // Make sure it's properly indexed and returned
-    SearchQueryImpl q = new SearchQueryImpl();
+    SearchQuery q = new SearchQuery();
     q.includeEpisodes(false);
     q.includeSeries(true);
 
@@ -480,7 +474,7 @@ public class SearchServiceImplTest {
     // This service registry must return a list of jobs
     List<String> args = new ArrayList<String>();
     args.add(new DefaultOrganization().getId());
-    
+
     List<Job> jobs = new ArrayList<Job>();
     for (long i = 0; i < 10; i++) {
       MediaPackage mediaPackage = MediaPackageBuilderFactory.newInstance().newMediaPackageBuilder().createNew();
@@ -511,15 +505,14 @@ public class SearchServiceImplTest {
             .anyTimes();
     EasyMock.replay(orgDirectory);
 
-
     service.setOrgDirectory(orgDirectory);
-    
+
     // We should have nothing in the search index
-    assertEquals(0, service.getByQuery(new SearchQueryImpl()).size());
+    assertEquals(0, service.getByQuery(new SearchQuery()).size());
 
     service.populateIndex();
 
     // This time we should have 10 results
-    assertEquals(10, service.getByQuery(new SearchQueryImpl()).size());
+    assertEquals(10, service.getByQuery(new SearchQuery()).size());
   }
 }

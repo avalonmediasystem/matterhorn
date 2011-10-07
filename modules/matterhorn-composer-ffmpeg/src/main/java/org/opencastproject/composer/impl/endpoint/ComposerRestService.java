@@ -212,11 +212,11 @@ public class ComposerRestService extends AbstractJobProducerEndpoint {
     // Make sure the trim times make sense
     Track sourceTrack = (Track) sourceElement;
     if (start < 0) {
-      return Response.status(Response.Status.BAD_REQUEST).entity("start time must be greater than 00:00:00").build();
+      start = 0;
     } else if (duration <= 0) {
-      return Response.status(Response.Status.BAD_REQUEST).entity("duration must be greater than 00:00:00").build();
+      duration = (sourceTrack.getDuration() - start);
     } else if (start + duration > sourceTrack.getDuration()) {
-      return Response.status(Response.Status.BAD_REQUEST).entity("requested duration exceeds track").build();
+      duration = (sourceTrack.getDuration() - start);     
     }
 
     // Asynchronously encode the specified tracks
@@ -409,6 +409,45 @@ public class ComposerRestService extends AbstractJobProducerEndpoint {
       logger.warn("Unable to embed captions: " + e.getMessage());
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
+  }
+  
+  /**
+   * watermarks a track.
+   * 
+   * @param sourceTrack
+   *          The source track
+   * @param watermark
+   *          Filename of the watermark image (jpg, gif, png)         
+   * @param profileId
+   *          The profile to use in encoding this track
+   * @return A response containing the job for this encoding job in the response body.
+   * @throws Exception
+   */
+  @POST
+  @Path("watermark")
+  @Produces(MediaType.TEXT_XML)
+  @RestQuery(name = "watermark", description = "re-encodes a source track with a watermark branding, the position of the watermark can be specified in the profileId, the watermark can be provided as a parameter", pathParameters = { }, restParameters = {
+          @RestParameter(description = "The track containing the stream", isRequired = true, name = "sourceTrack", type = Type.TEXT, defaultValue = "${this.videoTrackDefault}"),
+          @RestParameter(description = "The watermark image path", isRequired = true, name = "watermark", type = Type.STRING, defaultValue = "$FELIX_HOME/conf/branding/watermark.png"),
+          @RestParameter(description = "The encoding profile to use", isRequired = true, name = "profileId", type = Type.STRING, defaultValue = "watermark.branding") }, reponses = { @RestResponse(description = "Results in an xml document containing the job for the encoding task", responseCode = HttpServletResponse.SC_OK) }, returnDescription = "")
+  public Response watermark(@FormParam("sourceTrack") String sourceTrackAsXml, @FormParam("watermark") String watermark, @FormParam("profileId") String profileId)
+          throws Exception {
+    // Ensure that the POST parameters are present
+    if (sourceTrackAsXml == null || profileId == null || watermark == null) {
+      return Response.status(Response.Status.BAD_REQUEST).entity("sourceTrack, watermark and profileId must not be null").build();
+    }
+
+    // Deserialize the track
+    MediaPackageElement sourceTrack = MediaPackageElementParser.getFromXml(sourceTrackAsXml);
+    if (!Track.TYPE.equals(sourceTrack.getElementType())) {
+      return Response.status(Response.Status.BAD_REQUEST).entity("sourceTrack element must be of type track").build();
+    }
+
+    // Asynchronously encode the specified tracks
+    Job job = composerService.watermark((Track) sourceTrack, watermark, profileId);
+    if (job == null)
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Encoding failed").build();
+    return Response.ok().entity(new JaxbJob(job)).build();
   }
 
   @GET

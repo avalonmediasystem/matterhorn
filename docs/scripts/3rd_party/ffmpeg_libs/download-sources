@@ -15,7 +15,7 @@ download lame   || exit 1
 download x264   || exit 1
 download xvid   || exit 1
 download faac   || exit 1
-download faad   || exit 1
 download theora || exit 1
+download vpx    || exit 1
 #
 exit 0
