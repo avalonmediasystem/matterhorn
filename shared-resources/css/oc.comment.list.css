@@ -1,5 +1,5 @@
 
-#oc_comment-list-wrapper,#oc-comments-list-header,#oc-comments-list-footer,#oc_comments-list-loading,#oc-comments-list{
+#oc_comment-list-wrapper,#oc-comments-list-header,#oc-comments-list-footer,#oc_comments-list-loading,#oc-comments-list,#oc-comments-list-item-tooltip{
     display:none;
 }
 
@@ -107,5 +107,15 @@ oc-comment-list-left-row{
 #oc-comments-list-footer{
     width: 100%;
     height: 250px;
+}
+
+#oc-comments-list-item-tooltip{
+    width: 100px;
+    height: 60px;
+    position:absolute;
+    border-style: solid;
+    border-color: grey;
+    background-color: white;
+    font-size: 0.7em;
 }
 

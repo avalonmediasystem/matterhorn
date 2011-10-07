@@ -22,9 +22,9 @@ var Opencast = Opencast || {};
 Opencast.Annotation_Comment_List_Plugin = (function ()
 {
     // The Template to process
-    var template =  '<table cellspacing="5" cellpadding="0" width="100%">' +
+    var template =  '<table cellspacing="5" onmouseout="Opencast.Annotation_Comment_List.hoverOutCommentList()" cellpadding="0" width="100%">' +
                         '{for c in comment}' +
-                                '<tr class="oc-comment-list-row" onclick="Opencast.Annotation_Comment_List.goToComment(\'${c.id}\',\'${c.text}\',\'${c.inpoint}\',\'${c.slide}\',\'${c.user}\',\'${c.type}\')" >' +
+                                '<tr class="oc-comment-list-row" id="comment-row-${c.id}" >' +
                                     '<td class="oc-comment-list-border" width="25px" style="cursor:pointer;cursor:hand;">' +
                                     '</td>' +
                                     '<td class="oc-comment-list-border oc-comment-list-left-row" align="left" style="cursor:pointer;cursor:hand;">' +
@@ -44,7 +44,13 @@ Opencast.Annotation_Comment_List_Plugin = (function ()
                                         '{/if}' +
                                         '<div class="oc-comment-list-textspace"></div>' + 
                                         '<div style="float:left">${c.created}</div>' +
+                                        '<a style="float:right; color:blue" href="javascript:Opencast.Annotation_Comment_List.deleteComment(\'${c.id}\')" >remove</a>' +
+                                        '<div class="oc-comment-list-textspace"></div>' +
+                                        '{if c.type == "scrubber" || c.type == "slide"}' +
+                                            '<a style="float:right; color:blue" href="javascript:Opencast.Annotation_Comment_List.clickCommentList(\'${c.id}\',\'${c.text}\',\'${c.inpoint}\',\'${c.slide}\',\'${c.user}\',\'${c.type}\')" >show in player</a>' +
+                                        '{/if}' +
                                         '<p class="oc-comment-list-value-text">${c.text}</p>' +
+          
                                     '</td>' +
                                 '</tr>' +
                         '{forelse}' +

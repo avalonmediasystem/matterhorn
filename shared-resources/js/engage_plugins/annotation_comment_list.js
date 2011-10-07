@@ -57,6 +57,12 @@ Opencast.Annotation_Comment_List = (function ()
         });
         
         // //
+        
+        //focus and mark text by click on textbox
+        $("#oc-comments-list-textbox").click(function(){        
+            $("#oc-comments-list-textbox").focus();
+            $("#oc-comments-list-textbox").select();          
+        });
 
     }
     
@@ -84,8 +90,13 @@ Opencast.Annotation_Comment_List = (function ()
      */
     function addComment(value,type)
     {      
+        
+        var user = "Anonymous";
+        if(Opencast.Player.getUserId() !== null){
+            user = Opencast.Player.getUserId();
+        }
         //comment data [user]:[text]:[type]
-        data = Opencast.Player.getUserId()+":"+value+":"+type;        
+        data = user+":"+value+":"+type;        
         
         $.ajax(
         {
@@ -142,9 +153,17 @@ Opencast.Annotation_Comment_List = (function ()
             success: function (data)
             {
                 Opencast.Utils.log("Annotation AJAX call: Requesting data succeeded");
+                
+                var count = 0;
+                var slideCount = 0;
+                var scrubberCount = 0;
+                var normalCount = 0;
+                
                 if ((data === undefined) || (data['annotations'] === undefined) || (data['annotations'].annotation === undefined))
                 {
                     Opencast.Utils.log("Annotation AJAX call: Data not available");
+                    //show nothing
+                    $('#oc-comments-list').html("");
                     //displayNoAnnotationsAvailable("No data defined");
                 }
                 else
@@ -153,10 +172,6 @@ Opencast.Annotation_Comment_List = (function ()
                     
                     var commentData = new Object();                  
                     var commentArray = new Array();
-                    var count = 0;
-                    var slideCount = 0;
-                    var scrubberCount = 0;
-                    var normalCount = 0;
                     
                     Opencast.Utils.log("Debug 1");
                     if(data['annotations'].total > 1){
@@ -219,33 +234,33 @@ Opencast.Annotation_Comment_List = (function ()
                     if (!commentListSet)
                     {
                         Opencast.Utils.log("No commentList template processed");
-
-                    }else{
-                        //process header
-                        if(count === 1){
-                            $("#oc-comments-list-header-top").html(count+" Comment");
-                        }else{
-                            $("#oc-comments-list-header-top").html(count+" Comments");
-                        }
-                        var line = "";
-                        if(slideCount === 1){
-                            line += slideCount+ " slide comment, ";
-                        }else{
-                            line += slideCount+ " slide comments, ";
-                        }
-                        if(scrubberCount === 1){
-                            line += scrubberCount+ " timed comment and ";
-                        }else{
-                            line += scrubberCount+ " timed comments and ";
-                        }
-                        if(normalCount === 1){
-                            line += normalCount+ " regular comment";
-                        }else{
-                            line += normalCount+ " regular comments ";
-                        }
-                        $("#oc-comments-list-header-bottom").html(line);                                          
-                    }         
+                    }        
                 }
+                
+                //process header
+                if(count === 1){
+                    $("#oc-comments-list-header-top").html(count+" Comment");
+                }else{
+                    $("#oc-comments-list-header-top").html(count+" Comments");
+                }
+                var line = "";
+                if(slideCount === 1){
+                    line += slideCount+ " slide comment, ";
+                }else{
+                    line += slideCount+ " slide comments, ";
+                }
+                if(scrubberCount === 1){
+                    line += scrubberCount+ " timed comment and ";
+                }else{
+                    line += scrubberCount+ " timed comments and ";
+                }
+                if(normalCount === 1){
+                    line += normalCount+ " regular comment";
+                }else{
+                    line += normalCount+ " regular comments ";
+                }
+                $("#oc-comments-list-header-bottom").html(line);
+                
                 $('#oc_comments-list-loading').hide();
                 $('#oc-comments-list-header').show();
                 $('#oc-comments-list').show();
@@ -292,7 +307,7 @@ Opencast.Annotation_Comment_List = (function ()
         
         Opencast.Utils.log("toggle commment list");
         if (comment_list_show === false)
-        { 
+        {
             showComments();
         }
         else
@@ -300,26 +315,91 @@ Opencast.Annotation_Comment_List = (function ()
             hideComments();
         }
     }
-   
+
+    /**
+     * @memberOf Opencast.Annotation_Comment_List
+     * @description handle click in the comment list
+     * @param commentID, commentValue, commentTime, commentSlide, userId, type
+     */
+    function clickCommentList(commentID, commentValue, commentTime, commentSlide, userId, type)
+    {
+        goToComment(commentID, commentValue, commentTime, commentSlide, userId, type);
+        //var toolTop = $("#comment-row-"+commentID).offset().top - 10;
+        //var toolLeft = $("#comment-row-"+commentID).offset().left + 400;
+        
+        //$("#oc-comments-list-item-tooltip").css("left", toolLeft + "px");
+        //$("#oc-comments-list-item-tooltip").css("top", toolTop + "px");        
+        //$("#oc-comments-list-item-tooltip").show();
+        //$('#oc-comments-list-item-tooltip-show').click(function(){
+        //    goToComment(commentID, commentValue, commentTime, commentSlide, userId, type);
+        //});
+        //$('#oc-comments-list-item-tooltip-delete').click(function(){
+        //    deleteComment(commentID);
+        //});
+    }
+    
+    /**
+     * @memberOf Opencast.Annotation_Comment_List
+     * @description handle hover out the comment list
+     */
+    function hoverOutCommentList()
+    {
+        $('#oc-comments-list-item-tooltip').hide();
+    }
+    
+    /**
+     * @memberOf Opencast.Annotation_Comment_List
+     * @description deletes comment
+     */
+    function deleteComment(commentID)
+    {
+        // ajax DELETE Request
+        $.ajax(
+        {
+            type: 'DELETE',
+            url: "../../annotation/"+commentID,
+            statusCode: {
+                200: function() {
+                    Opencast.Utils.log("Comment DELETE Ajax call: Request success");
+                    showComments();
+                    if(Opencast.Annotation_Comment.getAnnotationCommentDisplayed() === true){
+                        Opencast.Annotation_Comment.showAnnotation_Comment();
+                    }
+                }
+            },
+            complete:
+                function(jqXHR, textStatus){
+                    Opencast.Utils.log("Comment DELETE Ajax call: Request success");
+                    showComments();
+                    if(Opencast.Annotation_Comment.getAnnotationCommentDisplayed() === true){
+                        Opencast.Annotation_Comment.showAnnotation_Comment();
+                    }
+                }
+            
+        });
+    }   
     
     /**
      * @memberOf Opencast.Annotation_Comment_List
      * @description go to a comment
-     * @param String commentID inpoint type
+     * @param commentID, commentValue, commentTime, commentSlide, userId, type
      */
     function goToComment(commentID, commentValue, commentTime, commentSlide, userId, type)
     {
+        if(Opencast.Annotation_Comment.getAnnotationCommentDisplayed() === false){
+            $("#oc_checkbox-annotation-comment").attr('checked', true);
+            Opencast.Annotation_Comment.showAnnotation_Comment();
+        }
+        
         //seek player if timed
         if(type === "scrubber"){
-            Opencast.Annotation_Comment.showAnnotation_Comment();
-            Opencast.Watch.seekSegment(parseInt(commentTime));
+            Opencast.Watch.seekSegment(parseInt(commentTime)-2);
             Opencast.Annotation_Comment.hoverComment("scComment"+commentID, commentValue, commentTime, userId);
             //scroll to comment
             $(window).scrollTop( 0 );
         }else if(type === "slide"){
-            Opencast.Annotation_Comment.showAnnotation_Comment();
             Opencast.Watch.seekSegment(parseInt(commentTime));
-            Opencast.Annotation_Comment.hoverSlideComment("slideComment"+commentID, commentValue, userId);
+            Opencast.Annotation_Comment.hoverSlideComment("slideComment"+commentID, commentValue, userId, commentSlide);
             //scroll to comment
             $(window).scrollTop( 0 );
         }      
@@ -339,6 +419,9 @@ Opencast.Annotation_Comment_List = (function ()
         initialize: initialize,
         showComments: showComments,
         hideComments: hideComments,
+        clickCommentList: clickCommentList,
+        deleteComment: deleteComment,
+        hoverOutCommentList: hoverOutCommentList,
         goToComment: goToComment,
         doToggleComments: doToggleComments,
         setMediaPackageId: setMediaPackageId
