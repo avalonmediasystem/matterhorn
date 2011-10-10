@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -72,7 +73,7 @@ public class CaptureAgentStateServiceImpl implements CaptureAgentStateService, M
   /** The workflow service */
   protected WorkflowService workflowService;
 
-  private HashMap<String, Agent> agents;
+  private Map<String, Agent> agents;
   private HashMap<String, Recording> recordings;
 
   /**
@@ -104,7 +105,7 @@ public class CaptureAgentStateServiceImpl implements CaptureAgentStateService, M
 
   public CaptureAgentStateServiceImpl() {
     logger.info("CaptureAgentStateServiceImpl starting.");
-    agents = new HashMap<String, Agent>();
+    agents = new TreeMap<String, Agent>();
     recordings = new HashMap<String, Recording>();
   }
 
@@ -265,8 +266,14 @@ public class CaptureAgentStateServiceImpl implements CaptureAgentStateService, M
    * @see org.opencastproject.capture.admin.api.CaptureAgentStateService#setAgentConfiguration
    */
   public int setAgentConfiguration(String agentName, Properties configuration) {
-    Agent req = agents.get(agentName);
-    if (req != null) {
+
+	if (StringUtils.isBlank(agentName)) {
+	  logger.debug("Unable to set agent state, agent name is blank or null.");
+	  return BAD_PARAMETER;
+	}
+	
+	Agent req = agents.get(agentName);
+	if (req != null) {
       logger.debug("Setting Agent {}'s capabilities", agentName);
       req.setConfiguration(configuration);
       updateAgentInDatabase(req);
