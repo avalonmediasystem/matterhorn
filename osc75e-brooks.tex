@@ -1,6 +1,9 @@
-% latex osc75e-brooks.tex
-% dvips osc75e-brooks.dvi -o osc75e-brooks.ps
-% dvips -P pdf -t letter osc75e-brooks.dvi -o test.pdf
+%latex osc75e-brooks.tex
+%bibtex osc75e-brooks.aux
+%latex osc75e-brooks.tex
+%latex osc75e-brooks.tex
+%pdflatex osc75e-brooks.tex
+%pdflatex osc75e-brooks.tex
 
 \documentclass[letterpaper]{sig-alternate}
 \pdfpagewidth=8.5in
@@ -14,7 +17,7 @@
 \widowpenalty = 10000
 
 \title{Opencast Matterhorn 1.1: Reaching New Heights}
-\numberofauthors{18} % total number including ones at end
+\numberofauthors{6} % total number including ones at end
 
 \author{
 %
@@ -147,10 +150,11 @@ We would like to thank the Hewlett and Mellon foundations for their critical sup
 
 In addition to the many committers who made this work possible, we would like to thank the following committers emeritus and contributors who played a pivotal role in bringing the product to fruition (in alphabetical order): Stefan Altevogt, Allison Bloodworth, Nils Birnbaum, Johannes Emden, Sebastian Ewert, Mara Hancock, Jamie Hodge, Andre Klassen, Bostjan Pajntar, Olaf Schulte, and Aaron Zeckoski.
 
+\section{Additional Authors}
+The cover page lists authors who are members of the product owner team and executed the vision for Matterhorn 1.0.  Additional authors of this work include our numerous committers and designers (listed here alphabetically): Kristofor Amundson, Greg Logan, Kenneth Lui, Adam McKenzie, Denis Meyer, Markus Moormann, Matjaz Rihtar, Ruediger Rolf, Nejc Skofic, Micah Sutton, Rub\'{e}n P\'{e}rez V\'{a}zquez, and Benjamin Wulff.  Full citation of this work should acknowledge these persons as extended authors.
+
 \bibliographystyle{abbrv}
 \bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
 
-\section{Additional Authors}
-The cover page lists authors who are members of the product owner team and executed the vision for Matterhorn 1.0.  Additional authors of this work include our numerous committers and designers (listed here alphabetically): Kristofor Amundson, Greg Logan, Kenneth Lui, Adam McKenzie, Denis Meyer, Markus Moormann, Matjaz Rihtar, Ruediger Rolf, Nejc Skofic, Micah Sutton, Rub\'{e}n P\'{e}rez V\'{a}zquez, and Benjamin Wulff.  Full citation of this work should acknowledge these persons as extended authors.
 
 \end{document}
