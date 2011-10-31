@@ -129,6 +129,12 @@
                       Please select a <a href="javascript:document.getElementById('track').focus();">media file</a> to upload. Supported file formats are: .avi, .mp3, .mp4, .mov, .mpg, .mkv, .flv or .wmv.
                     </span>
                   </li>
+                  <li id="item-recordDate" class="missing-fields-item">
+                    <span class="ui-icon ui-icon-carat-1-e"></span>
+                    <span>
+                      Please select a <a href="javascript:document.uploadForm.recordDate.focus();">recording date</a> for the recording.
+                    </span>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -154,7 +160,7 @@
                       </li>
                       <li>
                         <label class="scheduler-label" id="recordingDateLabel"><span class="scheduler-required-text">* </span><span id="i18n_date_label">Recording Date</span>:</label>
-                        <input type="text" size="10" id="recordDate" />
+                        <input type="text" size="10" id="recordDate"  class="dc-metadata-field"/>
                       </li> 
                       <li>
                         <label class="scheduler-label" id="startTimeLabel"><span class="scheduler-required-text">* </span><span id="i18n_starttime_label">Start Time</span>:</label>
@@ -382,9 +388,9 @@
 
                     <fieldset class="upload-widget">
                       <legend>Audio-only file</legend>
-                     <!-- <div class="informationText">
-                        If you select a file here, this files's audio will override audio in "File with non-segmentable video" above.
-                      </div>-->
+                      <!-- <div class="informationText">
+                         If you select a file here, this files's audio will override audio in "File with non-segmentable video" above.
+                       </div>-->
                       <ul class="oc-ui-form-list">
                         <li class="ui-helper-clearfix" id="regularFileSelection">
                           <label class="scheduler-label"><span class="i18n_file_location">File Location</span>:</label>
@@ -454,7 +460,7 @@
         <div id="gray-out">
           &nbsp;
         </div>
-        
+
         <div id="progressStage" class="ui-corner-all progress-stage" style="display:none;">
           <div class="progress-label-top upload-label">
             &nbsp;
