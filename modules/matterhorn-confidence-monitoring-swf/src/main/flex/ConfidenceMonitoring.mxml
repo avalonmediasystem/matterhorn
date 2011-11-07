@@ -1,63 +1,55 @@
---- modules/matterhorn-confidence-monitoring-swf/src/main/flex/ConfidenceMonitoring.mxml	(revision 0)
-+++ modules/matterhorn-confidence-monitoring-swf/src/main/flex/ConfidenceMonitoring.mxml	(working copy)
-@@ -1,21 +1,35 @@
- <?xml version="1.0" encoding="utf-8"?>
--<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="horizontal" initialize="init()" xmlns:ns1="*" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#861B1D, #861B1D]" horizontalAlign="center" verticalAlign="top">
-+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="horizontal" initialize="init()" xmlns:ns1="*" horizontalAlign="center" verticalAlign="top" paddingLeft="30" paddingRight="30" alpha="1.0" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#FFFFFF, #FFFFFF]">
- 	<mx:Script>
- 	<![CDATA[
--		import mx.utils.Base64Encoder;
-+		import mx.utils.Base64Encoder;		
-+
-+		public var host:String = "http://localhost:8080/";
-+
-+		public var endpointLocation:String = host + "confidence/ui/";
- 		
--		private var host:String = "http://akm220.usask.ca:8080";
--		
- 		public function init():void {
-+			// Get the hostname and the location of this endpoint. 
-+			host = Application.application.url.split("/confidence")[0];	
-+			endpointLocation = Application.application.url.split("ConfidenceMonitoring.swf")[0];
-+	
-+			setErrorText();
-+
-+			// Start the confidence monitoring. 
- 			GetDevices.send(host + "/confidence/devices", handleDevices);
- 			CaptureState.send(host + "/state/state");
-+			Audio.start(host, endpointLocation)
- 		}
- 		
-+		public function setErrorText():void {
-+			Audio.setErrorText(handleError.ErrorText);
-+		}		
-+
-+		/** Get all of the video devices and add them to our list of images to grab. **/
- 		public function handleDevices(xml:XML):void{
- 			for each(var device:XML in xml.children()){
- 				var type:String = device.child("type");
- 				var name:String = device.child("name");
--				// XMLText.text += "type: " + type + " name:" + name + "\n";
- 				if(type == "video") {
- 					var imageRequest:ImageRequest = new ImageRequest();
- 					Images.addChild(imageRequest);
-@@ -26,7 +40,7 @@
- 		
- 		]]>
- </mx:Script>
--	<mx:Panel horizontalAlign="center" title="Matterhorn Confidence Monitoring">
-+	<mx:VBox horizontalAlign="center">
- 		<ns1:GetDeviceNamesRequest id="GetDevices"/>
- 		<mx:Spacer height="10"/>
- 		<ns1:CaptureStatusRequest id="CaptureState"/>
-@@ -34,7 +48,8 @@
- 			<mx:Spacer width="10"/>
- 		</mx:HBox>
- 		<mx:Spacer height="10"/>
--		<ns1:AudioControls x="10" y="398"/>
-+		<ns1:AudioControls x="10" y="398" id="Audio"/>
- 		<mx:Spacer height="10"/>
--	</mx:Panel>
-+		<ns1:HandleError id="handleError">
-+	</mx:VBox>
- </mx:Application>
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="horizontal" initialize="init()" xmlns:ns1="*" horizontalAlign="center" verticalAlign="top" paddingLeft="30" paddingRight="30" alpha="1.0" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#FFFFFF, #FFFFFF]">
+	<mx:Script>
+	<![CDATA[
+		import mx.utils.Base64Encoder;		
+
+		public var host:String = "http://localhost:8080/";
+
+		public var endpointLocation:String = host + "confidence/ui/";
+		
+		public function init():void {
+			// Get the hostname and the location of this endpoint. 
+			host = Application.application.url.split("/confidence")[0];	
+			endpointLocation = Application.application.url.split("ConfidenceMonitoring.swf")[0];
+	
+			setErrorText();
+
+			// Start the confidence monitoring. 
+			GetDevices.send(host + "/confidence/devices", handleDevices);
+			CaptureState.send(host + "/state/state");
+			Audio.start(host, endpointLocation)
+		}
+		
+		public function setErrorText():void {
+			Audio.setErrorText(handleError.ErrorText);
+		}		
+
+		/** Get all of the video devices and add them to our list of images to grab. **/
+		public function handleDevices(xml:XML):void{
+			for each(var device:XML in xml.children()){
+				var type:String = device.child("type");
+				var name:String = device.child("name");
+				if(type == "video") {
+					var imageRequest:ImageRequest = new ImageRequest();
+					Images.addChild(imageRequest);
+					imageRequest.send(host + "/confidence/" + name);
+				}
+			}
+		}
+		
+		]]>
+</mx:Script>
+	<mx:VBox horizontalAlign="center">
+		<ns1:GetDeviceNamesRequest id="GetDevices"/>
+		<mx:Spacer height="10"/>
+		<ns1:CaptureStatusRequest id="CaptureState"/>
+		<mx:HBox horizontalAlign="center" id="Images">
+			<mx:Spacer width="10"/>
+		</mx:HBox>
+		<mx:Spacer height="10"/>
+		<ns1:AudioControls x="10" y="398" id="Audio"/>
+		<mx:Spacer height="10"/>
+		<ns1:HandleError id="handleError">
+	</mx:VBox>
+</mx:Application>
