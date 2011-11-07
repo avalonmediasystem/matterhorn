@@ -1,0 +1,12 @@
+--- modules/matterhorn-confidence-monitoring-swf/src/main/flex/ImageRequest.mxml	(revision 0)
++++ modules/matterhorn-confidence-monitoring-swf/src/main/flex/ImageRequest.mxml	(working copy)
+@@ -8,7 +8,9 @@
+ 			private var loader:Loader = null;
+ 			private var actualWidth:int = -1;
+ 			private var actualHeight:int = -1;
++			[Bindable]
+ 			private var smallWidth:int = 320;
++			[Bindable]
+ 			private var smallHeight:int = 180;
+ 			private var url:String = "";
+ 			private var small:Boolean = true;

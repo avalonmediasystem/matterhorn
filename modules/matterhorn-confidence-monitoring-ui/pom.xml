@@ -5,6 +5,7 @@
   <artifactId>matterhorn-confidence-monitoring-ui</artifactId>
   <packaging>bundle</packaging>
   <name>matterhorn-confidence-monitoring-ui</name>
+  
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
@@ -13,48 +14,147 @@
   </parent>
   <properties>
     <matterhorn.basedir>${project.basedir}/../..</matterhorn.basedir>
-    <checkstyle.skip>true</checkstyle.skip>
+    <checkstyle.skip>false</checkstyle.skip>
   </properties>
   <build>
     <plugins>
-      <!-- Get the current svn version and place in admin-ui module's resources -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.1</version>
-        <executions>
-          <execution>
-            <id>exec-svnversion</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <executable>svnversion</executable>
-          <!-- optional -->
-          <outputFile>${basedir}/target/classes/ui/version.txt</outputFile>
-        </configuration>
-      </plugin>
+      <!-- Copy the shared resources -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.4.1</version>
         <executions>
           <execution>
-            <id>copy-jquery</id>
+            <id>copy-viewer</id>
             <phase>validate</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/classes/ui/jquery</outputDirectory>
+              <outputDirectory>${basedir}/target/classes/ui/</outputDirectory>
               <resources>
                 <resource>
-                  <directory>../../shared-resources/jquery/</directory>
+                  <directory>../../shared-resources/confidence/</directory>
                   <includes>
-                    <include> **/* </include>
+                     <include>confidence-embed.js</include>
+                     <include>confidence-initialize.js</include>
+                     <include>ConfidenceMonitoring.swf</include>
+                  </includes>                  
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <!-- Copy confidence monitoring resources -->
+          <execution>  
+            <id>copy-confidence-monitoring-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes/ui/</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>resources/</directory>
+                  <includes>
+                     <include>ui/**</include>
+                  </includes>                  
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes/ui/</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../shared-resources/</directory>
+                  <includes>
+                     <include>jquery/**</include>
+                     <include>trimpath/**</include>
+                  </includes>                  
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-img</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes/ui/img</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../shared-resources/img/</directory>
+                  <includes>
+                    <include> **/** </include>
+                  </includes>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+	<execution>
+            <id>copy-css</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes/ui/css</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../shared-resources/css/</directory>
+                  <includes>
+                    <include> **/** </include>
+                  </includes>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-js</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes/ui/js</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../shared-resources/js/</directory>
+                  <includes>
+                    <include> **/** </include>
+                  </includes>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-xsl</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/classes/ui/xsl</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>../../shared-resources/xsl/</directory>
+                  <includes>
+                    <include> **/** </include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -71,8 +171,9 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName> ${project.artifactId} </Bundle-SymbolicName>
-            <Import-Package>org.opencastproject.rest;version=${project.version}</Import-Package>
-            <Http-Alias>/confidence-monitoring</Http-Alias>
+            <Import-Package> org.opencastproject.rest;version=${project.version}</Import-Package>
+            <Private-Package>ui.*</Private-Package>
+            <Http-Alias>/confidence/ui</Http-Alias>
             <Http-Classpath>/ui</Http-Classpath>
             <Http-Welcome>index.html</Http-Welcome>
           </instructions>

@@ -1,0 +1,234 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.opencastproject</groupId>
+  <artifactId>matterhorn-confidence-monitoring-ui</artifactId>
+  <packaging>swf</packaging>
+  <name>matterhorn-confidence-monitoring-ui</name>
+  <parent>
+    <groupId>org.opencastproject</groupId>
+    <artifactId>base</artifactId>
+    <version>1.4-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <sourceFile>ConfidenceMonitoring.mxml</sourceFile>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <matterhorn.basedir>${project.basedir}/../..</matterhorn.basedir>
+    <checkstyle.skip>false</checkstyle.skip>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>opencast</id>
+      <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
+    </repository>
+    <repository>
+      <id>sonatype-flex</id>
+      <url>http://repository.sonatype.org/service/local/repositories/flex/content</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>opencast</id>
+      <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>sonatype-flexmojos-snapshots</id>
+      <url>http://repository.sonatype.org/service/local/repositories/flexmojos-snapshots/content</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <build>
+    <sourceDirectory>src/main/flex</sourceDirectory>    
+    <plugins>
+      <!-- Get the current svn version and place in admin-ui module's resources -->
+      <plugin>
+        <groupId>org.sonatype.flexmojos</groupId>
+        <artifactId>flexmojos-maven-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>com.adobe.flex</groupId>
+            <artifactId>compiler</artifactId>
+            <version>3.6.0.16321</version>
+            <type>pom</type>
+          </dependency>
+        </dependencies>
+        <version>3.7.1</version>
+        <extensions>true</extensions>
+        <configuration>
+          <targetPlayer>10.0.0</targetPlayer>
+          <accessible>true</accessible>
+          <headlessServer>true</headlessServer>
+          <output>../../shared-resources/confidence/ConfidenceMonitoring.swf</output>
+          <sourcePaths>
+            <path>${basedir}/src/main/flex</path>
+          </sourcePaths>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.adobe.flexunit</groupId>
+      <artifactId>flexunit</artifactId>
+      <version>4.0-beta-2</version>
+      <type>swc</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.flex.framework</groupId>
+      <artifactId>flex-framework</artifactId>
+      <version>3.6.0.16321</version>
+      <type>pom</type>
+      <exclusions>
+      <!-- make sure to exclude the default 'playerglobal' transitive dependency -->
+        <exclusion>
+          <groupId>com.adobe.flex.framework</groupId>
+          <artifactId>playerglobal</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.flex.framework</groupId>
+      <artifactId>playerglobal</artifactId>
+      <version>3.6.0.16321</version>
+      <classifier>10</classifier>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.osmf</groupId>
+      <artifactId>MediaFramework</artifactId>
+      <version>1.5.0</version>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.swiz</groupId>
+      <artifactId>swiz</artifactId>
+      <version>0.6.2</version>
+      <type>swc</type>
+    </dependency>
+  </dependencies>
+</project>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.opencastproject</groupId>
+  <artifactId>matterhorn-confidence-monitoring-ui</artifactId>
+  <packaging>swf</packaging>
+  <name>matterhorn-confidence-monitoring-ui</name>
+  <parent>
+    <groupId>org.opencastproject</groupId>
+    <artifactId>base</artifactId>
+    <version>1.4-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <sourceFile>ConfidenceMonitoring.mxml</sourceFile>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <matterhorn.basedir>${project.basedir}/../..</matterhorn.basedir>
+    <checkstyle.skip>false</checkstyle.skip>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>opencast</id>
+      <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
+    </repository>
+    <repository>
+      <id>sonatype-flex</id>
+      <url>http://repository.sonatype.org/service/local/repositories/flex/content</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>opencast</id>
+      <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>sonatype-flexmojos-snapshots</id>
+      <url>http://repository.sonatype.org/service/local/repositories/flexmojos-snapshots/content</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <build>
+    <sourceDirectory>src/main/flex</sourceDirectory>    
+    <plugins>
+      <!-- Get the current svn version and place in admin-ui module's resources -->
+      <plugin>
+        <groupId>org.sonatype.flexmojos</groupId>
+        <artifactId>flexmojos-maven-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>com.adobe.flex</groupId>
+            <artifactId>compiler</artifactId>
+            <version>3.6.0.16321</version>
+            <type>pom</type>
+          </dependency>
+        </dependencies>
+        <version>3.7.1</version>
+        <extensions>true</extensions>
+        <configuration>
+          <targetPlayer>10.0.0</targetPlayer>
+          <accessible>true</accessible>
+          <headlessServer>true</headlessServer>
+          <output>../../shared-resources/confidence/ConfidenceMonitoring.swf</output>
+          <sourcePaths>
+            <path>${basedir}/src/main/flex</path>
+          </sourcePaths>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.adobe.flexunit</groupId>
+      <artifactId>flexunit</artifactId>
+      <version>4.0-beta-2</version>
+      <type>swc</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.flex.framework</groupId>
+      <artifactId>flex-framework</artifactId>
+      <version>3.6.0.16321</version>
+      <type>pom</type>
+      <exclusions>
+      <!-- make sure to exclude the default 'playerglobal' transitive dependency -->
+        <exclusion>
+          <groupId>com.adobe.flex.framework</groupId>
+          <artifactId>playerglobal</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.flex.framework</groupId>
+      <artifactId>playerglobal</artifactId>
+      <version>3.6.0.16321</version>
+      <classifier>10</classifier>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.osmf</groupId>
+      <artifactId>MediaFramework</artifactId>
+      <version>1.5.0</version>
+      <type>swc</type>
+    </dependency>
+    <dependency>
+      <groupId>com.adobe.swiz</groupId>
+      <artifactId>swiz</artifactId>
+      <version>0.6.2</version>
+      <type>swc</type>
+    </dependency>
+  </dependencies>
+</project>
+

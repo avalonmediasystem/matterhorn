@@ -1,0 +1,108 @@
+/* Classes */
+
+.scroll {
+    height: 100px;
+    overflow: scroll;
+}
+
+.centeredImage {
+    text-align: center;
+    display: block;
+}
+
+.scroll {
+    overflow: hidden;
+}
+
+/* IDs */
+
+#matterhorn-main-logo {
+    background-image: url("../img/Matterhorn_80x56.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+    display:block;
+    width: 80px;
+    height: 56px;
+}
+
+/* Start: Flash Player loading */
+#oc_flash-player {
+    background-color: #FDE7CE;
+    vertical-align: middle;
+    text-align: center;
+    margin-bottom: 0px;
+    margin-top: 0px;
+    padding: 10px;
+    /*width: 100%;*/
+    height: 1200;
+    display: block;
+    /*margin-left: 37%;
+    margin-right: 0 auto;*/
+}
+
+#logout {
+  color: #A72123;
+  text-decoration: none;
+  display: none;
+  float: right;
+  margin-right: 0px;
+  margin-bottom: 5px;
+}
+
+#logout:hover {
+  text-decoration: underline;
+}
+/* Classes */
+
+.scroll {
+    height: 100px;
+    overflow: scroll;
+}
+
+.centeredImage {
+    text-align: center;
+    display: block;
+}
+
+.scroll {
+    overflow: hidden;
+}
+
+/* IDs */
+
+#matterhorn-main-logo {
+    background-image: url("../img/Matterhorn_80x56.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+    display:block;
+    width: 80px;
+    height: 56px;
+}
+
+/* Start: Flash Player loading */
+#oc_flash-player {
+    background-color: #FDE7CE;
+    vertical-align: middle;
+    text-align: center;
+    margin-bottom: 0px;
+    margin-top: 0px;
+    padding: 10px;
+    /*width: 100%;*/
+    height: 1200;
+    display: block;
+    /*margin-left: 37%;
+    margin-right: 0 auto;*/
+}
+
+#logout {
+  color: #A72123;
+  text-decoration: none;
+  display: none;
+  float: right;
+  margin-right: 0px;
+  margin-bottom: 5px;
+}
+
+#logout:hover {
+  text-decoration: underline;
+}

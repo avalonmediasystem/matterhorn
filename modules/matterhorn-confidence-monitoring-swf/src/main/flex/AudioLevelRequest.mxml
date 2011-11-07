@@ -1,0 +1,98 @@
+--- modules/matterhorn-confidence-monitoring-swf/src/main/flex/AudioLevelRequest.mxml	(revision 0)
++++ modules/matterhorn-confidence-monitoring-swf/src/main/flex/AudioLevelRequest.mxml	(working copy)
+@@ -7,8 +7,14 @@
+ 			
+ 			private var count:int = 0;
+ 			private var url:String = ""; 
+-			public function start(url:String):void{
++			private var endpointLocation:String = ""; 
++			[Bindable]			
++			private var audioLevel:Number = 0;
++			private var errorText:Text = null;
++
++			public function start(url:String, endpointLocation:String):void{
+ 				this.url = url;
++				this.endpointLocation = endpointLocation;
+ 				setupTimer();
+ 			}
+ 			
+@@ -27,49 +33,54 @@
+ 	 		}
+ 	 		
+ 	 		private function onTick(event:TimerEvent):void{
+-	 			Result.text = "onTick " + count;
++	 			//Result.text = "onTick " + count;
+ 	 			send();
+ 	 		}
+ 		
+ 			public function handleStateResult(event:ResultEvent):void{
+-				//Result.text = "Received Result";
+-				//Result.text += "='" + event.message.body.toString() + "'";
+ 				var results:Array = event.message.body.toString().split("samples");
+ 				var audioLevelsString:String = results[1];
+ 				var audioLevels:Array = audioLevelsString.split(",");
+-				var currentAudioLevel:Number = audioLevels[audioLevels.length - 1].toString().split("]")[0] * 100;
++				this.audioLevel = audioLevels[audioLevels.length - 1].toString().split("]")[0] * 100;
+ 				count++;
+-				if(currentAudioLevel < 2){
+-					audioLevel.source = "http://aries.usask.ca/opencast/confMon/images/AudioLevels1.jpg";
++				if(audioLevel < 2) {
++					audioLevelIcon.source = endpointLocation + "img/AudioLevels1.jpg";
+ 				}
+-				else if(currentAudioLevel >= 2 && currentAudioLevel < 4){
+-					audioLevel.source = "http://aries.usask.ca/opencast/confMon/images/AudioLevels2.jpg";
++				else if(audioLevel >= 2 && audioLevel < 4) {
++					audioLevelIcon.source = endpointLocation + "img/AudioLevels2.jpg";	
+ 				}
+-				else if(currentAudioLevel >= 4 && currentAudioLevel < 6){
+-					audioLevel.source = "http://aries.usask.ca/opencast/confMon/images/AudioLevels3.jpg";
++				else if(audioLevel >= 4 && audioLevel < 6) {
++					audioLevelIcon.source = endpointLocation + "img/AudioLevels3.jpg";
+ 				}
+-				else if(currentAudioLevel >= 6 && currentAudioLevel < 8){
+-					audioLevel.source = "http://aries.usask.ca/opencast/confMon/images/AudioLevels4.jpg";
++				else if(audioLevel >= 6 && audioLevel < 8) {
++					audioLevelIcon.source = endpointLocation + "img/AudioLevels4.jpg";
+ 				}
+-				else if(currentAudioLevel >= 8 && currentAudioLevel < 10){
+-					audioLevel.source = "http://aries.usask.ca/opencast/confMon/images/AudioLevels5.jpg";
++				else {
++					audioLevelIcon.source = endpointLocation + "img/AudioLevels5.jpg";
+ 				}
+-				Result.text = " Audio Level: " + currentAudioLevel.toString() + "\n";
+-				
++				// ImageLocation.text = audioLevelIcon.source;
++				// audioLevelIcon.source = ImageLocation.text;
++				// Result.text = " Audio Level: " + currentAudioLevel.toString() + "\n";
+ 			}
+-		
++
++			public function setErrorText(errorText:Text):void {
++				this.errorText = errorText;
++			}		
++
+ 			public function handleStateFault(event:FaultEvent):void{
+-				Result.text = "Received Fault\n";
+-				Result.text += event.message.toString() + "\n";
+-				Result.text += event.fault.faultString + "\n";
+-				Result.text += event.statusCode + "\n";
+-				Result.text += "Last Result" + service.lastResult.toString() + "\n";
++				if(errorText != null) {								
++					errorText.text = "Audio Level had fault:\n";
++					//errorText.text += event.message.toString() + "\n";
++					errorText.text += event.fault.faultString + "\n";
++					errorText.text += event.statusCode + "\n";
++					//errorText.text += "Last Result" + service.lastResult.toString() + "\n";
++				}
+ 			}
+ 		]]>
+ 	</mx:Script>
+-	
+-	<mx:Text id="Result" text="Start"/>
+-	<mx:Image id="audioLevel" source="http://aries.usask.ca/opencast/confMon/images/AudioLevels0.jpg" width="60" height="45" />
++	<mx:NumberFormatter id="RemoveDecimal" precision="0" rounding="up"/>
++	<mx:Text id="Result" text="Audio Level: {RemoveDecimal.format(audioLevel)}"/>
++	<mx:Image id="audioLevelIcon" source="http://localhost:8080/img/AudioLevels0.jpg}" width="60" height="45" />
+ 	<mx:HTTPService id="service" fault="handleStateFault(event)" result="handleStateResult(event)" useProxy="false">
+         <mx:request xmlns="">
+         </mx:request>

@@ -1,0 +1,39 @@
+--- modules/matterhorn-confidence-monitoring-swf/src/main/flex/AudioControls.mxml	(revision 0)
++++ modules/matterhorn-confidence-monitoring-swf/src/main/flex/AudioControls.mxml	(working copy)
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" initialize="load()" xmlns:ns1="*" horizontalAlign="center" verticalAlign="middle">
++<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ns1="*" horizontalAlign="center" verticalAlign="middle">
+ <mx:Script>
+ 	<![CDATA[
+ 		private var s:Sound = new Sound();
+@@ -7,7 +7,7 @@
+ 		private var playing:Boolean = false;
+ 		private var stopped:Boolean = false;
+ 		
+-		public function load():void{
++		public function start(url:String, endpointLocation:String):void{
+ 			Status.text = "Started Successfully!";
+ 			try{
+ 				/** TODO Fix audio streaming so that it detects it automatically and disables it if not in use.**/
+@@ -18,7 +18,8 @@
+ 				Play.visible = false;
+ 				Stop.visible = false;
+ 			}
+-			AudioLevel.start("http://akm220.usask.ca:8080/confidence/audio/audio/");
++			// "http://akm220.usask.ca:8080/confidence/audio/audio/"
++			AudioLevel.start(url + "/confidence/audio/audio/", endpointLocation);
+ 		}
+ 		
+ 		public function play():void{
+@@ -38,6 +39,10 @@
+ 			}
+ 			Status.text = "Stopped";
+ 		}
++
++		public function setErrorText(text:Text):void {
++			AudioLevelResponse.setErrorText(text);
++		}
+ 	]]>
+ </mx:Script>
+ 	<ns1:AudioLevelRequest id="AudioLevel">
