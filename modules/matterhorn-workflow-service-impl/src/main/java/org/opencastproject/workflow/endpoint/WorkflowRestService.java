@@ -315,6 +315,15 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
     stopEndpoint.addRequiredParam(new Param("id", Type.STRING, null, "The ID of the workflow instance"));
     stopEndpoint.setTestForm(RestTestForm.auto());
     data.addEndpoint(RestEndpoint.Type.WRITE, stopEndpoint);
+    
+    // Remove a Workflow Instance
+    RestEndpoint removeEndpoint = new RestEndpoint("remove", RestEndpoint.Method.DELETE, "/remove",
+            "Permanently remove a workflow instance");
+    removeEndpoint.addStatus(org.opencastproject.util.doc.Status.noContent("No conent if successful."));
+    removeEndpoint.addStatus(org.opencastproject.util.doc.Status.notFound("A workflow instance with this ID was not found"));
+    removeEndpoint.addRequiredParam(new Param("id", Type.STRING, null, "The ID of the workflow instance"));
+    removeEndpoint.setTestForm(RestTestForm.auto());
+    data.addEndpoint(RestEndpoint.Type.WRITE, removeEndpoint);
 
     // Suspend a Workflow Instance
     RestEndpoint suspendEndpoint = new RestEndpoint("suspend", RestEndpoint.Method.POST, "/suspend",
@@ -735,6 +744,18 @@ public class WorkflowRestService extends AbstractJobProducerEndpoint {
     try {
       WorkflowInstance workflow = service.stop(workflowInstanceId);
       return Response.ok(workflow).build();
+    } catch (WorkflowException e) {
+      throw new WebApplicationException(e);
+    }
+  }
+  
+  @DELETE
+  @Path("remove")
+  @Produces(MediaType.TEXT_PLAIN)
+  public Response remove(@FormParam("id") long workflowInstanceId) throws NotFoundException {
+    try {
+      service.remove(workflowInstanceId);
+      return Response.noContent().build();
     } catch (WorkflowException e) {
       throw new WebApplicationException(e);
     }

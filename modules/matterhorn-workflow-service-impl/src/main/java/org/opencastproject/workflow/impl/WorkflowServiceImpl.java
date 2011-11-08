@@ -757,8 +757,9 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    */
   public WorkflowDefinition getWorkflowDefinitionById(String id) throws NotFoundException, WorkflowDatabaseException {
     WorkflowDefinition def = workflowDefinitions.get(id);
-    if (def == null)
+    if (def == null) {
       throw new NotFoundException("Workflow definition '" + id + "' not found");
+    }
     return def;
   }
 
@@ -773,6 +774,15 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
     instance.setState(STOPPED);
     update(instance);
     return instance;
+  }
+  
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.workflow.api.WorkflowService#remove(long)
+   */
+  public void remove(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException {
+    index.remove(workflowInstanceId);
   }
 
   /**

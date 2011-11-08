@@ -286,4 +286,13 @@ public interface WorkflowService {
    *           if there is a problem storing the registered workflow definitions
    */
   List<WorkflowDefinition> listAvailableWorkflowDefinitions() throws WorkflowDatabaseException;
+  
+  /**
+   * Permanently removes a workflow from the solr index.
+   * 
+   * @param workflowInstanceId
+   * @throws WorkflowDatabaseException
+   * @throws NotFoundException
+   */
+  void remove(long workflowInstanceId) throws WorkflowDatabaseException, NotFoundException;
 }
