@@ -42,7 +42,7 @@ Opencast.Annotation_Comment = (function ()
     {
         
         //enable log
-        //Opencast.Utils.enableLogging(true);
+        //$.enableLogging(true);
         // Handler keypress ALT+CTRL+a
         $(document).keyup(function (event)
         {
@@ -59,7 +59,7 @@ Opencast.Annotation_Comment = (function ()
                               $("#comment-Info").offset({ top: top, left: left });               
                               var playheadPercent = ( left - $('#oc_flash-player').offset().left ) / $('#oc_flash-player').width();
                               commentAtInSeconds = Math.round(playheadPercent * Opencast.Player.getDuration());
-                              infoTime = Opencast.Utils.formatSeconds(commentAtInSeconds);
+                              infoTime = $.formatSeconds(commentAtInSeconds);
                               $("#comment-Info").show();
                               //click
                               $("#oc-comment-hover-box").click();                   
@@ -107,7 +107,7 @@ Opencast.Annotation_Comment = (function ()
                   $("#comment-Info").offset({ top: top, left: left });               
                   var playheadPercent = ( left - $('#oc_flash-player').offset().left ) / $('#oc_flash-player').width();
                   commentAtInSeconds = Math.round(playheadPercent * Opencast.Player.getDuration());
-                  infoTime = Opencast.Utils.formatSeconds(commentAtInSeconds);           
+                  infoTime = $.formatSeconds(commentAtInSeconds);           
                   $("#cm-info-time").html(infoTime);  
                   $("#comment-Info").show();         
             }                          
@@ -240,7 +240,7 @@ Opencast.Annotation_Comment = (function ()
                 });
                 var ciLeft = event.pageX;
                 var ciTop = event.pageY-100;
-                Opencast.Utils.log("dblclick "+ciLeft+" "+ciTop);
+                $.log("dblclick "+ciLeft+" "+ciTop);
                 $("#comment-Info").css("left", ciLeft+"px");
                 $("#comment-Info").css("top", ciTop+"px");
                 $("#comment-Info").show();           
@@ -302,7 +302,7 @@ Opencast.Annotation_Comment = (function ()
             dataType: 'xml',
             success: function (xml)
             {
-                Opencast.Utils.log("Add_Comment success");
+                $.log("Add_Comment success");
                 showAnnotation_Comment();
                 
                 var comment_list_show = $('#oc_btn-comments-tab').attr("title");
@@ -312,7 +312,7 @@ Opencast.Annotation_Comment = (function ()
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
-                Opencast.Utils.log("Add_Comment error: "+textStatus);
+                $.log("Add_Comment error: "+textStatus);
             }
         });
     }
@@ -332,7 +332,7 @@ Opencast.Annotation_Comment = (function ()
             jsonp: 'jsonp',
             success: function (data)
             {
-                Opencast.Utils.log("Annotation AJAX call: Requesting data succeeded");
+                $.log("Annotation AJAX call: Requesting data succeeded");
                 
                 //demark segements              
                 for(var slidesNr = Opencast.segments.getNumberOfSegments()-1 ; slidesNr >= 0 ; slidesNr--){
@@ -341,7 +341,7 @@ Opencast.Annotation_Comment = (function ()
                 
                 if ((data === undefined) || (data['annotations'] === undefined) || (data['annotations'].annotation === undefined))
                 {
-                    Opencast.Utils.log("Annotation AJAX call: Data not available");
+                    $.log("Annotation AJAX call: Data not available");
                     //show nothing
                     $('#oc-comment-hover-box').html("");
                     $('#oc_slide-comments').html("");
@@ -349,7 +349,7 @@ Opencast.Annotation_Comment = (function ()
                 }
                 else
                 {
-                    Opencast.Utils.log("Annotation AJAX call: Data available");
+                    $.log("Annotation AJAX call: Data available");
                     data['annotations'].duration = duration; // duration is in seconds
                     data['annotations'].nrOfSegments = Opencast.segments.getNumberOfSegments();
                     
@@ -415,7 +415,7 @@ Opencast.Annotation_Comment = (function ()
                     var slideCommentSet = Opencast.Slide_CommentPlugin.addAsPlugin($('#oc_slide-comments'), slideData);
                     if (!scrubberCommentSet)
                     {
-                        Opencast.Utils.log("No scrubberComment template processed");
+                        $.log("No scrubberComment template processed");
                         //$("#oc-comment-hover-box").html("");
                     }
                     else
@@ -425,7 +425,7 @@ Opencast.Annotation_Comment = (function ()
                     
                     if (!slideCommentSet)
                     {
-                        Opencast.Utils.log("No slideComment template processed");
+                        $.log("No slideComment template processed");
                         $("#oc_slide-comments").html("");
                     }
                     else
@@ -435,7 +435,7 @@ Opencast.Annotation_Comment = (function ()
      
                     //mark segments
                     if(slideData.comment.length > 0){
-                        Opencast.Utils.log("Slide Comments available");
+                        $.log("Slide Comments available");
                         var reachedSegID = "";
                         $(slideData.comment).each(function (i){
                             if(reachedSegID !== slideData.comment[i].slideNr){
@@ -456,7 +456,7 @@ Opencast.Annotation_Comment = (function ()
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
             {
-                Opencast.Utils.log("Comment Ajax call: Requesting data failed "+xhr+" "+ ajaxOptions+" "+ thrownError);
+                $.log("Comment Ajax call: Requesting data failed "+xhr+" "+ ajaxOptions+" "+ thrownError);
             }
         });
     }
@@ -472,7 +472,7 @@ Opencast.Annotation_Comment = (function ()
         if(clickedOnHoverBar === false){
             var left = $("#" + commentId).offset().left;
             var top = $("#data").offset().top - 105;
-            Opencast.Utils.log("hoverComment ");
+            $.log("hoverComment ");
             $("#comment-Info").css("left", left+"px");
             $("#comment-Info").css("top", top+"px");
             clickedOnHoverBar = true;
@@ -480,9 +480,9 @@ Opencast.Annotation_Comment = (function ()
             $("#cm-add-box").hide();
             $("#cm-info-box").show();
             $("#cm-info-hover").hide();
-            $("#oc-comment-info-header-text").html(userId+" at "+Opencast.Utils.formatSeconds(commentTime));
+            $("#oc-comment-info-header-text").html(userId+" at "+$.formatSeconds(commentTime));
             $("#oc-comment-info-textbox").html(commentValue);
-            Opencast.Utils.log("hoverComment ");
+            $.log("hoverComment ");
         }
     }
     
@@ -495,7 +495,7 @@ Opencast.Annotation_Comment = (function ()
     function hoverSlideComment(commentId, commentValue, userId, slideNr)
     {
         
-        Opencast.Utils.log("hoverSlideComment ");
+        $.log("hoverSlideComment ");
         if(clickedOnHoverBar === false){
             var left = $("#" + commentId).offset().left + 8;
             var top = $("#" + commentId).offset().top - 100;
@@ -506,7 +506,7 @@ Opencast.Annotation_Comment = (function ()
             $("#cm-add-box").hide();
             $("#cm-info-box").show();
             $("#cm-info-hover").hide();
-            Opencast.Utils.log("hoverSlideComment "+userId);
+            $.log("hoverSlideComment "+userId);
             var slNr = parseInt(slideNr) + 1;
             $("#oc-comment-info-header-text").html(userId + " at slide "+slNr);
             $("#oc-comment-info-textbox").html(commentValue);
@@ -521,7 +521,7 @@ Opencast.Annotation_Comment = (function ()
      */
     function hoverOutSlideComment()
     {
-        Opencast.Utils.log("hoverOutSlideComment ");
+        $.log("hoverOutSlideComment ");
         clickedOnHoverBar = false;
         $("#comment-Info").hide();
         $("#cm-info-hover").hide();

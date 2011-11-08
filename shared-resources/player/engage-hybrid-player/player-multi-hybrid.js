@@ -306,8 +306,6 @@ Opencast.Player = (function ()
                 title: PLAY
             });
             $("#oc_btn-play-pause").attr('className', 'oc_btn-play');
-            $("#oc_btn-play-pause").removeAttr('class');
-            $("#oc_btn-play-pause").attr('class', 'oc_btn-play');
             $("#oc_btn-play-pause").attr('aria-pressed', 'false');
             setCurrentPlayPauseState(PAUSING);
         }
@@ -319,8 +317,6 @@ Opencast.Player = (function ()
                 title: PAUSE
             });
             $("#oc_btn-play-pause").attr("className", "oc_btn-pause");
-            $("#oc_btn-play-pause").removeAttr('class');
-            $("#oc_btn-play-pause").attr('class', 'oc_btn-pause');
             $("#oc_btn-play-pause").attr('aria-pressed', 'true');
             setCurrentPlayPauseState(PLAYING);
         }
