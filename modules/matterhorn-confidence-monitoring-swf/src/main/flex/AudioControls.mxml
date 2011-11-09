@@ -8,7 +8,7 @@
 		private var stopped:Boolean = false;
 		
 		public function start(url:String, endpointLocation:String):void{
-			Status.text = "Started Successfully!";
+			// Status.text = "Started Successfully!";
 			try{
 				/** TODO Fix audio streaming so that it detects it automatically and disables it if not in use.**/
 				/*var req:URLRequest = new URLRequest("http://akm220.usask.ca:10000/arts134.mp3");
@@ -41,16 +41,15 @@
 		}
 
 		public function setErrorText(text:Text):void {
-			AudioLevelResponse.setErrorText(text);
+			AudioLevel.setErrorText(text);
 		}
 	]]>
 </mx:Script>
-	<ns1:AudioLevelRequest id="AudioLevel">
-	</ns1:AudioLevelRequest>
-		<mx:Text id="AudioLevelResponse"/>
-		<mx:Text text="This should be the status." id="Status" visible="false"/>
-		<mx:HBox>
-		<mx:Button label="Play" id="Play" click="play()" visible="false"/>
-		<mx:Button label="Stop" id="Stop" click="stop()" visible="false"/>
-		</mx:HBox>
+	<ns1:AudioLevelRequest id="AudioLevel"/>
+	<mx:Text id="AudioLevelResponse"/>
+	<mx:Text text="Audio Streaming" id="Status" visible="true"/>
+	<mx:HBox>
+	<mx:Button label="Play" id="Play" click="play()" visible="true"/>
+	<mx:Button label="Stop" id="Stop" click="stop()" visible="true"/>
+	</mx:HBox>
 </mx:VBox>

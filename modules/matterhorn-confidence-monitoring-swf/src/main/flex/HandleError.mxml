@@ -1,4 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ns1="*" horizontalAlign="center" verticalAlign="middle" width="1024" height="300">
-<mx:Text id="ErrorText"/>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ns1="*" horizontalAlign="center" verticalAlign="top">
+	<mx:Script>
+		<![CDATA[
+			private var defaultWidth:Number = 1024;
+			private var small:Boolean = true;
+			private var ShowErrorLogText:String = "Show Error Log";
+			private var HideErrorLogText:String = "Hide Error Log";
+			
+			public function onClick():void {
+				if(small) {
+					small = false;
+					ErrorLogContainer.visible = true;
+					//ErrorLogContainer.scaleY = 1;
+					ErrorLogContainer.height = 300; 
+					ShowErrorLogButton.label = HideErrorLogText;
+				}
+				else {
+					small = true;
+					ErrorLogContainer.visible = false;
+					ErrorLogContainer.height = 10;
+					//ErrorLogContainer.scaleY = 0;
+					ShowErrorLogButton.label = ShowErrorLogText; 
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Button id="ShowErrorLogButton" click="{onClick()}" label="{ShowErrorLogText}"/>
+	<mx:VBox width="1024" height="10" visible="false" id="ErrorLogContainer" horizontalScrollPolicy="on" verticalScrollPolicy="on">
+		<mx:Text id="ErrorLog" width="1000"/>	
+	</mx:VBox>
 </mx:VBox>

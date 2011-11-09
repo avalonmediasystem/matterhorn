@@ -2,10 +2,14 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalAlign="center" verticalAlign="middle" >
 	<mx:Script>
 		<![CDATA[
+			import mx.messaging.config.ServerConfig;
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.events.FaultEvent;
 			
 			private var tick:Number = 0;
+			private var errorText:Text = null;
+			
+			public var isCapturing:Boolean = false;
 			
 			public function send(url:String):void{
 				service.url = url;
@@ -32,27 +36,41 @@
 				if(event.message.body == "idle" || event.message.body == "shutting_down" || event.message.body == "uploading" || event.message.body == "unknown")
 				{
 					tick++;
-					Result.text = "Not Capturing " + tick;
+					// Result.text = "Not Capturing " + tick;
+					Result.text = "Not Capturing";
 					Result.setStyle("color", "#000000");
+					isCapturing = false;
+					NextCapture.text = "Next Capture in: 01:01:24";
 				}
 				else {
 					tick++;
-					Result.text = "Capturing " + tick;
-					Result.setStyle("color", "#E71212");
+					//Result.text = "Capturing " + tick;
+					Result.text = "Capturing";
+					Result.setStyle("color", "#871D1E");
+					isCapturing = true;
+					NextCapture.text = "Capture will finish in: 00:38:24";
 				}
 			}
 		
 			public function handleStateFault(event:FaultEvent):void{
-				Result.text = "Received Fault\n";
-				Result.text += event.message.toString() + "\n";
-				Result.text += event.fault.faultString + "\n";
-				Result.text += event.statusCode + "\n";
-				Result.text += "Last Result" + service.lastResult.toString() + "\n";
+				if (this.errorText != null) {
+					errorText.text += "Couldn't update capture agent status";
+					errorText.text += " from: \n" + service.url;
+					errorText.text += " because: \n" + event.fault.message + "\n";
+					errorText.text += " because: \n" + event.fault.faultCode + "\n";
+					errorText.text += " because: \n" + event.fault.faultString + "\n";
+					errorText.text += "=============================================================================\n";
+					errorText.text += "=============================================================================\n";
+				}
 			}
+			
+			public function setErrorText(errorText:Text):void {
+				this.errorText = errorText;
+			}	
 		]]>
 	</mx:Script>
-	
 	<mx:Text id="Result" text="Start" fontSize="14"/>
+	<mx:Text id="NextCapture" text="Next Capture in: 01:01:24"/>
 	<mx:HTTPService id="service" fault="handleStateFault(event)" result="handleStateResult(event)" useProxy="false">
         <mx:request xmlns="">
         </mx:request>

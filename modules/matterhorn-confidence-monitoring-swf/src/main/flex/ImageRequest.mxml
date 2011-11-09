@@ -15,6 +15,12 @@
 			private var url:String = "";
 			private var small:Boolean = true;
 			
+			private var ErrorLog:Text = null;
+			
+			public function setErrorLog(ErrorLog:Text):void {
+				this.ErrorLog = ErrorLog;	
+			}
+			
 			public function handleStateResult(event:ResultEvent):void{
 				Result.text = "Received Result";
 				Result.text += event..toString();
@@ -23,11 +29,20 @@
 			}
 		
 			public function handleStateFault(event:FaultEvent):void{
-				Result.text = "Received Fault\n";
+				if (this.ErrorLog != null) {
+					ErrorLog.text += "Couldn't get image from: ";
+					ErrorLog.text += " from: \n" + service.url;
+					ErrorLog.text += " because: \n" + event.fault.message + "\n";
+					ErrorLog.text += " because: \n" + event.fault.faultCode + "\n";
+					ErrorLog.text += " because: \n" + event.fault.faultString + "\n";
+					ErrorLog.text += "=============================================================================\n";
+					ErrorLog.text += "=============================================================================\n";
+				}
+				/*Result.text = "Received Fault\n";
 				Result.text += event.message.toString() + "\n";
 				Result.text += event.fault.faultString + "\n";
 				Result.text += event.statusCode + "\n";
-				Result.text += "Last Result" + service.lastResult.toString() + "\n";
+				Result.text += "Last Result" + service.lastResult.toString() + "\n";*/
 			}
 			public function send(url:String):void{
 				this.url = url;
@@ -47,7 +62,7 @@
 	 		private function onTick(event:TimerEvent):void{
 	 			Result.text = "onTick ";
 	 			var loader:Loader = new Loader();
-            	loader.contentLoaderInfo.addEventListener(Event.COMPLETE, displayImage);		 	
+            	loader.contentLoaderInfo.addEventListener(Event.COMPLETE, displayImage);
 				loader.load(new URLRequest(url));
 	 		}
 	 		

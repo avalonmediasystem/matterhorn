@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="horizontal" initialize="init()" xmlns:ns1="*" horizontalAlign="center" verticalAlign="top" paddingLeft="30" paddingRight="30" alpha="1.0" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#FFFFFF, #FFFFFF]">
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="horizontal" initialize="init()" xmlns:ns1="*" horizontalAlign="center" verticalAlign="top" alpha="1.0" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#FFFFFF, #FFFFFF]">
 	<mx:Script>
 	<![CDATA[
 		import mx.utils.Base64Encoder;		
@@ -12,7 +12,6 @@
 			// Get the hostname and the location of this endpoint. 
 			host = Application.application.url.split("/confidence")[0];	
 			endpointLocation = Application.application.url.split("ConfidenceMonitoring.swf")[0];
-	
 			setErrorText();
 
 			// Start the confidence monitoring. 
@@ -22,7 +21,8 @@
 		}
 		
 		public function setErrorText():void {
-			Audio.setErrorText(handleError.ErrorText);
+			Audio.setErrorText(handleError.ErrorLog);
+			CaptureState.setErrorText(handleError.ErrorLog);
 		}		
 
 		/** Get all of the video devices and add them to our list of images to grab. **/
@@ -32,6 +32,7 @@
 				var name:String = device.child("name");
 				if(type == "video") {
 					var imageRequest:ImageRequest = new ImageRequest();
+					imageRequest.setErrorLog(handleError.ErrorLog);
 					Images.addChild(imageRequest);
 					imageRequest.send(host + "/confidence/" + name);
 				}
@@ -42,7 +43,6 @@
 </mx:Script>
 	<mx:VBox horizontalAlign="center">
 		<ns1:GetDeviceNamesRequest id="GetDevices"/>
-		<mx:Spacer height="10"/>
 		<ns1:CaptureStatusRequest id="CaptureState"/>
 		<mx:HBox horizontalAlign="center" id="Images">
 			<mx:Spacer width="10"/>
@@ -50,6 +50,6 @@
 		<mx:Spacer height="10"/>
 		<ns1:AudioControls x="10" y="398" id="Audio"/>
 		<mx:Spacer height="10"/>
-		<ns1:HandleError id="handleError">
+		<ns1:HandleError id="handleError"/>
 	</mx:VBox>
 </mx:Application>

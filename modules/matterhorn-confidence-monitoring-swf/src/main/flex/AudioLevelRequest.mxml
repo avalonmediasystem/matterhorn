@@ -55,12 +55,12 @@
 				else if(audioLevel >= 6 && audioLevel < 8) {
 					audioLevelIcon.source = endpointLocation + "img/AudioLevels4.jpg";
 				}
-				else {
+				else if(audioLevel > 8) {
 					audioLevelIcon.source = endpointLocation + "img/AudioLevels5.jpg";
+				} 
+				else {
+					audioLevelIcon.source = endpointLocation + "img/AudioLevels0.jpg";
 				}
-				// ImageLocation.text = audioLevelIcon.source;
-				// audioLevelIcon.source = ImageLocation.text;
-				// Result.text = " Audio Level: " + currentAudioLevel.toString() + "\n";
 			}
 
 			public function setErrorText(errorText:Text):void {
@@ -68,12 +68,14 @@
 			}		
 
 			public function handleStateFault(event:FaultEvent):void{
-				if(errorText != null) {								
-					errorText.text = "Audio Level had fault:\n";
-					//errorText.text += event.message.toString() + "\n";
-					errorText.text += event.fault.faultString + "\n";
-					errorText.text += event.statusCode + "\n";
-					//errorText.text += "Last Result" + service.lastResult.toString() + "\n";
+				if (this.errorText != null) {
+					errorText.text += "Couldn't update audio level";
+					errorText.text += " from: \n" + service.url;
+					errorText.text += " because: \n" + event.fault.message + "\n";
+					errorText.text += " because: \n" + event.fault.faultCode + "\n";
+					errorText.text += " because: \n" + event.fault.faultString + "\n";
+					errorText.text += "=============================================================================\n";
+					errorText.text += "=============================================================================\n";
 				}
 			}
 		]]>
