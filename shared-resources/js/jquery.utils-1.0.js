@@ -579,7 +579,7 @@
         return false;
     }
     
-    /**
+    /*
      * @description Logs given arguments -- uses console.log
      * @param any arguments console.log-valid
      * @return true if window.console exists and arguments had been logged, false else

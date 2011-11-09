@@ -370,7 +370,7 @@ Opencast.segments = (function ()
      */
     function showSegments()
     {
-        Opencast.Player.addEvent("SHOW-SEGMENTS");
+        Opencast.Player.addEvent(Opencast.logging.SHOW_SEGMENTS);
         // Hide other Tabs
         Opencast.Annotation_Comment_List.hideComments();
         Opencast.Description.hideDescription();
@@ -416,7 +416,7 @@ Opencast.segments = (function ()
                 error: function (xhr, ajaxOptions, thrownError)
                 {
                     $.log("Segments Ajax call: Requesting data failed");
-                    Opencast.Player.addEvent("SEGMENTS-AJAX-FAILED");
+                    Opencast.Player.addEvent(Opencast.logging.SEGMENTS_AJAX_FAILED);
                     $('#scrollcontainer').html('No Slides available');
                     $('#scrollcontainer').hide();
                 }

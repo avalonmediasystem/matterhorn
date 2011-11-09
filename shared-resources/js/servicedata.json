@@ -3,7 +3,7 @@
     {
         "analytics": "/usertracking/footprint.xml",
         "annotation": "/annotation/annotations.json",
-        "annotationComment": "../../annotation/annotations.json",
+        "annotationComment": "/annotation/annotations.json",
         "description":
         {
             "episode": "/search/episode.json",

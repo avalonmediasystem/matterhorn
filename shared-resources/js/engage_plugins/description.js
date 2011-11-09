@@ -32,8 +32,7 @@ Opencast.Description = (function ()
      */
     function showDescription()
     {
-        $.log("showDescription");
-        Opencast.Player.addEvent("SHOW-DESCRIPTION");
+        Opencast.Player.addEvent(Opencast.logging.SHOW_DESCRIPTION);
         // Hide other Tabs
         Opencast.Annotation_Comment_List.hideComments();
         Opencast.segments.hideSegments();
@@ -123,7 +122,7 @@ Opencast.Description = (function ()
                         error: function (xhr, ajaxOptions, thrownError)
                         {
                             $.log("Description Ajax call #1: Requesting data failed");
-                            Opencast.Player.addEvent("DESCRIPTION-AJAX-1-FAILED");
+                            Opencast.Player.addEvent(Opencast.logging.DESCRIPTION_AJAX_VIEWS_FAILED);
                             displayNoDescriptionAvailable("No data available");
                         }
                     });
@@ -132,7 +131,7 @@ Opencast.Description = (function ()
                 error: function (xhr, ajaxOptions, thrownError)
                 {
                     $.log("Description Ajax call #2: Requesting data failed");
-                    Opencast.Player.addEvent("DESCRIPTION-AJAX-2-FAILED");
+                    Opencast.Player.addEvent(Opencast.logging.DESCRIPTION_AJAX_DATA_FAILED);
                     displayNoDescriptionAvailable("No data available");
                 }
             });
