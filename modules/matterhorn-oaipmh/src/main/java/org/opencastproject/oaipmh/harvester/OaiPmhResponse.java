@@ -37,16 +37,9 @@ public abstract class OaiPmhResponse {
 
   public OaiPmhResponse(Document doc) {
     this.doc = doc;
-    this.xpath = createXPath();
-  }
-
-  /**
-   * Create an XPath object suitable for processing OAI-PMH response documents.
-   */
-  public static XPath createXPath() {
     XPath xPath = XPathFactory.newInstance().newXPath();
     xPath.setNamespaceContext(OaiPmhNamespaceContext.getContext());
-    return xPath;
+    this.xpath = xPath;
   }
 
   /**
@@ -87,12 +80,8 @@ public abstract class OaiPmhResponse {
    * The expression must return a node.
    */
   protected Node xpathNode(String expr) {
-    return xpathNode(xpath, doc, expr);
-  }
-
-  public static Node xpathNode(XPath xpath, Node context, String expr) {
     try {
-      return (Node) xpath.evaluate(expr, context, XPathConstants.NODE);
+      return (Node) xpath.evaluate(expr, doc, XPathConstants.NODE);
     } catch (XPathExpressionException e) {
       throw new RuntimeException("malformed xpath expression " + expr, e);
     }

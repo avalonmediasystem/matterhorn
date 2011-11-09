@@ -84,9 +84,9 @@ Opencast.Scrubber_CommentPlugin = (function ()
             (annotation_CommentData.duration > 0) &&
             (annotation_CommentData.type === "scrubber"))
         {
-            $.log("Scrubber Comment Plugin: Data available, processing template");
+            Opencast.Utils.log("Scrubber Comment Plugin: Data available, processing template");
             processedTemplateData = template_scrubber.process(annotation_CommentData);
-            //$.log("processedTemplateData: "+processedTemplateData);
+            //Opencast.Utils.log("processedTemplateData: "+processedTemplateData);
             element.html(processedTemplateData);
             //draw balloons with html5
             $(annotation_CommentData.comment).each(function (i)
@@ -101,7 +101,7 @@ Opencast.Scrubber_CommentPlugin = (function ()
         }
         else
         {
-            $.log("Annotation Plugin: No data available");
+            Opencast.Utils.log("Annotation Plugin: No data available");
             return false;
         }
     }

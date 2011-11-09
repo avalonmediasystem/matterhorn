@@ -32,7 +32,7 @@ Opencast.Description = (function ()
      */
     function showDescription()
     {
-        $.log("showDescription");
+        Opencast.Utils.log("showDescription");
         Opencast.Player.addEvent("SHOW-DESCRIPTION");
         // Hide other Tabs
         Opencast.Annotation_Comment_List.hideComments();
@@ -176,7 +176,7 @@ Opencast.Description = (function ()
      */
     function hideDescription()
     {
-        $.log("hideDescription");
+        Opencast.Utils.log("hideDescription");
         // Change Tab Caption
         $('#oc_btn-description').attr(
         {

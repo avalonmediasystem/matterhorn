@@ -36,9 +36,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-/**
- * The Matterhorn metadata provider provides whole media packages.
- */
 public class MatterhornMetadataProvider implements MetadataProvider {
 
   private static final MetadataFormat METADATA_FORMAT = new MetadataFormat() {
