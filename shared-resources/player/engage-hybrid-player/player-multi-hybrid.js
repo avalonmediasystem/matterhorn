@@ -306,6 +306,8 @@ Opencast.Player = (function ()
                 title: PLAY
             });
             $("#oc_btn-play-pause").attr('className', 'oc_btn-play');
+            $("#oc_btn-play-pause").removeAttr('class');
+            $("#oc_btn-play-pause").attr('class', 'oc_btn-play');
             $("#oc_btn-play-pause").attr('aria-pressed', 'false');
             setCurrentPlayPauseState(PAUSING);
         }
@@ -317,6 +319,8 @@ Opencast.Player = (function ()
                 title: PAUSE
             });
             $("#oc_btn-play-pause").attr("className", "oc_btn-pause");
+            $("#oc_btn-play-pause").removeAttr('class');
+            $("#oc_btn-play-pause").attr('class', 'oc_btn-pause');
             $("#oc_btn-play-pause").attr('aria-pressed', 'true');
             setCurrentPlayPauseState(PLAYING);
         }
@@ -1268,7 +1272,7 @@ Opencast.Player = (function ()
         var embedUrl = advancedUrl.replace(/watch.html/g, "embed.html");
         if($('#oc_embed-costum-hide-controls-checkbox').is(':checked'))
         {
-            embedUrl += "&controls=true";
+            embedUrl += "&hideControls=false";
         }
         $('#oc_embed-costum-width-textinput').val(width);
         $('#oc_embed-costum-height-textinput').val(height);

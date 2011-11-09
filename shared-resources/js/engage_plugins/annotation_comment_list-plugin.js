@@ -36,7 +36,7 @@ Opencast.Annotation_Comment_List_Plugin = (function ()
                                         '<div class="oc-comment-list-user-text">${c.user}</div>' +
                                         '<div class="oc-comment-list-textspace"></div>' +                                   
                                         '{if c.type == "scrubber"}' +
-                                            '<div class="oc-comment-list-type-text">at ${Opencast.Utils.formatSeconds(c.inpoint)}</div>' +
+                                            '<div class="oc-comment-list-type-text">at ${$.formatSeconds(c.inpoint)}</div>' +
                                         '{elseif c.type == "slide"}'+
                                             '<div class="oc-comment-list-type-text">at slide ${parseInt(c.slide) + 1}</div>' +
                                         '{else}'+
@@ -100,7 +100,7 @@ Opencast.Annotation_Comment_List_Plugin = (function ()
             (annotation_CommentData.comment !== undefined) &&
             (annotation_CommentData.comment.length > 0))
         {
-            Opencast.Utils.log("Annotation_Comment_List_Plugin: Data available, processing template");
+            $.log("Annotation_Comment_List_Plugin: Data available, processing template");
             processedTemplateData = template.process(annotation_CommentData);
             element.html(processedTemplateData);
           
@@ -108,7 +108,7 @@ Opencast.Annotation_Comment_List_Plugin = (function ()
         }
         else
         {
-            Opencast.Utils.log("Annotation_Comment_List_Plugin: No data available");
+            $.log("Annotation_Comment_List_Plugin: No data available");
             return false;
         }
     }

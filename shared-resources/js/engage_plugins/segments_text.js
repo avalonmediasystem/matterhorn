@@ -128,7 +128,7 @@ Opencast.segments_text = (function ()
      */
     function hideSegmentsText()
     {
-        Opencast.Utils.log("hideSegmentsText");
+        $.log("hideSegmentsText");
         // Change Tab Caption
         $('#oc_btn-slidetext').attr(
         {

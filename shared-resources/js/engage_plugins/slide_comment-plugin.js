@@ -78,9 +78,9 @@ Opencast.Slide_CommentPlugin = (function ()
             (annotation_CommentData.comment.length > 0) &&
             (annotation_CommentData.type === "slide"))
         {
-            Opencast.Utils.log("Slide Comment Plugin: Data available, processing template");
+            $.log("Slide Comment Plugin: Data available, processing template");
             processedTemplateData = template_slide.process(annotation_CommentData);
-            //Opencast.Utils.log("processedTemplateData: "+processedTemplateData);
+            //$.log("processedTemplateData: "+processedTemplateData);
             element.html(processedTemplateData);
             //draw balloons with html5
             $(annotation_CommentData.comment).each(function (i)
@@ -95,7 +95,7 @@ Opencast.Slide_CommentPlugin = (function ()
         }
         else
         {
-            Opencast.Utils.log("Annotation Plugin: No data available");
+            $.log("Annotation Plugin: No data available");
             return false;
         }
     }
