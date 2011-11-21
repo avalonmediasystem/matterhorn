@@ -530,13 +530,17 @@
         </div>
                     
         <div id="cm-add-box" class="oc-comment-box">
-            <div id="oc-comment-add-header">
+            <div id="oc-comment-add-header" class="oc-comment-header">
                 <span class="ui-icon ui-icon-closethick oc-comment-add-exit" unselectable="on" style="float:right;-moz-user-select: none;">close</span>
                 <div id="oc-comment-add-header-text" class="oc-comment-header-text"></div>                   
             </div>
-            <textarea id="oc-comment-add-textbox" class="oc-comment-textbox">Type your comment here</textarea>
+            <div class="oc-comment-textwrapper">
+		        <textarea id="oc-comment-add-textbox" class="oc-comment-textbox">Type your comment here</textarea>
+		        <input id="oc-comment-add-namebox" class="oc-comment-namebox" type="text" value="Your name">             	
+            </div>
             <div id="oc-comment-add-button-bar" class="oc-comment-button-bar">
                 
+                <input id="oc-comment-add-submit-name" class="oc-comment-submit-name" value="Next" role="button" type="button" />
                 <input id="oc-comment-add-submit" class="oc-comment-submit" value="Add" role="button" type="button" />
                 <div id="oc-comment-add-space"></div>
                 <input id="oc-comment-add-cancel" class="oc-comment-add-exit" value="Cancel" role="button" type="button" />
@@ -545,11 +549,11 @@
         </div>
         
        <div id="cm-info-box" class="oc-comment-box">
-            <div id="oc-comment-add-header">
+            <div id="oc-comment-info-header" class="oc-comment-header">
                 <span class="ui-icon ui-icon-closethick oc-comment-add-exit" unselectable="on" style="float:right;-moz-user-select: none;">close</span>
                 <div id="oc-comment-info-header-text" class="oc-comment-header-text"></div>                   
             </div>
-            <p id="oc-comment-info-textbox" class="oc-comment-textbox">Test Comment</p>
+            <p id="oc-comment-info-textbox" class="oc-comment-textbox"></p>
        </div>
         
         <div id="cm-info-triangle" class="arrow-down"></div>

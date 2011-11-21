@@ -31,6 +31,8 @@ Opencast.Annotation_Comment = (function ()
     var clickedOnHoverBar = false;
     var infoTime = "";
     var commentAtInSeconds;
+    var default_name = "Your name!";
+    var defaul_comment_text = "Type your comment here!"
     
     /**
      * @memberOf Opencast.Annotation_Comment
@@ -40,9 +42,6 @@ Opencast.Annotation_Comment = (function ()
 
     function initialize()
     {
-        
-        //enable log
-        //$.enableLogging(true);
         // Handler keypress ALT+CTRL+a
         $(document).keyup(function (event)
         {
@@ -70,6 +69,7 @@ Opencast.Annotation_Comment = (function ()
 
             }
         });
+        
         // resize handler
         $('#oc_flash-player').bind('doResize', function(e) {
            
@@ -90,7 +90,13 @@ Opencast.Annotation_Comment = (function ()
             
         });
         
-        //// HOVER UI ////
+        //// UI ////
+        
+    	// show namebox and next button -> hide comment add box and add button
+		$("#oc-comment-add-namebox").show();
+		$("#oc-comment-add-submit-name").show();
+		$("#oc-comment-add-textbox").hide();
+		$("#oc-comment-add-submit").hide();
         
         $("#oc-comment-hover-box").mouseenter(function(e){
            if(clickedOnHoverBar === false){
@@ -144,38 +150,75 @@ Opencast.Annotation_Comment = (function ()
         });
         
         $(".oc-comment-add-exit").click(function(){
+			// show namebox and next button -> hide comment add box and add button
+			$("#oc-comment-add-namebox").show();
+			$("#oc-comment-add-submit-name").show();
+			$("#oc-comment-add-textbox").hide();
+			$("#oc-comment-add-submit").hide();
             // hide info box -> hide add box show hover tooltip cm-info-box
             $("#comment-Info").hide();
             $("#cm-add-box").hide();
             $("#cm-info-box").hide();
             $("#cm-info-hover").show();
             // back to default
-            $("#oc-comment-add-textbox").val("Type your comment here");
+            $("#oc-comment-add-textbox").val(defaul_comment_text);
+            $("#oc-comment-add-namebox").val(default_name);
             clickedOnHoverBar = false;
+			//show other slide comments
+			$('canvas[id^="slideComment"]').show();
         });
         
         $("#oc-comment-add-submit").click(function(){
-            // hide info box -> hide add box show hover tooltip
-            $("#comment-Info").hide();
-            $("#cm-add-box").hide();
-            $("#cm-info-hover").show();
-            clickedOnHoverBar = false;
-            var commentValue = $("#oc-comment-add-textbox").val();
-            // back to default
-            $("#oc-comment-add-textbox").val("Type your comment here");
-            if($('#cm-add-box').attr("title") === "Add timed comment"){
-                //add scrubber comment
-                addComment(parseInt(commentAtInSeconds),commentValue,"scrubber");                
-            }else if($('#cm-add-box').attr("title") === "Add slide comment"){
-                //add slide comment
-                addComment(parseInt(Opencast.Player.getCurrentPosition()),
-                           commentValue,
-                           "slide",
-                           relativeSlideCommentPosition.x,
-                           relativeSlideCommentPosition.y,
-                           Opencast.segments.getCurrentSlideId()
-                          );                              
-            }
+        	if($("#oc-comment-add-textbox").val() !== defaul_comment_text){
+		    	// show namebox and next button -> hide comment add box and add button
+		        $("#oc-comment-add-namebox").show();
+		        $("#oc-comment-add-submit-name").show();
+		        $("#oc-comment-add-textbox").hide();
+		        $("#oc-comment-add-submit").hide();
+		        // hide info box -> hide add box show hover tooltip
+		        $("#comment-Info").hide();
+		        $("#cm-add-box").hide();
+		        $("#cm-info-hover").show();
+		        clickedOnHoverBar = false;
+		        var commentValue = $("#oc-comment-add-textbox").val();
+		        var nameValue = $("#oc-comment-add-namebox").val();
+		        // back to default
+		        $("#oc-comment-add-textbox").val(defaul_comment_text);
+		        $("#oc-comment-add-namebox").val(default_name);
+				//show other slide comments
+				$('canvas[id^="slideComment"]').show();  
+		        if($('#cm-add-box').attr("title") === "Add timed comment"){
+		            //add scrubber comment
+		            addComment(parseInt(nameValue,commentAtInSeconds),commentValue,"scrubber");                
+		        }else if($('#cm-add-box').attr("title") === "Add slide comment"){
+		            //add slide comment
+		            addComment(nameValue,
+								parseInt(Opencast.Player.getCurrentPosition()),
+								commentValue,
+								"slide",
+								relativeSlideCommentPosition.x,
+								relativeSlideCommentPosition.y,
+								Opencast.segments.getCurrentSlideId()
+		                      );                              
+		        }
+		    }
+        });
+        
+        $("#oc-comment-add-submit-name").click(function(){
+        	var nameVal = $("#oc-comment-add-namebox").val();
+        	if(nameVal !== default_name){
+		        // hide namebox and next button -> show comment add box and add button
+		        $("#oc-comment-add-namebox").hide();
+		        $("#oc-comment-add-submit-name").hide();
+		        $("#oc-comment-add-textbox").show();
+		        $("#oc-comment-add-submit").show();
+		        var curSlide = Opencast.segments.getCurrentSlideId()+1;
+                var infoText = nameVal + " at slide " + curSlide;    
+                $("#oc-comment-add-header-text").html(infoText);
+                $("#oc-comment-add-textbox").focus();
+                $("#oc-comment-add-textbox").select();
+		    }
+
         });
         
         // Handler keypress CTRL+Enter on textbox
@@ -190,8 +233,16 @@ Opencast.Annotation_Comment = (function ()
 
             }
         });
+        // Handler keypress Enter on namebox
+        $("#oc-comment-add-namebox").keyup(function (event)
+        {
+            if (event.which === 13)
+            {
+                $("#oc-comment-add-submit-name").click();
+            }
+        });
         
-        //// HOVER UI END ////
+        //// UI END ////
         
         // change scrubber position handler
         $('#scrubber').bind('changePosition', function(e) {
@@ -215,6 +266,9 @@ Opencast.Annotation_Comment = (function ()
         //double click handler on slide comment box
         $("#oc_slide-comments").dblclick(function(event){
             if(annotationCommentDisplayed === true){
+            	
+            	//hide other slide comments
+            	$('canvas[id^="slideComment"]').hide();
                
                 var mPos = new Object();
                 mPos.x = event.pageX - $('#oc_slide-comments').offset().left - 10;
@@ -250,16 +304,15 @@ Opencast.Annotation_Comment = (function ()
                 $("#cm-info-hover").hide();
                 clickedOnHoverBar = true;           
                 //Info Text
-                var user = "Anonymous";
                 if(Opencast.Player.getUserId() !== null){
                     user = Opencast.Player.getUserId();
                 }
                 var curSlide = Opencast.segments.getCurrentSlideId()+1;
-                var infoText = user + " at slide " + curSlide;    
+                var infoText = "Slide " + curSlide;    
                 $("#oc-comment-add-header-text").html(infoText);
                 
-                $("#oc-comment-add-textbox").focus();
-                $("#oc-comment-add-textbox").select();             
+                $("#oc-comment-add-namebox").focus();
+                $("#oc-comment-add-namebox").select();             
                 
             }   
        });
@@ -277,12 +330,12 @@ Opencast.Annotation_Comment = (function ()
      * @description Add a comment
      * @param Int position, String value
      */
-    function addComment(curPosition,value,type,xPos,yPos,segId)
+    function addComment(user,curPosition,value,type,xPos,yPos,segId)
     {
-        var user = "Anonymous";
-        if(Opencast.Player.getUserId() !== null){
-            user = Opencast.Player.getUserId();
-        }
+        //var user = "Anonymous";
+        //if(Opencast.Player.getUserId() !== null){
+        //    user = Opencast.Player.getUserId();
+        //}
         
         //comment data [user]:[text]:[type]:[xPos]:[yPos]:[segId]
         var data = "";

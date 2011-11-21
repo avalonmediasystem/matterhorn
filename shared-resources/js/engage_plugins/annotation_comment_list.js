@@ -42,7 +42,10 @@ Opencast.Annotation_Comment_List = (function ()
         $("#oc-comments-list-textbox").val(defaultText);
   		$("#oc-comments-list-namebox").val(defaultNameText);
         $("#oc-comments-list-submit").click(function(){        
-            submitComment();         
+            submitComment(false);         
+        });
+        $("#oc-comments-list-submit-timed").click(function(){        
+            submitComment(true);         
         });
         
         // Handler keypress CTRL+Enter on textbox
@@ -73,42 +76,34 @@ Opencast.Annotation_Comment_List = (function ()
         
         //
         $.log("init list bindings");
-        //$('#scrubber').bind('changePosition', updateTimeText());
-        
-        //$('#draggable').bind('dragstop', updateTimeText());
-    }
-    
-    function updateTimeText()
-    {
-    	$.log("updateTimeTExt");
-    	var infoTime = "00:00:00";
-    	$.log("updateTimeTExt1");
-    	if($('#oc_flash-player') !== undefind){
-    		$.log("updateTimeTExt2");
-    		$.log("updateTimeTExt3"+$('#oc_flash-player'));
-	    	var left = e.pageX ;
-	    	var playheadPercent = ( left - $('#oc_flash-player').offset().left ) / $('#oc_flash-player').width();
-			var commentAtInSeconds = Math.round(playheadPercent * Opencast.Player.getDuration());
-			var infoTime = $.formatSeconds(commentAtInSeconds);
-    	}
-    	$.log("updateTimeTExt4");
-		if($("#oc-comments-list-submit-timed") !== undefind){
-			$("#oc-comments-list-submit-timed").value("Add comment at "+infoTime);
-		}
-		
+
+        $('#scrubber').bind('changePosition', function (event, ui)         
+        {
+        	$("#oc-comments-list-submit-timed").val("Add comment at "+Opencast.Player.getCurrentTime());
+        });
+
+        $('#draggable').bind('dragstop', function (event, ui)         
+        {
+        	$("#oc-comments-list-submit-timed").val("Add comment at "+Opencast.Player.getCurrentTime());
+        });
     }
     
     /**
      * @memberOf Opencast.Annotation_Comment_List
      * @description submitComment
      */
-    function submitComment()
+    function submitComment(isTimed)
     { 
        var textBoxValue = $("#oc-comments-list-textbox").val();
        var nameBoxValue = $("#oc-comments-list-namebox").val();
        $.log("click submit "+textBoxValue + " "+ nameBoxValue);
-       if(textBoxValue !== defaultText && nameBoxValue !== defaultNameText ){             
-           addComment(textBoxValue,nameBoxValue,"normal");
+       if(textBoxValue !== defaultText && nameBoxValue !== defaultNameText ){
+			if(isTimed){
+				addComment(textBoxValue,nameBoxValue,"scrubber",Math.round(Opencast.Player.getCurrentPosition()));
+			}else{
+				addComment(textBoxValue,nameBoxValue,"normal");
+			}          
+           
            $("#oc-comments-list-textbox").val(defaultText);
            $("#oc-comments-list-namebox").val(defaultNameText);
        }else if(textBoxValue === defaultText){
@@ -127,22 +122,25 @@ Opencast.Annotation_Comment_List = (function ()
      * @description Add a comment
      * @param Int position, String value
      */
-    function addComment(value,user,type)
+    function addComment(value,user,type,pos)
     {      
-        /* // Get user from system
+        /* // Get user by system
         var user = "Anonymous";
         if(Opencast.Player.getUserId() !== null){
             user = Opencast.Player.getUserId();
         }
         */
         //comment data [user]:[text]:[type]
-        data = user+":"+value+":"+type;        
+        data = user+":"+value+":"+type;
+        var timePos = 0;
+        if(pos !== undefined)
+        	  timePos = pos;      
         
         $.ajax(
         {
             type: 'PUT',
             url: "../../annotation/",
-            data: "episode="+mediaPackageId+"&type="+annotationType+"&in="+0+"&value="+data+"&out="+0,
+            data: "episode="+mediaPackageId+"&type="+annotationType+"&in="+timePos+"&value="+data+"&out="+0,
             dataType: 'xml',
             success: function (xml)
             {
