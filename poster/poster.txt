@@ -32,6 +32,11 @@ Matterhorn is extensible, scalable, and runs on a variety of different hardware 
 
 The Matterhorn Environment:
 
+1. Lecture Capture and Administration
+focus is on the activities around the aquisition of content
+user generated content (uploading video) is supported as well as the recording of new content using special purpose Matterhorn devices (capture agents)
+scheduling of recordings is done through standards-based iCal feeds, resulting in low coupling between recording devices and the rest of the system
+standard definition, high definition, VGA projected content, and multichannel audio are all supported depending on the device configuration being used
 
 28 adopting institutions as of November 2011.
 
@@ -71,6 +76,15 @@ M. Ketterl, O. A. Schulte, and A. Hochman. Opencast matterhorn: A community-driv
 
 OPENCAST
 
-Sponsors:
-in-kind: http://opencast.org/matterhorn/community
-vendors: http://opencast.org/matterhorn/vendors
+Opencast is a community of individuals, higher education institutions and organizations working together to explore, develop, define and document best practices and technologies for management of audiovisual content in academia. The community shares experiences with technologies and practices as well as identifies interesting future approaches and requirements. The community is open to anyone to join and participate in, with most of the participation happens through build projects (such as Matterhorn) and the community mailing list (community@opencastproject.org).
+
+Opencast was founded in 2006 by thirteen higher education institutions to build open source solutions for academic video management.  Together, with the help of funding from the Andrew W. Mellon and the William and Flora Hewlett Foundations, the Opencast project has grown Matterhorn from a small incubator project into an enterprise-strength solution used at 28 institutes of higher learning world wide.
+
+Opencast, and the Matterhorn project, are sponsored by commercial partners who offer consulting, implementation, and hardware support for Opencast platforms:
+
+http://opencast.org/matterhorn/vendors
+
+Matterhorn development is funded by in-kind donations from our sponsors and partners, including:
+
+http://opencast.org/matterhorn/community
+
