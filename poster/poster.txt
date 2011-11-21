@@ -1,0 +1,76 @@
+MATTERHORN
+
+*The cover page lists authors who are members of the product owner team and executed the vision for Matterhorn 1.0. Additional authors of this work include our numerous committers and designers
+
+Opencast Matterhorn 1.1: Reaching New Heights*
+
+Christopher A. Brooks
+University of Saskatchewan
+
+Markus Ketterl
+Universität Osnabrück
+
+Adam Hochman
+University of California at Berkeley
+
+Josh Holtzman
+University of California at Berkeley
+
+Judy Stern
+University of California at Berkeley
+
+Tobias Wunden
+Eidgenössische Technische Hochschule Zürich
+
+Kristofor Amundson, Greg Logan, Kenneth Lui, Adam McKenzie, Denis Meyer, Markus Moormann, Matjaz Rihtar, Ruediger Rolf, Nejc Skofic, Micah Sutton, Ruben Perez Vazquez, and Benjamin Wulff.
+
+What is Matterhorn?
+
+Matterhorn is a free, open-source, enterprise-ready platform that supports the management of educational audio and video content. Institutions use Matterhorn to produce automated lecture recordings, manage existing video, serve designated distribution channels, and provide user interfaces to engage students with content.
+
+Matterhorn is extensible, scalable, and runs on a variety of different hardware platforms and configurations.  Several commercial and support vendors exist and provide portions of the Matterhorn lecture capture toolchain, allowing institutions to choose the level of support that best fits their needs.
+
+The Matterhorn Environment:
+
+
+28 adopting institutions as of November 2011.
+
+
+What can Matterhorn do for:
+
+Students:
+enable anytime learning, letting students choose when and how they want to consume lecture content
+encourage thought and participation in the classroom instead of rote transcription
+connect students at a distance to those in the classroom, removing barriers of geographic location
+help provide an environment for purposeful reflection, where students reconsider lectures before asking questions
+
+Instructors:
+create copies of lectures with no interaction from instructors, thus enhancing the teaching and learning process without increasing demands on instructor time
+give oppourtuntities for pedagogical reflection and review of teaching, allowing instructors to reflect on their methods of lecturing
+reduce demands on instructors to provide material to students who missed it
+
+Institution:
+allows IT professionals to leverage existing systems to enable lecture capture on physical, virtual, or cloud environments
+strengthens the robustness of the academic mission by providing alternative delivery forms in case of disaster, pandemic, or other emergency
+
+Researchers:
+allows media researchers to test innovations in a broadly used multimedia{fn} environment while focusing only on the aspect of the system that is novel to them
+encourages the movement of research results out of the lab and into wide-scale production
+enabled non-technical researchers such as those in the social sciences, humanities, and arts, to carry out media-related inquiry without having to build robust systems
+
+{fn} Individual institutions usage varries with some reporting tens of gigabytes of lecture content created daily and thousands of students using the system over an academic term. 
+
+
+C. A. Brooks, C. Demmans Epp, G. Logan, and J. Greer. The Who, What, When, and Why of Lecture Capture. In 1st International Conference on Learning Analytics and Knowledge 2011 (LAK'11), 2010. 
+
+M. Ketterl, J. Emden, and O. Vornberger. Using social navigation for multimedia content suggestion. In Proceedings of the 2010 IEEE Fourth International Conference on Semantic Computing, ICSC '10, pages 448-449, Washington, DC, USA, 2010. IEEE Computer Society.
+
+M. Ketterl, R. Mertens, and O. Vornberger. Bringing web 2.0 to web lectures. International Journal of Interactive Technology and Smart Education, 6(2):82-96, 2009.
+
+M. Ketterl, O. A. Schulte, and A. Hochman. Opencast matterhorn: A community-driven open source software project for producing, managing, and distributing academic video. Interact. Techn. Smart Edu., 7(3):168-180, 2010.
+
+OPENCAST
+
+Sponsors:
+in-kind: http://opencast.org/matterhorn/community
+vendors: http://opencast.org/matterhorn/vendors
