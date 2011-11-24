@@ -882,6 +882,8 @@ Opencast.Initialize = (function ()
                 window.location = newLoc;
             }
         });
+
+        var allFields = $( [] ).add($("#oc-input-clipshow-title"));
         $("#oc_clipshow-dialog").dialog({
           autoOpen: false,
           height: 300,
@@ -889,9 +891,12 @@ Opencast.Initialize = (function ()
           modal: true,
           buttons: {
             "Save Clipshow": function() {
-              //TODO:  Validation?
-              Opencast.clipshow_editor_ui_Plugin.saveClipshow($("#oc-input-clipshow-title").val());
-              $(this).dialog("close");
+              if ($("#oc-input-clipshow-title").val().length > 0) {
+                Opencast.clipshow_editor_ui_Plugin.saveClipshow($("#oc-input-clipshow-title").val());
+                $(this).dialog("close");
+              } else {
+                $(".validateTips").text("Title must be at least one character").addClass("ui-state-highlight");
+              }
             },
             Cancel: function() {
               $(this).dialog("close");

@@ -138,7 +138,9 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
     }
 
     function saveDialog() {
-      $("#oc_clipshow-dialog").dialog("open");
+      if (counter > 0) {
+        $("#oc_clipshow-dialog").dialog("open");
+      }
     }
 
     function saveClipshow(title) {

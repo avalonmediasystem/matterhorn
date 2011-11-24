@@ -46,11 +46,10 @@ Opencast.clipshow_ui = (function ()
             Opencast.clipshow_editor_ui_Plugin.createClipshowEditorElement();
         });
 
-        var allFields = $( [] ).add($("#oc-input-clipshow-title"));
         $("#oc_button-clipshowSave").button();
         $("#oc_button-clipshowSave").click(function ()
         {
-          Opencast.clipshow_editor_ui-plugin.saveDialog();
+          Opencast.clipshow_editor_ui_Plugin.saveDialog();
         });
         $("#oc_select-clipshow").change(function() {
           var id = $("#oc_select-clipshow option:selected").val();
