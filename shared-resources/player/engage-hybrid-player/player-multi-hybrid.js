@@ -435,6 +435,20 @@ Opencast.Player = (function ()
         var fullPosition = Math.round(newPosition);
         if (inPosition <= fullPosition && fullPosition <= inPosition + INTERVAL_LENGTH)
         {
+						//Begin Clipshow jumping code
+            if (Opencast.Player.currentClip != -1) {
+              if (Opencast.Player.times[Opencast.Player.currentClip]["stop"] <= fullPosition) {
+                Opencast.Player.currentClip++;
+                if (Opencast.Player.currentClip < Opencast.Player.times.length) {
+                  doSeek(Opencast.Player.times[Opencast.Player.currentClip]["start"]);
+                  return;
+                } else {
+                  doPause();
+                  return;
+                }
+              }
+            }
+      			//End Clipshow jumping code
             outPosition = fullPosition;
             if (inPosition + INTERVAL_LENGTH === outPosition)
             {
@@ -811,6 +825,11 @@ Opencast.Player = (function ()
     function doSeek(ms)
     {
         Videodisplay.seek(ms);
+        for (var i = 0; i < Opencast.Player.times.length - 1; i++) {
+          if (Opencast.Player.times[i]["start"] <= ms && ms < Opencast.Player.times[i]["end"]) {
+            Opencast.Player.currentClip = i;
+          }
+        }
     }
     
     /**
@@ -1635,6 +1654,11 @@ Opencast.Player = (function ()
         timeLayerDisplayed = true;
         addEvent(Opencast.logging.SHOW_TIME_LAYER);
     }
+
+    function getPixelsPerSecond()
+    {
+       return $('#oc_seek-slider').width() / getDuration();
+    }
     
     /**
      * @memberOf Opencast.Player
@@ -1791,6 +1815,7 @@ Opencast.Player = (function ()
         currentTime: currentTime,
         flashVars: flashVars,
         addEvent: addEvent,
-        addFootprint: addFootprint
+        addFootprint: addFootprint,
+        getPixelsPerSecond: getPixelsPerSecond
     };
 }());

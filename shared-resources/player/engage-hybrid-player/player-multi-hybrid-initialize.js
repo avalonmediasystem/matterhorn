@@ -797,6 +797,9 @@ Opencast.Initialize = (function ()
                     Opencast.segments_text.doToggleSegmentsText();
                     break;
                 case 3:
+                    Opencast.User.doToggleUserTab();
+                    break;
+                case 4:
                     // Have a look at the - (engage-ui) watch.html - search trigger-function
                     break;
                 }
@@ -828,6 +831,14 @@ Opencast.Initialize = (function ()
         $('#oc_checkbox-statistics').click(function ()
         {
             Opencast.Analytics.doToggleAnalytics();
+        });
+        $('#oc_checkbox-clipshow').click(function ()
+        {
+            Opencast.clipshow_ui.doToggleClipshow();
+        });
+        $('#oc_checkbox-clipshowEditor').click(function ()
+        {
+            Opencast.clipshow_ui.doToggleClipshowEditor();
         });
         $('#oc_checkbox-annotations').click(function ()
         {
@@ -871,6 +882,26 @@ Opencast.Initialize = (function ()
                 window.location = newLoc;
             }
         });
+        $("#oc_clipshow-dialog").dialog({
+          autoOpen: false,
+          height: 300,
+          width: 350,
+          modal: true,
+          buttons: {
+            "Save Clipshow": function() {
+              //TODO:  Validation?
+              Opencast.clipshow_editor_ui_Plugin.saveClipshow($("#oc-input-clipshow-title").val());
+              $(this).dialog("close");
+            },
+            Cancel: function() {
+              $(this).dialog("close");
+            }
+          },
+          close: function() {
+            allFields.val("").removeClass("ui-state-error");
+          }
+        });
+
         
         onPlayerReadyListener();
         var mediaPackageId = $.getURLParameter('id');
@@ -935,6 +966,9 @@ Opencast.Initialize = (function ()
                 Opencast.Player.addEvent(Opencast.logging.NORMAL_DETAILED_LOGGING_AJAX_FAILED);
             }
         });
+        Opencast.clipshow_ui.initialize();
+				Opencast.Player.times = [];
+				Opencast.Player.currentClip = -1;
     });
     
     /**

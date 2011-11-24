@@ -37,6 +37,7 @@ Opencast.Description = (function ()
         Opencast.segments.hideSegments();
         Opencast.segments_text.hideSegmentsText();
         Opencast.search.hideSearch();
+        Opencast.User.hideUserTab();
         // Change Tab Caption
         $('#oc_btn-description').attr(
         {

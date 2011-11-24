@@ -229,6 +229,7 @@ Opencast.search = (function ()
         Opencast.Description.hideDescription();
         Opencast.segments.hideSegments();
         Opencast.segments_text.hideSegmentsText();
+        Opencast.User.hideUserTab();
         $("#oc_btn-lecturer-search").attr('aria-pressed', 'true');
         // Show a loading Image
         $('#oc_search-segment').show();

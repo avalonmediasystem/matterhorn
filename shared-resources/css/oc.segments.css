@@ -57,6 +57,42 @@
     padding: 0;
 }
 
+.clipshow {
+    float: right;
+    height: 25px;
+    width: 100%;
+}
+
+.clipshow-editor {
+    width: 100%;
+    height: 25px;
+    float: left;
+    position: relative;
+}
+
+.clipshow-editor-component {
+    float: left;
+    height: 25px;
+    border: 1px solid #AAAAAA;
+    background: orange;
+}
+
+.clipshow-displayed {
+    height: 25px;
+}
+
+.editor-displayed {
+    height: 25px;
+}
+
+.clipshow-and-editor-displayed {
+    height: 50px;
+}
+
+.clipshow-editor-controls {
+    height: 35px;
+}
+
 .oc-segments-preview {
   display: none;
 }

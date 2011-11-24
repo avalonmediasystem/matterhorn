@@ -271,8 +271,15 @@ color: #000;
 {
   margin-top:               5px;
   float:                    left;
-  width:                    16%;
+  width:                    14%;
   text-align:               center;
+}
+
+#oc_votes
+{
+  margin-top:               5px;
+  float:                    left;
+  width:                    190px;
 }
 
 #oc_volume-menue
