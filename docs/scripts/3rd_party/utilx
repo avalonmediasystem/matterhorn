@@ -1,4 +1,7 @@
-# HOME3P must already be defined
+# HOME3P must already be defined!
+#
+# Print system info, define global variables and functions
+#
 case `uname` in
   Linux )
     [ -s /etc/issue ] && head -1 /etc/issue
@@ -12,10 +15,6 @@ case `uname` in
     export LOCAL_PREFIX=/opt/local # if compiling with MacPorts
     ;;
 esac
-export CENTOS_MIRROR=http://mirrors.kernel.org
-export EPEL_MIRROR=http://mirror.switch.ch/ftp/mirror
-export RPMFORGE_MIRROR=http://apt.sw.be/redhat/el5/en
-export MACPORTS_SVN=http://svn.macports.org/repository/macports/trunk/dports
 export MINGW32=i686-pc-mingw32
 export MINGW32_PREFIX=/usr/i686-pc-mingw32/sys-root/mingw
 export CFLAGS=""
@@ -84,6 +83,44 @@ os() {
   return 0
 }
 #
+# os_ver
+#  <M.N>
+#
+os_ver() {
+  set +x
+  case `uname` in
+    Linux )
+      # CentOS, RHEL, Ubuntu, Debian, openSUSE, Amazon
+      awk '{
+  sub("^[^0-9.]*", ""); sub("[^0-9.]*$", "");
+  print $0;
+  exit 0
+}' /etc/issue
+      if [ $? -ne 0 ]; then
+        set -x
+        return 1
+      fi
+      ;;
+    Darwin )
+      sw_vers | awk '/^ProductVersion:/ {
+  sub("^[^0-9.]*", ""); sub("[^0-9.]*$", "");
+  print $0;
+  exit 0
+}'
+      if [ ${PIPESTATUS[0]} -ne 0 -o ${PIPESTATUS[1]} -ne 0 ]; then
+        set -x
+        return 1
+      fi
+      ;;
+    * )
+      set -x
+      return 1
+      ;;
+  esac
+  set -x
+  return 0
+}
+#
 # chkprog
 #   $1 = binary to check
 #
@@ -100,9 +137,12 @@ chkprog() {
 #   $1 = library to check (short form)
 #
 # Default library path:
-#   CentOS, RHEL:  /lib:/usr/lib:/lib/i686:/usr/lib/sse2:/usr/lib/tls
-#   Ubuntu:        /lib:/usr/lib:/lib/tls:/lib/i686:/usr/lib/sse2:/lib/tls/i686
-#   MacOS:         ~/lib:/usr/local/lib:/opt/local/lib:/lib:/usr/lib
+#   CentOS, RHEL:
+#     /lib:/usr/lib:/lib/i686:/usr/lib/sse2:/usr/lib/tls
+#   Ubuntu:
+#     /lib:/usr/lib:/lib/tls:/lib/i686:/usr/lib/sse2:/lib/tls/i686
+#   MacOS:
+#     ~/lib:/usr/local/lib:/opt/local/lib:/lib:/usr/lib
 #
 chklib() {
   case `uname` in
@@ -113,6 +153,12 @@ chklib() {
       for dir in /lib64 /usr/lib64 /lib64/tls /lib64/i686 /lib64/tls/i686 /usr/lib64/sse2 /usr/lib64/tls; do
         [ -s "$dir/lib$1.so" ] && return 0
       done
+#     for dir in /lib/i386-linux-gnu /usr/lib/i386-linux-gnu /lib/i486-linux-gnu /usr/lib/i486-linux-gnu /lib/i586-linux-gnu /usr/lib/i586-linux-gnu /lib/i686-linux-gnu /usr/lib/i686-linux-gnu; do
+#       [ -s "$dir/lib$1.so" ] && return 0
+#     done
+#     for dir in /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu; do
+#       [ -s "$dir/lib$1.so" ] && return 0
+#     done
       echo "lib$1.so is missing" 1>&2
       ;;
     Darwin )
@@ -120,6 +166,39 @@ chklib() {
         [ -s "$dir/lib$1.dylib" ] && return 0
       done
       echo "lib$1.dylib is missing" 1>&2
+      ;;
+  esac
+  return 1
+}
+#
+# chkinc
+#   $1 = include file to check
+#
+# Default include path:
+#   CentOS, RHEL, Ubuntu:
+#     /usr/local/include:/usr/lib/gcc/*/*/include:/usr/lib/gcc/*/*/include-fixed:/usr/include
+#   Ubuntu x64:
+#     /usr/local/include:/usr/lib/*-linux-gnu/gcc/*/*/include:/usr/lib/*-linux-gnu/gcc/*/*/include-fixed:/usr/include/*-linux-gnu:/usr/include
+#   MacOS:
+#     /usr/local/include:/usr/lib/gcc/*/*/include:/usr/include:/System/Library/Frameworks:/Library/Frameworks
+#
+chkinc() {
+  case `uname` in
+    Linux )
+      DIRLIST=`echo /usr/local/include /usr/lib/gcc/*/*/include /usr/lib/gcc/*/*/include-fixed /usr/lib/*-linux-gnu/gcc/*/*/include /usr/lib/*-linux-gnu/gcc/*/*/include-fixed /usr/include/*-linux-gnu /usr/include`
+      for dir in $DIRLIST; do
+        FILE=`find "$dir" -type f -name "$1" 2>/dev/null`
+        [ -n "$FILE" ] && return 0
+      done
+      echo "$1 is missing" 1>&2
+      ;;
+    Darwin )
+      DIRLIST=`echo /usr/local/include /usr/lib/gcc/*/*/include /usr/include /System/Library/Frameworks /Library/Frameworks`
+      for dir in $DIRLIST; do
+        FILE=`find "$dir" -type f -name "$1" 2>/dev/null`
+        [ -n "$FILE" ] && return 0
+      done
+      echo "$1 is missing" 1>&2
       ;;
   esac
   return 1
@@ -179,20 +258,43 @@ getans() {
   return 0
 }
 #
-# getcfg
-#   $1 = keyword to search in config.txt
+# getmcfg
+#   $1 = keyword to search in master config.txt (${HOME3P}/config.txt)
 #
-getcfg() {
+getmcfg() {
   set +x
-  awk '/^[ 	]*'$1'/ {
+  [ -z "$HOME3P" ] && HOME3P=`cd "${0%/*}" 2>/dev/null; echo $PWD`
+  CFG=`awk '
+/^[ 	]*'$1'/ {
   sub("^[ 	]*'$1'[ 	]*", "");
   sub("[ 	]*$", "");
   print $0
-}' config.txt
+}' "${HOME3P}/config.txt"`
   if [ $? -ne 0 ]; then
     set -x
     return 1
   fi
+  eval echo "$CFG"
+  set -x
+  return 0
+}
+#
+# getcfg
+#   $1 = keyword to search in config.txt in current dir
+#
+getcfg() {
+  set +x
+  CFG=`awk '
+/^[ 	]*'$1'/ {
+  sub("^[ 	]*'$1'[ 	]*", "");
+  sub("[ 	]*$", "");
+  print $0
+}' config.txt`
+  if [ $? -ne 0 ]; then
+    set -x
+    return 1
+  fi
+  eval echo "$CFG"
   set -x
   return 0
 }
@@ -253,28 +355,36 @@ download() {
   else
     if [ -f config.txt ]; then
       for ii in "" 1 2 3; do
-        for url in `getcfg URL${ii}:`; do
-          pkg=`getcfg PKG${ii}:`
-          if [ -z "$pkg" ]; then
-            echo "PKG${ii} not defined for URL${ii}: $url" 1>&2
-            continue
-          fi
-          if [ ! -f "$pkg" ]; then
+        ppos=0
+        for pkg in `getcfg PKG${ii}:`; do
+          let ppos=ppos+1
+          if [ ! -s "$pkg" ]; then
             copypkg "$pkg"
             if [ $? -ne 0 ]; then
-              wget -4O "$pkg" "$url"
-              if [ $? -ne 0 ]; then
+              ok=1
+              for URL in `getcfg URL${ii}:`; do
+                wget -t 5 -4 -O "$pkg" "$URL/$pkg"
+                ok=$?
+                [ $ok -eq 0 ] && break
+              done
+              if [ $ok -ne 0 ]; then
                 rm -f "$pkg"
                 return 1
+              else
+                shas=`getcfg SHA${ii}:`
+                sha=""; jj=0
+                for sha in $shas; do
+                  let jj=jj+1
+                  [ $jj -eq $ppos ] && break
+                done
+                if [ -n "$sha" ]; then
+                  shax=`shasumx "$pkg"`
+                  if [ "$shax" != "$sha" ]; then
+                    echo "Error transferring PKG${ii}: $pkg" 1>&2
+                    return 1
+                  fi
+                fi
               fi
-            fi
-          fi
-          sha=`getcfg SHA${ii}:`
-          if [ -n "$sha" ]; then
-            shax=`shasumx "$pkg"`
-            if [ "$shax" != "$sha" ]; then
-              echo "Error transferring PKG${ii}: $pkg" 1>&2
-              return 1
             fi
           fi
         done
@@ -392,8 +502,8 @@ EOF
 # copypc
 #
 copypc() {
-  LOC=`expr "$1" : '/*\(.*\)'`
   [ -z "$HOME3P" ] && HOME3P=`cd "${0%/*}" 2>/dev/null; echo $PWD`
+  LOC=`expr "$1" : '/*\(.*\)'`
   DEST="${HOME3P}/$LOC"; shift
   if [ ! -d "$DEST" ]; then
     rm -f "$DEST"
@@ -408,6 +518,7 @@ copypc() {
 # fix_scons
 #
 fix_scons() {
+  [ -z "$HOME3P" ] && HOME3P=`cd "${0%/*}" 2>/dev/null; echo $PWD`
   cat > files.lst << EOF
 /usr/lib/scons-1.2.0/SCons/Tool/mingw.py
 /usr/lib/scons-2.0.1/SCons/Tool/mingw.py
@@ -419,7 +530,7 @@ EOF
   [ $? -ne 0 ] && exit 1
   for file in `cat files.lst`; do
     if [ -s "$file" ]; then
-      sudox cp ${HOME3P}/base_libs/scons/mingw.py "$file"
+      sudox cp "${HOME3P}/base_libs/scons/mingw.py" "$file"
       [ $? -ne 0 ] && return 1
     fi
   done
