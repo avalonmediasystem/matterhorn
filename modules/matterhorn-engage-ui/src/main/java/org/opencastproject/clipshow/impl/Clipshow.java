@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlAccessorOrder;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @Entity
 @Table(name = "clipshows")
@@ -85,15 +86,25 @@ public class Clipshow implements Serializable, Comparable<Clipshow> {
   @ManyToMany(mappedBy = "shows")
   private Set<ClipshowSeries> series;
 
-  @OneToMany
+  @OneToMany(cascade = CascadeType.ALL)
   @JoinColumn(name = "clipshow_votes")
   private Set<ClipshowVote> votes;
+
+  @OneToMany(cascade = CascadeType.ALL)
+  @JoinColumn(name = "clipshow_tags")
+  @XmlElement(name = "tags")
+  private Set<ClipshowTag> tags;
+
+  @XmlTransient
+  @Column(name = "public")
+  private Boolean publicClipshow = true;
 
   public Clipshow() { 
     setVotes(new LinkedHashSet<ClipshowVote>());
     setSeries(new LinkedHashSet<ClipshowSeries>());
     setClips(new LinkedList<Clip>());
     setAllowedUsers(new LinkedHashSet<ClipshowUser>());
+    setTags(new LinkedHashSet<ClipshowTag>());
   }
 
   public Clipshow(String name, ClipshowUser author, String mediapackageId, List<Clip> clips) {
@@ -185,6 +196,9 @@ public class Clipshow implements Serializable, Comparable<Clipshow> {
   }
 
   public Boolean userAllowed(ClipshowUser user) {
+    if (isPublicClipshow()) {
+      return true;
+    }
     return allowedUsers.contains(user);
   }
   
@@ -214,6 +228,35 @@ public class Clipshow implements Serializable, Comparable<Clipshow> {
 
   public Long getId() {
     return id;
+  }
+
+  public void setTags(Set<ClipshowTag> newTags) {
+    tags = newTags;
+  }
+
+  public Set<ClipshowTag> getTags() {
+    return tags;
+  }
+
+  public void addTag(ClipshowTag tag) {
+    removeTag(tag); //Remove the old one so that the new one definitely replaces it
+    tags.add(tag);
+  }
+
+  public void removeTag(ClipshowTag tag) {
+    tags.remove(tag);
+  }
+
+  public Boolean getPublicClipshow() {
+    return publicClipshow;
+  }
+
+  public void setPublicClipshow(Boolean publicClipshow) {
+    this.publicClipshow = publicClipshow;
+  }
+
+  public boolean isPublicClipshow() {
+    return publicClipshow.booleanValue();
   }
 
   @Override

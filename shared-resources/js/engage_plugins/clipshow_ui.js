@@ -29,6 +29,9 @@ Opencast.clipshow_ui = (function ()
         waitForMove = 150;
     var clipshowList;
     var clipshowDropdownRefreshInterval;
+    // User name and id
+    var userCredentials;
+
 
     /**
      * @memberOf Opencast.segments_ui
@@ -78,6 +81,8 @@ Opencast.clipshow_ui = (function ()
           $("#oc_votes").buttonset("refresh");
         });
 
+        updateUserCredentials();
+       
         refreshClipshowList();
         window.setInterval(function event() {
             Opencast.clipshow_ui.refreshClipshowList();
@@ -85,6 +90,35 @@ Opencast.clipshow_ui = (function ()
         initResizeEnd();
         hideClipshow();
         hideClipshowEditor();
+    }
+
+    function updateUserCredentials() {
+        $.ajax(
+        {
+            type: "GET",
+            url: "../../clipshow/user/getName",
+            dataType: 'json',
+            success: function (json)
+            {
+              Opencast.clipshow_ui.setUserCredentials(json);
+            },
+            error: function (a, b, c)
+            {
+
+            }
+        });    
+    }
+
+    function setUserCredentials(json) {
+      userCredentials = json;
+    }
+
+    function getUserId() {
+      return userCredentials.id;
+    }
+
+    function getUsername() {
+      return userCredentials.displayName;
     }
 
     function refreshClipshowList() {
@@ -116,10 +150,10 @@ Opencast.clipshow_ui = (function ()
       //TODO:  Same issue as above, re: multiple entries are in an array, single one are not
       if ($.isArray(clipshowList)) {
         for (var i = 0; i < clipshowList.length; i++) {
-          selector.append($("<option />").val(clipshowList[i].id).text(clipshowList[i].title));
+          selector.append($("<option />").val(clipshowList[i].id).text(clipshowList[i].title + " by " + clipshowList[i].author));
         }
       } else {
-        selector.append($("<option />").val(clipshowList.id).text(clipshowList.title));
+        selector.append($("<option />").val(clipshowList.id).text(clipshowList.title + " by " + clipshowList.author));
       }
     }
 
@@ -301,6 +335,10 @@ Opencast.clipshow_ui = (function ()
         setClipshowList: setClipshowList,
         getClipshowList: getClipshowList,
         refreshClipshowList: refreshClipshowList,
+        updateUserCredentials: updateUserCredentials,
+        setUserCredentials: setUserCredentials,
+        getUserId: getUserId,
+        getUsername: getUsername,
         updateClipshowDropdown: updateClipshowDropdown
     };
 }());

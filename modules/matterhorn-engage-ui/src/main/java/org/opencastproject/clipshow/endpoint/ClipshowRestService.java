@@ -129,10 +129,59 @@ public class ClipshowRestService {
       clips.add(clip);
     }
 
+    String series = (String) decodedShow.get("series");
+    String tags = (String) decodedShow.get("tags");
+    String users = (String) decodedShow.get("allowedUsers");
+
     try {
-      this.service.createClipshow(name, clips, mediapackageId, req.getRemoteUser());
+      Long clipshowId = this.service.createClipshow(name, clips, mediapackageId, req.getRemoteUser());
+      if (series != null && StringUtils.isNotBlank(series)) {
+        try {
+          Long seriesId = Long.parseLong(series);
+          this.service.addClipshowToSeries(clipshowId.toString(), seriesId.toString(), req.getRemoteUser());
+        } catch (NumberFormatException e) {
+          Long seriesId = this.service.createSeries(series, req.getRemoteUser());
+          try {
+            this.service.addClipshowToSeries(clipshowId.toString(), seriesId.toString(), req.getRemoteUser());
+          } catch (NoPermissionException e1) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+          } catch (NotFoundException e1) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+          }
+        } catch (NoPermissionException e) {
+          return Response.status(Response.Status.FORBIDDEN).build();
+        } catch (NotFoundException e) {
+          return Response.status(Response.Status.NOT_FOUND).build();
+        }
+      }
+
+      if (tags != null && StringUtils.isNotBlank(tags)) {
+        try {
+          this.service.addTags(clipshowId.toString(), tags, req.getRemoteUser());
+        } catch (NoPermissionException e) {
+          return Response.status(Response.Status.FORBIDDEN).build();
+        } catch (NotFoundException e) {
+          return Response.status(Response.Status.NOT_FOUND).build();
+        }
+      }
+
+      if (users != null && StringUtils.isNotBlank(users)) {
+        String[] userAry = users.split(",");
+        for (String u : userAry) {
+          try {
+            this.service.addUserToClipshow(StringUtils.trimToEmpty(u), clipshowId.toString(), req.getRemoteUser());
+          } catch (NoPermissionException e1) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+          } catch (NotFoundException e1) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+          } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+          }
+        }
+      }
       return Response.status(Response.Status.CREATED).build();
     } catch (IllegalArgumentException e) {
+      e.printStackTrace();
       return Response.serverError().build();
     }
   }
@@ -522,6 +571,40 @@ public class ClipshowRestService {
 
     this.service.changeUsername(req.getRemoteUser(), newName);
     return Response.ok().build();
+  }
+
+  @GET
+  @Path("user/rankings")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(name = "getRankings", description = "Returns a list of the top five display names, and the number of votes for the current user",
+    pathParameters = { },
+    restParameters = { },
+    reponses = {
+      @RestResponse(description = "Rankings found successfully", responseCode = HttpServletResponse.SC_OK)
+    }, returnDescription = ""
+  )
+  public Response getRankings(@Context HttpServletRequest req) {
+    return Response.ok(service.getRankings(req.getRemoteUser())).build();
+  }
+
+  @GET
+  @Path("tags/search")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(name = "getTags", description = "Returns a list of clipshows tagged with a given tag",
+    pathParameters = { },
+    restParameters = { 
+      @RestParameter(name = "tag", description = "The tag to search for", isRequired = false, type = RestParameter.Type.STRING)
+    },
+    reponses = {
+      @RestResponse(description = "Clipshows found successfully", responseCode = HttpServletResponse.SC_OK)
+    }, returnDescription = ""
+  )
+  public Response getTags(@FormParam("tag") String tag, @Context HttpServletRequest req) {
+    if (StringUtils.isBlank(tag)) {
+      return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+    ListWrapper list = new ListWrapper(this.service.searchTags(tag, req.getRemoteUser()));
+    return Response.ok(list).build();
   }
 
   public ClipshowRestService() {

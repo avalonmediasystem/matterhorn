@@ -883,7 +883,7 @@ Opencast.Initialize = (function ()
             }
         });
 
-        var allFields = $( [] ).add($("#oc-input-clipshow-title"));
+        var allFields = $( [] ).add($(".clipshow-input"));
         $("#oc_clipshow-dialog").dialog({
           autoOpen: false,
           height: 300,
@@ -891,11 +891,43 @@ Opencast.Initialize = (function ()
           modal: true,
           buttons: {
             "Save Clipshow": function() {
+              var validated = true;
+              var validText = "";
+
+              var title = "";
               if ($("#oc-input-clipshow-title").val().length > 0) {
-                Opencast.clipshow_editor_ui_Plugin.saveClipshow($("#oc-input-clipshow-title").val());
+                title = $("#oc-input-clipshow-title").val();
+              } else {
+                validated = false;
+                validText = validText + "Title must be at least one character";
+              }
+
+              var series = "";
+              if ($("#oc-input-series-name").val().length > 0) {
+                series = $("#oc-input-series-name").val();
+              } else if ($("#oc-input-series-name-select").val().length > 0) {
+                series = $("#oc-input-series-name-select").val();
+              }
+
+              var tags = "";
+              if ($("#oc-input-tags").val().length > 0) {
+                tags = $("#oc-input-tags").val();
+              } else if ($("#oc-input-tags-select").val().length > 0) {
+                tags = $("#oc-input-tags-select").val();
+              }
+
+              var allowedUsers = "";
+              if ($("#oc-input-allowed-users").val().length > 0) {
+                allowedUsers = $("#oc-input-allowed-users").val();
+              } else if ($("#oc-input-allowed-users-select").val().length > 0) {
+                allowedUsers = $("#oc-input-allowed-users-select").val();
+              }
+
+              if (validated) {
+                Opencast.clipshow_editor_ui_Plugin.saveClipshow(title, series, tags, allowedUsers);
                 $(this).dialog("close");
               } else {
-                $(".validateTips").text("Title must be at least one character").addClass("ui-state-highlight");
+                $(".validateTips").text(validText).addClass("ui-state-highlight");
               }
             },
             Cancel: function() {

@@ -69,34 +69,6 @@ Opencast.clipshow_ui_Plugin = (function ()
 
       clipshowId = id;
 
-      $("#oc_btn-vote-funny").removeAttr("checked");
-      $("#oc_btn-vote-good").removeAttr("checked");
-      $("#oc_btn-vote-dislike").removeAttr("checked");
-      $("#oc_votes").buttonset("refresh");
-
-      $.ajax({
-        type: "GET",
-        url: "../../clipshow/vote/mine",
-        data: 'clipshowId=' + clipshowId,
-        dataType: 'json',
-        success: function(json) {
-          //{"properties-response":{"properties":{"item":[{"key":"GOOD","value":0},{"key":"DISLIKE","value":0},{"key":"FUNNY","value":1}]}}}
-          var types = json["properties-response"].properties.item;
-          for (var i = 0; i < types.length; i++) {
-            if (types[i].key == "GOOD" && types[i].value == 1) {
-              $("#oc_btn-vote-good").attr("checked", true);
-            } else if (types[i].key == "FUNNY" && types[i].value == 1) {
-              $("#oc_btn-vote-funny").attr("checked", true);
-            } else if (types[i].key == "DISLIKE" && types[i].value == 1) {
-              $("#oc_btn-vote-dislike").attr("checked", true);
-              $("#oc_btn-vote-funny").removeAttr("checked");
-              $("#oc_btn-vote-good").removeAttr("checked");
-            }
-          }
-          $("#oc_votes").buttonset("refresh");
-        }
-      });
-
       $.ajax({
             type: "GET",
             url: "../../clipshow/get?clipshowId=" + clipshowId  + "&mediapackageId=" + Opencast.Player.getMediaPackageId(),
@@ -108,6 +80,39 @@ Opencast.clipshow_ui_Plugin = (function ()
 
               if (clips.length == 0) {
                 return;
+              }
+
+              $("#oc_btn-vote-funny").removeAttr("checked");
+              $("#oc_btn-vote-good").removeAttr("checked");
+              $("#oc_btn-vote-dislike").removeAttr("checked");
+              $("#oc_votes").buttonset("refresh");
+
+              if (clipshowSource.author.id != Opencast.clipshow_ui.getUserId()) {
+                $("#oc_votes").show();
+                $.ajax({
+                  type: "GET",
+                  url: "../../clipshow/vote/mine",
+                  data: 'clipshowId=' + clipshowId,
+                  dataType: 'json',
+                  success: function(json) {
+                    //{"properties-response":{"properties":{"item":[{"key":"GOOD","value":0},{"key":"DISLIKE","value":0},{"key":"FUNNY","value":1}]}}}
+                    var types = json["properties-response"].properties.item;
+                    for (var i = 0; i < types.length; i++) {
+                      if (types[i].key == "GOOD" && types[i].value == 1) {
+                        $("#oc_btn-vote-good").attr("checked", true);
+                      } else if (types[i].key == "FUNNY" && types[i].value == 1) {
+                        $("#oc_btn-vote-funny").attr("checked", true);
+                      } else if (types[i].key == "DISLIKE" && types[i].value == 1) {
+                        $("#oc_btn-vote-dislike").attr("checked", true);
+                        $("#oc_btn-vote-funny").removeAttr("checked");
+                        $("#oc_btn-vote-good").removeAttr("checked");
+                      }
+                    }
+                    $("#oc_votes").buttonset("refresh");
+                  }
+                });
+              } else {
+                $("#oc_votes").hide();
               }
 
               //TODO:  Fix playback
@@ -122,6 +127,18 @@ Opencast.clipshow_ui_Plugin = (function ()
               var clipshow = [];
               if ($.isArray(clips)) {
                 clipshowLength = clips.length;
+                clips.sort(function(a,b) {
+                  if (b.start > a.stop) {
+                    return -1;
+                  } else if (b.start < a.stop) {  //Later clip overlaps earlier clip
+                    
+                  } else if (b.stop > a.start) {  //Earlier clips overlas later clip
+                    
+                  } else if (a.start <= b.start && a.stop >= b.stop) { //Complete overlap
+                    
+                  }
+                  return parseInt(b.start) - parseInt(a.stop) 
+                });
                 for (var i = 0; i < clipshowLength; i++) {
                 	if (clips[i]["start"] != last) {
                 		clipshow.push({"start": last, "stop": clips[i]["start"], "duration": (clips[i]["start"] - last), "completeDuration": duration, "spacer": true, "index": counter});

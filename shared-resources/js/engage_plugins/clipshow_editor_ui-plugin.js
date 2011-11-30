@@ -52,47 +52,6 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
         if (currentPositions.clips == undefined) {
           currentPositions.clips = {};
         }
-        
-
-/*        //This is the relevant html code
-              <input type="text" class="oc-ui-form-field ui-autocomplete-input" name="seriesSelect" id="seriesSelect" maxlength="255" />
-              <input type="hidden" id="series" />
-        //This is the series selection autocomplete for the scheduler.  This should be adapted to the series selection for the clipshow
-        $('#seriesSelect').autocomplete({
-          source: function(request, response) {
-            $.ajax({
-              url: SERIES_URL + '/series.json',
-              data: {
-                q: request.term,
-                sort: 'TITLE'
-              },
-              dataType: 'json',
-              type: 'GET',
-              success: function(data) {
-                var series_list = [];
-                data = data.catalogs;
-                $.each(data, function(){
-                  series_list.push({
-                    value: this[DUBLIN_CORE_NS_URI]['title'][0].value,
-                    id: this[DUBLIN_CORE_NS_URI]['identifier'][0].value
-                  });
-                });
-                response(series_list);
-              }, 
-              error: function() {
-                ocUtils.log('could not retrieve series_data');
-              }
-            });
-          },
-          select: function(event, ui){
-            $('#series').val(ui.item.id);
-          },
-          search: function(){
-            $('#series').val('');
-          }
-        });
-*/
-      
     }
   
     function updatePosition(event, ui) {
@@ -140,26 +99,92 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
     function saveDialog() {
       if (counter > 0) {
         $("#oc_clipshow-dialog").dialog("open");
+        $('#oc-input-series-name-select').autocomplete({
+          source: function(request, response) {
+            $.ajax({
+              url: '../../clipshow/series/list',
+              dataType: 'json',
+              type: 'GET',
+              success: function(data) {
+                var series_list = [];
+                data = data.wrapper;
+                $.each(data, function(){
+                  series_list.push({
+                    value: this.title,
+                    id: this.id
+                  });
+                });
+                response(series_list);
+              }, 
+              error: function() {
+                ocUtils.log('could not retrieve clipshow series data');
+              }
+            });
+          },
+          select: function(event, ui){
+            $('#oc-input-series-name').val(ui.item.id);
+          },
+          search: function(){
+            $('#oc-input-series-name').val('');
+          }
+        });
       }
     }
 
-    function saveClipshow(title) {
+    function saveClipshow(title, series, tags, allowedUsers) {
         $.ajax(
         {
             type: "POST",
             url: "../../clipshow/create",
-            data: JSON.stringify({title: title, mediapackageId: Opencast.Player.getMediaPackageId(), clips: currentPositions["clips"]}),
+            data: JSON.stringify({title: title, mediapackageId: Opencast.Player.getMediaPackageId(), clips: currentPositions["clips"], series: series, tags: tags, allowedUsers: allowedUsers}),
             contentType: 'application/json; charset=utf-8',
             dataType: 'json',
-            success: function (xml)
+            success: function (json)
             {
                 Opencast.clipshow_ui.refreshClipshowList();
                 Opencast.clipshow_ui.updateClipshowDropdown();
+            },
+            error: function (a, b, c)
+            {
+                // Some error while adding the clipshow
+            }
+        });
+    }
+
+    function createSeries(title) {
+        $.ajax(
+        {
+            type: "POST",
+            url: "../../clipshow/series/create",
+            data: JSON.stringify({seriesName: title}),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (json)
+            {
                 // Do nothing, the event has been saved
             },
             error: function (a, b, c)
             {
-                // Some error while adding the event
+                // Some error while adding the series
+            }
+        });
+    }
+
+    function addClipshowToSeries(clipshowId, seriesId) {
+        $.ajax(
+        {
+            type: "POST",
+            url: "../../clipshow/series/add",
+            data: JSON.stringify({clipshowId: clipshowId, seriesId: seriesId}),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (json)
+            {
+                // Do nothing, the event has been saved
+            },
+            error: function (a, b, c)
+            {
+                // Some error while adding the series
             }
         });
     }

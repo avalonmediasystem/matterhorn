@@ -17,6 +17,7 @@
 package org.opencastproject.clipshow.impl;
 
 import org.opencastproject.clipshow.endpoint.ClipshowInfo;
+import org.opencastproject.clipshow.endpoint.ClipshowRanking;
 import org.opencastproject.clipshow.impl.ClipshowVote.Type;
 import org.opencastproject.util.NotFoundException;
 
@@ -30,9 +31,14 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 import javax.naming.NoPermissionException;
 import javax.persistence.EntityManager;
@@ -53,22 +59,25 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
   protected PersistenceProvider persistenceProvider;
 
   /** The persistence properties */
-  @SuppressWarnings("unchecked")
-  protected Map persistenceProperties;
+  protected Map<String, Object> persistenceProperties;
 
   /** The factory used to generate the entity manager */
   protected EntityManagerFactory emf = null;
+  
+  private long lastRankingComputed = 0L;
+  private TreeMap<Integer, String> rankings = null;
 
   public void setPersistenceProvider(PersistenceProvider persistence) {
     this.persistenceProvider = persistence;
   }
 
-  public void setPersistenceProperties(Map properties) {
+  public void setPersistenceProperties(Map<String, Object> properties) {
     this.persistenceProperties = properties;
   }
 
   public void activate(ComponentContext cc) {
     emf = persistenceProvider.createEntityManagerFactory(PERSISTENCE_UNIT, persistenceProperties);
+    rankings = new TreeMap<Integer, String>();
   }
 
   public void deactivate() {
@@ -86,9 +95,10 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
    *          The mediapackage's ID.
    * @param userId
    *          The user's ID.
+   * @return The new clipshow's ID
    * @throws IllegalArgumentException
    */
-  public void createClipshow(String name, List<Clip> clips, String mediapackageId, String userId) {
+  public Long createClipshow(String name, List<Clip> clips, String mediapackageId, String userId) {
     if (StringUtils.isBlank(name) || clips == null || clips.size() == 0 
         || StringUtils.isBlank(mediapackageId) || StringUtils.isBlank(userId)) {
       throw new IllegalArgumentException("Bad Parameters, unable to add clipshow.");
@@ -99,9 +109,11 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
     ClipshowUser author = getUserFromDB(userId, em);
     em.getTransaction().begin();
     Clipshow clipshow = new Clipshow(name, author, mediapackageId, clips);
+    clipshow.setPublicClipshow(true);
     em.persist(clipshow);
     em.getTransaction().commit();
     em.close();
+    return clipshow.getId();
   }
 
   /**
@@ -228,7 +240,7 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
    * @param userId
    *          The user's ID.
    */
-  public void createSeries(String clipshowSeriesName, String userId) {
+  public Long createSeries(String clipshowSeriesName, String userId) {
     if (StringUtils.isBlank(clipshowSeriesName) || StringUtils.isBlank(userId)) {
       throw new IllegalArgumentException("Bad Parameters, unable to create series.");
     }
@@ -240,6 +252,7 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
     em.persist(series);
     em.getTransaction().commit();
     em.close();
+    return series.getId();
   }
 
   /**
@@ -499,7 +512,7 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
         voteCounts.put(ClipshowVote.Type.DISLIKE, voteCounts.get(ClipshowVote.Type.DISLIKE) + 1);
         continue;
       }
-      if (v.getfunny()) {
+      if (v.getFunny()) {
         voteCounts.put(ClipshowVote.Type.FUNNY, voteCounts.get(ClipshowVote.Type.FUNNY) + 1);
       }
       if (v.getGood()) {
@@ -523,7 +536,7 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
     EntityManager em = emf.createEntityManager();
     ClipshowUser u = getUserFromDB(userId, em);
     em.close();
-    return u.getDisplayName();
+    return "{\"id\": \"" + u.getId() + "\", \"displayName\": \"" + u.getDisplayName() + "\"}";
   }
 
   /**
@@ -545,7 +558,158 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
     em.close();
   }
 
-  private ClipshowUser getUserFromDB(String userId, EntityManager em) {
+  /**
+   * Returns the rankings of the top users in the system
+   * 
+   * @param userId THe user's id
+   * @return A ClipshowRanking object
+   */
+  public ClipshowRanking getRankings(String userId) {
+    if (StringUtils.isBlank(userId)) {
+      throw new IllegalArgumentException("Bad username, unable to find rankings");
+    }
+    if (System.currentTimeMillis() - lastRankingComputed >= 300000) { //5 minutes
+      recalculateRankings();
+    }
+
+    EntityManager em = emf.createEntityManager();
+    ClipshowRanking result = new ClipshowRanking();
+    result.setMyScore(getUserFromDB(userId, em).getPopularity());
+    Iterator<Entry<Integer, String>> iter = rankings.descendingMap().entrySet().iterator();
+    int counter = 0;
+    LinkedList<String> top = new LinkedList<String>();
+    while (counter < 5 && iter.hasNext()) {
+      top.add(iter.next().getValue());
+      counter++;
+    }
+    result.setTopUsers(top);
+    return result;
+  }
+
+  protected void recalculateRankings() {
+    EntityManager em = emf.createEntityManager();
+    rankings.clear();
+    em.getTransaction().begin();
+    List<ClipshowUser> users = (List<ClipshowUser>) em.createNamedQuery("user.all").getResultList();
+    for (ClipshowUser u : users) {
+      int popularity = 0;
+      for (Clipshow c : u.getAuthoredClipshowSet()) {
+        for (ClipshowVote v : c.getVoters()) {
+          if (!v.getUser().equals(c.getAuthor())) {
+            popularity += v.getVoteCount();
+          }
+        }
+      }
+      rankings.put(popularity, u.getDisplayName());
+      u.setPopularity(popularity);
+    }
+    em.getTransaction().commit();
+  }
+
+  public void addTags(String clipshowId, String tags, String userId) throws NotFoundException, NoPermissionException {
+    if (StringUtils.isBlank(clipshowId) || StringUtils.isBlank(tags) || StringUtils.isBlank(userId)) {
+      throw new IllegalArgumentException("Bad parameters");
+    }
+
+    EntityManager em = emf.createEntityManager();
+    ClipshowUser user = getUserFromDB(userId, em);
+    Clipshow clipshow = getClipshowFromDB(clipshowId, em);
+    if (clipshow.userAllowed(user)) {
+      Query q = em.createNamedQuery("tag");
+      q.setParameter("tagger", user);
+      q.setParameter("clipshow", clipshow);
+      String[] tagAry = tags.split(",");
+      em.getTransaction().begin();
+      ClipshowTag tagObj = null;
+      try {
+        tagObj = (ClipshowTag) q.getSingleResult();
+      } catch (NoResultException e) {
+        tagObj = new ClipshowTag();
+        tagObj.setClipshow(clipshow);
+        tagObj.setTagger(user);
+      }
+
+      for (String tag : tagAry) {
+        tagObj.addTag(StringUtils.trim(tag));
+      }
+      clipshow.addTag(tagObj);
+      em.getTransaction().commit();
+
+    } else {
+      //TODO: Change this exception type?  And a better error message
+      throw new NoPermissionException("TODO: Change this exception type?  And a better error message");
+    }
+  }
+
+  public void removeTags(String clipshowId, String tags, String userId) throws NotFoundException, NoPermissionException {
+    if (StringUtils.isBlank(clipshowId) || StringUtils.isBlank(tags) || StringUtils.isBlank(userId)) {
+      throw new IllegalArgumentException("Bad parameters");
+    }
+
+    EntityManager em = emf.createEntityManager();
+    ClipshowUser user = getUserFromDB(userId, em);
+    Clipshow clipshow = getClipshowFromDB(clipshowId, em);
+    if (clipshow.userAllowed(user)) {
+      Query q = em.createNamedQuery("tag");
+      q.setParameter("tagger", user);
+      q.setParameter("clipshow", clipshow);
+      String[] tagAry = tags.split(",");
+      em.getTransaction().begin();
+      ClipshowTag tagObj = null;
+      try {
+        tagObj = (ClipshowTag) q.getSingleResult();
+        for (String tag : tagAry) {
+          tagObj.removeTag(tag);
+        }
+        em.getTransaction().commit();
+      } catch (NoResultException e) {
+        em.getTransaction().rollback();
+      }
+    } else {
+      //TODO: Change this exception type?  And a better error message
+      throw new NoPermissionException("TODO: Change this exception type?  And a better error message");
+    } 
+  }
+
+  public Set<String> listTags(String clipshowId, String userId) throws NotFoundException, NoPermissionException {
+    if (StringUtils.isBlank(clipshowId) || StringUtils.isBlank(userId)) {
+      throw new IllegalArgumentException("Bad parameters");
+    }
+
+    EntityManager em = emf.createEntityManager();
+    ClipshowUser user = getUserFromDB(userId, em);
+    Clipshow clipshow = getClipshowFromDB(clipshowId, em);
+    if (clipshow.userAllowed(user)) {
+      Set<ClipshowTag> tagSet = clipshow.getTags();
+      LinkedHashSet<String> tags = new LinkedHashSet<String>();
+      for (ClipshowTag t : tagSet) {
+        for (String tag : t.getTags()) {
+         tags.add(tag);
+        }
+      }
+      return tags;
+    } else {
+      //TODO: Change this exception type?  And a better error message
+      throw new NoPermissionException("TODO: Change this exception type?  And a better error message");
+    }
+  }
+
+  public List<ClipshowInfo> searchTags(String tag, String userId) {
+    if (StringUtils.isBlank(tag) || StringUtils.isBlank(userId)) {
+      throw new IllegalArgumentException("Bad parameters");
+    }
+
+    EntityManager em = emf.createEntityManager();
+    List<ClipshowTag> list = em.createNamedQuery("tag.tag").setParameter("tag", tag).getResultList();
+    LinkedList<ClipshowInfo> returnVal = new LinkedList<ClipshowInfo>();
+    for (ClipshowTag t : list) {
+      ClipshowInfo info = new ClipshowInfo(t.getClipshow());
+      returnVal.add(info);
+    }
+    return returnVal;
+  }
+
+  private synchronized ClipshowUser getUserFromDB(String userId, EntityManager em) {
   	ClipshowUser user = null;
   	try {
         user = (ClipshowUser) em.createNamedQuery("user").setParameter("username", userId).getSingleResult();

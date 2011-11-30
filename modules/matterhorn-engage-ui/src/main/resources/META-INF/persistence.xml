@@ -7,6 +7,7 @@
     <class>org.opencastproject.clipshow.impl.ClipshowSeries</class>
     <class>org.opencastproject.clipshow.impl.ClipshowUser</class>
     <class>org.opencastproject.clipshow.impl.ClipshowVote</class>
+    <class>org.opencastproject.clipshow.impl.ClipshowTag</class>
     <class>org.opencastproject.clipshow.impl.Clipshow</class>
     <class>org.opencastproject.clipshow.impl.Clip</class>
     <properties>

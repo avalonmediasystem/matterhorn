@@ -40,29 +40,10 @@ Opencast.User = (function ()
         $('#oc_btn-clipshow-user').html("Hide User");
         $("#oc_btn-clipshow-user").attr('aria-pressed', 'true');
         // Show a loading Image
-/*        $('#oc_clipshow-user').show();
+        $('#oc_clipshow-user').show();
         $('#clipshow-user-loading').show();
         $('#oc-clipshow-user').hide();
-
-        //Get user data which includes their display name as well as a list of clipshows for this episode
-        $.ajax(
-        {
-            type: "GET",
-            url: "../../clipshow/user/getName",
-            dataType: 'text',
-            success: function (text)
-            {
-              var data = {result: {displayName: text}};
-              Opencast.User_Plugin.addAsPlugin($('#oc-clipshow-user'), data);
-            },
-            error: function (a, b, c)
-            {
-                $('#oc-form-username').val() = "Error";
-            }
-        });*/
         Opencast.User_Plugin.addAsPlugin($('#oc-clipshow-user'));
-        $('#oc-clipshow-user').show();
-        $('#clipshow-user-loading').hide();
     }
 
     /**

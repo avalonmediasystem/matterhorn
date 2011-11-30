@@ -42,7 +42,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "clipshow-user")
 @XmlAccessorType(XmlAccessType.NONE)
 @NamedQueries({
-  @NamedQuery(name = "user", query = "SELECT u FROM ClipshowUser u WHERE u.username = :username")
+  @NamedQuery(name = "user", query = "SELECT u FROM ClipshowUser u WHERE u.username = :username"),
+  @NamedQuery(name = "user.all", query = "SELECT u FROM ClipshowUser u")
 })
 public class ClipshowUser implements Serializable, Comparable<ClipshowUser> {
 
@@ -60,6 +61,9 @@ public class ClipshowUser implements Serializable, Comparable<ClipshowUser> {
  
   @Column(name = "username")
   private String username;
+
+  @Column(name = "popularity")
+  private Integer popularity;
 
   @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = { CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
   @JoinColumn(name = "authored_series_set")
@@ -82,7 +86,6 @@ public class ClipshowUser implements Serializable, Comparable<ClipshowUser> {
   private Set<Clipshow> votes;
 */
   public ClipshowUser() {
-    
     setAuthoredClipshowSet(new LinkedHashSet<Clipshow>());
     setMemberOfClipshowSet(new LinkedHashSet<Clipshow>());
     setAuthoredSeriesSet(new LinkedHashSet<ClipshowSeries>());
@@ -200,6 +203,14 @@ public class ClipshowUser implements Serializable, Comparable<ClipshowUser> {
   public void removeMemberOfClipshow(Clipshow c) {
     memberOfClipshowSet.remove(c);
   }
+  
+  public Integer getPopularity() {
+    return popularity;
+  }
+
+  public void setPopularity(Integer popularity) {
+    this.popularity = popularity;
+  }
 
   @Override
   public int compareTo(ClipshowUser o) {
@@ -219,20 +230,4 @@ public class ClipshowUser implements Serializable, Comparable<ClipshowUser> {
   public int hashCode() {
     return getUsername().hashCode();
   }
-
-  /*public void setVotes(Set<Clipshow> v) {
-    votes = v;
-  }
-
-  public Set<Clipshow> getVotes() {
-    return votes;
-  }
-
-  public void addVote(Clipshow c) {
-    votes.add(c);
-  }
-
-  public void removeVote(Clipshow c) {
-    votes.remove(c);
-  }*/
 }

@@ -96,7 +96,7 @@ public class ClipshowVote {
     dislike = false;
   }
 
-  public Boolean getfunny() {
+  public Boolean getFunny() {
     return funny;
   }
 
@@ -108,5 +108,33 @@ public class ClipshowVote {
 
   public Boolean getDislike() {
     return dislike;
+  }
+
+  public Integer getVoteCount() {
+    Integer count = 0;
+    if (getGood()) {
+      count++;
+    }
+    if (getFunny()) {
+      count++;
+    }
+    if (getDislike()) {
+      count--;
+    }
+    return count;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof ClipshowVote) {
+      return ((ClipshowVote) o).getUser().equals(getUser()) && ((ClipshowVote) o).getClipshow().equals(getClipshow());
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return getUser().hashCode();
   }
 }

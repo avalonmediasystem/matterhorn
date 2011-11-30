@@ -15,6 +15,10 @@
  */
 package org.opencastproject.clipshow.endpoint;
 
+import org.opencastproject.clipshow.impl.Clipshow;
+
+import java.util.Set;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -36,11 +40,24 @@ public class ClipshowInfo implements Comparable<ClipshowInfo> {
   private String title;
 
   @XmlElement(name = "good")
-  private Integer good = 0;
+  private Integer good = -1;
 
-  private Integer funny = 0;
+  @XmlElement(name = "funny")
+  private Integer funny = -1;
 
-  private Integer dislike = 0;
+  @XmlElement(name = "dislike")
+  private Integer dislike = -1;
+
+  @XmlElement(name = "tags")
+  private Set<String> tags;
+
+  public ClipshowInfo() { }
+
+  public ClipshowInfo(Clipshow c) {
+    this.setId(c.getId());
+    this.setAuthor(c.getAuthor().getDisplayName());
+    this.setTitle(c.getTitle());
+  }
 
   public Long getId() {
     return id;
@@ -94,6 +111,14 @@ public class ClipshowInfo implements Comparable<ClipshowInfo> {
   @XmlElement(name = "serverVotes")
   public Integer getVotes() {
     return getGood() + getFunny() - getDislike();
+  }
+
+  public Set<String> getTags() {
+    return tags;
+  }
+
+  public void setTags(Set<String> tags) {
+    this.tags = tags;
   }
 
   @Override

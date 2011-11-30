@@ -22,15 +22,22 @@ var Opencast = Opencast || {};
 Opencast.User_Plugin = (function ()
 {
     // The Template to process
-    var template =  '<div style="float: left; width: 20%">' + 
+    var template =  '<div style="float: left; width: 25%">' + 
                         '<form id="oc-form-name"><div style="float: left;">' +
                         '<span>Your Name:&nbsp;<input id="oc-form-username" type="text" name="newName" value="${displayName}" style="width: 150px;"/></span>' +
                         '<input id="oc-input-username" type="submit" value="Change Name" />' +
-                        '</div></form>' +
+                        '</div></form><br />' +
+                        '<p>Your total votes: ${my_votes}</p>' +
+                        '<p>Top Users</p>' +
+                        '<ol>' +
+                          '{for u in users}' +
+                            '<li>${u}</li>' +
+                          '{/for}' +
+                        '</ol>' +
                     '</div>' +
-                    '<div style="float: left; width: 40%">' +
+                    '<div style="float: left; width: 25%">' +
                         '<p>Top five <select id="oc-select-sort-type">' +
-                        '<option value="GOOD">good</option>' + 
+                        '<option value="GOOD">useful</option>' + 
                         '<option value="FUNNY">funny</option>' +
                         '<option value="DISLIKE">disliked</option>' +
                         '</select>clipshows in for this episode:</p>' +
@@ -42,12 +49,25 @@ Opencast.User_Plugin = (function ()
                           '</ol>' +
                         '</div>' +
                     '</div>' +
-                    '<div style="float: left; width: 40%">' +
+                    '<div style="float: left; width: 25%">' +
                         'Other clipshows in for this episode:<br />' +
                         '<div id="oc_clipshow-random-list">' +
                           '<ol>' +
                             '{for r in randoms}' +
                               '<li><button class="clipshow-link-button" onclick="Opencast.clipshow_ui.switchToClipshow(${r.id})">${r.title} by ${r.author}</button></li>' +
+                            '{/for}' +
+                          '</ol>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="float: left; width: 25%">' +
+                        '<form id="oc-form-tag"><div style="float: left;">' +
+                          'Clipshows tagged with <input type="text" id="oc-form-tagged-with" value="${searchTerm}" style="width: 150px"/>' +
+                          '<input id="oc-input-tagged-button" type="submit" value="Search" />' + 
+                        '</div></form>' +
+                        '<div id="oc_clipshow-search-list">' +
+                          '<ol>' +
+                            '{for s in searches}' +
+                              '<li><button class="clipshow-link-button" onclick="Opencast.clipshow_ui.switchToClipshow(${s.id})">${s.title} by ${s.author}</button></li>' +
                             '{/for}' +
                           '</ol>' +
                         '</div>' +
@@ -61,8 +81,6 @@ Opencast.User_Plugin = (function ()
     var user_data;
     // Precessed Data
     var processedTemplateData = false;
-    // Username
-    var username;
     
     /**
      * @memberOf Opencast.User_Plugin
@@ -74,43 +92,88 @@ Opencast.User_Plugin = (function ()
     {
         element = elem;
 
-        $.ajax(
-        {
-            type: "GET",
-            url: "../../clipshow/user/getName",
-            dataType: 'text',
-            success: function (text)
-            {
-                Opencast.User_Plugin.createTab(text, "GOOD");
-            },
-            error: function (a, b, c)
-            {
-                $('#oc-form-username').val() = "Error";
+        user_data = {displayName: Opencast.clipshow_ui.getUsername(), searchTerm: "", searches: []};
+
+        createTab("GOOD");
+    }
+
+    function refreshSearchData() {
+      user_data.searchTerm = $('#oc-form-tagged-with').val();
+      $.ajax(
+      {
+          type: "GET",
+          url: "../../clipshow/tags/search",
+          data: {tag: $('#oc-form-tagged-with').val()},
+          dataType: 'json',
+          success: function (json)
+          {
+            var results = json.wrapper.data;
+            if (results != undefined) {
+              if ($.isArray(results)) {
+                Opencast.User_Plugin.setSearchData(results);
+              } else {
+                Opencast.User_Plugin.setSearchData([results]);
+              }
+            } else {
+              Opencast.User_Plugin.setSearchData([]);
             }
-        });
+            createTab($("#oc-select-sort-type option:selected").val());
+          },
+          error: function (a, b, c)
+          {
+            Opencast.User_Plugin.setSearchData([]);
+            createTab($("#oc-select-sort-type option:selected").val());
+          }
+      });
+    }
+
+    function setSearchData(searchData) {
+      user_data.searches = searchData;
+    }
+
+    function changeUsername() {
+      user_data.displayName = $('#oc-form-username').val();
+      $.ajax(
+      {
+          type: "POST",
+          url: "../../clipshow/user/newName",
+          data: {newName: $('#oc-form-username').val()},
+          dataType: 'json',
+          success: function (json)
+          {
+              Opencast.clipshow_ui.updateUserCredentials();
+              Opencast.clipshow_ui.refreshClipshowList();
+              Opencast.User_Plugin.createTab($("#oc-select-sort-type option:selected").val());
+          },
+          error: function (a, b, c)
+          {
+              $('#oc-form-username').val() = "Error";
+          }
+      });
     }
 
     /**
      * @memberOf Opencast.User_Plugin
      * @description Processes the Data and puts it into the Element
-     * @param uname The current user's display name
+     * @param selectType
      * @return true if successfully processed, false else
      */
-    function createTab(uname, selectType)
+    function createTab(selectType)
     {
-        username = uname;
-        user_data = {displayName: username};
-        if ((element !== undefined) && (user_data !== undefined))
+        if ((element !== undefined))
         {
             var clist = Opencast.clipshow_ui.getClipshowList();
             if ($.isArray(clist)) {
-              //TODO:  Better sort metrics, natural ordering is too strong (dislike being high, etc)
+              //Sort by dislike first so those end up at the top
+              clist.sort(function(a,b) { return parseInt(b.dislike) - parseInt(a.dislike) } );
               if (selectType == "GOOD") {
+                clist.reverse();
                 clist.sort(function(a,b) { return parseInt(b.good) - parseInt(a.good) } );
               } else if (selectType == "FUNNY") {
+                clist.reverse();
                 clist.sort(function(a,b) { return parseInt(b.funny) - parseInt(a.funny) } );
               } else if (selectType == "DISLIKE") {
-                clist.sort(function(a,b) { return parseInt(b.dislike) - parseInt(a.dislike) } );
+                //Sorted above, so pass?
               }
               sorted = []
               randomShows = []
@@ -129,38 +192,55 @@ Opencast.User_Plugin = (function ()
               }
               user_data.randoms = randomShows;
             } else {
-              //TODO: Handle things when there is no array
+              user_data.sorted = [clist];
+              user_data.randoms = [];
             }
-            $.log("User Plugin: Data available, processing template");
-            processedTemplateData = template.process(user_data);
-            element.html(processedTemplateData);
-            $(".clipshow-link-button").button();
 
-            $('#oc-select-sort-type').val(selectType);
-            $("#oc-select-sort-type").change(function() {
-              var type = $("#oc-select-sort-type option:selected").val();
-              Opencast.User_Plugin.createTab(username, type);
-            });
-
-            $('#oc-input-username').button();
-            $('#oc-form-name').submit(function ()
+            $.ajax(
             {
-              $.ajax(
-              {
-                  type: "POST",
-                  url: "../../clipshow/user/newName",
-                  data: {newName: $('#oc-form-username').val()},
-                  dataType: 'json',
-                  success: function (json)
-                  {
-                      // Do nothing, the name has been saved
-                  },
-                  error: function (a, b, c)
-                  {
-                      $('#oc-form-username').val() = "Error";
+                type: "GET",
+                url: "../../clipshow/user/rankings",
+                dataType: 'json',
+                success: function (json)
+                {
+                  user_data.my_votes = json["clipshow-ranking-blob"].my_score;
+                  if ($.isArray(json["clipshow-ranking-blob"].top_users)) {
+                    user_data.users = json["clipshow-ranking-blob"].top_users;
+                  } else {
+                    user_data.users = [json["clipshow-ranking-blob"].top_users];
                   }
-              });
-              return false;
+
+                  $.log("User Plugin: Data available, processing template");
+                  processedTemplateData = template.process(user_data);
+                  element.html(processedTemplateData);
+                  $('#oc-clipshow-user').show();
+                  $('#clipshow-user-loading').hide();
+                  $(".clipshow-link-button").button();
+
+                  $('#oc-select-sort-type').val(selectType);
+                  $("#oc-select-sort-type").change(function() {
+                    var type = $("#oc-select-sort-type option:selected").val();
+                    Opencast.User_Plugin.createTab(type);
+                  });
+
+                  $('#oc-input-username').button();
+                  $('#oc-form-name').submit(function ()
+                  {
+                    Opencast.User_Plugin.changeUsername();
+                    return false;
+                  });
+
+                  $('#oc-input-tagged-button').button();
+                  $('#oc-form-tag').submit(function ()
+                  {
+                    Opencast.User_Plugin.refreshSearchData();
+                    return false;
+                  });
+                },
+                error: function (a, b, c)
+                {
+                    $('#oc-form-username').val() = "Error";
+                }
             });
             return true;
         }
@@ -178,6 +258,9 @@ Opencast.User_Plugin = (function ()
     
     return {
         addAsPlugin: addAsPlugin,
+        setSearchData: setSearchData,
+        refreshSearchData: refreshSearchData,
+        changeUsername: changeUsername,
         createTab: createTab
     };
 }());
