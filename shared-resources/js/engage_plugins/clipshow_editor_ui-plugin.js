@@ -22,7 +22,7 @@ var Opencast = Opencast || {};
 Opencast.clipshow_editor_ui_Plugin = (function ()
 {
 
-    var minClipSize = 5;
+    var minClipSize = 1;
 
     var templateComponent = '{for c in clips}' +
                                 '<div '+
@@ -83,7 +83,7 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
 
     function redraw() 
     {
-        var pps = Opencast.Player.getPixelsPerSecond();
+        var pps = Math.round(Opencast.Player.getPixelsPerSecond());
         currentPositions["pps"] = pps;
         var processedClipshowData = templateComponent.process(currentPositions);
         elementClipshowEditor.html(processedClipshowData);

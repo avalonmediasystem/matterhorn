@@ -128,6 +128,8 @@ Opencast.clipshow_ui_Plugin = (function ()
               if ($.isArray(clips)) {
                 clipshowLength = clips.length;
                 clips.sort(function(a,b) {
+                  return parseInt(a.stop) - parseInt(b.start);
+
                   if (b.start > a.stop) {
                     return -1;
                   } else if (b.start < a.stop) {  //Later clip overlaps earlier clip

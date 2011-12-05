@@ -287,6 +287,7 @@ public class CaptureAgentStateRestService {
       return Response.serverError().status(Response.Status.BAD_REQUEST).build();
     }
 
+    logger.error("GDLGDL:" + configuration);
     Properties caps = new Properties();
     try {
       ByteArrayInputStream bais = new ByteArrayInputStream(configuration.getBytes());

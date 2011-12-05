@@ -21,6 +21,7 @@ var Opencast = Opencast || {};
  */
 Opencast.User_Plugin = (function ()
 {
+//                        '<option value="DISLIKE">disliked</option>' +
     // The Template to process
     var template =  '<div style="float: left; width: 25%">' + 
                         '<form id="oc-form-name"><div style="float: left;">' +
@@ -39,7 +40,7 @@ Opencast.User_Plugin = (function ()
                         '<p>Top five <select id="oc-select-sort-type">' +
                         '<option value="GOOD">useful</option>' + 
                         '<option value="FUNNY">funny</option>' +
-                        '<option value="DISLIKE">disliked</option>' +
+
                         '</select>clipshows in for this episode:</p>' +
                         '<div id="oc_clipshow-sorted-list">' +
                           '<ol>' +
@@ -179,6 +180,9 @@ Opencast.User_Plugin = (function ()
               randomShows = []
               //Fill the sorted list
               for (var i = 0; i < 5; i++) {
+                if (clist[i] == undefined) {
+                  break;
+                }
                 sorted[i] = clist[i];
               }
               user_data.sorted = sorted;

@@ -61,6 +61,14 @@ public class Clip implements Serializable {
     this.stop = stop;
   }
 
+  public String getElementId() {
+    return elementId;
+  }
+
+  public void setElementId(String id) {
+    elementId = id;
+  }
+
   public void setStart(Integer start) {
     this.start = start;
   }

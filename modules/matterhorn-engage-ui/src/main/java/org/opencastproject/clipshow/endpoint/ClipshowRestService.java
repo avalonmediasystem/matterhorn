@@ -126,6 +126,7 @@ public class ClipshowRestService {
       int start = Integer.valueOf(e.getValue().get("start").toString());
       int stop = Integer.valueOf(e.getValue().get("stop").toString());
       Clip clip = new Clip(start, stop);
+      clip.setElementId(e.getValue().get("id").toString());
       clips.add(clip);
     }
 
