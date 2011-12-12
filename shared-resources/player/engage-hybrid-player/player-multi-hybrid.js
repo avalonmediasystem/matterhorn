@@ -74,9 +74,9 @@ Opencast.Player = (function ()
         displVidSizeControl = false,
         shareDisplayed = false,
         timeLayerDisplayed = false,
-        shortcutDialogDisplayed = false,
         shortcutTabReturnId = '',
         embedDialogDisplayed = false,
+        shareTimeDialogDisplayed = false,
         mediaPackageId, userId, sessionId, inPosition = 0,
         outPosition = 0,
         curPosition = 0,
@@ -344,6 +344,7 @@ Opencast.Player = (function ()
             $("#oc_edit-time").attr("value", text);
             $("#slider_seek_Rail").attr("title", "Time " + text);
             $("#scrubber").attr("aria-valuenow", text);
+	    setShareTimeLink();
         }
         currentTimeString = text;
     }
@@ -555,9 +556,39 @@ Opencast.Player = (function ()
             Opencast.Initialize.bindVidSize();
         }
     }
+
+    /**
+     * @memberOf Opencast.Player
+     * @description Sets the share time link
+     */
+    function setShareTimeLink()
+    {
+        var advancedUrl = $.getCleanURL();
+	var unfTime = $('#oc_current-time').val();
+	var time = $.getURLTimeFormat(unfTime);
+	if(time != 0)
+	{
+	    advancedUrl += "&t=" + time;
+	}
+	$('#oc_share-time-text').html('Video at current time (' + unfTime + '):').show();
+	$('#oc_share-time-textfield').html(advancedUrl).show();
+	$('#oc_share-time-textfield').focus(
+	    function()
+	    {
+		$(this).select();
+	    }
+	);
+	if(Opencast.Player.isPlaying())
+	{
+	    $('#oc_share-time-tip').show();
+	} else
+	{
+	    $('#oc_share-time-tip').hide();
+	}
+    }
     
     /*************************************************************/
-	/* do
+    /* do
     /*************************************************************/
     
     /**
@@ -620,6 +651,23 @@ Opencast.Player = (function ()
     
     /**
      * @memberOf Opencast.Player
+     * @description Toggle the share time
+     */
+    function doToggleShareTime()
+    {
+        if (shareTimeDialogDisplayed)
+        {
+            hideShareTime();
+        }
+        else
+        {
+            showShareTime();
+        }
+        // Opencast.Initialize.doResize();
+    }
+    
+    /**
+     * @memberOf Opencast.Player
      * @description Toggle the Share layer
      */
     function doToggleShare(e)
@@ -664,7 +712,7 @@ Opencast.Player = (function ()
      */
     function doToggleShortcuts(e, who)
     {
-        if (shortcutDialogDisplayed)
+        if ($('#oc_shortcuts').dialog('isOpen'))
         {
             hideShortcuts();
         }
@@ -751,6 +799,7 @@ Opencast.Player = (function ()
         {
             setCurrentPlayPauseState(PAUSING);
             FLASH_PLAYERSTATE = Videodisplay.pause();
+	    setShareTimeLink();
             addEvent(Opencast.logging.PAUSE);
         }
     }
@@ -892,6 +941,22 @@ Opencast.Player = (function ()
         embedDialogDisplayed = true;
     }
     
+    /**
+     * @memberOf Opencast.Player
+     * @description Show the shared time dialog
+     */
+    function showShareTime()
+    {
+        hideShareTime();
+	setShareTimeLink();
+        $('#oc_share-time').dialog('open');
+        $('#oc_share-time').bind('dialogclose', function ()
+        {
+            Opencast.Player.hideShareTime();
+        });
+        shareTimeDialogDisplayed = true;
+    }
+    
     /*************************************************************/
 	/* hide
     /*************************************************************/
@@ -906,7 +971,6 @@ Opencast.Player = (function ()
         {
             $('#' + shortcutTabReturnId).focus();
         }
-        shortcutDialogDisplayed = false;
         $('#oc_shortcuts').dialog('close');
     }
     
@@ -933,6 +997,16 @@ Opencast.Player = (function ()
     {
         $('#oc_share-button').focus();
         embedDialogDisplayed = false;
+    }
+
+    /**
+     * @memberOf Opencast.Player
+     * @description Hide the share time dialog
+     */
+    function hideShareTime()
+    {
+        $('#oc_share-button').focus();
+        shareTimeDialogDisplayed = false;
     }
     
     /*************************************************************/
@@ -1675,7 +1749,6 @@ Opencast.Player = (function ()
     function showShortcuts()
     {
         $('#oc_shortcuts').dialog('open');
-        shortcutDialogDisplayed = true;
     }
     
     /**
@@ -1748,10 +1821,12 @@ Opencast.Player = (function ()
         setProgress: setProgress,
         setVolumeSlider: setVolumeSlider,
         setVideoSizeList: setVideoSizeList,
+	setShareTimeLink: setShareTimeLink,
         // do
         doToggleNotes: doToggleNotes,
         doToggleTranscript: doToggleTranscript,
         doToggleEmbed: doToggleEmbed,
+	doToggleShareTime: doToggleShareTime,
         doToggleShare: doToggleShare,
         doToggleTimeLayer: doToggleTimeLayer,
         doToggleShortcuts: doToggleShortcuts,
@@ -1769,10 +1844,12 @@ Opencast.Player = (function ()
         showShare: showShare,
         showEditTime: showEditTime,
         showEmbed: showEmbed,
+	showShareTime: showShareTime,
         // hide
         hideShortcuts: hideShortcuts,
         hideShare: hideShare,
         hideEmbed: hideEmbed,
+	hideShareTime: hideShareTime,
         // video size control
         videoSizeControlSingleDisplay: videoSizeControlSingleDisplay,
         videoSizeControlAudioDisplay: videoSizeControlAudioDisplay,
