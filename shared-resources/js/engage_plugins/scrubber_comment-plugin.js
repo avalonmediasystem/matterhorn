@@ -27,11 +27,12 @@ Opencast.Scrubber_CommentPlugin = (function ()
                       'style="width:100%;" >' +
                       
                      '{for a in comment}' +
-                       '<canvas id="scComment${a.id}" class="oc-comment-scrubber-baloon" style="left:${(parseInt(a.inpoint) / parseInt(duration)) * 100}%;" '+
+                       '<div id="scComment${a.id}" class="oc-comment-scrubber-baloon" inpoint="${a.inpoint}" style="left:${(parseInt(a.inpoint) / parseInt(duration)) * 100}%;" '+
                        'onmouseover="Opencast.Annotation_Comment.hoverComment(\'scComment${a.id}\', \'${a.text}\',\'${a.inpoint}\',\'${a.user}\')" ' +
+                       'onclick="Opencast.Annotation_Comment.clickComment(\'scComment${a.id}\', \'${a.text}\',\'${a.inpoint}\',\'${a.user}\')" ' +
                        'onmouseout="Opencast.Annotation_Comment.hoverOutComment()" ' +
                        '>' +
-                       '</canvas>' +
+                       '</div>' +
                        
                      '{/for}' +
 
@@ -89,6 +90,7 @@ Opencast.Scrubber_CommentPlugin = (function ()
             //$.log("processedTemplateData: "+processedTemplateData);
             element.html(processedTemplateData);
             //draw balloons with html5
+            /*
             $(annotation_CommentData.comment).each(function (i)
             {
                 var id = annotation_CommentData.comment[i].id;
@@ -96,6 +98,7 @@ Opencast.Scrubber_CommentPlugin = (function ()
                 
                 drawBalloon(c_canvas);
             });
+            */
             
             return true;
         }
@@ -112,37 +115,34 @@ Opencast.Scrubber_CommentPlugin = (function ()
      * @param canvas DOM canvas element
      */   
     function drawBalloon(canvas){
-        var ctx = canvas.getContext('2d');
-        
-        ctx.save();
-        //ctx.fillStyle = "rgba(167,33,35,0.9)";
-        ctx.fillStyle = "rgba(255, 140, 80, 1.0)";
-        //ctx.fillStyle = "rgba(83, 168, 253, 0.6)";
-        //ctx.strokeStyle = "rgba(0, 0, 0, 1.0)";
-        ctx.lineWidth   = 8;
-
-        
-        ctx.shadowOffsetX = 5;
-        ctx.shadowOffsetY = 2;
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-
-        ctx.beginPath();
-        ctx.moveTo(70,0);
-        ctx.quadraticCurveTo(10,0,10,45);
-        ctx.lineTo(10,70);
-        ctx.quadraticCurveTo(10,110,60,110);
-        ctx.lineTo(150,110);
-        ctx.lineTo(130,145);
-        ctx.lineTo(200,110);
-        ctx.lineTo(230,110);
-        ctx.quadraticCurveTo(280,110,280,75);
-        ctx.lineTo(280,40);
-        ctx.quadraticCurveTo(280,0,220,0);
-        ctx.lineTo(70,0);
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
+	    var ctx = canvas.getContext('2d');
+	    
+	    ctx.save();
+	    //ctx.fillStyle = "rgba(167,33,35,0.9)";
+	    //ctx.fillStyle = "rgba(255, 140, 80, 1.0)";
+	    //ctx.fillStyle = "rgba(83, 168, 253, 0.6)";
+	    //ctx.strokeStyle = "rgba(0, 0, 0, 1.0)";
+	    //ctx.lineWidth   = 8;
+	    
+		var lineargradient = ctx.createLinearGradient(0,0,80,80);  
+		lineargradient.addColorStop(0,'white');  
+		lineargradient.addColorStop(1,'black');
+		
+		  // assign gradients to fill and stroke styles  
+		ctx.fillStyle = lineargradient;
+		ctx.strokeStyle = lineargradient; 
+	
+	    
+	    ctx.shadowOffsetX = 5;
+	    ctx.shadowOffsetY = 2;
+	    ctx.shadowBlur = 20;
+	    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+	
+	    ctx.beginPath();
+		ctx.arc(75,75,50,0,Math.PI*2,true); // Outer circle 
+	    ctx.fill();
+	    ctx.stroke();
+	    ctx.restore();
     }
     
     return {

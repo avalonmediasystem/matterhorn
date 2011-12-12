@@ -31,11 +31,11 @@
     
 }
 
-#oc-comment-hover-box{
+#oc-comment-scrubber-box{
     display:none;
-    box-shadow:0px 2px 5px #333333;
+    /*box-shadow:0px 2px 5px #333333;*/
     height: 20px;
-    background: none repeat scroll 0 0 rgba(83, 168, 253, 0.95);
+    /*background: none repeat scroll 0 0 rgba(83, 168, 253, 0.95);*/
     /*-moz-linear-gradient(19% 75% 90deg,#ababab, #c9c9c9, #c7c7c7 100%);
     -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ABABAB), to(#C9C9C9), color-stop(1,#C7C7C7));*/
     
@@ -67,10 +67,25 @@
 
 .oc-comment-scrubber-baloon{  
     z-index:10;
-    width:15px;
-    height:15px;
-    top:4px;
-    position: absolute;;
+	height: 10px;
+	width: 10px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+    top:5px;
+    position: absolute;
+	/* fallback */ 
+	background-color: #000000; 
+	background-repeat: repeat-x; 
+	/* Safari 4-5, Chrome 1-9 */ 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#636363), to(#000000)); 
+	/* Safari 5.1, Chrome 10+ */ 
+	background: -webkit-linear-gradient(top, #636363, #000000); 
+	/* Firefox 3.6+ */ 
+	background: -moz-linear-gradient(top, #636363, #000000); 
+	/* IE 10 */ 
+	background: -ms-linear-gradient(top, #636363, #000000); 
+	/* Opera 11.10+ */ 
+	background: -o-linear-gradient(top, #636363, #000000);
 }
 
 .oc-comment-box{
@@ -173,7 +188,7 @@
 .oc-comment-header{
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
-    background: none repeat scroll 0 0 rgba(83, 168, 253, 0.95);
+    background: none repeat scroll 0 0 rgba(160, 26, 26, 0.95);
     height: 20px;
 }
 
@@ -182,5 +197,45 @@
     font-size: 0.9em;
     padding-left: 10px;
     padding-top: 3px; 
+}
+
+#oc_comment-control{
+
+}
+
+.oc_btn-add-comment{
+	height: 25px;
+	width: 25px;
+    margin-top: -24px;
+    margin-left: 155px;
+    background: url("../img/add_comment.png") no-repeat scroll 0px 0px transparent;
+}
+.oc_btn-add-comment:hover{
+	background: url("../img/add_comment.png") no-repeat scroll -25px 0px transparent;
+}
+
+#oc_dbclick-info{
+	display: none;
+	position: absolute;
+    font-size: 0.8em;
+    font-family: arial,helvetica,clean,sans-serif;
+    border-radius: 0px 7px 7px 0px;
+    color: #FFFFFF;
+    margin-left:10px;
+    height: 30px;
+    width: 95px;
+	background: rgba(56, 56, 56, 0.95);	
+}
+
+#oc_dbclick-info-text{
+	
+}
+
+#oc_dblick-info-arrow{
+	float:left;
+    margin-left:-10px;
+    border-top: 15px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-right: 10px solid rgba(56, 56, 56, 0.95);	
 }
 

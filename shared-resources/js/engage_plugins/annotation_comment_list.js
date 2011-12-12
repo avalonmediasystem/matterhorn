@@ -95,7 +95,9 @@ Opencast.Annotation_Comment_List = (function ()
     function submitComment(isTimed)
     { 
        var textBoxValue = $("#oc-comments-list-textbox").val();
+       textBoxValue = textBoxValue.replace(/<>/g,"");
        var nameBoxValue = $("#oc-comments-list-namebox").val();
+       nameBoxValue = nameBoxValue.replace(/<>/g,"");
        $.log("click submit "+textBoxValue + " "+ nameBoxValue);
        if(textBoxValue !== defaultText && nameBoxValue !== defaultNameText ){
 			if(isTimed){
@@ -130,8 +132,8 @@ Opencast.Annotation_Comment_List = (function ()
             user = Opencast.Player.getUserId();
         }
         */
-        //comment data [user]:[text]:[type]
-        data = user+":"+value+":"+type;
+        //comment data [user]<>[text]<>[type]
+        data = user+"<>"+value+"<>"+type;
         var timePos = 0;
         if(pos !== undefined)
         	  timePos = pos;      
@@ -216,8 +218,8 @@ Opencast.Annotation_Comment_List = (function ()
 
                         $(data['annotations'].annotation).each(function (i)
                         {
-                            //split data by colons [user]:[text]:[type]:[xPos]:[yPos]:[segId]
-                            var dataArray = data['annotations'].annotation[i].value.split(":");
+                            //split data by <> [user]<>[text]<>[type]<>[xPos]<>[yPos]<>[segId]
+                            var dataArray = data['annotations'].annotation[i].value.split("<>");
                             var comment = new Object();
                             
                             comment.id = data['annotations'].annotation[i].annotationId;
@@ -240,8 +242,8 @@ Opencast.Annotation_Comment_List = (function ()
                             count++;                                             
                         });                       
                     }else if(data['annotations'].total !== 0){
-                            //split data by colons [user]:[text]:[type]:[xPos]:[yPos]:[segId]
-                            var dataArray = data['annotations'].annotation.value.split(":");
+                            //split data by <> [user]<>[text]<>[type]<>[xPos]<>[yPos]<>[segId]
+                            var dataArray = data['annotations'].annotation.value.split("<>");
                             var comment = new Object();
                             comment.id = data['annotations'].annotation.annotationId;
                             comment.inpoint = data['annotations'].annotation.inpoint;
@@ -429,17 +431,20 @@ Opencast.Annotation_Comment_List = (function ()
             Opencast.Annotation_Comment.showAnnotation_Comment();
         }
         
-        //seek player if timed
+        //click on comment
         if(type === "scrubber"){
-            Opencast.Watch.seekSegment(parseInt(commentTime)-2);
-            Opencast.Annotation_Comment.hoverComment("scComment"+commentID, commentValue, commentTime, userId);
+            Opencast.Annotation_Comment.clickComment("scComment"+commentID, commentValue, commentTime, userId);
             //scroll to comment
             $(window).scrollTop( 0 );
         }else if(type === "slide"){
-            Opencast.Watch.seekSegment(parseInt(commentTime));
-            Opencast.Annotation_Comment.hoverSlideComment("slideComment"+commentID, commentValue, userId, commentSlide);
-            //scroll to comment
+        	//Seek to slide
+        	$("#segment"+commentSlide).click();
+        	//scroll to comment
             $(window).scrollTop( 0 );
+        	//workaround, wait one second then show slide comment info
+        	window.setTimeout(function() {  
+    			Opencast.Annotation_Comment.clickSlideComment("slideComment"+commentID, commentValue, userId, commentSlide);
+			}, 500); 
         }      
     }
     

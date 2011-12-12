@@ -24,6 +24,7 @@
     <script type="text/javascript" src="engage-hybrid-player/bridge/lib/FABridge.js"></script>
     <script type="text/javascript" src="engage-hybrid-player/bridge/Videodisplay.js"></script>
     <script type="text/javascript" src="jquery/plugins/jARIA.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.corners.js"></script>
     <script type="text/javascript" src="jquery/plugins/jquery.cookie.js"></script>
     <script type="text/javascript" src="jquery/jquery-ui-1.8.1.custom.min.js"></script>
     <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-scubber.js"></script>
@@ -200,9 +201,14 @@
                 Show Captions
               </label>
             </span>
-          </div>
+	        <div id="oc_comment-control">
+	        	<input id="oc_btn-add-comment" class="oc_btn-add-comment handcursor" type="image" src="img/space.png" name="Add Comment: Control + Alt + A" alt="Add Comment: Control + Alt + A" title="Add Comment: Control + Alt + A" value="Add Comment: Control + Alt + A" />
+	        </div>
+        </div>
+          
         </div>
         <!-- END #oc_video-time -->
+
         <div id="oc_video-controls">
           <span id="skip">
             <a name="controls"></a>
@@ -275,6 +281,7 @@
           <table class="segments" id="segmentstable1">
             <!-- data comes here -->
           </table>
+          <div id="oc-comment-scrubber-box"></div>
         </div>
         <div id="segments_ui_slider_data1"></div>
         <div id="segments_ui_slider_data2"></div>
@@ -288,7 +295,7 @@
           <table id="segmentstable2"></table>
         </div>
         
-        <div id="oc-comment-hover-box"></div>
+        
         
       </div>
       <!-- END #data -->
@@ -519,16 +526,7 @@
   
     <!--  Comment dialogs -->       
     <div id="comment-Info" class="oc-comment-Info">
-        
-        <div id="cm-info-hover" class="oc-comment-Info-hover">
-            <div class="oc-comment-Info-text">
-                Click to add comment
-                </br>
-                at
-                <span id="cm-info-time" class="oc-comment-Info-time"></span>
-            </div>                
-        </div>
-                    
+       	        
         <div id="cm-add-box" class="oc-comment-box">
             <div id="oc-comment-add-header" class="oc-comment-header">
                 <span class="ui-icon ui-icon-closethick oc-comment-add-exit" unselectable="on" style="float:right;-moz-user-select: none;">close</span>
@@ -563,7 +561,14 @@
     <div id="oc-comments-list-item-tooltip">
         <p id="oc-comments-list-item-tooltip-show">Show in player</p>
         <p id="oc-comments-list-item-tooltip-delete">Delete</p>
-    </div>         
+    </div>
+    
+	<div id="oc_dbclick-info">
+		<div id="oc_dblick-info-arrow"></div>
+		<p id="oc_dbclick-info-text">
+			double click to add comment
+		</p>
+	</div>        
     <!--  END Comment dialogs -->  
   
   </body>

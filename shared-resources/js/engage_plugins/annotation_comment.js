@@ -29,20 +29,22 @@ Opencast.Annotation_Comment = (function ()
     var oldSlideId = 0;
     var relativeSlideCommentPosition;
     var clickedOnHoverBar = false;
+    var clickedOnComment = false;
     var infoTime = "";
     var commentAtInSeconds;
     var default_name = "Your name!";
     var defaul_comment_text = "Type your comment here!"
+    var comments_cache;
     
     /**
      * @memberOf Opencast.Annotation_Comment
      * @description Initializes Annotation Comment
-     *              Checks whether Data are available. If not: Hide Annotations
      */
 
     function initialize()
     {
-        // Handler keypress ALT+CTRL+a
+    	
+       	// Handler keypress ALT+CTRL+a
         $(document).keyup(function (event)
         {
             if (event.altKey === true && event.ctrlKey === true)
@@ -50,19 +52,7 @@ Opencast.Annotation_Comment = (function ()
                 if (event.which === 65)
                 {
                     if(annotationCommentDisplayed === true){
-                        if(clickedOnHoverBar === false){
-                              $("#oc-comment-hover-box").mousemove();
-                              //set box
-                              var left = $("#scrubber").offset().left + ($("#scrubber").width() / 2) ;
-                              var top = $("#data").offset().top - 105;
-                              $("#comment-Info").offset({ top: top, left: left });               
-                              var playheadPercent = ( left - $('#oc_flash-player').offset().left ) / $('#oc_flash-player').width();
-                              commentAtInSeconds = Math.round(playheadPercent * Opencast.Player.getDuration());
-                              infoTime = $.formatSeconds(commentAtInSeconds);
-                              $("#comment-Info").show();
-                              //click
-                              $("#oc-comment-hover-box").click();                   
-                        }
+				    	$("#oc_btn-add-comment").click();            	
                     }
 
                 }
@@ -70,8 +60,46 @@ Opencast.Annotation_Comment = (function ()
             }
         });
         
+        $("#oc_btn-add-comment").click(function(){
+        	//pause player
+        	Opencast.Player.doPause();
+        	
+        	//exit shown infos
+        	$(".oc-comment-add-exit").click();
+        	
+        	clickedOnHoverBar = true;
+    	    //hide other slide comments
+        	$('div[id^="scComment"]').hide();
+			var left = $("#scrubber").offset().left + ($("#scrubber").width() / 2) ;
+			var top = $("#data").offset().top - 105;
+			$("#comment-Info").css("left", left+"px");
+            $("#comment-Info").css("top", top+"px");
+			$("#comment-Info").show();           
+			
+			$("#cm-add-box").show();
+			
+		    $('#cm-add-box').attr(
+            {
+                title: "Add timed comment"
+            });
+			
+            //Info Text
+            var curTime = Opencast.Player.getCurrentTime();;
+            var infoText = "on " + curTime;    
+            $("#oc-comment-add-header-text").html(infoText);
+            
+            $("#oc-comment-add-namebox").focus();
+            $("#oc-comment-add-namebox").select(); 
+        });
+        
+        
         // resize handler
         $('#oc_flash-player').bind('doResize', function(e) {
+           
+           //DEBUG
+           var test1 = Opencast.Player.getViewState()
+           var test2 = Opencast.Player.getCurrentVideoSize();
+           $.log("test1: "+test1+" test2: "+test2);
            
             //positioning of the slide comment box
             var flashWidth = $('#oc_flash-player').width();
@@ -88,6 +116,15 @@ Opencast.Annotation_Comment = (function ()
             $("#oc_slide-comments").css("left",scLeft+"px");
             $("#oc_slide-comments").css("top",0+"px");
             
+            if(annotationCommentDisplayed){
+	            //Workaround: 500ms after resize repaint comments and marks
+	            window.setTimeout(function() {  
+					Opencast.Annotation_Comment.showAnnotation_Comment();
+				}, 500);            	
+            }
+ 
+            
+            
         });
         
         //// UI ////
@@ -97,57 +134,6 @@ Opencast.Annotation_Comment = (function ()
 		$("#oc-comment-add-submit-name").show();
 		$("#oc-comment-add-textbox").hide();
 		$("#oc-comment-add-submit").hide();
-        
-        $("#oc-comment-hover-box").mouseenter(function(e){
-           if(clickedOnHoverBar === false){
-                $("#comment-Info").show();
-           }
-            
-        });
-        
-        //mouse over scrubber channel
-        $("#oc-comment-hover-box").mousemove(function(e){
-            if(clickedOnHoverBar === false){
-                  var left = e.pageX ;
-                  var top = $("#data").offset().top - 105;
-                  $("#comment-Info").offset({ top: top, left: left });               
-                  var playheadPercent = ( left - $('#oc_flash-player').offset().left ) / $('#oc_flash-player').width();
-                  commentAtInSeconds = Math.round(playheadPercent * Opencast.Player.getDuration());
-                  infoTime = $.formatSeconds(commentAtInSeconds);           
-                  $("#cm-info-time").html(infoTime);  
-                  $("#comment-Info").show();         
-            }                          
-        });
-        
-        $("#oc-comment-hover-box").mouseout(function(e){
-           if(clickedOnHoverBar === false){
-                $("#comment-Info").hide();
-           }    
-           
-           
-            
-        });
-        
-        $("#oc-comment-hover-box").click(function(){
-            $('#cm-add-box').attr(
-                {
-                    title: "Add timed comment"
-                });
-            $("#cm-add-box").show();
-            $("#cm-info-hover").hide();
-            clickedOnHoverBar = true;           
-            //Info Text
-            var user = "Anonymous";
-            if(Opencast.Player.getUserId() !== null){
-                user = Opencast.Player.getUserId();
-            }
-            var infoText = user + " at " + infoTime;           
-            $("#oc-comment-add-header-text").html(infoText);
-            
-            $("#oc-comment-add-textbox").focus();
-            $("#oc-comment-add-textbox").select(); 
-            
-        });
         
         $(".oc-comment-add-exit").click(function(){
 			// show namebox and next button -> hide comment add box and add button
@@ -164,8 +150,14 @@ Opencast.Annotation_Comment = (function ()
             $("#oc-comment-add-textbox").val(defaul_comment_text);
             $("#oc-comment-add-namebox").val(default_name);
             clickedOnHoverBar = false;
+            clickedOnComment = false;
 			//show other slide comments
 			$('canvas[id^="slideComment"]').show();
+			$('div[id^="scComment"]').show();
+			$('#cm-add-box').attr(
+            {
+                title: ""
+            });
         });
         
         $("#oc-comment-add-submit").click(function(){
@@ -181,15 +173,19 @@ Opencast.Annotation_Comment = (function ()
 		        $("#cm-info-hover").show();
 		        clickedOnHoverBar = false;
 		        var commentValue = $("#oc-comment-add-textbox").val();
+		        commentValue = commentValue.replace(/<>/g,"");
+		        commentValue = commentValue.replace(/\n/,"");	        
 		        var nameValue = $("#oc-comment-add-namebox").val();
+		        nameValue = nameValue.replace(/<>/g,"");        
 		        // back to default
 		        $("#oc-comment-add-textbox").val(defaul_comment_text);
 		        $("#oc-comment-add-namebox").val(default_name);
 				//show other slide comments
-				$('canvas[id^="slideComment"]').show();  
+				$('canvas[id^="slideComment"]').show();
+				$('div[id^="scComment"]').show(); 
 		        if($('#cm-add-box').attr("title") === "Add timed comment"){
 		            //add scrubber comment
-		            addComment(parseInt(nameValue,commentAtInSeconds),commentValue,"scrubber");                
+		            addComment(nameValue,parseInt(Opencast.Player.getCurrentPosition()),commentValue,"scrubber");                
 		        }else if($('#cm-add-box').attr("title") === "Add slide comment"){
 		            //add slide comment
 		            addComment(nameValue,
@@ -201,6 +197,10 @@ Opencast.Annotation_Comment = (function ()
 								Opencast.segments.getCurrentSlideId()
 		                      );                              
 		        }
+				$('#cm-add-box').attr(
+		        {
+		            title: ""
+		        });
 		    }
         });
         
@@ -212,25 +212,28 @@ Opencast.Annotation_Comment = (function ()
 		        $("#oc-comment-add-submit-name").hide();
 		        $("#oc-comment-add-textbox").show();
 		        $("#oc-comment-add-submit").show();
-		        var curSlide = Opencast.segments.getCurrentSlideId()+1;
-                var infoText = nameVal + " at slide " + curSlide;    
-                $("#oc-comment-add-header-text").html(infoText);
+                var infoText = "";    
+
+           		if($('#cm-add-box').attr("title") === "Add timed comment"){
+               		infoText = nameVal + " on " + Opencast.Player.getCurrentTime();
+		        }else if($('#cm-add-box').attr("title") === "Add slide comment"){
+                	var curSlide = Opencast.segments.getCurrentSlideId()+1;
+                	infoText = nameVal + " at slide " + curSlide;       
+		        }
+		        
+		        $("#oc-comment-add-header-text").html(infoText);
                 $("#oc-comment-add-textbox").focus();
                 $("#oc-comment-add-textbox").select();
 		    }
 
         });
         
-        // Handler keypress CTRL+Enter on textbox
+        // Handler keypress Enter on textbox
         $("#oc-comment-add-textbox").keyup(function (event)
         {
-            if (event.ctrlKey === true)
+            if (event.which === 13)
             {
-                if (event.which === 13)
-                {
-                    $("#oc-comment-add-submit").click();
-                }
-
+                $("#oc-comment-add-submit").click();
             }
         });
         // Handler keypress Enter on namebox
@@ -246,18 +249,35 @@ Opencast.Annotation_Comment = (function ()
         
         // change scrubber position handler
         $('#scrubber').bind('changePosition', function(e) {
+        	//Check wether comments on the current slide 
             if(Opencast.segments.getCurrentSlideId() !== oldSlideId){
                 if(annotationCommentDisplayed){
                     showAnnotation_Comment();
+                    //exit shown infos
+        			$(".oc-comment-add-exit").click();
                 }                   
                 oldSlideId = Opencast.segments.getCurrentSlideId();
             }
+            //Check wether comments on the current time
+            $('div[id^="scComment"]').each(function(i){
+            	if((parseInt(Opencast.Player.getCurrentPosition())+1) === parseInt($(this).attr("inpoint"))){
+            		//show comment info for 3 seconds
+            		$(this).mouseover();
+            		window.setTimeout(function() {  
+    					Opencast.Annotation_Comment.hoverOutComment();
+					}, 5000); 
+            		
+            	}
+            });
             
         });
         $('#draggable').bind('dragstop', function (event, ui){
+        	//Check wether comments on the current slide 
              if(Opencast.segments.getCurrentSlideId() !== oldSlideId){
                 if(annotationCommentDisplayed){
                     showAnnotation_Comment();
+                    //exit shown infos
+        			$(".oc-comment-add-exit").click();                    
                 }                   
                 oldSlideId = Opencast.segments.getCurrentSlideId();
             }                
@@ -265,56 +285,74 @@ Opencast.Annotation_Comment = (function ()
         
         //double click handler on slide comment box
         $("#oc_slide-comments").dblclick(function(event){
-            if(annotationCommentDisplayed === true){
-            	
-            	//hide other slide comments
-            	$('canvas[id^="slideComment"]').hide();
-               
-                var mPos = new Object();
-                mPos.x = event.pageX - $('#oc_slide-comments').offset().left - 10;
-                mPos.y = event.pageY - $('#oc_slide-comments').offset().top - 18;
-                
-                var relPos = new Object();
-                if($('#oc_slide-comments').width() > 0){
-                    relPos.x = ( mPos.x / $('#oc_slide-comments').width() ) * 100;
-                }else{
-                    relPos.x = 0;
-                }
-                if($('#oc_slide-comments').height() > 0){
-                    relPos.y = ( mPos.y / $('#oc_slide-comments').height() ) * 100;
-                }else{
-                    relPos.y = 0;
-                }    
-                // set global variable
-                relativeSlideCommentPosition = relPos;
-                
-                $('#cm-add-box').attr(
-                {
-                    title: "Add slide comment"
-                });
-                var ciLeft = event.pageX;
-                var ciTop = event.pageY-100;
-                $.log("dblclick "+ciLeft+" "+ciTop);
-                $("#comment-Info").css("left", ciLeft+"px");
-                $("#comment-Info").css("top", ciTop+"px");
-                $("#comment-Info").show();           
-                
-                $("#cm-add-box").show();
-
-                $("#cm-info-hover").hide();
-                clickedOnHoverBar = true;           
-                //Info Text
-                if(Opencast.Player.getUserId() !== null){
-                    user = Opencast.Player.getUserId();
-                }
-                var curSlide = Opencast.segments.getCurrentSlideId()+1;
-                var infoText = "Slide " + curSlide;    
-                $("#oc-comment-add-header-text").html(infoText);
-                
-                $("#oc-comment-add-namebox").focus();
-                $("#oc-comment-add-namebox").select();             
-                
-            }   
+        	
+        	//exit shown infos
+        	$(".oc-comment-add-exit").click();
+        	
+        	//hide doubleclick info
+        	$("#oc_dbclick-info").hide();
+        	
+        	//pause player
+    		Opencast.Player.doPause();
+        	
+        	//hide other slide comments
+        	$('canvas[id^="slideComment"]').hide();
+           
+            var mPos = new Object();
+            mPos.x = event.pageX - $('#oc_slide-comments').offset().left - 10;
+            mPos.y = event.pageY - $('#oc_slide-comments').offset().top - 18;
+            
+            var relPos = new Object();
+            if($('#oc_slide-comments').width() > 0){
+                relPos.x = ( mPos.x / $('#oc_slide-comments').width() ) * 100;
+            }else{
+                relPos.x = 0;
+            }
+            if($('#oc_slide-comments').height() > 0){
+                relPos.y = ( mPos.y / $('#oc_slide-comments').height() ) * 100;
+            }else{
+                relPos.y = 0;
+            }    
+            // set global variable
+            relativeSlideCommentPosition = relPos;
+            
+            $('#cm-add-box').attr(
+            {
+                title: "Add slide comment"
+            });
+            var ciLeft = event.pageX;
+            var ciTop = event.pageY-100;
+            $.log("dblclick "+ciLeft+" "+ciTop);
+            $("#comment-Info").css("left", ciLeft+"px");
+            $("#comment-Info").css("top", ciTop+"px");
+            $("#comment-Info").show();           
+            
+            $("#cm-add-box").show();          
+            //Info Text
+            if(Opencast.Player.getUserId() !== null){
+                user = Opencast.Player.getUserId();
+            }
+            var curSlide = Opencast.segments.getCurrentSlideId();
+            var infoText = "Slide " + curSlide;    
+            $("#oc-comment-add-header-text").html(infoText);
+            
+            $("#oc-comment-add-namebox").focus();
+            $("#oc-comment-add-namebox").select();               
+       });
+       
+       $("#oc_slide-comments").mouseenter(function(){
+       	
+       		var sl_left = $('#oc_slide-comments').offset().left + $('#oc_slide-comments').width();
+       		var sl_top = $('#oc_slide-comments').offset().top + 10;
+       		
+            $("#oc_dbclick-info").css("left", sl_left+"px");
+            $("#oc_dbclick-info").css("top", sl_top+"px");
+            
+            $("#oc_dbclick-info").show();     	
+       });
+       
+       $("#oc_slide-comments").mouseleave(function(){
+       		$("#oc_dbclick-info").hide();
        });
         
         // Display the controls
@@ -337,14 +375,14 @@ Opencast.Annotation_Comment = (function ()
         //    user = Opencast.Player.getUserId();
         //}
         
-        //comment data [user]:[text]:[type]:[xPos]:[yPos]:[segId]
+        //comment data [user]<>[text]<>[type]<>[xPos]<>[yPos]<>[segId]
         var data = "";
         if(xPos !== undefined && yPos !== undefined){
-            data = user+":"+value+":"+type+":"+xPos+":"+yPos+":"+segId;
+            data = user+"<>"+value+"<>"+type+"<>"+xPos+"<>"+yPos+"<>"+segId;
             //var markdiv = "<div style='height:100%; width:5px; background-color: #A72123; float: right;'> </div>";
             //$("#segment"+segId).html(markdiv);
         }else{
-            data = user+":"+value+":"+type;        
+            data = user+"<>"+value+"<>"+type;        
         }
         
         $.ajax(
@@ -355,8 +393,13 @@ Opencast.Annotation_Comment = (function ()
             dataType: 'xml',
             success: function (xml)
             {
-                $.log("Add_Comment success");
+                $.log("add comment success");
+                //erase cache
+                comments_cache = undefined;
+                //show new comments
                 showAnnotation_Comment();
+                //check checkbox
+                $('#oc_checkbox-annotation-comment').attr('checked', true);
                 
                 var comment_list_show = $('#oc_btn-comments-tab').attr("title");
                 if(comment_list_show == "Hide Comments"){
@@ -396,9 +439,8 @@ Opencast.Annotation_Comment = (function ()
                 {
                     $.log("Annotation AJAX call: Data not available");
                     //show nothing
-                    $('#oc-comment-hover-box').html("");
+                    $('#oc-comment-scrubber-box').html("");
                     $('#oc_slide-comments').html("");
-                    //displayNoAnnotationsAvailable("No data defined");
                 }
                 else
                 {
@@ -411,6 +453,8 @@ Opencast.Annotation_Comment = (function ()
                     
                     var scrubberArray = new Array();
                     var slideArray = new Array();
+                    var toMarkSlidesArray = new Array();
+
                     scrubberData.duration = duration;
                     scrubberData.type = "scrubber";
                     slideData.type = "slide";
@@ -420,29 +464,54 @@ Opencast.Annotation_Comment = (function ()
                         var slCount = 0;
                         $(data['annotations'].annotation).each(function (i)
                         {
-                            //split data by colons [user]:[text]:[type]:[xPos]:[yPos]:[segId]
-                            var dataArray = data['annotations'].annotation[i].value.split(":");
+                            //split data by <> [user]<>[text]<>[type]<>[xPos]<>[yPos]<>[segId]
+                            var dataArray = data['annotations'].annotation[i].value.split("<>");
                             var comment = new Object();
                             comment.user = dataArray[0];
                             comment.id = data['annotations'].annotation[i].annotationId;
                             comment.text = dataArray[1];
+                            //found scrubber comment
                             if(dataArray[2] === "scrubber"){                                                              
                                 comment.inpoint = data['annotations'].annotation[i].inpoint;                        
                                 scrubberArray[scCount] = comment;
                                 scCount++;
+                            //found slide comment on current slide
                             }else if(dataArray[2] === "slide" && dataArray[5] == Opencast.segments.getCurrentSlideId()){
                                 comment.slideNr = dataArray[5];
                                 comment.relPos = new Object();
                                 comment.relPos.x = dataArray[3];
                                 comment.relPos.y = dataArray[4];                  
                                 slideArray[slCount] = comment;
-                                slCount++;                                                          
+                                slCount++;
+                                var slideFound = false;
+                                for (i in toMarkSlidesArray) {
+       								if (toMarkSlidesArray[i] === dataArray[5]) {
+       									slideFound = true;
+       								}
+   								}
+   								if(slideFound === false){
+   									toMarkSlidesArray[toMarkSlidesArray.length] = dataArray[5];
+   								}
+   								$.log("Debug1");
+   							//found slide comment                               
+                            }else if(dataArray[2] === "slide"){
+                            	$.log("Debug2");
+                                var slideFound = false;
+                                for (i in toMarkSlidesArray) {
+       								if (toMarkSlidesArray[i] === dataArray[5]) {
+       									slideFound = true;
+       								}
+   								}
+   								if(slideFound === false){
+   									toMarkSlidesArray[toMarkSlidesArray.length] = dataArray[5];
+   								}
+   								$.log("Debug3" +slideFound);                             	
                             }                      
                             
                         });                       
                     }else if(data['annotations'].total !== 0){
-                            //split data by colons [user]:[text]:[type]:[xPos]:[yPos]:[segId]
-                            var dataArray = data['annotations'].annotation.value.split(":");
+                            //split data by <> [user]<>[text]<>[type]<>[xPos]<>[yPos]<>[segId]
+                            var dataArray = data['annotations'].annotation.value.split("<>");
                             var comment = new Object();
                             comment.id = data['annotations'].annotation.annotationId;
                             comment.user = dataArray[0];
@@ -456,7 +525,10 @@ Opencast.Annotation_Comment = (function ()
                                 comment.relPos.x = dataArray[3];
                                 comment.relPos.y = dataArray[4];
                                 comment.text = dataArray[1];
-                                slideArray[0] = comment;                       
+                                slideArray[0] = comment;
+                                toMarkSlidesArray[0] = dataArray[5];                     
+                            }else if(dataArray[2] === "slide"){
+                            	toMarkSlidesArray[0] = dataArray[5];
                             }
                     }
                     
@@ -464,16 +536,16 @@ Opencast.Annotation_Comment = (function ()
                     slideData.comment = slideArray;
 
                     // Create Trimpath Template
-                    var scrubberCommentSet = Opencast.Scrubber_CommentPlugin.addAsPlugin($('#oc-comment-hover-box'), scrubberData);
+                    var scrubberCommentSet = Opencast.Scrubber_CommentPlugin.addAsPlugin($('#oc-comment-scrubber-box'), scrubberData);
                     var slideCommentSet = Opencast.Slide_CommentPlugin.addAsPlugin($('#oc_slide-comments'), slideData);
                     if (!scrubberCommentSet)
                     {
                         $.log("No scrubberComment template processed");
-                        //$("#oc-comment-hover-box").html("");
+                        //$("#oc-comment-scrubber-box").html("");
                     }
                     else
                     {                                                
-                        //$("#oc-comment-hover-box").show();
+                        //$("#oc-comment-scrubber-box").show();
                     }
                     
                     if (!slideCommentSet)
@@ -487,24 +559,20 @@ Opencast.Annotation_Comment = (function ()
                     }
      
                     //mark segments
-                    if(slideData.comment.length > 0){
+                    if(toMarkSlidesArray.length > 0){
                         $.log("Slide Comments available");
-                        var reachedSegID = "";
-                        $(slideData.comment).each(function (i){
-                            if(reachedSegID !== slideData.comment[i].slideNr){
-                                var markdiv = "<div style='height:100%; width:5px; background-color: #A72123; float: right;'> </div>";
-                                $("#segment"+slideData.comment[i].slideNr).html(markdiv);
-                                //$("#segment"+slideData.comment[i]).corner("dogfold br");
-                                reachedSegID = slideData.comment[i].slideNr;
-                            }
-                            
+                        $(toMarkSlidesArray).each(function (i){
+                        	$.log("Mark Slide: "+toMarkSlidesArray[i]);
+                            var markdiv = "<div id='oc-comment-segmark_"+ toMarkSlidesArray[i] +"' style='width:6px; float: left;'> </div>";
+                            $("#segment"+toMarkSlidesArray[i]).html(markdiv);
+                            $("#oc-comment-segmark_"+ toMarkSlidesArray[i]).corner("cc:#000000 bevel bl 6px");
                         });
                     }
                                         
                     
                 }
                 $("#oc_slide-comments").show();
-                $("#oc-comment-hover-box").show();
+                $("#oc-comment-scrubber-box").show();
             },
             // If no data comes back
             error: function (xhr, ajaxOptions, thrownError)
@@ -513,10 +581,59 @@ Opencast.Annotation_Comment = (function ()
             }
         });
     }
+
+    /**
+     * @memberOf Opencast.annotation_comment
+     * @description click event comment
+     * @param commentId id of the comment
+     * @param commentValue comment value
+     */
+    function clickComment(commentId, commentValue, commentTime, userId)
+    {
+    	clickedOnComment = true;
+    	//process position and set comment info box
+        var left = $("#" + commentId).offset().left;
+        var top = $("#data").offset().top - 105;
+        $("#comment-Info").css("left", left+"px");
+        $("#comment-Info").css("top", top+"px");
+        $("#comment-Info").show();
+        $("#cm-add-box").hide();
+        $("#cm-info-box").show();
+        $("#cm-info-hover").hide();
+        $("#oc-comment-info-header-text").html(userId+" at "+$.formatSeconds(commentTime));
+        $("#oc-comment-info-textbox").html(commentValue);
+        //seek player to comment
+        Opencast.Watch.seekSegment(parseInt(commentTime)-2);
+    }
     
     /**
      * @memberOf Opencast.annotation_comment
-     * @description Toggles comment tooltip
+     * @description clickSlideComment
+     * @param commentId id of the comment
+     * @param commentValue comment value
+     */
+    function clickSlideComment(commentId, commentValue, userId, slideNr)
+    {
+        //hide double click info
+        $("#oc_dbclick-info").hide();
+        
+        clickedOnComment = true;
+        var left = $("#" + commentId).offset().left + 8;
+        var top = $("#" + commentId).offset().top - 100;
+        $("#comment-Info").css("left", left+"px");
+        $("#comment-Info").css("top", top+"px");
+        $("#comment-Info").show();
+        $("#cm-add-box").hide();
+        $("#cm-info-box").show();
+        $("#cm-info-hover").hide();
+        var slNr = parseInt(slideNr) + 1;
+        $("#oc-comment-info-header-text").html(userId + " at slide "+slNr);
+        $("#oc-comment-info-textbox").html(commentValue);
+    }
+    
+    /**
+     * @memberOf Opencast.annotation_comment
+     * @description hoverComment
      * @param commentId id of the comment
      * @param commentValue comment value
      */
@@ -525,7 +642,6 @@ Opencast.Annotation_Comment = (function ()
         if(clickedOnHoverBar === false){
             var left = $("#" + commentId).offset().left;
             var top = $("#data").offset().top - 105;
-            $.log("hoverComment ");
             $("#comment-Info").css("left", left+"px");
             $("#comment-Info").css("top", top+"px");
             clickedOnHoverBar = true;
@@ -535,20 +651,20 @@ Opencast.Annotation_Comment = (function ()
             $("#cm-info-hover").hide();
             $("#oc-comment-info-header-text").html(userId+" at "+$.formatSeconds(commentTime));
             $("#oc-comment-info-textbox").html(commentValue);
-            $.log("hoverComment ");
         }
     }
     
     /**
      * @memberOf Opencast.annotation_comment
-     * @description Toggles comment tooltip
+     * @description hoverSlideComment
      * @param commentId id of the comment
      * @param commentValue comment value
      */
     function hoverSlideComment(commentId, commentValue, userId, slideNr)
     {
+        //hide double click info
+        $("#oc_dbclick-info").hide();
         
-        $.log("hoverSlideComment ");
         if(clickedOnHoverBar === false){
             var left = $("#" + commentId).offset().left + 8;
             var top = $("#" + commentId).offset().top - 100;
@@ -559,7 +675,6 @@ Opencast.Annotation_Comment = (function ()
             $("#cm-add-box").hide();
             $("#cm-info-box").show();
             $("#cm-info-hover").hide();
-            $.log("hoverSlideComment "+userId);
             var slNr = parseInt(slideNr) + 1;
             $("#oc-comment-info-header-text").html(userId + " at slide "+slNr);
             $("#oc-comment-info-textbox").html(commentValue);
@@ -569,45 +684,40 @@ Opencast.Annotation_Comment = (function ()
     
     /**
      * @memberOf Opencast.annotation_comment
-     * @description Toggles comment tooltip
+     * @description hoverOutSlideComment
      * @param commentId the id of the comment
      */
     function hoverOutSlideComment()
     {
-        $.log("hoverOutSlideComment ");
-        clickedOnHoverBar = false;
-        $("#comment-Info").hide();
-        $("#cm-info-hover").hide();
-        $("#cm-info-box").hide();
+    	if(clickedOnComment === false){
+	        //show dblick info
+	        $("#oc_dbclick-info").show();
+	        
+	        clickedOnHoverBar = false;
+	        $("#comment-Info").hide();
+	        $("#cm-info-hover").hide();
+	        $("#cm-info-box").hide();
+	        $("#oc-comment-add-textbox").val(defaul_comment_text);
+	        $("#oc-comment-add-namebox").val(default_name);
+       }
     }
     
     /**
      * @memberOf Opencast.annotation_comment
-     * @description Toggles comment tooltip
+     * @description hoverOutComment
      * @param commentId the id of the comment
      */
     function hoverOutComment()
     {
-        clickedOnHoverBar = false;
-        $("#cm-info-box").hide();
-        $("#cm-info-hover").show();
-    }
-    
-    /**
-     * @memberOf Opencast.Annotation_Comment
-     * @description Displays that no Annotation is available and hides Annotations
-     * @param errorDesc Error Description (optional)
-     */
-    function displayNoAnnotationsAvailable(errorDesc)
-    {
-        errorDesc = errorDesc || '';
-        var optError = (errorDesc != '') ? (": " + errorDesc) : '';
-        $("#oc-comment-hover-box").html("No Comments available" + optError);
-        $('#oc_checkbox-annotation-comment').removeAttr("checked");
-        $('#oc_checkbox-annotation-comment').attr('disabled', true);
-        $('#oc_checkbox-annotation-comment').hide();
-        $('#oc_label-annotation-comment').hide();
-        hideAnnotation_Comment();
+    	if(clickedOnComment === false){
+			clickedOnHoverBar = false;
+			$("#comment-Info").hide();
+			$("#cm-info-hover").hide();
+			$("#cm-info-box").hide();
+			// back to default
+			$("#oc-comment-add-textbox").val(defaul_comment_text);
+			$("#oc-comment-add-namebox").val(default_name);
+       }
     }
     
     /**
@@ -616,8 +726,10 @@ Opencast.Annotation_Comment = (function ()
      */
     function hideAnnotation_Comment()
     {
-        $("#oc-comment-hover-box").hide();
-        $("#oc_slide-comments").hide();
+    	//remove segment marks
+    	$('div[id^="oc-comment-segmark_"]').remove();
+        $("#oc-comment-scrubber-box").hide();
+        $('canvas[id^="slideComment"]').hide();
         annotationCommentDisplayed = false;
     }
 
@@ -676,6 +788,8 @@ Opencast.Annotation_Comment = (function ()
         getAnnotationCommentDisplayed: getAnnotationCommentDisplayed,
         setDuration: setDuration,
         setMediaPackageId: setMediaPackageId,
+        clickComment: clickComment,
+        clickSlideComment: clickSlideComment,
         hoverComment: hoverComment,
         hoverOutComment: hoverOutComment,
         hoverSlideComment: hoverSlideComment,

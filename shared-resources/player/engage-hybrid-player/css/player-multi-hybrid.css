@@ -209,7 +209,7 @@ color: #000;
   text-align:               left;
   font-size:                0.8em;
   color:                    #FFFFFF;
-  width:                    33.33%;
+  width:                    33%;
   min-width:                310px;
   height:                   30px;
 }
@@ -823,7 +823,7 @@ input::-moz-focus-inner,
 
 .segment-holder
 {
-  height:                   25px;
+  height:                   20px;
   border-bottom-color:      #000000;
   border-bottom-style:      solid;
   border-bottom-width:      1px;
@@ -845,7 +845,7 @@ input::-moz-focus-inner,
 .segment-holder-over
 {
   background-color:         #d8d8d8;
-  height:                   23px;
+  height:                   20px;
   border-bottom-color:      #000000;
   border-bottom-style:      solid;
   border-bottom-width:      1px;
