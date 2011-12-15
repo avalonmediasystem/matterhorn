@@ -886,7 +886,7 @@ Opencast.Initialize = (function ()
         var allFields = $( [] ).add($(".clipshow-input"));
         $("#oc_clipshow-dialog").dialog({
           autoOpen: false,
-          height: 300,
+          height: 350,
           width: 350,
           modal: true,
           buttons: {
@@ -932,6 +932,8 @@ Opencast.Initialize = (function ()
             },
             Cancel: function() {
               $(this).dialog("close");
+							$("#oc-clipshow-ordering-source").html("");
+							$("#oc-clipshow-ordering-dest").html("");
             }
           },
           close: function() {
@@ -1004,8 +1006,6 @@ Opencast.Initialize = (function ()
             }
         });
         Opencast.clipshow_ui.initialize();
-				Opencast.Player.times = [];
-				Opencast.Player.currentClip = -1;
     });
     
     /**

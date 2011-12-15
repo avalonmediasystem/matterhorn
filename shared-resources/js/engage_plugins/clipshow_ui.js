@@ -308,6 +308,7 @@ Opencast.clipshow_ui = (function ()
         if(resizeEndTimeoutRunning == true)
         {
             resizeEndTimeoutRunning = false;
+            Opencast.clipshow_ui_Plugin.draw();
             Opencast.clipshow_editor_ui_Plugin.redraw();
         }
     }

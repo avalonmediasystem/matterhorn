@@ -82,7 +82,9 @@ Opencast.Player = (function ()
         curPosition = 0,
         INTERVAL_LENGTH = 5,
         detailedLogging = false,
-        lastValidTime = "Initializing";
+        lastValidTime = "Initializing",
+				clips = [],
+				currentClip = -1;
         
         
     /*************************************************************/
@@ -179,6 +181,14 @@ Opencast.Player = (function ()
     {
         return currentTimeString;
     }
+
+		function getClips() {
+			return clips;
+		}
+
+		function getCurrentClip() {
+			return currentClip;
+		}
     
     /*************************************************************/
 	/* setter
@@ -440,7 +450,7 @@ Opencast.Player = (function ()
               if (Opencast.Player.times[Opencast.Player.currentClip]["stop"] <= fullPosition) {
                 Opencast.Player.currentClip++;
                 if (Opencast.Player.currentClip < Opencast.Player.times.length) {
-                  doSeek(Opencast.Player.times[Opencast.Player.currentClip]["start"]);
+                  doSeekToClip(Opencast.Player.currentClip);
                   return;
                 } else {
                   doPause();
@@ -565,6 +575,14 @@ Opencast.Player = (function ()
             Opencast.Initialize.bindVidSize();
         }
     }
+
+		function setClips(newClips) {
+			if ($.isArray(newClips)) {
+				clips = newClips;
+				currentClip = 0;
+				doSeekToClip(0);
+			}
+		}
     
     /*************************************************************/
 	/* do
@@ -825,12 +843,17 @@ Opencast.Player = (function ()
     function doSeek(ms)
     {
         Videodisplay.seek(ms);
-        for (var i = 0; i < Opencast.Player.times.length - 1; i++) {
-          if (Opencast.Player.times[i]["start"] <= ms && ms < Opencast.Player.times[i]["end"]) {
-            Opencast.Player.currentClip = i;
-          }
-        }
+				//TODO:  Break out of clipshow mode here
     }
+
+		function doSeekToClip(clipIndex)
+		{
+			if (clipIndex < 0 || clipIndex >= clips.length) {
+				return;
+			}
+			currentClip = clipIndex;
+			doSeek(clips[clipIndex]["start"]);
+		}
     
     /**
      * @memberOf Opencast.Player
@@ -1772,6 +1795,7 @@ Opencast.Player = (function ()
         doRewind: doRewind,
         doSkipForward: doSkipForward,
         doSeek: doSeek,
+				doSeekToClip: doSeekToClip,
         doToogleClosedCaptions: doToogleClosedCaptions,
         // show
         showShare: showShare,
@@ -1816,6 +1840,9 @@ Opencast.Player = (function ()
         flashVars: flashVars,
         addEvent: addEvent,
         addFootprint: addFootprint,
-        getPixelsPerSecond: getPixelsPerSecond
+        getPixelsPerSecond: getPixelsPerSecond,
+				setClips: setClips,
+				getClips: getClips,
+				getCurrentClip: getCurrentClip
     };
 }());

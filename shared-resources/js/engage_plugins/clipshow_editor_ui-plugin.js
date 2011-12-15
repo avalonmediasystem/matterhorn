@@ -28,8 +28,16 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
                                 '<div '+
                                       'class="clipshow-editor-component segment-holder ui-widget ui-widget-content" ' +
                                       'id="${c.id}" ' +
-                                      'style="position: absolute; top: 0px; left: ${c.start * pps}px; width: ${(c.stop - c.start) * pps}px; height: 22px;">' +
+                                      'style="position: absolute; left: ${c.start * pps}px; width: ${(c.stop - c.start) * pps}px;">' +
                                       '<p>&nbsp;</p>' +
+                                 '</div>' +
+                             '{/for}';
+    var templateOrdering = '{for o in order}' +
+                                '<div '+
+                                      'class="clipshow-editor-component clipshow-order-component segment-holder ui-widget ui-widget-content" ' +
+                                      'id="${o.id}" ' +
+                                      'style="width: ${width}px; margin-right: 2px;">' +
+                                      '<p>${o.clip}</p>' +
                                  '</div>' +
                              '{/for}';
 
@@ -83,7 +91,7 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
 
     function redraw() 
     {
-        var pps = Math.round(Opencast.Player.getPixelsPerSecond());
+        var pps = Opencast.Player.getPixelsPerSecond();
         currentPositions["pps"] = pps;
         var processedClipshowData = templateComponent.process(currentPositions);
         elementClipshowEditor.html(processedClipshowData);
@@ -98,7 +106,47 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
 
     function saveDialog() {
       if (counter > 0) {
+        var playbackPositions = [];
         $("#oc_clipshow-dialog").dialog("open");
+				currentPositions["pps"] = $('#oc-clipshow-ordering-source').width() / Opencast.Player.getDuration();
+			  var processedData = templateComponent.process(currentPositions);
+			  $("#oc-clipshow-ordering-source").html(processedData);
+
+		    $("#oc-clipshow-ordering-dest").sortable({
+		      stop: function(event, ui) {
+		        //New items
+		        if (!ui.item.data('tag')) {
+		          ui.item.data('tag', true);
+		          ui.item.children()[0].innerHTML = ui.item.attr("id");
+		        } else { //Removing old items
+		          if (ui.position.left + ui.item.width() < $(this).position().left || 
+	              ui.position.left > $(this).position().left + $(this).width() ||
+	              ui.position.top + ui.item.height() < $(this).position().top ||
+	              ui.position.top > $(this).position().top + $(this).height()) {
+	              ui.item.remove();
+	            }
+	          }
+		      },
+		      receive: function(event, ui) {
+		        var children = $("#oc-clipshow-ordering-dest > div.clipshow-editor-component");
+		        var width = Math.min(1/children.length * 0.90 * $("#oc-clipshow-ordering-dest").width(), 120);
+		        $.each(children, function() {
+		          $(this).attr("style", "width: " + width + "px; margin-right: 2px;");
+		        });
+		      }
+		    });
+
+			  $("#oc-clipshow-ordering-source > div.clipshow-editor-component").draggable({
+          revert: "true",
+          containment: "#oc-clipshow-ordering-container",
+          connectToSortable: "#oc-clipshow-ordering-dest",
+          helper: "clone",
+          cursor: "move"
+        });
+
+  	    $("#oc-clipshow-ordering-source").disableSelection();
+  	    $("#oc-clipshow-ordering-dest").disableSelection();
+
         $('#oc-input-series-name-select').autocomplete({
           source: function(request, response) {
             $.ajax({
@@ -132,23 +180,28 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
     }
 
     function saveClipshow(title, series, tags, allowedUsers) {
-        $.ajax(
-        {
-            type: "POST",
-            url: "../../clipshow/create",
-            data: JSON.stringify({title: title, mediapackageId: Opencast.Player.getMediaPackageId(), clips: currentPositions["clips"], series: series, tags: tags, allowedUsers: allowedUsers}),
-            contentType: 'application/json; charset=utf-8',
-            dataType: 'json',
-            success: function (json)
-            {
-                Opencast.clipshow_ui.refreshClipshowList();
-                Opencast.clipshow_ui.updateClipshowDropdown();
-            },
-            error: function (a, b, c)
-            {
-                // Some error while adding the clipshow
-            }
-        });
+      var clips = [];
+      $.each($("#oc-clipshow-ordering-dest").sortable('toArray'), function(index, value) { 
+        clips.push(currentPositions.clips[value]);
+      });
+
+      $.ajax(
+      {
+          type: "POST",
+          url: "../../clipshow/create",
+          data: JSON.stringify({title: title, mediapackageId: Opencast.Player.getMediaPackageId(), clips: clips, series: series, tags: tags, allowedUsers: allowedUsers}),
+          contentType: 'application/json; charset=utf-8',
+          dataType: 'json',
+          success: function (json)
+          {
+              Opencast.clipshow_ui.refreshClipshowList();
+              Opencast.clipshow_ui.updateClipshowDropdown();
+          },
+          error: function (a, b, c)
+          {
+              // Some error while adding the clipshow
+          }
+      });
     }
 
     function createSeries(title) {

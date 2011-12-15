@@ -276,9 +276,9 @@
           <table class="segments" id="segmentstable1">
             <!-- data comes here -->
           </table>
-			    <table class="clipshow" id="clipshowtable">
+			    <div class="clipshow" id="clipshowtable">
 			    		<!-- data comes here -->
-					</table>
+					</div>
 					<div class="clipshow-editor" id="clipshoweditor">
 					    <!-- data comes here -->
 					</div>
@@ -510,7 +510,7 @@
 
     <div id="oc_clipshow-dialog" title="Create a clipshow">
       <p class="validateTips">All form fields are required</p>
-      <form>
+      <form style="width: 100%; height: 80%;">
       <fieldset>
         <label for="title">Title</label>
         <input type="text" name="title" id="oc-input-clipshow-title" class="clipshow-input text ui-widget-content ui-corner-all" />
@@ -528,6 +528,15 @@
         <br />
         <input type="text" name="users-select" id="oc-input-allowed-users-select" class="clipshow-input text ui-widget-content ui-corner-all" />
         <input type="hidden" name="users" id="oc-input-allowed-users" />
+				<br />
+				<label for="clipdOrder">Clip Ordering</label>
+				<input type="hidden" name="clipOrder" id="oc-input-clip-order" />
+        <div id="oc-clipshow-ordering-container" style="width:100%; height: 120px;">
+          <p>Source Order:</p>
+  				<div id="oc-clipshow-ordering-source" style="width: 100%; height: 25px; border: 1px solid;"></div>
+          <p>Playback Order:</p>
+  				<div id="oc-clipshow-ordering-dest" style="width: 100%; height: 25px; border: 1px solid; float: right;"></div>
+	  		</div>
       </fieldset>
       </form>
     </div>

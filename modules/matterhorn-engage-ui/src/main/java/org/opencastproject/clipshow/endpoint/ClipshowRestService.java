@@ -27,6 +27,7 @@ import org.opencastproject.util.doc.rest.RestResponse;
 import org.opencastproject.util.doc.rest.RestService;
 
 import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -36,9 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.naming.NoPermissionException;
 import javax.servlet.http.HttpServletRequest;
@@ -117,16 +118,17 @@ public class ClipshowRestService {
     }
     String name = (String) decodedShow.get("title");
     String mediapackageId = (String) decodedShow.get("mediapackageId");
-    JSONObject show = (JSONObject) decodedShow.get("clips");
+    JSONArray show = (JSONArray) decodedShow.get("clips");
 
-    Set<Entry<JSONObject, JSONObject>> jsonClips = show.entrySet();
 
     List<Clip> clips = new LinkedList<Clip>();
-    for (Entry<JSONObject, JSONObject> e : jsonClips) {
-      int start = Integer.valueOf(e.getValue().get("start").toString());
-      int stop = Integer.valueOf(e.getValue().get("stop").toString());
+    ListIterator clipIterator = show.listIterator();
+    while (clipIterator.hasNext()) {
+      JSONObject e = (JSONObject) clipIterator.next();
+      int start = Integer.valueOf(e.get("start").toString());
+      int stop = Integer.valueOf(e.get("stop").toString());
       Clip clip = new Clip(start, stop);
-      clip.setElementId(e.getValue().get("id").toString());
+      clip.setElementId(e.get("id").toString());
       clips.add(clip);
     }
 

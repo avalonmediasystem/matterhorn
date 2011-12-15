@@ -34,6 +34,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessOrder;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -79,7 +80,7 @@ public class Clipshow implements Serializable, Comparable<Clipshow> {
   private Set<ClipshowUser> allowedUsers;
 
   @OneToMany(cascade = CascadeType.ALL)
-  @JoinColumn(name = "clipshow")
+  @OrderColumn(name = "clipshow")
   @XmlElement(name = "clips")
   private List<Clip> clips;
 

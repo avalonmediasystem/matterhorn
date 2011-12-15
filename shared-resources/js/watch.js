@@ -669,10 +669,6 @@ Opencast.Watch = (function ()
             var time = (timeParam === null) ? 0 : $.parseSeconds(timeParam);
             time = (time < 0) ? 0 : time;
             var rdy = false;
-						if (typeof Opencast.Player.times[0] != "undefined") {
-							jumpToTime(Opencast.Player.times[0]["start"]);
-							Opencast.Player.currentClip = 0;
-						}
             if(advancedPlayer)
             {
                 // duration set

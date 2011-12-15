@@ -22,29 +22,15 @@ var Opencast = Opencast || {};
 Opencast.clipshow_ui_Plugin = (function ()
 {
     // The Templates to process
-    var templateClipshow = '<tr>' +
-                            '{for c in clips}' +
-                                '{if (parseInt(c.duration) > 0)}' +
-                                    '<td role="button" class="segment-holder ui-widget ui-widget-content" ' +
-                                        'id="clip${c.index}" ' +
-                                        '{if (c.spacer)}' +
-                                        ' style="width: ${parseInt(c.duration) / parseInt(c.completeDuration) * 100}%;" ' +
-                                        '{else}' +
-                                        ' style="width: ${parseInt(c.duration) / parseInt(c.completeDuration) * 100}%; background: blue;" ' +
-                                        'alt="Clip ${parseInt(c.clip)} of ${parseInt(c.count)}" ' +
-                                        'onclick="Opencast.Player.doSeek(${parseInt(c.start)}); Opencast.Player.currentClip = c.clip;" ' +
-                                        '{/if}' +
-                                     '>' +
-                                        '{if (false && !c.spacer)}' +
-                                        '<p>Clip ${parseInt(c.clip)}</p>' +
-                                        '{/if}' +
-                                        '<span class="segments-time" style="display: none">${parseInt(c.start)}</span>' +
-                                     '</td>' +
-                                 '{/if}' +
-                             '{forelse}' +
-                                 '<td style="width: 100%;" id="segment-holder-empty" class="segment-holder" />' +
-                             '{/for}' +
-                             '</tr>';
+    var templateClipshow = '{for c in clips}' +
+                                '<div '+
+                                      'class="segment-holder ui-widget ui-widget-content" ' +
+                                      'id="clip${c.id}" ' +
+                                      'style="width: ${(c.stop - c.start) * pps}px; height: 22px;"' +
+																			'onclick="Opencast.Player.doSeekToClip(${c.id});">' +
+                                      '<p>&nbsp;</p>' +
+                                 '</div>' +
+                             '{/for}';
 
     // The Elements to put the div into
     var elementClipshow;
@@ -61,6 +47,10 @@ Opencast.clipshow_ui_Plugin = (function ()
     function getCurrentClipshowId() {
       return clipshowId;
     }
+
+		function setClipshowData(clipshow) {
+			clipshow_ui_data = clipshow;
+		}
 
     function getClipshow(id) {
       if (id == 'x') {
@@ -81,6 +71,8 @@ Opencast.clipshow_ui_Plugin = (function ()
               if (clips.length == 0) {
                 return;
               }
+
+							Opencast.Player.doPause();
 
               $("#oc_btn-vote-funny").removeAttr("checked");
               $("#oc_btn-vote-good").removeAttr("checked");
@@ -115,81 +107,13 @@ Opencast.clipshow_ui_Plugin = (function ()
                 $("#oc_votes").hide();
               }
 
-              //TODO:  Fix playback
-              Opencast.Player.times = clips;
-
-              var duration = Math.round(Opencast.Player.getDuration());
-
-              //Build the clipshow display data
-              var last = 0;
-              var counter = 1;
-              var clipshowLength = 0;
-              var clipshow = [];
-              if ($.isArray(clips)) {
-                clipshowLength = clips.length;
-                clips.sort(function(a,b) {
-                  return parseInt(a.stop) - parseInt(b.start);
-
-                  if (b.start > a.stop) {
-                    return -1;
-                  } else if (b.start < a.stop) {  //Later clip overlaps earlier clip
-                    
-                  } else if (b.stop > a.start) {  //Earlier clips overlas later clip
-                    
-                  } else if (a.start <= b.start && a.stop >= b.stop) { //Complete overlap
-                    
-                  }
-                  return parseInt(b.start) - parseInt(a.stop) 
-                });
-                for (var i = 0; i < clipshowLength; i++) {
-                	if (clips[i]["start"] != last) {
-                		clipshow.push({"start": last, "stop": clips[i]["start"], "duration": (clips[i]["start"] - last), "completeDuration": duration, "spacer": true, "index": counter});
-                		counter++;
-              		}
-              		clips[i]["index"] = counter;
-              		clips[i]["clip"] = i;
-              		clips[i]["count"] = clipshowLength;
-              		clips[i]["completeDuration"] = duration;
-              		clips[i]["duration"] = clips[i]["stop"] - clips[i]["start"];
-              		counter++;
-              		clipshow.push(clips[i]);
-              		last = clips[i]["stop"];
-                }
-
-                //Add a final entry to finish off the full length
-                //clipshow[clipshow.length-1]["stop"]
-                if (last != duration) {
-                		clipshow.push({"start": last, "stop": duration, "duration": (duration - last), "completeDuration": duration, "spacer": true, "index": ++counter});
-                }
-                Opencast.Player.doPause();
-                Opencast.Player.doSeek(clips[0]["start"]);
-                Opencast.Player.currentClip = 0;
-              } else {
-                //TODO:  This branch can go away if I can figure out how to get the clipshow to always be an array (re: single element idiocy)
-                clipshowLength = 1;
-                if (clips["start"] != 0) {
-                  clipshow.push({"start": last, "stop": clips["start"], "duration": (clips["start"] - last), "completeDuration": duration, "spacer": true, "index": counter});
-                  counter++;
-                }
-            		clips["index"] = counter;
-            		clips["clip"] = i;
-            		clips["count"] = clipshowLength;
-            		clips["completeDuration"] = duration;
-            		clips["duration"] = clips["stop"] - clips["start"];
-            		counter++;
-            		clipshow.push(clips);
-            		last = clips["stop"];
-            		
-                //Add a final entry to finish off the full length
-                if (last != duration) {
-                		clipshow.push({"start": last, "stop": duration, "duration": (duration - last), "completeDuration": duration, "spacer": true, "index": ++counter});
-                }
-                Opencast.Player.doPause();
-                Opencast.Player.doSeek(clips["start"]);
-                Opencast.Player.currentClip = 0;
+              //Ensure the clipshow is an array, even if there's only one clip
+              if (!$.isArray(clips)) {
+                clips = [clips];
               }
 
-              clipshow_ui_data = {clips: clipshow};
+							Opencast.Player.setClips(clips);
+              setClipshowData({clips: clips});
               Opencast.clipshow_ui_Plugin.draw();
             }
           });
@@ -215,8 +139,20 @@ Opencast.clipshow_ui_Plugin = (function ()
     function draw() {
         // Process Element Segments 1
         if ((elementClipshow !== undefined) && (clipshow_ui_data !== undefined) && (clipshow_ui_data.clips.length > 0)) {
+            clipshow_ui_data.pps = Opencast.Player.getPixelsPerSecond();
             processedClipshowData = templateClipshow.process(clipshow_ui_data);
             elementClipshow.html(processedClipshowData);
+						for (var i = 0; i < clipshow_ui_data.clips.length; i++) {
+							var clip = clipshow_ui_data.clips[i];
+							var clipId = "#clip" + clip.id;
+							$(clipId).position({
+								of: $("#clipshowtable"),
+								my: "left top",
+								at: "left top",
+								offset: (clip.start * clipshow_ui_data.pps) + " 0",
+								collision: "none none"
+							});
+						}
             $.log("Clipshow UI Plugin: Clipshow initialized");
         }
     }
