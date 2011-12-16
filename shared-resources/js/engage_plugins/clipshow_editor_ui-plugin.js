@@ -32,14 +32,6 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
                                       '<p>&nbsp;</p>' +
                                  '</div>' +
                              '{/for}';
-    var templateOrdering = '{for o in order}' +
-                                '<div '+
-                                      'class="clipshow-editor-component clipshow-order-component segment-holder ui-widget ui-widget-content" ' +
-                                      'id="${o.id}" ' +
-                                      'style="width: ${width}px; margin-right: 2px;">' +
-                                      '<p>${o.clip}</p>' +
-                                 '</div>' +
-                             '{/for}';
 
     // The number of clips created so far
     var counter = 0;
@@ -102,6 +94,7 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
           $("#edit-clip" + i).draggable({containment: elementClipshowEditor, grid: [ clipSize, clipSize ], axis: 'x', stop: Opencast.clipshow_editor_ui_Plugin.updatePosition});
           $("#edit-clip" + i).sortable({revert: true});
         }
+  	    elementClipshowEditor.disableSelection();
     }
 
     function saveDialog() {
@@ -136,7 +129,15 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
 		      }
 		    });
 
-			  $("#oc-clipshow-ordering-source > div.clipshow-editor-component").draggable({
+        $.each($("#oc-clipshow-ordering-source > div.clipshow-editor-component"), function(index) {
+          $(this).position({
+            of: $("#oc-clipshow-ordering-source"),
+            my: "left top",
+            at: "left top",
+            offset: ($(this).position().left + 2) + " 1",
+            collision: "none"
+          })
+			  }).draggable({
           revert: "true",
           containment: "#oc-clipshow-ordering-container",
           connectToSortable: "#oc-clipshow-ordering-dest",

@@ -446,11 +446,11 @@ Opencast.Player = (function ()
         if (inPosition <= fullPosition && fullPosition <= inPosition + INTERVAL_LENGTH)
         {
 						//Begin Clipshow jumping code
-            if (Opencast.Player.currentClip != -1) {
-              if (Opencast.Player.times[Opencast.Player.currentClip]["stop"] <= fullPosition) {
-                Opencast.Player.currentClip++;
-                if (Opencast.Player.currentClip < Opencast.Player.times.length) {
-                  doSeekToClip(Opencast.Player.currentClip);
+            if (currentClip != -1) {
+              if (clips[currentClip]["stop"] <= fullPosition) {
+                currentClip++;
+                if (currentClip < clips.length) {
+                  doSeekToClip(currentClip);
                   return;
                 } else {
                   doPause();

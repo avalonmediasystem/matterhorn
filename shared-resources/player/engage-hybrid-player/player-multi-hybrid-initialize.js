@@ -886,7 +886,7 @@ Opencast.Initialize = (function ()
         var allFields = $( [] ).add($(".clipshow-input"));
         $("#oc_clipshow-dialog").dialog({
           autoOpen: false,
-          height: 350,
+          height: 400,
           width: 350,
           modal: true,
           buttons: {
@@ -921,6 +921,11 @@ Opencast.Initialize = (function ()
                 allowedUsers = $("#oc-input-allowed-users").val();
               } else if ($("#oc-input-allowed-users-select").val().length > 0) {
                 allowedUsers = $("#oc-input-allowed-users-select").val();
+              }
+
+              if ($("#oc-clipshow-ordering-dest").sortable('toArray').length < 1) {
+                validated = false;
+                validText = validText + " and you must select at least one clip";
               }
 
               if (validated) {

@@ -26,7 +26,7 @@ Opencast.clipshow_ui_Plugin = (function ()
                                 '<div '+
                                       'class="segment-holder ui-widget ui-widget-content" ' +
                                       'id="clip${c.id}" ' +
-                                      'style="width: ${(c.stop - c.start) * pps}px; height: 22px;"' +
+                                      'style="width: ${(c.stop - c.start) * pps}px; float: left;"' +
 																			'onclick="Opencast.Player.doSeekToClip(${c.id});">' +
                                       '<p>&nbsp;</p>' +
                                  '</div>' +
@@ -145,11 +145,12 @@ Opencast.clipshow_ui_Plugin = (function ()
 						for (var i = 0; i < clipshow_ui_data.clips.length; i++) {
 							var clip = clipshow_ui_data.clips[i];
 							var clipId = "#clip" + clip.id;
+							var offset = "" + clip.start * clipshow_ui_data.pps + " 0"
 							$(clipId).position({
 								of: $("#clipshowtable"),
 								my: "left top",
 								at: "left top",
-								offset: (clip.start * clipshow_ui_data.pps) + " 0",
+								offset: offset,
 								collision: "none none"
 							});
 						}

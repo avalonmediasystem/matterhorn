@@ -218,11 +218,11 @@ Opencast.clipshow_ui = (function ()
       $('#clipshoweditor').show();
       if (clipshowDisplayed)
       {
-        $('#analytics-and-annotations').height("75px");
+        $('#analytics-and-annotations').height("82px");
       }
       else
       {
-        $('#analytics-and-annotations').height("50px");
+        $('#analytics-and-annotations').height("55px");
       }
       $("#oc_video-view").height("35px");
     }
@@ -236,7 +236,7 @@ Opencast.clipshow_ui = (function ()
       $('#clipshoweditor').hide();
       if (clipshowDisplayed)
       {
-        $('#analytics-and-annotations').height("50px");
+        $('#analytics-and-annotations').height("82px");
       }
       else
       {
@@ -250,16 +250,15 @@ Opencast.clipshow_ui = (function ()
       $('#clipshowtable').show();
       $("#oc_label-select").show();
       $("#oc_select-clipshow").show();
-      $("#oc_votes").show();
 
       Opencast.clipshow_ui_Plugin.addAsPlugin($('#clipshowtable'));
       if (clipshowEditorDisplayed)
       {
-        $('#analytics-and-annotations').height("75px");
+        $('#analytics-and-annotations').height("82px");
       }
       else
       {
-        $('#analytics-and-annotations').height("50px");
+        $('#analytics-and-annotations').height("55px");
       }
       updateClipshowDropdown();
       clipshowDropdownRefreshInterval = window.setInterval(function event() {
@@ -275,7 +274,7 @@ Opencast.clipshow_ui = (function ()
       $("#oc_votes").hide();
       if (clipshowEditorDisplayed)
       {
-        $('#analytics-and-annotations').height("50px");
+        $('#analytics-and-annotations').height("55px");
       }
       else
       {

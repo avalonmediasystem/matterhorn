@@ -39,12 +39,9 @@ public class Clip implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "id")
+  @XmlElement(name = "id")
   private Long id;
 
-  @Column(name = "element_id")
-  @XmlElement(name = "id")
-  private String elementId;
-  
   @Column(name = "start")
   @XmlElement(name = "start")
   private Integer start;
@@ -61,14 +58,6 @@ public class Clip implements Serializable {
     this.stop = stop;
   }
 
-  public String getElementId() {
-    return elementId;
-  }
-
-  public void setElementId(String id) {
-    elementId = id;
-  }
-
   public void setStart(Integer start) {
     this.start = start;
   }
@@ -83,14 +72,6 @@ public class Clip implements Serializable {
 
   public Integer getStop() {
     return this.stop;
-  }
-
-  public void setId(String id) {
-    this.elementId = id;
-  }
-
-  public String getId() {
-    return this.elementId;
   }
 
   public Long getDatabaseId() {
