@@ -69,10 +69,11 @@
     z-index:10;
 	height: 10px;
 	width: 10px;
+	position: absolute;
+	top:5px;
+	margin-left: -5px;
 	-moz-border-radius: 5px;
 	border-radius: 5px;
-    top:5px;
-    position: absolute;
 	/* fallback */ 
 	background-color: #000000; 
 	background-repeat: repeat-x; 

@@ -32,7 +32,9 @@ Opencast.Annotation_Comment = (function ()
     var clickedOnComment = false;
     var infoTime = "";
     var commentAtInSeconds;
+    var cookieName = "oc_comment_username";
     var default_name = "Your name!";
+    var cm_username;
     var defaul_comment_text = "Type your comment here!"
     var comments_cache;
     
@@ -43,6 +45,23 @@ Opencast.Annotation_Comment = (function ()
 
     function initialize()
     {
+    	
+    	$("Comment Plugin init");
+    	
+    	//Read Cookie for default Name
+		cm_username = default_name;
+		var nameEQ = cookieName + "=";
+		var ca = document.cookie.split(';');
+		for(var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while(c.charAt(0) == ' ')
+			c = c.substring(1, c.length);
+			if(c.indexOf(nameEQ) == 0)
+				cm_username = c.substring(nameEQ.length, c.length);
+		}
+		
+		$.log("Comment Plugin set username to: "+cm_username);
+    	
     	
        	// Handler keypress ALT+CTRL+a
         $(document).keyup(function (event)
@@ -148,7 +167,7 @@ Opencast.Annotation_Comment = (function ()
             $("#cm-info-hover").show();
             // back to default
             $("#oc-comment-add-textbox").val(defaul_comment_text);
-            $("#oc-comment-add-namebox").val(default_name);
+            $("#oc-comment-add-namebox").val(cm_username);
             clickedOnHoverBar = false;
             clickedOnComment = false;
 			//show other slide comments
@@ -179,7 +198,7 @@ Opencast.Annotation_Comment = (function ()
 		        nameValue = nameValue.replace(/<>/g,"");        
 		        // back to default
 		        $("#oc-comment-add-textbox").val(defaul_comment_text);
-		        $("#oc-comment-add-namebox").val(default_name);
+		        $("#oc-comment-add-namebox").val(cm_username);
 				//show other slide comments
 				$('canvas[id^="slideComment"]').show();
 				$('div[id^="scComment"]').show(); 
@@ -374,6 +393,12 @@ Opencast.Annotation_Comment = (function ()
         //if(Opencast.Player.getUserId() !== null){
         //    user = Opencast.Player.getUserId();
         //}
+        
+        //Create cookie with username
+        document.cookie = cookieName+"="+user+"; path=/engage/ui/";
+        
+        //Replace default username
+        cm_username = user;
         
         //comment data [user]<>[text]<>[type]<>[xPos]<>[yPos]<>[segId]
         var data = "";
@@ -698,7 +723,7 @@ Opencast.Annotation_Comment = (function ()
 	        $("#cm-info-hover").hide();
 	        $("#cm-info-box").hide();
 	        $("#oc-comment-add-textbox").val(defaul_comment_text);
-	        $("#oc-comment-add-namebox").val(default_name);
+	        $("#oc-comment-add-namebox").val(cm_username);
        }
     }
     
@@ -716,7 +741,7 @@ Opencast.Annotation_Comment = (function ()
 			$("#cm-info-box").hide();
 			// back to default
 			$("#oc-comment-add-textbox").val(defaul_comment_text);
-			$("#oc-comment-add-namebox").val(default_name);
+			$("#oc-comment-add-namebox").val(cm_username);
        }
     }
     

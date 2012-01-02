@@ -24,7 +24,9 @@ Opencast.Annotation_Comment_List = (function ()
     var COMMENTNOHIDE = "Comments",
         COMMENTSHIDE = "Hide Comments";
     var defaultText = "Type your comment here";
-    var defaultNameText = "Your name"
+    var defaultNameText = "Your name";
+    var cm_username;
+    var cookieName = "oc_comment_username";
     var comment_list_show = false;
     var mediaPackageId;
     var annotationType = "comment";
@@ -36,11 +38,27 @@ Opencast.Annotation_Comment_List = (function ()
     function initialize()
     {
 
-        $.log("Comment List init");
+        $.log("Comment List Plugin init");
+        
+        
+        //Read Cookie for default Name
+		cm_username = defaultNameText;
+		var nameEQ = cookieName + "=";
+		var ca = document.cookie.split(';');
+		for(var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while(c.charAt(0) == ' ')
+			c = c.substring(1, c.length);
+			if(c.indexOf(nameEQ) == 0)
+				cm_username = c.substring(nameEQ.length, c.length);
+		}
+		
+		$.log("Comment List Plugin set default username to: "+cm_username);
+
         
         // //Add Comment Form // //
         $("#oc-comments-list-textbox").val(defaultText);
-  		$("#oc-comments-list-namebox").val(defaultNameText);
+  		$("#oc-comments-list-namebox").val(cm_username);
         $("#oc-comments-list-submit").click(function(){        
             submitComment(false);         
         });
@@ -107,11 +125,11 @@ Opencast.Annotation_Comment_List = (function ()
 			}          
            
            $("#oc-comments-list-textbox").val(defaultText);
-           $("#oc-comments-list-namebox").val(defaultNameText);
+           $("#oc-comments-list-namebox").val(cm_username);
        }else if(textBoxValue === defaultText){
             $("#oc-comments-list-textbox").focus();
             $("#oc-comments-list-textbox").select(); 
-       }else if(nameBoxValue === defaultNameText){
+       }else if(nameBoxValue === cm_username){
             $("#oc-comments-list-namebox").focus();
             $("#oc-comments-list-namebox").select(); 
        }else{
@@ -132,6 +150,13 @@ Opencast.Annotation_Comment_List = (function ()
             user = Opencast.Player.getUserId();
         }
         */
+       
+        //Create cookie with username
+        document.cookie = cookieName+"="+user+"; path=/engage/ui/";
+        
+        //Replace default username
+        cm_username = user;       
+       
         //comment data [user]<>[text]<>[type]
         data = user+"<>"+value+"<>"+type;
         var timePos = 0;
