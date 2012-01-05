@@ -81,6 +81,17 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
         redraw();
     }
 
+    function resize(event, ui) {
+      Opencast.Player.doPause();
+      var seekTime = -1;
+      if (ui.originalPosition.left != ui.position.left) {
+        seekTime = ui.position.left / Opencast.Player.getPixelsPerSecond();
+      } else if (ui.originalSize.width != ui.size.width) {
+        seekTime = (ui.position.left + ui.size.width) / Opencast.Player.getPixelsPerSecond();
+      }
+      Opencast.Player.doSeek(seekTime);
+    }
+
     function redraw() 
     {
         var pps = Opencast.Player.getPixelsPerSecond();
@@ -90,8 +101,8 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
         var clipSize = minClipSize * pps;
         for (var i = 0; i < counter; i++)
         {
-          $("#edit-clip" + i).resizable({handles: 'e,w', containment: elementClipshowEditor, grid: clipSize, minwidth: clipSize, stop: Opencast.clipshow_editor_ui_Plugin.updatePosition});
-          $("#edit-clip" + i).draggable({containment: elementClipshowEditor, grid: [ clipSize, clipSize ], axis: 'x', stop: Opencast.clipshow_editor_ui_Plugin.updatePosition});
+          $("#edit-clip" + i).resizable({handles: 'e,w', containment: elementClipshowEditor, grid: clipSize, minwidth: clipSize, stop: updatePosition, resize: resize});
+          $("#edit-clip" + i).draggable({containment: elementClipshowEditor, grid: [ clipSize, clipSize ], axis: 'x', stop: updatePosition});
           $("#edit-clip" + i).sortable({revert: true});
         }
   	    elementClipshowEditor.disableSelection();
@@ -245,7 +256,6 @@ Opencast.clipshow_editor_ui_Plugin = (function ()
 
     return {
         addAsPlugin: addAsPlugin,
-        updatePosition: updatePosition,
         redraw: redraw,
         createClipshowEditorElement: createClipshowEditorElement,
         saveDialog: saveDialog,

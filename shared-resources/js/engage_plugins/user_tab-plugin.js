@@ -109,7 +109,7 @@ Opencast.User_Plugin = (function ()
           success: function (json)
           {
             var results = json.wrapper.data;
-            if (results != undefined) {
+            if ('undefined' != typeof results) {
               if ($.isArray(results)) {
                 Opencast.User_Plugin.setSearchData(results);
               } else {
@@ -161,7 +161,7 @@ Opencast.User_Plugin = (function ()
      */
     function createTab(selectType)
     {
-        if ((element !== undefined))
+        if ('undefined' != typeof element)
         {
             var clist = Opencast.clipshow_ui.getClipshowList();
             if ($.isArray(clist)) {
@@ -180,7 +180,7 @@ Opencast.User_Plugin = (function ()
               randomShows = []
               //Fill the sorted list
               for (var i = 0; i < 5; i++) {
-                if (clist[i] == undefined) {
+                if ('undefined' == typeof clist[i]) {
                   break;
                 }
                 sorted[i] = clist[i];
@@ -196,7 +196,11 @@ Opencast.User_Plugin = (function ()
               }
               user_data.randoms = randomShows;
             } else {
-              user_data.sorted = [clist];
+              if ('undefined' != typeof clist) {
+                user_data.sorted = [clist];
+              } else {
+                user_data.sorted = [];
+              }
               user_data.randoms = [];
             }
 
