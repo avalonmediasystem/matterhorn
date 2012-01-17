@@ -66,7 +66,7 @@
 }
 
 .oc-comment-scrubber-baloon{  
-    z-index:10;
+    z-index:100;
 	height: 10px;
 	width: 10px;
 	position: absolute;

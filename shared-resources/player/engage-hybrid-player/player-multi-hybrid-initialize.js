@@ -1388,6 +1388,7 @@ Opencast.Initialize = (function ()
         }
         // set the embed section
         setEmbed();
+        $.log("Debug SET Resoltution " + mediaTwoHeight + " " + mediaTwoWidth)
     }
     return {
         bindVidSize: bindVidSize,

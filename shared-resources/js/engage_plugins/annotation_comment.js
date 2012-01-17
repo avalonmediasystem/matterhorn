@@ -115,32 +115,47 @@ Opencast.Annotation_Comment = (function ()
         // resize handler
         $('#oc_flash-player').bind('doResize', function(e) {
            
-           //DEBUG
-           var test1 = Opencast.Player.getViewState()
-           var test2 = Opencast.Player.getCurrentVideoSize();
-           $.log("test1: "+test1+" test2: "+test2);
+           //hideAnnotation_Comment();
            
-            //positioning of the slide comment box
-            var flashWidth = $('#oc_flash-player').width();
-            var flashHeight = $('#oc_flash-player').height();
-            var flashTop = $('#oc_flash-player').offset().top;
-            var flashLeft = $('#oc_flash-player').offset().left;
-            
-            var scWidth = 4/3 * flashHeight;
-            var scLeft = flashWidth / 2;
-            
-            $("#oc_slide-comments").css("position","absolute");
-            $("#oc_slide-comments").css("height",flashHeight+"px");
-            $("#oc_slide-comments").css("width",scWidth+"px");
-            $("#oc_slide-comments").css("left",scLeft+"px");
-            $("#oc_slide-comments").css("top",0+"px");
-            
-            if(annotationCommentDisplayed){
-	            //Workaround: 500ms after resize repaint comments and marks
-	            window.setTimeout(function() {  
+			//positioning of the slide comment box
+			var flashWidth = $('#oc_flash-player').width() / 2;
+			var flashHeight = $('#oc_flash-player').height()-10;
+			var flashTop = $('#oc_flash-player').offset().top;
+			var flashLeft = $('#oc_flash-player').offset().left;
+			
+			
+			var scHeight = 0;
+			var scWidth = 0;
+			var scLeft = 0;
+			var scTop = 0;
+			
+			if(((flashWidth - 5) / flashHeight) < (4/3) ){
+				scHeight = (flashWidth - 5) / (4/3);
+				scWidth = (4/3)*scHeight;
+				scLeft = flashWidth;
+				scTop = flashHeight - scHeight + 4;
+			}else{
+				scWidth = (4/3) * flashHeight;
+				scHeight = scWidth / (4/3);
+				scLeft = flashWidth;
+				scTop = 5;
+			}
+			
+			$("#oc_slide-comments").css("position","absolute");
+			$("#oc_slide-comments").css("height",scHeight+"px");
+			$("#oc_slide-comments").css("width",scWidth+"px");
+			$("#oc_slide-comments").css("left",scLeft+"px");
+			$("#oc_slide-comments").css("top",scTop+"px");
+			/*
+			if(annotationCommentDisplayed){
+				$.log("BLUB");
+			    //Workaround: 500ms after resize repaint comments and marks
+			    window.setTimeout(function() {
+			    	$.log("after resize and 500ms show annotations");  
 					Opencast.Annotation_Comment.showAnnotation_Comment();
 				}, 500);            	
-            }
+			}*/
+			//Opencast.Annotation_Comment.showAnnotation_Comment();
  
             
             
@@ -193,9 +208,13 @@ Opencast.Annotation_Comment = (function ()
 		        clickedOnHoverBar = false;
 		        var commentValue = $("#oc-comment-add-textbox").val();
 		        commentValue = commentValue.replace(/<>/g,"");
+		        commentValue = commentValue.replace(/'/g,"`");
+		        commentValue = commentValue.replace(/"/g,"`");
 		        commentValue = commentValue.replace(/\n/,"");	        
 		        var nameValue = $("#oc-comment-add-namebox").val();
-		        nameValue = nameValue.replace(/<>/g,"");        
+		        nameValue = nameValue.replace(/<>/g,"");       
+		        nameValue = nameValue.replace(/'/g,"`"); 
+		        nameValue = nameValue.replace(/"/g,"`");  
 		        // back to default
 		        $("#oc-comment-add-textbox").val(defaul_comment_text);
 		        $("#oc-comment-add-namebox").val(cm_username);
@@ -361,8 +380,8 @@ Opencast.Annotation_Comment = (function ()
        
        $("#oc_slide-comments").mouseenter(function(){
        	
-       		var sl_left = $('#oc_slide-comments').offset().left + $('#oc_slide-comments').width();
-       		var sl_top = $('#oc_slide-comments').offset().top + 10;
+       		var sl_left = $('#oc_slide-comments').offset().left + $('#oc_slide-comments').width() + 2;
+       		var sl_top = $('#oc_slide-comments').offset().top + $('#oc_slide-comments').height() - 40;
        		
             $("#oc_dbclick-info").css("left", sl_left+"px");
             $("#oc_dbclick-info").css("top", sl_top+"px");
@@ -517,10 +536,8 @@ Opencast.Annotation_Comment = (function ()
    								if(slideFound === false){
    									toMarkSlidesArray[toMarkSlidesArray.length] = dataArray[5];
    								}
-   								$.log("Debug1");
    							//found slide comment                               
                             }else if(dataArray[2] === "slide"){
-                            	$.log("Debug2");
                                 var slideFound = false;
                                 for (i in toMarkSlidesArray) {
        								if (toMarkSlidesArray[i] === dataArray[5]) {
@@ -529,8 +546,7 @@ Opencast.Annotation_Comment = (function ()
    								}
    								if(slideFound === false){
    									toMarkSlidesArray[toMarkSlidesArray.length] = dataArray[5];
-   								}
-   								$.log("Debug3" +slideFound);                             	
+   								}                             	
                             }                      
                             
                         });                       

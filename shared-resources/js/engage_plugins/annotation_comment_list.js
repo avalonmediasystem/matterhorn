@@ -114,8 +114,12 @@ Opencast.Annotation_Comment_List = (function ()
     { 
        var textBoxValue = $("#oc-comments-list-textbox").val();
        textBoxValue = textBoxValue.replace(/<>/g,"");
+       textBoxValue = textBoxValue.replace(/'/g,"`");
+       textBoxValue = textBoxValue.replace(/"/g,"`");
        var nameBoxValue = $("#oc-comments-list-namebox").val();
        nameBoxValue = nameBoxValue.replace(/<>/g,"");
+       nameBoxValue = nameBoxValue.replace(/'/g,"`");
+       nameBoxValue = nameBoxValue.replace(/"/g,"`");
        $.log("click submit "+textBoxValue + " "+ nameBoxValue);
        if(textBoxValue !== defaultText && nameBoxValue !== defaultNameText ){
 			if(isTimed){
