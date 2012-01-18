@@ -28,9 +28,7 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -199,14 +197,7 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
     List<Clipshow> results = (List<Clipshow>) q.getResultList();
     for (Clipshow c : results) {
       if (c.userAllowed(user)) {
-        ClipshowInfo info = new ClipshowInfo();
-        info.setId(c.getId());
-        info.setAuthor(c.getAuthor().getDisplayName());
-        info.setTitle(c.getTitle());
-        Map<ClipshowVote.Type, Integer> votes = countVotes(c.getVoters());
-        info.setFunny(votes.get(ClipshowVote.Type.FUNNY));
-        info.setGood(votes.get(ClipshowVote.Type.GOOD));
-        info.setDislike(votes.get(ClipshowVote.Type.DISLIKE));
+        ClipshowInfo info = new ClipshowInfo(c);
         list.add(info);
       }
     }
@@ -485,7 +476,7 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
     EntityManager em = emf.createEntityManager();
     Clipshow clipshow = getClipshowFromDB(clipshowId, em);
     
-    return countVotes(clipshow.getVoters());
+    return clipshow.getVotes();
   }
 
   public Map<ClipshowVote.Type, Integer> getVotesForClipshow(String clipshowId, String userId) throws NotFoundException {
@@ -499,30 +490,9 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
     Query q = em.createNamedQuery("vote");
     q.setParameter("clipshow", clipshow);
     q.setParameter("user", user);
-    return countVotes(q.getResultList());
+    return Clipshow.countVotes(q.getResultList());
   }
 
-  private Map<ClipshowVote.Type, Integer> countVotes(Collection<ClipshowVote> votes) {
-    HashMap<ClipshowVote.Type, Integer> voteCounts = new HashMap<ClipshowVote.Type, Integer>();
-    voteCounts.put(ClipshowVote.Type.FUNNY, 0);
-    voteCounts.put(ClipshowVote.Type.GOOD, 0);
-    voteCounts.put(ClipshowVote.Type.DISLIKE, 0);
-    for (ClipshowVote v : votes) {
-      if (v.getDislike()) {
-        voteCounts.put(ClipshowVote.Type.DISLIKE, voteCounts.get(ClipshowVote.Type.DISLIKE) + 1);
-        continue;
-      }
-      if (v.getFunny()) {
-        voteCounts.put(ClipshowVote.Type.FUNNY, voteCounts.get(ClipshowVote.Type.FUNNY) + 1);
-      }
-      if (v.getGood()) {
-        voteCounts.put(ClipshowVote.Type.GOOD, voteCounts.get(ClipshowVote.Type.GOOD) + 1);
-      }
-    }
-    return voteCounts;
-  }
-
-  
   /**
    * Returns the current user's display name
    * @param userId The user's id
@@ -700,11 +670,32 @@ public final class ClipshowServiceImpl implements ManagedServiceFactory {
     }
 
     EntityManager em = emf.createEntityManager();
+    ClipshowUser user = getUserFromDB(userId, em);
     List<ClipshowTag> list = em.createNamedQuery("tag.tag").setParameter("tag", tag).getResultList();
     LinkedList<ClipshowInfo> returnVal = new LinkedList<ClipshowInfo>();
     for (ClipshowTag t : list) {
-      ClipshowInfo info = new ClipshowInfo(t.getClipshow());
-      returnVal.add(info);
+      if (t.getClipshow().userAllowed(user)) {
+        ClipshowInfo info = new ClipshowInfo(t.getClipshow());
+        returnVal.add(info);
+      }
+    }
+    return returnVal;
+  }
+
+  public List<ClipshowInfo> searchTagsWithinMediapackage(String mediapackageId, String tag, String userId) {
+    if (StringUtils.isBlank(mediapackageId) || StringUtils.isBlank(tag) || StringUtils.isBlank(userId)) {
+      throw new IllegalArgumentException("Bad parameters");
+    }
+
+    EntityManager em = emf.createEntityManager();
+    ClipshowUser user = getUserFromDB(userId, em);
+    List<ClipshowTag> list = em.createNamedQuery("tag.clipshow").setParameter("tag", tag).setParameter("mediapackageId", mediapackageId).getResultList();
+    LinkedList<ClipshowInfo> returnVal = new LinkedList<ClipshowInfo>();
+    for (ClipshowTag t : list) {
+      if (t.getClipshow().userAllowed(user)) {
+        ClipshowInfo info = new ClipshowInfo(t.getClipshow());
+        returnVal.add(info);
+      }
     }
     return returnVal;
   }

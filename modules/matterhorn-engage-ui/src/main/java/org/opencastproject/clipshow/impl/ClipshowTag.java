@@ -42,8 +42,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 @NamedQueries({
   @NamedQuery(name = "tag", query = "SELECT t FROM ClipshowTag t where t.tagger = :tagger and t.clipshow = :clipshow"),
-  @NamedQuery(name = "tag.tag", query = "SELECT t from ClipshowTag t where t.tags in (:tag)")
+  @NamedQuery(name = "tag.tag", query = "SELECT t from ClipshowTag t where t.tags in (:tag)"),
+  @NamedQuery(name = "tag.clipshow", query = "SELECT t from ClipshowTag t where t.clipshow.mediapackageId = :mediapackageId and t.tags in (:tag)")
 })
+//FIXME: tag.tag doesn't understand searching by multiple tags
 public class ClipshowTag {
 
   @Id

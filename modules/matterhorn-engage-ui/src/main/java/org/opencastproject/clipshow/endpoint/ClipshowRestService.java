@@ -609,6 +609,28 @@ public class ClipshowRestService {
     return Response.ok(list).build();
   }
 
+  @GET
+  @Path("tags/search/mediapackage")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(name = "getTags", description = "Returns a list of clipshows for a given mediapackage tagged with a given tag",
+  pathParameters = { },
+  restParameters = { 
+    @RestParameter(name = "mediapackageId", description = "The mediapackage id for the source media", isRequired = false, type = RestParameter.Type.STRING),
+    @RestParameter(name = "tag", description = "The tag to search for", isRequired = false, type = RestParameter.Type.STRING)
+  },
+  reponses = {
+    @RestResponse(description = "Clipshows found successfully", responseCode = HttpServletResponse.SC_OK)
+  }, returnDescription = ""
+)
+  public Response getTagsWithinMediapackage(@FormParam("mediapackageId") String mediapackageId, @FormParam("tag") String tag, @Context HttpServletRequest req) {
+    if (StringUtils.isBlank(mediapackageId) || StringUtils.isBlank(tag)) {
+      return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    ListWrapper list = new ListWrapper(this.service.searchTagsWithinMediapackage(mediapackageId, tag, req.getRemoteUser()));
+    return Response.ok(list).build();
+  }
+
   public ClipshowRestService() {
   }
 }

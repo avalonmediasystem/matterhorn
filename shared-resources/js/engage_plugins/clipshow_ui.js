@@ -127,7 +127,15 @@ Opencast.clipshow_ui = (function ()
         url: "../../clipshow/list?mediapackageId=" + Opencast.Player.getMediaPackageId(),
         dataType: 'json',
         success: function(json) {
-          Opencast.clipshow_ui.setClipshowList(json.wrapper.data);
+          if ('undefined' != typeof json.wrapper.data) {
+            if ($.isArray(json.wrapper.data)) {
+              Opencast.clipshow_ui.setClipshowList(json.wrapper.data);
+            } else {
+              Opencast.clipshow_ui.setClipshowList([json.wrapper.data]);
+            }
+          } else {
+            Opencast.clipshow_ui.setClipshowList([]);
+          }
         }
       });
     }
@@ -147,13 +155,8 @@ Opencast.clipshow_ui = (function ()
       var selector = $("#oc_select-clipshow");
       selector.empty().append($("<option />").val("x").text("Select Clipshow"));
       //TODO:  Get curent entry and re-select it
-      //TODO:  Same issue as above, re: multiple entries are in an array, single one are not
-      if ($.isArray(clipshowList)) {
-        for (var i = 0; i < clipshowList.length; i++) {
-          selector.append($("<option />").val(clipshowList[i].id).text(clipshowList[i].title + " by " + clipshowList[i].author));
-        }
-      } else {
-        selector.append($("<option />").val(clipshowList.id).text(clipshowList.title + " by " + clipshowList.author));
+      for (var i = 0; i < clipshowList.length; i++) {
+        selector.append($("<option />").val(clipshowList[i].id).text(clipshowList[i].title + " by " + clipshowList[i].author));
       }
     }
 

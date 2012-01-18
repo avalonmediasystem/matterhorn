@@ -16,7 +16,10 @@
 package org.opencastproject.clipshow.endpoint;
 
 import org.opencastproject.clipshow.impl.Clipshow;
+import org.opencastproject.clipshow.impl.ClipshowTag;
+import org.opencastproject.clipshow.impl.ClipshowVote;
 
+import java.util.HashMap;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -32,6 +35,9 @@ public class ClipshowInfo implements Comparable<ClipshowInfo> {
 
   @XmlElement(name = "id")
   private Long id;
+
+  @XmlElement(name = "mediapackageId")
+  private String mediapackageId;
 
   @XmlElement(name = "author")
   private String author;
@@ -49,14 +55,20 @@ public class ClipshowInfo implements Comparable<ClipshowInfo> {
   private Integer dislike = -1;
 
   @XmlElement(name = "tags")
-  private Set<String> tags;
+  private Set<ClipshowTag> tags;
 
   public ClipshowInfo() { }
 
   public ClipshowInfo(Clipshow c) {
     this.setId(c.getId());
+    this.setMediapackageId(c.getMediapackageId());
     this.setAuthor(c.getAuthor().getDisplayName());
     this.setTitle(c.getTitle());
+    this.setTags(c.getTags());
+    HashMap<ClipshowVote.Type, Integer> votes = c.getVotes();
+    this.setDislike(votes.get(ClipshowVote.Type.DISLIKE));
+    this.setFunny(votes.get(ClipshowVote.Type.FUNNY));
+    this.setGood(votes.get(ClipshowVote.Type.GOOD));
   }
 
   public Long getId() {
@@ -65,6 +77,14 @@ public class ClipshowInfo implements Comparable<ClipshowInfo> {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getMediapackageId() {
+    return mediapackageId;
+  }
+
+  public void setMediapackageId(String mediapackageId) {
+    this.mediapackageId = mediapackageId;
   }
 
   public String getAuthor() {
@@ -108,16 +128,15 @@ public class ClipshowInfo implements Comparable<ClipshowInfo> {
     this.dislike = dislike;
   }
 
-  @XmlElement(name = "serverVotes")
   public Integer getVotes() {
-    return getGood() + getFunny() - getDislike();
+    return getGood() + getFunny();
   }
 
-  public Set<String> getTags() {
+  public Set<ClipshowTag> getTags() {
     return tags;
   }
 
-  public void setTags(Set<String> tags) {
+  public void setTags(Set<ClipshowTag> tags) {
     this.tags = tags;
   }
 

@@ -16,6 +16,7 @@
 package org.opencastproject.clipshow.impl;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -205,6 +206,32 @@ public class Clipshow implements Serializable, Comparable<Clipshow> {
   
   public void setVotes(Set<ClipshowVote> v) {
     votes = v;
+  }
+
+  public HashMap<ClipshowVote.Type, Integer> getVotes() {
+    LinkedList<ClipshowVote> list = new LinkedList<ClipshowVote>();
+    list.addAll(votes);
+    return countVotes(list);
+  }
+
+  public static HashMap<ClipshowVote.Type, Integer> countVotes(List<ClipshowVote> votes) {
+    HashMap<ClipshowVote.Type, Integer> voteCounts = new HashMap<ClipshowVote.Type, Integer>();
+    voteCounts.put(ClipshowVote.Type.FUNNY, 0);
+    voteCounts.put(ClipshowVote.Type.GOOD, 0);
+    voteCounts.put(ClipshowVote.Type.DISLIKE, 0);
+    for (ClipshowVote v : votes) {
+      if (v.getDislike()) {
+        voteCounts.put(ClipshowVote.Type.DISLIKE, voteCounts.get(ClipshowVote.Type.DISLIKE) + 1);
+        continue;
+      }
+      if (v.getFunny()) {
+        voteCounts.put(ClipshowVote.Type.FUNNY, voteCounts.get(ClipshowVote.Type.FUNNY) + 1);
+      }
+      if (v.getGood()) {
+        voteCounts.put(ClipshowVote.Type.GOOD, voteCounts.get(ClipshowVote.Type.GOOD) + 1);
+      }
+    }
+    return voteCounts;
   }
 
   public Set<ClipshowVote> getVoters() {

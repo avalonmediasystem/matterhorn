@@ -21,57 +21,32 @@ var Opencast = Opencast || {};
  */
 Opencast.User_Plugin = (function ()
 {
-//                        '<option value="DISLIKE">disliked</option>' +
     // The Template to process
-    var template =  '<div style="float: left; width: 25%">' + 
-                        '<form id="oc-form-name"><div style="float: left;">' +
-                        '<span>Your Name:&nbsp;<input id="oc-form-username" type="text" name="newName" value="${displayName}" style="width: 150px;"/></span>' +
-                        '<input id="oc-input-username" type="submit" value="Change Name" />' +
-                        '</div></form><br />' +
-                        '<p>Your total votes: ${my_votes}</p>' +
-                        '<p>Top Users</p>' +
-                        '<ol>' +
-                          '{for u in users}' +
-                            '<li>${u}</li>' +
-                          '{/for}' +
-                        '</ol>' +
+    var template =  '<div style="float: left; width: 100%; height: 10%;">' + 
+                        '<form id="oc-form-clipshow-search">' +
+                        '<p>Search: <input id="oc-form-clipshow-search-tag" type="text" name="search" value="${searchTerm}" style="width: 150px;"/> and sort by ' + 
+                          '<select id="oc-form-clipshow-search-sort">' +
+                            '<option value="GOOD">good</option>' +
+                            '<option value="FUNNY">funny</option>' +
+                          '</select>' +
+                        ' ratings </p>' +
                     '</div>' +
-                    '<div style="float: left; width: 25%">' +
-                        '<p>Top five <select id="oc-select-sort-type">' +
-                        '<option value="GOOD">useful</option>' + 
-                        '<option value="FUNNY">funny</option>' +
-
-                        '</select>clipshows in for this episode:</p>' +
-                        '<div id="oc_clipshow-sorted-list">' +
-                          '<ol>' +
-                            '{for c in sorted}' +
-                              '<li><button class="clipshow-link-button" onclick="Opencast.clipshow_ui.switchToClipshow(${c.id})">${c.title} by ${c.author}</button></li>' +
-                            '{/for}' +
-                          '</ol>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div style="float: left; width: 25%">' +
-                        'Other clipshows in for this episode:<br />' +
-                        '<div id="oc_clipshow-random-list">' +
-                          '<ol>' +
-                            '{for r in randoms}' +
-                              '<li><button class="clipshow-link-button" onclick="Opencast.clipshow_ui.switchToClipshow(${r.id})">${r.title} by ${r.author}</button></li>' +
-                            '{/for}' +
-                          '</ol>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div style="float: left; width: 25%">' +
-                        '<form id="oc-form-tag"><div style="float: left;">' +
-                          'Clipshows tagged with <input type="text" id="oc-form-tagged-with" value="${searchTerm}" style="width: 150px"/>' +
-                          '<input id="oc-input-tagged-button" type="submit" value="Search" />' + 
-                        '</div></form>' +
-                        '<div id="oc_clipshow-search-list">' +
-                          '<ol>' +
-                            '{for s in searches}' +
-                              '<li><button class="clipshow-link-button" onclick="Opencast.clipshow_ui.switchToClipshow(${s.id})">${s.title} by ${s.author}</button></li>' +
-                            '{/for}' +
-                          '</ol>' +
-                        '</div>' +
+                    '<div id="oc_usertab-column-one" style="float: left; width: 100%; height: 90%">' +
+                      '<ol style="float:left; width: 30%;">' +
+                        '{for c in clipshows.firstColumn}' +
+                          '<li><button class="clipshow-link-button" onclick="Opencast.clipshow_ui.switchToClipshow(${c.id})">${c.title} by ${c.author}</button></li>' +
+                        '{/for}' +
+                      '</ol>' +
+                      '<ol id="oc_usertab-column-two" style="float:left; width: 30%;" start="${columnLength + 1}">' +
+                        '{for c in clipshows.secondColumn}' +
+                          '<li><button class="clipshow-link-button" onclick="Opencast.clipshow_ui.switchToClipshow(${c.id})">${c.title} by ${c.author}</button></li>' +
+                        '{/for}' +
+                      '</ol>' +
+                      '<ol id="oc_usertab-column-three" style="float:left; width: 30%;" start="${(2 * columnLength) + 1}">' +
+                        '{for c in clipshows.thirdColumn}' +
+                          '<li><button class="clipshow-link-button" onclick="Opencast.clipshow_ui.switchToClipshow(${c.id})">${c.title} by ${c.author}</button></li>' +
+                        '{/for}' +
+                      '</ol>' +
                     '</div>' +
                     '<div style="clear: both">' + 
                     '</div>';
@@ -93,43 +68,39 @@ Opencast.User_Plugin = (function ()
     {
         element = elem;
 
-        user_data = {displayName: Opencast.clipshow_ui.getUsername(), searchTerm: "", searches: []};
+        user_data = {searchTerm: ""};
 
         createTab("GOOD");
     }
 
     function refreshSearchData() {
-      user_data.searchTerm = $('#oc-form-tagged-with').val();
+      user_data.searchTerm = $('#oc-form-clipshow-search-tag').val();
       $.ajax(
       {
           type: "GET",
-          url: "../../clipshow/tags/search",
-          data: {tag: $('#oc-form-tagged-with').val()},
+          url: "../../clipshow/tags/search/mediapackage",
+          data: {mediapackageId: Opencast.Player.getMediaPackageId() ,tag: $('#oc-form-clipshow-search-tag').val()},
           dataType: 'json',
           success: function (json)
           {
             var results = json.wrapper.data;
             if ('undefined' != typeof results) {
               if ($.isArray(results)) {
-                Opencast.User_Plugin.setSearchData(results);
+                user_data.searches = results;
               } else {
-                Opencast.User_Plugin.setSearchData([results]);
+                user_data.searches = [results];
               }
             } else {
-              Opencast.User_Plugin.setSearchData([]);
+              user_data.searches = [];
             }
-            createTab($("#oc-select-sort-type option:selected").val());
+            createTab($("#oc-form-clipshow-search-sort option:selected").val());
           },
           error: function (a, b, c)
           {
-            Opencast.User_Plugin.setSearchData([]);
-            createTab($("#oc-select-sort-type option:selected").val());
+            user_data.searches = [];
+            createTab($("#oc-form-clipshow-search-sort option:selected").val());
           }
       });
-    }
-
-    function setSearchData(searchData) {
-      user_data.searches = searchData;
     }
 
     function changeUsername() {
@@ -144,7 +115,7 @@ Opencast.User_Plugin = (function ()
           {
               Opencast.clipshow_ui.updateUserCredentials();
               Opencast.clipshow_ui.refreshClipshowList();
-              Opencast.User_Plugin.createTab($("#oc-select-sort-type option:selected").val());
+              createTab($("#oc-select-sort-type option:selected").val());
           },
           error: function (a, b, c)
           {
@@ -163,48 +134,76 @@ Opencast.User_Plugin = (function ()
     {
         if ('undefined' != typeof element)
         {
-            var clist = Opencast.clipshow_ui.getClipshowList();
-            if ($.isArray(clist)) {
-              //Sort by dislike first so those end up at the top
-              clist.sort(function(a,b) { return parseInt(b.dislike) - parseInt(a.dislike) } );
-              if (selectType == "GOOD") {
-                clist.reverse();
-                clist.sort(function(a,b) { return parseInt(b.good) - parseInt(a.good) } );
-              } else if (selectType == "FUNNY") {
-                clist.reverse();
-                clist.sort(function(a,b) { return parseInt(b.funny) - parseInt(a.funny) } );
-              } else if (selectType == "DISLIKE") {
-                //Sorted above, so pass?
-              }
-              sorted = []
-              randomShows = []
-              //Fill the sorted list
-              for (var i = 0; i < 5; i++) {
-                if ('undefined' == typeof clist[i]) {
-                  break;
-                }
-                sorted[i] = clist[i];
-              }
-              user_data.sorted = sorted;
+          var clist = [];
+          if ('undefined' != typeof user_data.searches && user_data.searches != []) {
+            clist = user_data.searches;
+          } else {
+            clist = Opencast.clipshow_ui.getClipshowList();
+          }            
 
-              //Pick up to five other options randomly
-              var numberOfRandomClipshows = Math.min(clist.length - 5, 5);
-              if (numberOfRandomClipshows > 0) {
-                for (var i = 0; i < numberOfRandomClipshows; i++) {
-                  randomShows[i] = clist[randomInt(5, clist.length-1)];
-                }
-              }
-              user_data.randoms = randomShows;
-            } else {
-              if ('undefined' != typeof clist) {
-                user_data.sorted = [clist];
-              } else {
-                user_data.sorted = [];
-              }
-              user_data.randoms = [];
+          //Sort by dislike first so those end up at the top
+          clist.sort(function(a,b) { return parseInt(b.dislike) - parseInt(a.dislike) } );
+          if (selectType == "GOOD") {
+            clist.reverse();
+            clist.sort(function(a,b) { return parseInt(b.funny) - parseInt(a.funny) } );
+            clist.sort(function(a,b) { return parseInt(b.good) - parseInt(a.good) } );
+          } else if (selectType == "FUNNY") {
+            clist.reverse();
+            clist.sort(function(a,b) { return parseInt(b.good) - parseInt(a.good) } );
+            clist.sort(function(a,b) { return parseInt(b.funny) - parseInt(a.funny) } );
+          } else if (selectType == "DISLIKE") {
+            //Sorted above, so pass?
+          }
+          //Sort into three columns, divide clipshows as evenly as possible
+          var columnSize = Math.max(Math.round(clist.length / 3), 1);
+          user_data.columnLength = columnSize;
+          var clipshows = { firstColumn: [], secondColumn: [], thirdColumn: []};
+          for (var i = 0; i < columnSize; i++) {
+            clipshows.firstColumn[i] = clist[i];
+          }
+          for (var j = 0; j < columnSize; j++) {
+            if ('undefined' == typeof clist[j + columnSize]) {
+              break;
             }
+            clipshows.secondColumn[j] = clist[j + columnSize];
+          }
+          for (var k = 0; k < columnSize; k++) {
+            if ('undefined' == typeof clist[k + (2 * columnSize)]) {
+              break;
+            }
+            clipshows.thirdColumn[k] = clist[k + (2 * columnSize)];
+          }
+          user_data.clipshows = clipshows;
 
-            $.ajax(
+          $.log("User Plugin: Data available, processing template");
+          processedTemplateData = template.process(user_data);
+          element.html(processedTemplateData);
+          $('#oc-clipshow-user').show();
+          $('#clipshow-user-loading').hide();
+          $(".clipshow-link-button").button();
+
+          $('#oc-form-clipshow-search-sort').val(selectType);
+          $("#oc-form-clipshow-search-sort").change(function() {
+            var type = $("#oc-form-clipshow-search-sort option:selected").val();
+            createTab(type);
+          });
+
+          //$('#oc-input-tagged-button').button();
+          $('#oc-form-clipshow-search').submit(function ()
+          {
+            refreshSearchData();
+            return false;
+          });
+          return true;
+        }
+        else
+        {
+            $.log("User Plugin: No data available");
+            return false;
+        }
+    }
+
+            /*$.ajax(
             {
                 type: "GET",
                 url: "../../clipshow/user/rankings",
@@ -216,48 +215,7 @@ Opencast.User_Plugin = (function ()
                     user_data.users = json["clipshow-ranking-blob"].top_users;
                   } else {
                     user_data.users = [json["clipshow-ranking-blob"].top_users];
-                  }
-
-                  $.log("User Plugin: Data available, processing template");
-                  processedTemplateData = template.process(user_data);
-                  element.html(processedTemplateData);
-                  $('#oc-clipshow-user').show();
-                  $('#clipshow-user-loading').hide();
-                  $(".clipshow-link-button").button();
-
-                  $('#oc-select-sort-type').val(selectType);
-                  $("#oc-select-sort-type").change(function() {
-                    var type = $("#oc-select-sort-type option:selected").val();
-                    Opencast.User_Plugin.createTab(type);
-                  });
-
-                  $('#oc-input-username').button();
-                  $('#oc-form-name').submit(function ()
-                  {
-                    Opencast.User_Plugin.changeUsername();
-                    return false;
-                  });
-
-                  $('#oc-input-tagged-button').button();
-                  $('#oc-form-tag').submit(function ()
-                  {
-                    Opencast.User_Plugin.refreshSearchData();
-                    return false;
-                  });
-                },
-                error: function (a, b, c)
-                {
-                    $('#oc-form-username').val() = "Error";
-                }
-            });
-            return true;
-        }
-        else
-        {
-            $.log("User Plugin: No data available");
-            return false;
-        }
-    }
+                  }*/
 
     function randomInt(from, to){
        return Math.floor(Math.random() * (to - from + 1) + from);
@@ -266,9 +224,5 @@ Opencast.User_Plugin = (function ()
     
     return {
         addAsPlugin: addAsPlugin,
-        setSearchData: setSearchData,
-        refreshSearchData: refreshSearchData,
-        changeUsername: changeUsername,
-        createTab: createTab
     };
 }());
