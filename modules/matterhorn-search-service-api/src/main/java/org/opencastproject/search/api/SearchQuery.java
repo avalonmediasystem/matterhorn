@@ -40,6 +40,8 @@ public interface SearchQuery {
   SearchQuery withCreationDateSort(boolean sortByDate);
   boolean isSortByCreationDate();
   SearchQuery withPublicationDateSort(boolean sortByDate);
+  SearchQuery withSeriesId(String seriesId);
+  String getSeriesId();
   boolean isSortByPublicationDate();
   SearchQuery withElementTags(String[] tags);
   String[] getElementTags();

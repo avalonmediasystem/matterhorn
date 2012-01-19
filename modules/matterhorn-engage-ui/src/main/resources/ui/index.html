@@ -42,6 +42,10 @@
                     
                 }
                 
+                if (getURLParameter('series') != "" && getURLParameter('series') != null) {
+                  restEndpoint += "sid=" + getURLParameter('series') + "&";
+                }
+                
                 restEndpoint = restEndpoint + "limit=10";
                 
                 restEndpoint = restEndpoint + "&offset=" + (page - 1) * 10;
@@ -110,6 +114,33 @@
                     $('#atomlink').attr("href", "/feeds/atom/0.3/latest");
                 }
             });
+
+    getURLParameter = function(name)
+    {
+        var urlParam = parseURL()[name];
+        if ((urlParam === undefined) || (urlParam === ''))
+        {
+            return null;
+        }
+        return urlParam;
+    }
+
+    parseURL = function()
+    {
+        var vars = [],
+            hash;
+        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+        if ($.isArray(hashes))
+        {
+            for (var i = 0; i < hashes.length; i++)
+            {
+                hash = hashes[i].split('=');
+                vars.push(hash[0]);
+                vars[hash[0]] = hash[1];
+            }
+        }
+        return vars;
+    }
         </script>
     </head>
     <!------------------------- BODY ------------------------->

@@ -34,6 +34,7 @@ public class SearchQueryImpl implements SearchQuery {
   protected String id;
   protected String text;
   protected String query;
+  protected String seriesId;
   protected int limit = -1;
   protected int offset = -1;
   protected String[] tags = null;
@@ -117,6 +118,12 @@ public class SearchQueryImpl implements SearchQuery {
     return this;
   }
 
+  @Override
+  public SearchQuery withSeriesId(String seriesId) {
+    this.seriesId = seriesId;
+    return this;
+  }
+  
   /**
    * {@inheritDoc}
    * 
@@ -165,6 +172,11 @@ public class SearchQueryImpl implements SearchQuery {
   @Override
   public String getText() {
     return text;
+  }
+  
+  @Override
+  public String getSeriesId() {
+    return seriesId;
   }
 
   /**
