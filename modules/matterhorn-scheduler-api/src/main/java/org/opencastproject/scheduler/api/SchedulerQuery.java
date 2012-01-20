@@ -147,7 +147,7 @@ public class SchedulerQuery {
    */
   public SchedulerQuery setSeriesId(String seriesId) {
     if (StringUtils.isNotBlank(seriesId)) {
-      this.seriesId = seriesId.toLowerCase();
+      this.seriesId = seriesId;
     }
     return this;
   }
