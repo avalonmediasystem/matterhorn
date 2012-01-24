@@ -11,16 +11,11 @@
     <link rel="stylesheet" type="text/css" href="css/oc.pager.css" />
     <link rel="stylesheet" type="text/css" href="css/shared.css">
     <!-- scripts -->
-    <script type="text/javascript" src="jquery/jquery-1.7.min.js">
-    </script>
-    <script type="text/javascript" src="js/jquery.utils-1.0.js">
-    </script>
-    <script type="text/javascript" src="jquery/plugins/jquery.xslt.js">
-    </script>
-    <script type="text/javascript" src="js/oc-pager.js">
-    </script>
-    <script type="text/javascript" src="js/engage-ui.js">
-    </script>
+    <script type="text/javascript" src="jquery/jquery.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.utils-1.0.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.xslt.js"></script>
+    <script type="text/javascript" src="js/oc-pager.js"></script>
+    <script type="text/javascript" src="js/engage-ui.js"></script>
     <script type="text/javascript">
       $(document).ready(function(){
             
@@ -52,32 +47,13 @@
           type: 'GET',
           dataType: 'json',
           success: function(data)
-          {
-              if(searchQuery != null && searchQuery != "")
               {
-                restEndpoint = restEndpoint + "q=" + searchQuery + "&";
-                // replace all occurences of + by a space
-                searchQuery = searchQuery.replace(/\+/g, " ");
-                keywordString = " for “" + unescape(searchQuery) + "”";
-                $('#searchField').attr("value", unescape(searchQuery));
+                  if (data.username != "anonymous")
+                  {
+                      $('#logout').show();
+                  }
               }
-          }
-        });
-
-        //check whether a user is logged in and show logout link 
-        $.ajax(
-        {
-          url: '/info/me.json',
-          type: 'GET',
-          dataType: 'json',
-          success: function (data)
-          {
-            if (data.username != "anonymous")
-            {
-              $('#logout').show();
-            }
-          }
-        });
+          });
 
           restEndpoint = restEndpoint + "limit=10";
 

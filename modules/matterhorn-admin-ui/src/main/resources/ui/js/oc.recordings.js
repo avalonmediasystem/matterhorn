@@ -158,7 +158,7 @@ ocRecordings = new (function() {
       }
       // filtering if specified
       if (ocRecordings.Configuration.filterText != '') {
-        params.push(ocRecordings.Configuration.filterField + '=' + encodeURI(ocRecordings.Configuration.filterText));
+        params.push(ocRecordings.Configuration.filterField + '=' + encodeURI(ocRecordings.Configuration.filterText).replace('#','%23'));
       }
       // paging
       params.push('count=' + ocRecordings.Configuration.pageSize);
@@ -175,7 +175,7 @@ ocRecordings = new (function() {
           ocRecordings.render(data);
           if(ocRecordings.Configuration.state == 'bulkedit' || ocRecordings.Configuration.state == 'bulkdelete')
           {
-              $('.bulkSelect').show();
+            $('.bulkSelect').show();
           }
         }
       });
@@ -892,26 +892,14 @@ ocRecordings = new (function() {
   this.removeRecording = function(id, title) {
     if(confirm('Are you sure you wish to delete ' + title + '?')){
       $.ajax({
-        url: '/recordings/'+id,
+        url: '/recordings/' + id,
         type: 'DELETE',
         dataType: 'text',
         error: function(XHR,status,e){
           alert('Could not remove Recording ' + title);
         },
         success: function(){
-          $.ajax({
-            url: WORKFLOW_URL + '/stop',
-            type: 'POST',
-            data: {
-              id: id
-            },
-            error: function(XHR,status,e){
-              alert('Could not stop Processing.');
-            },
-            success: function(){
-              ocRecordings.reload();
-            }
-          });
+          ocRecordings.reload();
         }
       });
     }
@@ -1185,6 +1173,9 @@ ocRecordings = new (function() {
                 if(xhr.status == 500) {
                   failed++;
                   $('#deleteErrorMessage').text('Failed to delete ' + failed + ' recordings.');
+                } else if (xhr.status == 200) {
+                  progress = progress + progressChunk;
+                  $('#deleteProgress').progressbar('value', progress);
                 } else {
                   $.ajax({
                     url: WORKFLOW_URL + '/stop',
@@ -1204,45 +1195,7 @@ ocRecordings = new (function() {
                 }
               }
             });
-            var toid = setInterval(function(){
-              var id = eventIdList.pop();
-              if(typeof id === 'undefined'){
-                clearInterval(toid);
-                ocUtils.log(progress);
-                $('#deleteProgress').progressbar('value', ++progress);
-                if(failed > 0) {
-                  $('#deleteError').show();
-                }
-                return;
-              }
-              $.ajax({
-                url: '/scheduler/'+id,
-                type: 'DELETE',
-                complete: function(xhr, status) {
-                  if(xhr.status == 500) {
-                    failed++;
-                    $('#deleteErrorMessage').text('Failed to delete ' + failed + ' recordings.');
-                  } else {
-                    $.ajax({
-                      url: WORKFLOW_URL + '/stop',
-                      type: 'POST',
-                      data: {
-                        id: id
-                      },
-                      error: function(XHR,status,e){
-                        failed++;
-                        $('#deleteErrorMessage').text('Could not stop Processing ' + failed + ' recordings.');
-                      },
-                      success: function(){
-                        progress = progress + progressChunk;
-                        $('#deleteProgress').progressbar('value', progress);
-                      }
-                    });
-                  }
-                }
-              });
-            }, 250);
-          });
+          }, 250);
         }
       }
     }
@@ -1372,7 +1325,7 @@ ocRecordings = new (function() {
             data = $.parseJSON(data);
             ENGAGE_URL = data.engage;
           }
-          links.push('<a href="' + ENGAGE_URL + '/engage/ui/watch.html?id=' + mpId + '" title="Go to Matterhorn Media Module Watch page to view this recording">Play</a>');
+          links.push('<a target="_blank" href="' + ENGAGE_URL + '/engage/ui/watch.html?id=' + mpId + '" title="Go to Matterhorn Media Module Watch page to view this recording">Play</a>');
         }
 
       } else if (action == 'delete') {

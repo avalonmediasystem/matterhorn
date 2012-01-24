@@ -366,7 +366,7 @@
         if(withTime)
         {
             // add time to link "open in advanced player"
-            var seconds = parseInt(getTimeInMilliseconds(Opencast.Player.getCurrentTime())) / 1000;
+            var seconds = parseInt($.getTimeInMilliseconds(Opencast.Player.getCurrentTime())) / 1000;
         }
         // parse URL string -- modified version of $.parseURL-module
         var vars = [],
@@ -619,7 +619,38 @@
         return false;
     }
     
-    /*
+    /**
+     * @description Returns whether logging is enabled or not
+     * @param true for logging is enabled, false else
+     */
+    $.loggingEnabled = function()
+    {
+        return loggingEnabled;
+    }
+    
+    /**
+     * @description Logs given arguments -- uses console.log; does NOT check loggingEnabled
+     * @param any arguments console.log-valid
+     * @return true if window.console exists and arguments had been logged, false else
+     */
+    $.logX = function()
+    {
+        if(window.console)
+        {
+            try
+            {
+                window.console && console.log.apply(console, Array.prototype.slice.call(arguments));
+            }
+            catch(err)
+            {
+                console.log(err);
+            }
+            return true;
+        }
+        return false;
+    }
+    
+    /**
      * @description Logs given arguments -- uses console.log
      * @param any arguments console.log-valid
      * @return true if window.console exists and arguments had been logged, false else
