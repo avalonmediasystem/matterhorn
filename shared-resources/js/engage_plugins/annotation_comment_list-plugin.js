@@ -44,10 +44,13 @@ Opencast.Annotation_Comment_List_Plugin = (function ()
                                         '{/if}' +
                                         '<div class="oc-comment-list-textspace"></div>' + 
                                         '<div style="float:left">${c.created}</div>' +
-                                        '<a style="float:right; color:blue" href="javascript:Opencast.Annotation_Comment_List.deleteComment(\'${c.id}\')" >remove</a>' +
+                                        '<a style="float:right; color:blue" href="javascript:Opencast.Annotation_Comment_List.deleteComment(\'${c.id}\')" >Remove</a>' +
                                         '<div class="oc-comment-list-textspace"></div>' +
-                                        '{if c.type == "scrubber" || c.type == "slide"}' +
-                                            '<a style="float:right; color:blue" href="javascript:Opencast.Annotation_Comment_List.clickCommentList(\'${c.id}\',\'${c.text}\',\'${c.inpoint}\',\'${c.slide}\',\'${c.user}\',\'${c.type}\')" >show in player</a>' +
+                                        '{if c.type == "scrubber"}' +
+                                            '<a style="float:right; color:blue" href="javascript:Opencast.Annotation_Comment_List.clickCommentList(\'${c.id}\',\'${c.text}\',\'${c.inpoint}\',\'${c.slide}\',\'${c.user}\',\'${c.type}\')" >Jump To Comment</a>' +
+                                        '{/if}' +
+                                        '{if c.type == "slide"}' +
+                                            '<a style="float:right; color:blue" href="javascript:Opencast.Annotation_Comment_List.clickCommentList(\'${c.id}\',\'${c.text}\',\'${c.inpoint}\',\'${c.slide}\',\'${c.user}\',\'${c.type}\')" >Jump To Slide</a>' +
                                         '{/if}' +
                                         '<p class="oc-comment-list-value-text">${c.text}</p>' +
           

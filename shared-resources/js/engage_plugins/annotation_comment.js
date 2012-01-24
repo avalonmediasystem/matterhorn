@@ -33,10 +33,11 @@ Opencast.Annotation_Comment = (function ()
     var infoTime = "";
     var commentAtInSeconds;
     var cookieName = "oc_comment_username";
-    var default_name = "Your name!";
+    var default_name = "Your Name!";
     var cm_username;
-    var defaul_comment_text = "Type your comment here!"
+    var defaul_comment_text = "Type Your Comment Here!"
     var comments_cache;
+    var time_offset = 3;
     
     /**
      * @memberOf Opencast.Annotation_Comment
@@ -103,7 +104,11 @@ Opencast.Annotation_Comment = (function ()
             });
 			
             //Info Text
-            var curTime = Opencast.Player.getCurrentTime();;
+            var curTime;
+            if(parseInt(Opencast.Player.getCurrentPosition()) > time_offset)
+            	curTime = $.formatSeconds((parseInt(Opencast.Player.getCurrentPosition()) - time_offset));
+            else
+            	curTime = Opencast.Player.getCurrentTime();
             var infoText = "on " + curTime;    
             $("#oc-comment-add-header-text").html(infoText);
             
@@ -222,8 +227,13 @@ Opencast.Annotation_Comment = (function ()
 				$('canvas[id^="slideComment"]').show();
 				$('div[id^="scComment"]').show(); 
 		        if($('#cm-add-box').attr("title") === "Add timed comment"){
+		        	var curTime;
+					if(parseInt(Opencast.Player.getCurrentPosition()) > time_offset)
+						curTime = parseInt(Opencast.Player.getCurrentPosition()) - time_offset;
+					else
+						curTime = parseInt(Opencast.Player.getCurrentPosition());
 		            //add scrubber comment
-		            addComment(nameValue,parseInt(Opencast.Player.getCurrentPosition()),commentValue,"scrubber");                
+		            addComment(nameValue,curTime,commentValue,"scrubber");                
 		        }else if($('#cm-add-box').attr("title") === "Add slide comment"){
 		            //add slide comment
 		            addComment(nameValue,
@@ -253,7 +263,12 @@ Opencast.Annotation_Comment = (function ()
                 var infoText = "";    
 
            		if($('#cm-add-box').attr("title") === "Add timed comment"){
-               		infoText = nameVal + " on " + Opencast.Player.getCurrentTime();
+					var curTime;
+					if(parseInt(Opencast.Player.getCurrentPosition()) > time_offset)
+						curTime = $.formatSeconds((parseInt(Opencast.Player.getCurrentPosition()) - time_offset));
+					else
+						curTime = Opencast.Player.getCurrentTime();
+               		infoText = nameVal + " on " + curTime;
 		        }else if($('#cm-add-box').attr("title") === "Add slide comment"){
                 	var curSlide = Opencast.segments.getCurrentSlideId()+1;
                 	infoText = nameVal + " at slide " + curSlide;       
@@ -370,8 +385,9 @@ Opencast.Annotation_Comment = (function ()
             if(Opencast.Player.getUserId() !== null){
                 user = Opencast.Player.getUserId();
             }
-            var curSlide = Opencast.segments.getCurrentSlideId();
-            var infoText = "Slide " + curSlide;    
+            var curSlide = Opencast.segments.getCurrentSlideId() + 1;
+            var allSlides = Opencast.segments.getNumberOfSegments();
+            var infoText = "Slide " + curSlide + " of " + allSlides;    
             $("#oc-comment-add-header-text").html(infoText);
             
             $("#oc-comment-add-namebox").focus();
@@ -400,6 +416,39 @@ Opencast.Annotation_Comment = (function ()
         //$("#oc_ui_tabs").tabs('enable', 3);             // comment tab
 
     }    
+
+    /**
+     * @memberOf Opencast.Annotation_Comment
+     * @description Set username
+     * @param String username
+     */
+    function setUsername(user)
+    {
+    	//Create cookie with username
+        document.cookie = cookieName+"="+user+"; path=/engage/ui/";
+    	cm_username = user;
+    	
+    	//Refresh UI
+    	Opencast.Annotation_Comment_List.refreshUIUsername();
+    }
+    
+    /**
+     * @memberOf Opencast.Annotation_Comment
+     * @description Get username
+     */
+    function getUsername()
+    {
+    	return cm_username;
+    }
+    
+    /**
+     * @memberOf Opencast.Annotation_Comment
+     * @description Get default username
+     */
+    function getDefaultUsername()
+    {
+    	return default_name;
+    }
     
     /**
      * @memberOf Opencast.Annotation_Comment
@@ -413,11 +462,8 @@ Opencast.Annotation_Comment = (function ()
         //    user = Opencast.Player.getUserId();
         //}
         
-        //Create cookie with username
-        document.cookie = cookieName+"="+user+"; path=/engage/ui/";
-        
-        //Replace default username
-        cm_username = user;
+        //Set username
+        setUsername(user);
         
         //comment data [user]<>[text]<>[type]<>[xPos]<>[yPos]<>[segId]
         var data = "";
@@ -644,7 +690,7 @@ Opencast.Annotation_Comment = (function ()
         $("#oc-comment-info-header-text").html(userId+" at "+$.formatSeconds(commentTime));
         $("#oc-comment-info-textbox").html(commentValue);
         //seek player to comment
-        Opencast.Watch.seekSegment(parseInt(commentTime)-2);
+        Opencast.Watch.seekSegment(parseInt(commentTime));
     }
     
     /**
@@ -827,6 +873,9 @@ Opencast.Annotation_Comment = (function ()
         hideAnnotation_Comment: hideAnnotation_Comment,
         showAnnotation_Comment: showAnnotation_Comment,
         getAnnotationCommentDisplayed: getAnnotationCommentDisplayed,
+        setUsername: setUsername,
+        getUsername: getUsername,
+        getDefaultUsername: getDefaultUsername,
         setDuration: setDuration,
         setMediaPackageId: setMediaPackageId,
         clickComment: clickComment,
