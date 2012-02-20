@@ -34,7 +34,6 @@ Opencast.Description = (function ()
     {
         Opencast.Player.addEvent(Opencast.logging.SHOW_DESCRIPTION);
         // Hide other Tabs
-        Opencast.Annotation_Comment_List.hideComments();
         Opencast.segments.hideSegments();
         Opencast.segments_text.hideSegmentsText();
         Opencast.search.hideSearch();
@@ -175,7 +174,6 @@ Opencast.Description = (function ()
      */
     function hideDescription()
     {
-        $.log("hideDescription");
         // Change Tab Caption
         $('#oc_btn-description').attr(
         {
@@ -194,7 +192,6 @@ Opencast.Description = (function ()
     {
         if ($('#oc_btn-description').attr("title") === DESCRIPTION)
         {
-            Opencast.Annotation_Comment_List.hideComments();
             Opencast.segments.hideSegments();
             Opencast.segments_text.hideSegmentsText();
             Opencast.search.hideSearch();

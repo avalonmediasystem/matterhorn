@@ -33,6 +33,7 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.tika.metadata.HttpHeaders;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
@@ -95,7 +96,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
   @Path(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX + "{mediaPackageID}/{mediaPackageElementID}")
   @RestQuery(name = "put", description = "Store a file in working repository under ./mediaPackageID/mediaPackageElementID", returnDescription = "The URL to access the stored file", pathParameters = {
           @RestParameter(name = "mediaPackageID", description = "the mediapackage identifier", isRequired = true, type = STRING),
-          @RestParameter(name = "mediaPackageElementID", description = "the mediapackage element identifier", isRequired = true, type = STRING) }, reponses = { @RestResponse(responseCode = SC_OK, description = "OK, file stored") })
+          @RestParameter(name = "mediaPackageElementID", description = "the mediapackage element identifier", isRequired = true, type = STRING) }, reponses = { @RestResponse(responseCode = SC_OK, description = "OK, file stored") }, restParameters = { @RestParameter(name = "file", description = "the filename", isRequired = true, type = FILE) })
   public Response restPut(@PathParam("mediaPackageID") String mediaPackageID,
           @PathParam("mediaPackageElementID") String mediaPackageElementID, @Context HttpServletRequest request)
           throws Exception {
@@ -119,7 +120,7 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
   @RestQuery(name = "putWithFilename", description = "Store a file in working repository under ./mediaPackageID/mediaPackageElementID/filename", returnDescription = "The URL to access the stored file", pathParameters = {
           @RestParameter(name = "mediaPackageID", description = "the mediapackage identifier", isRequired = true, type = STRING),
           @RestParameter(name = "mediaPackageElementID", description = "the mediapackage element identifier", isRequired = true, type = STRING),
-          @RestParameter(name = "filename", description = "the filename", isRequired = true, type = STRING) }, reponses = { @RestResponse(responseCode = SC_OK, description = "OK, file stored") })
+          @RestParameter(name = "filename", description = "the filename", isRequired = true, type = FILE) }, reponses = { @RestResponse(responseCode = SC_OK, description = "OK, file stored") })
   public Response restPutURLEncoded(@Context HttpServletRequest request,
           @PathParam("mediaPackageID") String mediaPackageID,
           @PathParam("mediaPackageElementID") String mediaPackageElementID, @PathParam("filename") String filename,
@@ -156,12 +157,16 @@ public class WorkingFileRepositoryRestEndpoint extends WorkingFileRepositoryImpl
   @Path(WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX + "{mediaPackageID}/{mediaPackageElementID}")
   @RestQuery(name = "delete", description = "Remove the file from the working repository under /mediaPackageID/mediaPackageElementID", returnDescription = "No content", pathParameters = {
           @RestParameter(name = "mediaPackageID", description = "the mediapackage identifier", isRequired = true, type = STRING),
-          @RestParameter(name = "mediaPackageElementID", description = "the mediapackage element identifier", isRequired = true, type = STRING) }, reponses = { @RestResponse(responseCode = SC_NO_CONTENT, description = "File deleted") })
+          @RestParameter(name = "mediaPackageElementID", description = "the mediapackage element identifier", isRequired = true, type = STRING) }, reponses = {
+          @RestResponse(responseCode = SC_OK, description = "File deleted"),
+          @RestResponse(responseCode = SC_NOT_FOUND, description = "File did not exist") })
   public Response restDelete(@PathParam("mediaPackageID") String mediaPackageID,
           @PathParam("mediaPackageElementID") String mediaPackageElementID) {
     try {
-      this.delete(mediaPackageID, mediaPackageElementID);
-      return Response.noContent().build();
+      if (delete(mediaPackageID, mediaPackageElementID))
+        return Response.ok().build();
+      else
+        return Response.status(HttpStatus.SC_NOT_FOUND).build();
     } catch (Exception e) {
       return Response.serverError().entity(e.getMessage()).build();
     }

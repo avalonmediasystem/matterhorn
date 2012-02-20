@@ -12,19 +12,14 @@
     <link rel="stylesheet" type="text/css" href="css/shared.css" ></link>
     <link rel="stylesheet" type="text/css" href="engage-hybrid-player/css/opencast-reset.css" ></link>
     <link rel="stylesheet" type="text/css" href="jquery/plugins/jwysiwyg/jquery.wysiwyg.css" ></link>
-    <link rel="stylesheet" type="text/css" href="css/oc.segments.css">
-    <link rel="stylesheet" type="text/css" href="css/oc.comments.css">
-    <link rel="stylesheet" type="text/css" href="css/oc.comment.list.css">
     <link rel="stylesheet" type="text/css" href="css/oc.segments.css" ></link>
     <link rel="stylesheet" type="text/css" href="css/watch.css" ></link>
     <!-- Javascript includes -->
     <script type="text/javascript" src="jquery/jquery.js"></script>
-    <script type="text/javascript" src="jquery/plugins/jquery.utils-1.0.js"></script>
-    <script type="text/javascript" src="jquery/plugins/jquery.xslt.js"></script>
+    <script type="text/javascript" src="jquery/plugins/jquery.utils.js"></script>
     <script type="text/javascript" src="engage-hybrid-player/bridge/lib/FABridge.js"></script>
     <script type="text/javascript" src="engage-hybrid-player/bridge/Videodisplay.js"></script>
     <script type="text/javascript" src="jquery/plugins/jARIA.js"></script>
-    <script type="text/javascript" src="jquery/plugins/jquery.corners.js"></script>
     <script type="text/javascript" src="jquery/plugins/jquery.cookie.js"></script>
     <script type="text/javascript" src="jquery/jquery-ui.js"></script>
     <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-scubber.js"></script>
@@ -52,11 +47,6 @@
     <script type="text/javascript" src="js/engage_plugins/analytics.js"></script>
     <script type="text/javascript" src="js/engage_plugins/annotation_chapter-plugin.js"></script>
     <script type="text/javascript" src="js/engage_plugins/annotation_chapter.js"></script>
-    <script type="text/javascript" src="js/engage_plugins/scrubber_comment-plugin.js"></script>
-    <script type="text/javascript" src="js/engage_plugins/slide_comment-plugin.js"></script>
-    <script type="text/javascript" src="js/engage_plugins/annotation_comment.js"></script>
-    <script type="text/javascript" src="js/engage_plugins/annotation_comment_list.js"></script>
-    <script type="text/javascript" src="js/engage_plugins/annotation_comment_list-plugin.js"></script>
     <script type="text/javascript" src="js/engage_plugins/series-plugin.js"></script>
     <script type="text/javascript" src="js/engage_plugins/series.js"></script>
     <script type="text/javascript" src="js/engage_plugins/logging.js"></script>
@@ -208,8 +198,6 @@
         </center>
       </noscript>
 
-      <div id="oc_slide-comments"></div>
-
       <div id="oc_flash-player">
         <script type="text/javascript" src="engage-hybrid-player/player-multi-hybrid-flash.js"></script>
       </div>
@@ -230,14 +218,9 @@
                 Show Captions
               </label>
             </span>
-	        <div id="oc_comment-control">
-	        	<input id="oc_btn-add-comment" class="oc_btn-add-comment handcursor" type="image" src="img/space.png" name="Add Comment: Control + Alt + A" alt="Add Comment: Control + Alt + A" title="Add Comment: Control + Alt + A" value="Add Comment: Control + Alt + A" />
-	        </div>
-        </div>
-          
+          </div>
         </div>
         <!-- END #oc_video-time -->
-
         <div id="oc_video-controls">
           <span id="skip">
             <a name="controls"></a>
@@ -310,7 +293,6 @@
           <table class="segments" id="segmentstable1">
             <!-- data comes here -->
           </table>
-          <div id="oc-comment-scrubber-box"></div>
         </div>
         <div id="segments_ui_slider_data1"></div>
         <div id="segments_ui_slider_data2"></div>
@@ -323,9 +305,6 @@
         <div id="segments-table2">
           <table id="segmentstable2"></table>
         </div>
-        
-        
-        
       </div>
       <!-- END #data -->
       <div id="oc_video-view">
@@ -340,10 +319,6 @@
         </span>
         &nbsp;
         <strong>View:</strong>
-        <input id="oc_checkbox-annotation-comment" type="checkbox" name="show comments" title="show comments" />
-        <label id="oc_label-annotation-comment" for="oc_checkbox-annotation-comment">
-            Comments
-        </label>
         <input id="oc_checkbox-annotations" type="checkbox" name="show Annotations" title="show Annotations" />
         <label id="oc_label-annotations" for="oc_checkbox-annotations">
           Annotations
@@ -376,11 +351,6 @@
           <li>
             <a href="#oc_slidetext" id="oc_btn-slidetext" class="oc_btn-tabs handcursor" title="Segment Text" aria-role="button">
               Segment Text
-            </a>
-          </li>
-          <li>
-            <a href="#oc_comments-tab" id="oc_btn-comments-tab" class="oc_btn-tabs handcursor" title="Comments" aria-role="button">
-              Comments
             </a>
           </li>
           <li class="oc_lecturer-search-field-wrap ui-corner-top" id="search-textarea">
@@ -417,32 +387,6 @@
         </div>
       </div>
       <!-- END #oc_slides -->
-      	<!-- comment list box-->
-		<div id="oc_comments-list-wrapper" class="fl-fix">
-			<div id="oc_comments-list-loading" class="loadingImage"></div>
-			<div id="oc-comments-list-add-form">
-				<p class="oc-comments-list-headingtext">
-					Add A New Comment
-				</p>
-				<p class="oc-comments-list-text">
-					Use the comment checkbox to show/add timed and slide comments.
-				</p>
-				<div id="oc-comments-list-addbox">
-					<div>
-						<input id="oc-comments-list-namebox" name="Name" type="text">
-					</div>
-					<textarea id="oc-comments-list-textbox" ></textarea>
-					<input id="oc-comments-list-submit" value="Add Comment" role="button" type="button" />
-					<input id="oc-comments-list-submit-timed" value="Add Comment at 00:12:33" role="button" type="button" />
-				</div>
-			</div>
-			<div id="oc-comments-list-header">
-				<p id="oc-comments-list-header-top" class="oc-comments-list-headingtext"></p>
-				<p id="oc-comments-list-header-bottom" class="oc-comments-list-boldtext"></p>
-			</div>
-			<div id="oc-comments-list"></div>
-		</div>
-		<!-- END comment list box -->
 
       <div id="oc_slidetext" class="fl-fix">
         <div id="segments_text-loading" class="loadingImage"></div>
@@ -458,8 +402,6 @@
     <div class="clear"></div>
 
     <div id="segment-tooltip" class="segment-tooltip"></div>
-    
-    <div id="comment-tooltip" class="segment-tooltip"></div>
 
     <!-- Shortcut dialog -->
     <div id="oc_shortcuts" title="Shortcuts">
@@ -578,48 +520,5 @@
 
     <!-- Series dialog -->
     <div id="oc_series" class="ui-widget ui-widget-content ui-corner-all oc_popuplayer ui-state-hover" title="see more of this series" tabindex="-1" role="dialog" aria-hidden="true"></div>
-  
-    <!--  Comment dialogs -->       
-    <div id="comment-Info" class="oc-comment-Info">
-       	        
-        <div id="cm-add-box" class="oc-comment-box">
-            <div id="oc-comment-add-header" class="oc-comment-header">
-                <span class="ui-icon ui-icon-closethick oc-comment-add-exit" unselectable="on" style="float:right;-moz-user-select: none;">close</span>
-                <div id="oc-comment-add-header-text" class="oc-comment-header-text"></div>                   
-            </div>
-            <div class="oc-comment-textwrapper">
-		        <textarea id="oc-comment-add-textbox" class="oc-comment-textbox">Type Your Comment Here</textarea>
-		        <input id="oc-comment-add-namebox" class="oc-comment-namebox" type="text" value="Your name">             	
-            </div>
-            <div id="oc-comment-add-button-bar" class="oc-comment-button-bar">
-                
-                <input id="oc-comment-add-submit-name" class="oc-comment-submit-name" value="Next" role="button" type="button" />
-                <input id="oc-comment-add-submit" class="oc-comment-submit" value="Add" role="button" type="button" />
-                <div id="oc-comment-add-space"></div>
-                <input id="oc-comment-add-cancel" class="oc-comment-add-exit" value="Cancel" role="button" type="button" />
-
-            </div>
-        </div>
-        
-       <div id="cm-info-box" class="oc-comment-box">
-            <div id="oc-comment-info-header" class="oc-comment-header">
-                <span class="ui-icon ui-icon-closethick oc-comment-add-exit" unselectable="on" style="float:right;-moz-user-select: none;">close</span>
-                <div id="oc-comment-info-header-text" class="oc-comment-header-text"></div>                   
-            </div>
-            <p id="oc-comment-info-textbox" class="oc-comment-textbox"></p>
-       </div>
-        
-        <div id="cm-info-triangle" class="arrow-down"></div>
-        
-    </div>
-    
-	<div id="oc_dbclick-info">
-		<div id="oc_dblick-info-arrow"></div>
-		<p id="oc_dbclick-info-text">
-			double click to add comment
-		</p>
-	</div>        
-    <!--  END Comment dialogs -->  
-  
   </body>
 </html>

@@ -108,12 +108,15 @@ public class EpisodeRestService {
   @Path("add")
   @RestQuery(name = "add", description = "Adds a mediapackage to the episode service.",
       restParameters = {
-          @RestParameter(description = "The media package to add to the search index.",
-              isRequired = true, name = "mediapackage", type = RestParameter.Type.TEXT, defaultValue = "${this.sampleMediaPackage}")
+          @RestParameter(name = "mediapackage", isRequired = true, type = RestParameter.Type.TEXT,
+                         defaultValue = "${this.sampleMediaPackage}",
+                         description = "The media package to add to the search index.")
       },
       reponses = {
-          @RestResponse(description = "The mediapackage was added, no content to return.", responseCode = HttpServletResponse.SC_NO_CONTENT),
-          @RestResponse(description = "There has been an internal error and the mediapackage could not be added", responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+          @RestResponse(description = "The mediapackage was added, no content to return.",
+                        responseCode = HttpServletResponse.SC_NO_CONTENT),
+          @RestResponse(description = "There has been an internal error and the mediapackage could not be added",
+                        responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
       },
       returnDescription = "No content is returned.")
   public Response add(@FormParam("mediapackage") MediaPackageImpl mediaPackage) throws EpisodeServiceException {
@@ -126,18 +129,20 @@ public class EpisodeRestService {
   }
 
   @DELETE
-  @Path("delete")
+  @Path("delete/{id}")
   @RestQuery(name = "remove", description = "Remove an episode from the archive.",
-      restParameters = {
-          @RestParameter(description = "The media package ID to remove from the archive.",
-              isRequired = true, name = "id", type = RestParameter.Type.STRING)
+      pathParameters = {
+          @RestParameter(name = "id", isRequired = true, type = RestParameter.Type.STRING,
+                         description = "The media package ID to remove from the archive.")
       },
       reponses = {
-          @RestResponse(description = "The mediapackage was removed, no content to return.", responseCode = HttpServletResponse.SC_NO_CONTENT),
-          @RestResponse(description = "There has been an internal error and the mediapackage could not be deleted", responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+          @RestResponse(description = "The mediapackage was removed, no content to return.",
+                        responseCode = HttpServletResponse.SC_NO_CONTENT),
+          @RestResponse(description = "There has been an internal error and the mediapackage could not be deleted",
+                        responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
       },
       returnDescription = "No content is returned.")
-  public Response delete(@FormParam("id") String mediaPackageId) throws EpisodeServiceException, NotFoundException {
+  public Response delete(@PathParam("id") String mediaPackageId) throws EpisodeServiceException, NotFoundException {
     try {
       if (mediaPackageId != null && episodeService.delete(mediaPackageId))
         return Response.noContent().build();
@@ -149,18 +154,20 @@ public class EpisodeRestService {
   }
 
   @POST
-  @Path("lock")
+  @Path("lock/{id}")
   @RestQuery(name = "lock", description = "Flag a mediapackage as locked.",
-      restParameters = {
-          @RestParameter(description = "The media package to lock.",
-              isRequired = true, name = "id", type = RestParameter.Type.TEXT, defaultValue = "${this.sampleMediaPackage}")
+      pathParameters = {
+              @RestParameter(name = "id", isRequired = true, type = RestParameter.Type.STRING,
+                             description = "The media package to lock.")
       },
       reponses = {
-          @RestResponse(description = "The mediapackage was locked, no content to return.", responseCode = HttpServletResponse.SC_NO_CONTENT),
-          @RestResponse(description = "There has been an internal error and the mediapackage could not be locked", responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+          @RestResponse(responseCode = HttpServletResponse.SC_NO_CONTENT,
+                        description = "The mediapackage was locked, no content to return."),
+          @RestResponse(responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        description = "There has been an internal error and the mediapackage could not be locked")
       },
       returnDescription = "No content is returned.")
-  public Response lock(@FormParam("id") String mediaPackageId) {
+  public Response lock(@PathParam("id") String mediaPackageId) {
     try {
       if (mediaPackageId != null && episodeService.lock(mediaPackageId, true))
         return Response.noContent().build();
@@ -172,18 +179,20 @@ public class EpisodeRestService {
   }
 
   @POST
-  @Path("unlock")
+  @Path("unlock/{id}")
   @RestQuery(name = "unlock", description = "Flag a mediapackage as unlocked.",
-      restParameters = {
-          @RestParameter(description = "The media package to unlock.",
-              isRequired = true, name = "id", type = RestParameter.Type.TEXT, defaultValue = "${this.sampleMediaPackage}")
+      pathParameters = {
+          @RestParameter(name = "id", isRequired = true, type = RestParameter.Type.STRING,
+                         description = "The media package to unlock.")
       },
       reponses = {
-          @RestResponse(description = "The mediapackage was unlocked, no content to return.", responseCode = HttpServletResponse.SC_NO_CONTENT),
-          @RestResponse(description = "There has been an internal error and the mediapackage could not be locked", responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+          @RestResponse(responseCode = HttpServletResponse.SC_NO_CONTENT,
+                        description = "The mediapackage was unlocked, no content to return."),
+          @RestResponse(responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        description = "There has been an internal error and the mediapackage could not be locked")
       },
       returnDescription = "No content is returned.")
-  public Response unlock(@FormParam("id") String mediaPackageId) {
+  public Response unlock(@PathParam("id") String mediaPackageId) {
     try {
       if (mediaPackageId != null && episodeService.lock(mediaPackageId, false))
         return Response.noContent().build();
@@ -302,6 +311,7 @@ public class EpisodeRestService {
           @RestParameter(name = "creator", isRequired = false, description = "Filter results by the mediapackage's creator", type = STRING),
           @RestParameter(name = "contributor", isRequired = false, description = "Filter results by the mediapackage's contributor", type = STRING),
           @RestParameter(name = "language", isRequired = false, description = "Filter results by mediapackage's language.", type = STRING),
+          @RestParameter(name = "series", isRequired = false, description = "Filter results by mediapackage's series identifier.", type = STRING),
           @RestParameter(name = "license", isRequired = false, description = "Filter results by mediapackage's license.", type = STRING),
           @RestParameter(name = "title", isRequired = false, description = "Filter results by mediapackage's title.", type = STRING),
           @RestParameter(defaultValue = "false", description = "Whether to include this series episodes. This can be used in combination with \"id\" or \"q\".", isRequired = false, name = "episodes", type = RestParameter.Type.STRING),
@@ -322,6 +332,7 @@ public class EpisodeRestService {
                              @QueryParam("creator") String creator,
                              @QueryParam("contributor") String contributor,
                              @QueryParam("language") String language,
+                             @QueryParam("series") String series,
                              @QueryParam("license") String license,
                              @QueryParam("title") String title,
                              @QueryParam("tag") String[] tags,
@@ -355,6 +366,7 @@ public class EpisodeRestService {
         .withCreator(creator)
         .withContributor(contributor)
         .withLanguage(language)
+        .withSeriesId(series)
         .withLicense(license)
         .withTitle(title);
 

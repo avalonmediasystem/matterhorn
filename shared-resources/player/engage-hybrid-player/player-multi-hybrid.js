@@ -662,24 +662,9 @@ Opencast.Player = (function ()
         }
         else
         {
-            showShareTime();
-        }
-        // Opencast.Initialize.doResize();
-    }
-    
-    /**
-     * @memberOf Opencast.Player
-     * @description Toggle the share time
-     */
-    function doToggleShareTime()
-    {
-        if (shareTimeDialogDisplayed)
-        {
-            hideShareTime();
-        }
-        else
-        {
-            showShareTime();
+	    hideShare();
+	    showShareTime();
+	    addEvent(Opencast.logging.SHOW_VIDEO_AT_CURRENT_TIME);
         }
         // Opencast.Initialize.doResize();
     }
@@ -1390,7 +1375,6 @@ Opencast.Player = (function ()
             $("#draggable").css("left", newPos);
             $("#scrubber").css("left", newPos);
             $("#play-progress").css("width", newPos);
-            $('#scrubber').trigger('changePosition');
         }
     }
 
@@ -1480,7 +1464,7 @@ Opencast.Player = (function ()
     {
         var playheadString = $("#oc_edit-time").attr("value");
         var durationString = $("#oc_duration").text();
-        playheadString = playheadString.replace(/[-\/]/g, ':');
+        playheadString = playheadString.replace(/[-\/\.]/g, ':');
         playheadString = playheadString.replace(/[^0-9:]/g, '');
         playheadString = playheadString.replace(/ +/g, ' ');
         var playheadArray = playheadString.split(':');
@@ -1495,7 +1479,7 @@ Opencast.Player = (function ()
             var durationSeconds = parseInt(durationArray[2], 10);
             if (playheadHour > 99 || playheadMinutes > 59 || playheadSeconds > 59)
             {
-                addAlert('Wrong time enter like this: HH:MM:SS');
+                addAlert('Wrong time enter like this: HH:MM:SS or HH.MM.SS');
                 $("#oc_edit-time").addClass("oc_edit-time-error");
             }
             else
@@ -1504,7 +1488,7 @@ Opencast.Player = (function ()
                 durationSeconds = (durationHour * 60 * 60) + (durationMinutes * 60) + (durationSeconds);
                 if (isNaN(newPlayhead) || newPlayhead > durationSeconds)
                 {
-                    addAlert('Wrong time enter like this: HH:MM:SS');
+                    addAlert('Wrong time enter like this: HH:MM:SS or HH.MM.SS');
                     $("#oc_edit-time").addClass("oc_edit-time-error");
                     //addEvent('BAD-EDIT-TIME');
                 }
@@ -1518,7 +1502,7 @@ Opencast.Player = (function ()
         }
         catch (exception)
         {
-            addAlert('Wrong time enter like this: HH:MM:SS');
+            addAlert('Wrong time enter like this: HH:MM:SS or HH.MM.SS');
             $("#oc_edit-time").addClass("oc_edit-time-error");
             //addEvent('EDIT-TIME-EXCEPTION');
         }
@@ -1676,16 +1660,6 @@ Opencast.Player = (function ()
         return displayMode;
     }
 
-    
-        /**
-     @memberOf Opencast.Player
-     @description Get the userid.
-     */
-    function getUserId()
-    {
-        return userId;
-    }
-    
     /**
      * @memberOf Opencast.Player
      * @description Set the displayMode.
@@ -1879,7 +1853,6 @@ Opencast.Player = (function ()
         getViewState: getViewState,
         getHtmlBool: getHtmlBool,
         getCurrentTime: getCurrentTime,
-        getUserId: getUserId,
         // setter
         setDragging: setDragging,
         setMediaURL: setMediaURL,

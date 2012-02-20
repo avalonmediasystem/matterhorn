@@ -17,6 +17,7 @@ package org.opencastproject.series.impl.solr;
 
 import org.opencastproject.metadata.dublincore.DublinCore;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalog;
+import org.opencastproject.metadata.dublincore.DublinCoreCatalogList;
 import org.opencastproject.metadata.dublincore.DublinCoreCatalogService;
 import org.opencastproject.security.api.AccessControlEntry;
 import org.opencastproject.security.api.AccessControlList;
@@ -83,13 +84,13 @@ public class SeriesServiceSolrTest {
 
   @Test
   public void testIndexing() throws Exception {
-    index.index(testCatalog);
+    index.updateIndex(testCatalog);
     Assert.assertTrue("Index should contain one instance", index.count() == 1);
   }
 
   @Test
   public void testDeletion() throws Exception {
-    index.index(testCatalog);
+    index.updateIndex(testCatalog);
     index.delete(testCatalog.getFirst(DublinCore.PROPERTY_IDENTIFIER));
     Assert.assertTrue("Index should be empty", index.count() == 0);
   }
@@ -100,8 +101,8 @@ public class SeriesServiceSolrTest {
     secondCatalog.add(DublinCore.PROPERTY_IDENTIFIER, testCatalog.getFirst(DublinCore.PROPERTY_IDENTIFIER));
     secondCatalog.add(DublinCore.PROPERTY_TITLE, "Test Title");
 
-    index.index(testCatalog);
-    index.index(secondCatalog);
+    index.updateIndex(testCatalog);
+    index.updateIndex(secondCatalog);
     Assert.assertTrue("Index should contain one instance", index.count() == 1);
 
     DublinCoreCatalog returnedCatalog = index.getDublinCore(testCatalog.getFirst(DublinCore.PROPERTY_IDENTIFIER));
@@ -120,11 +121,11 @@ public class SeriesServiceSolrTest {
     secondCatalog.add(DublinCore.PROPERTY_TITLE, "Nature of Dogs");
     secondCatalog.add(DublinCore.PROPERTY_DESCRIPTION, "Why do dogs chase cats?");
 
-    index.index(firstCatalog);
-    index.index(secondCatalog);
+    index.updateIndex(firstCatalog);
+    index.updateIndex(secondCatalog);
 
     SeriesQuery q = new SeriesQuery().setSeriesTitle("cat");
-    List<DublinCoreCatalog> result = index.search(q);
+    DublinCoreCatalogList result = index.search(q);
     Assert.assertTrue("Only one title contains 'cat'", result.size() == 1);
 
     q = new SeriesQuery().setSeriesTitle("dog");
@@ -153,14 +154,14 @@ public class SeriesServiceSolrTest {
     thirdCatalog.add(DublinCore.PROPERTY_TITLE, "Nature");
     thirdCatalog.add(DublinCore.PROPERTY_CREATED, "2007-05-07");
 
-    index.index(firstCatalog);
-    index.index(secondCatalog);
-    index.index(thirdCatalog);
+    index.updateIndex(firstCatalog);
+    index.updateIndex(secondCatalog);
+    index.updateIndex(thirdCatalog);
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     SeriesQuery q = new SeriesQuery().setCreatedFrom(sdf.parse("2007-05-02")).setCreatedTo(sdf.parse("2007-05-06"));
-    List<DublinCoreCatalog> result = index.search(q);
+    DublinCoreCatalogList result = index.search(q);
     Assert.assertTrue("Two series satisfy time range", result.size() == 2);
   }
   
@@ -171,9 +172,9 @@ public class SeriesServiceSolrTest {
     List<AccessControlEntry> acl = accessControlList.getEntries();
     acl.add(new AccessControlEntry("admin", "delete", true));
     
-    index.index(testCatalog);
+    index.updateIndex(testCatalog);
     String seriesID = testCatalog.getFirst(DublinCore.PROPERTY_IDENTIFIER);
-    index.index(seriesID, accessControlList);
+    index.updateSecurityPolicy(seriesID, accessControlList);
     
     AccessControlList retrievedACL = index.getAccessControl(seriesID);
     Assert.assertNotNull(retrievedACL);
@@ -182,7 +183,7 @@ public class SeriesServiceSolrTest {
     Assert.assertEquals(acl.get(0).getRole(), "admin");
     
     try {
-      index.index("failid", accessControlList);
+      index.updateSecurityPolicy("failid", accessControlList);
       Assert.fail("Should fail when indexing ACL to nonexistent series");
     } catch (NotFoundException e) {
       // expected

@@ -444,9 +444,9 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
       doc.addField(SUBJECT_KEY, buf.toString());
     }
 
-    User workflowCreator = instance.getCreator(); 
-    doc.addField(WORKFLOW_CREATOR_KEY, workflowCreator.getUserName()); 
-    doc.addField(ORG_KEY, workflowCreator.getOrganization()); 
+    User workflowCreator = instance.getCreator();
+    doc.addField(WORKFLOW_CREATOR_KEY, workflowCreator.getUserName());
+    doc.addField(ORG_KEY, instance.getOrganization().getId());
 
     try {
       AccessControlList acl = authorizationService.getAccessControlList(mp);
@@ -475,24 +475,25 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     List<String> writes = new ArrayList<String>();
     permissions.put(WRITE_PERMISSION, writes);
 
-    // The organization admins can read and write
     String adminRole = securityService.getOrganization().getAdminRole();
-    reads.add(adminRole);
-    writes.add(adminRole);
 
-    if (!acl.getEntries().isEmpty()) {
-      for (AccessControlEntry entry : acl.getEntries()) {
-        if (!entry.isAllow()) {
-          logger.warn("Workflow service does not support denial via ACL, ignoring {}", entry);
-          continue;
-        }
-        List<String> actionPermissions = permissions.get(entry.getAction());
-        if (actionPermissions == null) {
-          actionPermissions = new ArrayList<String>();
-          permissions.put(entry.getAction(), actionPermissions);
-        }
-        actionPermissions.add(entry.getRole());
+    // The admin user can read and write
+    if (adminRole != null) {
+      reads.add(adminRole);
+      writes.add(adminRole);
+    }
+
+    for (AccessControlEntry entry : acl.getEntries()) {
+      if (!entry.isAllow()) {
+        logger.warn("Workflow service does not support denial via ACL, ignoring {}", entry);
+        continue;
       }
+      List<String> actionPermissions = permissions.get(entry.getAction());
+      if (actionPermissions == null) {
+        actionPermissions = new ArrayList<String>();
+        permissions.put(entry.getAction(), actionPermissions);
+      }
+      actionPermissions.add(entry.getRole());
     }
 
     // Write the permissions to the solr document
@@ -531,7 +532,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
       query.append(" AND ");
     query.append(ORG_KEY).append(":").append(orgId);
 
-    appendSolrAuthFragment(query);
+    appendSolrAuthFragment(query, READ_PERMISSION);
 
     try {
       QueryResponse response = solrServer.query(new SolrQuery(query.toString()));
@@ -564,14 +565,14 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     try {
       String orgId = securityService.getOrganization().getId();
       StringBuilder queryString = new StringBuilder().append(ORG_KEY).append(":").append(orgId);
-      appendSolrAuthFragment(queryString);
+      appendSolrAuthFragment(queryString, READ_PERMISSION);
       SolrQuery solrQuery = new SolrQuery(queryString.toString());
       solrQuery.addFacetField(WORKFLOW_DEFINITION_KEY);
       solrQuery.addFacetField(OPERATION_KEY);
       solrQuery.setFacetMinCount(0);
       solrQuery.setFacet(true);
       QueryResponse response = solrServer.query(solrQuery);
-      
+
       FacetField templateFacet = response.getFacetField(WORKFLOW_DEFINITION_KEY);
       FacetField operationFacet = response.getFacetField(OPERATION_KEY);
 
@@ -600,7 +601,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
               operationReport.setId(operation.getName());
 
               StringBuilder baseSolrQuery = new StringBuilder().append(ORG_KEY).append(":").append(orgId);
-              appendSolrAuthFragment(baseSolrQuery);
+              appendSolrAuthFragment(baseSolrQuery, READ_PERMISSION);
               solrQuery = new SolrQuery(baseSolrQuery.toString());
               solrQuery.addFacetField(STATE_KEY);
               solrQuery.addFacetQuery(STATE_KEY + ":" + WorkflowState.FAILED);
@@ -624,43 +625,43 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
                 templateTotal += stateValue.getCount();
                 total += stateValue.getCount();
                 switch (state) {
-                  case FAILED:
-                    operationReport.setFailed(stateValue.getCount());
-                    templateFailed += stateValue.getCount();
-                    failed += stateValue.getCount();
-                    break;
-                  case FAILING:
-                    operationReport.setFailing(stateValue.getCount());
-                    templateFailing += stateValue.getCount();
-                    failing += stateValue.getCount();
-                    break;
-                  case INSTANTIATED:
-                    operationReport.setInstantiated(stateValue.getCount());
-                    templateInstantiated += stateValue.getCount();
-                    instantiated += stateValue.getCount();
-                    break;
-                  case PAUSED:
-                    operationReport.setPaused(stateValue.getCount());
-                    templatePaused += stateValue.getCount();
-                    paused += stateValue.getCount();
-                    break;
-                  case RUNNING:
-                    operationReport.setRunning(stateValue.getCount());
-                    templateRunning += stateValue.getCount();
-                    running += stateValue.getCount();
-                    break;
-                  case STOPPED:
-                    operationReport.setStopped(stateValue.getCount());
-                    templateStopped += stateValue.getCount();
-                    stopped += stateValue.getCount();
-                    break;
-                  case SUCCEEDED:
-                    operationReport.setFinished(stateValue.getCount());
-                    templateSucceeded += stateValue.getCount();
-                    succeeded += stateValue.getCount();
-                    break;
-                  default:
-                    throw new IllegalStateException("State '" + state + "' is not handled");
+                case FAILED:
+                  operationReport.setFailed(stateValue.getCount());
+                  templateFailed += stateValue.getCount();
+                  failed += stateValue.getCount();
+                  break;
+                case FAILING:
+                  operationReport.setFailing(stateValue.getCount());
+                  templateFailing += stateValue.getCount();
+                  failing += stateValue.getCount();
+                  break;
+                case INSTANTIATED:
+                  operationReport.setInstantiated(stateValue.getCount());
+                  templateInstantiated += stateValue.getCount();
+                  instantiated += stateValue.getCount();
+                  break;
+                case PAUSED:
+                  operationReport.setPaused(stateValue.getCount());
+                  templatePaused += stateValue.getCount();
+                  paused += stateValue.getCount();
+                  break;
+                case RUNNING:
+                  operationReport.setRunning(stateValue.getCount());
+                  templateRunning += stateValue.getCount();
+                  running += stateValue.getCount();
+                  break;
+                case STOPPED:
+                  operationReport.setStopped(stateValue.getCount());
+                  templateStopped += stateValue.getCount();
+                  stopped += stateValue.getCount();
+                  break;
+                case SUCCEEDED:
+                  operationReport.setFinished(stateValue.getCount());
+                  templateSucceeded += stateValue.getCount();
+                  succeeded += stateValue.getCount();
+                  break;
+                default:
+                  throw new IllegalStateException("State '" + state + "' is not handled");
                 }
               }
 
@@ -709,9 +710,11 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
    *          the key for this search parameter
    * @param value
    *          the value for this search parameter
+   * @param toLowerCase
+   *          <code>true</code> to convert the value to lower case prior to comparison
    * @return the appended {@link StringBuilder}
    */
-  private StringBuilder append(StringBuilder sb, String key, String value) {
+  private StringBuilder append(StringBuilder sb, String key, String value, boolean toLowerCase) {
     if (StringUtils.isBlank(key) || StringUtils.isBlank(value)) {
       return sb;
     }
@@ -720,7 +723,10 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     }
     sb.append(key);
     sb.append(":");
-    sb.append(ClientUtils.escapeQueryChars(value.toLowerCase()));
+    if (toLowerCase)
+      sb.append(ClientUtils.escapeQueryChars(value.toLowerCase()));
+    else
+      sb.append(ClientUtils.escapeQueryChars(value));
     return sb;
   }
 
@@ -784,45 +790,53 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
    * 
    * @param query
    *          the workflow query
+   * @param action
+   *          one of {@link org.opencastproject.workflow.api.WorkflowService#READ_PERMISSION},
+   *          {@link org.opencastproject.workflow.api.WorkflowService#WRITE_PERMISSION}
+   * @param applyPermissions
+   *          whether to apply the permissions to the query. Set to false for administrative queries.
    * @return the solr query string
    */
-  protected String buildSolrQueryString(WorkflowQuery query) {
+  protected String createQuery(WorkflowQuery query, String action, boolean applyPermissions) {
     String orgId = securityService.getOrganization().getId();
     StringBuilder sb = new StringBuilder().append(ORG_KEY).append(":").append(orgId);
-    append(sb, ID_KEY, query.getId());
-    append(sb, MEDIAPACKAGE_KEY, query.getMediaPackageId());
-    append(sb, SERIES_ID_KEY, query.getSeriesId());
+    append(sb, ID_KEY, query.getId(), false);
+    append(sb, MEDIAPACKAGE_KEY, query.getMediaPackageId(), false);
+    append(sb, SERIES_ID_KEY, query.getSeriesId(), false);
     appendFuzzy(sb, SERIES_TITLE_KEY, query.getSeriesTitle());
     appendFuzzy(sb, FULLTEXT_KEY, query.getText());
-    append(sb, WORKFLOW_DEFINITION_KEY, query.getWorkflowDefinitionId());
+    append(sb, WORKFLOW_DEFINITION_KEY, query.getWorkflowDefinitionId(), false);
     append(sb, CREATED_KEY, query.getFromDate(), query.getToDate());
     appendFuzzy(sb, CREATOR_KEY, query.getCreator());
     appendFuzzy(sb, CONTRIBUTOR_KEY, query.getContributor());
-    append(sb, LANGUAGE_KEY, query.getLanguage());
-    append(sb, LICENSE_KEY, query.getLicense());
+    append(sb, LANGUAGE_KEY, query.getLanguage(), true);
+    append(sb, LICENSE_KEY, query.getLicense(), true);
     appendFuzzy(sb, TITLE_KEY, query.getTitle());
     appendFuzzy(sb, SUBJECT_KEY, query.getSubject());
     appendMap(sb, OPERATION_KEY, query.getCurrentOperations());
     appendMap(sb, STATE_KEY, query.getStates());
 
+    if (applyPermissions) {
+      appendSolrAuthFragment(sb, action);
+    }
+
     // Limit the results to only those workflow instances the current user can read
-    appendSolrAuthFragment(sb);
-    
+
     logger.debug(sb.toString());
 
     return sb.toString();
   }
 
-  protected void appendSolrAuthFragment(StringBuilder sb) {
+  protected void appendSolrAuthFragment(StringBuilder sb, String action) {
     User user = securityService.getUser();
     if (!user.hasRole(GLOBAL_ADMIN_ROLE)) {
-      sb.append(" AND ").append(ORG_KEY).append(":").append(user.getOrganization());
+      sb.append(" AND ").append(ORG_KEY).append(":").append(securityService.getOrganization().getId());
       String[] roles = user.getRoles();
       if (roles.length > 0) {
         sb.append(" AND (").append(WORKFLOW_CREATOR_KEY).append(":").append(user.getUserName());
         for (String role : roles) {
           sb.append(" OR ");
-          sb.append(ACL_KEY_PREFIX).append(READ_PERMISSION).append(":").append(role);
+          sb.append(ACL_KEY_PREFIX).append(action).append(":").append(role);
         }
         sb.append(")");
       }
@@ -838,30 +852,30 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
    */
   protected String getSortField(Sort sort) {
     switch (sort) {
-      case TITLE:
-        return TITLE_KEY;
-      case CONTRIBUTOR:
-        return CONTRIBUTOR_KEY;
-      case DATE_CREATED:
-        return CREATED_KEY;
-      case CREATOR:
-        return CREATOR_KEY;
-      case LANGUAGE:
-        return LANGUAGE_KEY;
-      case LICENSE:
-        return LICENSE_KEY;
-      case MEDIA_PACKAGE_ID:
-        return MEDIAPACKAGE_KEY;
-      case SERIES_ID:
-        return SERIES_ID_KEY;
-      case SERIES_TITLE:
-        return SERIES_TITLE_KEY;
-      case SUBJECT:
-        return SUBJECT_KEY;
-      case WORKFLOW_DEFINITION_ID:
-        return WORKFLOW_DEFINITION_KEY;
-      default:
-        throw new IllegalArgumentException("No mapping found between sort field and index");
+    case TITLE:
+      return TITLE_KEY;
+    case CONTRIBUTOR:
+      return CONTRIBUTOR_KEY;
+    case DATE_CREATED:
+      return CREATED_KEY;
+    case CREATOR:
+      return CREATOR_KEY;
+    case LANGUAGE:
+      return LANGUAGE_KEY;
+    case LICENSE:
+      return LICENSE_KEY;
+    case MEDIA_PACKAGE_ID:
+      return MEDIAPACKAGE_KEY;
+    case SERIES_ID:
+      return SERIES_ID_KEY;
+    case SERIES_TITLE:
+      return SERIES_TITLE_KEY;
+    case SUBJECT:
+      return SUBJECT_KEY;
+    case WORKFLOW_DEFINITION_ID:
+      return WORKFLOW_DEFINITION_KEY;
+    default:
+      throw new IllegalArgumentException("No mapping found between sort field and index");
     }
   }
 
@@ -916,10 +930,12 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
   /**
    * {@inheritDoc}
    * 
-   * @see org.opencastproject.workflow.impl.WorkflowServiceIndex#getWorkflowInstances(org.opencastproject.workflow.api.WorkflowQuery)
+   * @see org.opencastproject.workflow.impl.WorkflowServiceIndex#getWorkflowInstances(org.opencastproject.workflow.api.WorkflowQuery,
+   *      String, boolean)
    */
   @Override
-  public WorkflowSet getWorkflowInstances(WorkflowQuery query) throws WorkflowDatabaseException {
+  public WorkflowSet getWorkflowInstances(WorkflowQuery query, String action, boolean applyPermissions)
+          throws WorkflowDatabaseException {
     int count = query.getCount() > 0 ? (int) query.getCount() : 20; // default to 20 items if not specified
     int startPage = query.getStartPage() > 0 ? (int) query.getStartPage() : 0; // default to page zero
 
@@ -927,7 +943,7 @@ public class WorkflowServiceSolrIndex implements WorkflowServiceIndex {
     solrQuery.setRows(count);
     solrQuery.setStart(startPage * count);
 
-    String solrQueryString = buildSolrQueryString(query);
+    String solrQueryString = createQuery(query, action, applyPermissions);
     solrQuery.setQuery(solrQueryString);
 
     if (query.getSort() != null) {
