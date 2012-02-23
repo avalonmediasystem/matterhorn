@@ -14,8 +14,7 @@ CREATE TABLE annotation (
 	length INTEGER,
 	annotation_value TEXT(65535),
 	annotation_type TEXT(65535),
-	PRIMARY KEY (
-	id)
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE capture_agent_role (
@@ -31,9 +30,7 @@ CREATE TABLE capture_agent_state (
 	state TEXT(65535) NOT NULL,
 	last_heard_from BIGINT NOT NULL,
 	url TEXT(65535),
-	PRIMARY KEY (
-	organization,
-	id)
+	PRIMARY KEY (organization, id)
 );
 
 CREATE TABLE dictionary (
@@ -42,9 +39,7 @@ CREATE TABLE dictionary (
 	weight DOUBLE,
 	count BIGINT,
 	stop_word TINYINT(1) default 0,
-	PRIMARY KEY (
-	text,
-	language)
+	PRIMARY KEY (text, language)
 );
 
 CREATE TABLE host_registration (
@@ -53,8 +48,13 @@ CREATE TABLE host_registration (
 	maintenance TINYINT(1) default 0 NOT NULL,
 	max_jobs INTEGER NOT NULL,
 	online TINYINT(1) default 0 NOT NULL,
-	PRIMARY KEY (
-	id)
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE job_context (
+  root_job BIGINT NOT NULL,
+  key_entry VARCHAR(255) NOT NULL,
+  value TEXT(65535)
 );
 
 CREATE TABLE job_arguments (
@@ -79,10 +79,9 @@ CREATE TABLE job (
 	queue_time BIGINT,
 	creator_service BIGINT,
 	parent_id BIGINT,
-	processor_service BIGINT,
 	root_id BIGINT,
-	PRIMARY KEY (
-	id)
+	processor_service BIGINT,
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE matterhorn_role (
@@ -95,24 +94,20 @@ CREATE TABLE matterhorn_user (
 	username VARCHAR(128) NOT NULL,
 	organization VARCHAR(128) NOT NULL,
 	password TEXT(65535),
-	PRIMARY KEY (
-	username,
-	organization)
+	PRIMARY KEY (username, organization)
 );
 
 CREATE TABLE scheduled_event (
 	event_id BIGINT NOT NULL,
 	capture_agent_metadata TEXT(65535),
 	dublin_core TEXT(65535),
-	PRIMARY KEY (
-	event_id)
+	PRIMARY KEY (event_id)
 );
 
 CREATE TABLE SEQUENCE (
 	SEQ_NAME VARCHAR(50) NOT NULL,
 	SEQ_COUNT DECIMAL(38),
-	PRIMARY KEY (
-	SEQ_NAME)
+	PRIMARY KEY (SEQ_NAME)
 );
 
 CREATE TABLE series (
@@ -120,9 +115,7 @@ CREATE TABLE series (
 	series_id VARCHAR(128) NOT NULL,
 	access_control TEXT(65535),
 	dublin_core TEXT(65535),
-	PRIMARY KEY (
-	organization_id,
-	series_id)
+	PRIMARY KEY (organization_id, series_id)
 );
 
 CREATE TABLE service_registration (
@@ -132,8 +125,7 @@ CREATE TABLE service_registration (
 	service_type VARCHAR(255) NOT NULL,
 	online TINYINT(1) default 0 NOT NULL,
 	host_registration BIGINT,
-	PRIMARY KEY (
-	id)
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE upload (
@@ -141,8 +133,7 @@ CREATE TABLE upload (
 	total BIGINT NOT NULL,
 	received BIGINT NOT NULL,
 	filename TEXT(65535) NOT NULL,
-	PRIMARY KEY (
-	id)
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE user_action (
@@ -157,9 +148,16 @@ CREATE TABLE user_action (
 	length INTEGER,
 	type TEXT(65535),
 	is_playing TINYINT(1) default 0,
-	PRIMARY KEY (
-	id)
+	PRIMARY KEY (id)
 );
+
+CREATE TABLE oaipmh_harvesting (
+	url varchar(255) NOT NULL,
+	last_harvested datetime DEFAULT NULL,
+	PRIMARY KEY (url)
+);
+
+
 ALTER TABLE host_registration ADD CONSTRAINT UNQ_host_registration_0 UNIQUE (
 	host
 );
@@ -187,6 +185,11 @@ ALTER TABLE job ADD CONSTRAINT FK_job_root_id FOREIGN KEY (
 ALTER TABLE job_arguments ADD CONSTRAINT UNQ_job_arguments_0 UNIQUE (
 	id,
 	list_index
+);
+
+ALTER TABLE job_context ADD CONSTRAINT UNQ_job_context_0 UNIQUE (
+	root_job,
+	key_entry
 );
 
 ALTER TABLE service_registration ADD CONSTRAINT FK_service_registration_host_registration FOREIGN KEY (

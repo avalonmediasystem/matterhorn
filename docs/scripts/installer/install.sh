@@ -44,7 +44,7 @@ export BRANCHES_URL=$SVN_URL/branches
 export TAGS_URL=$SVN_URL/tags
 
 # Default URL from where scripts and java source will be dowloaded
-export SRC_DEFAULT=$BRANCHES_URL/1.3.x
+export SRC_DEFAULT=$TRUNK_URL
 
 # File containing the rules to be applied by udev to the configured devices -- not a pun!
 export DEV_RULES=/etc/udev/rules.d/matterhorn.rules
@@ -84,12 +84,6 @@ subversion
 wget
 openssh-server
 gcc
-gstreamer0.10-alsa
-gstreamer0.10-plugins-base
-gstreamer0.10-plugins-good
-gstreamer0.10-plugins-ugly
-gstreamer0.10-plugins-ugly-multiverse
-gstreamer0.10-ffmpeg
 ntp
 acpid"
 
@@ -98,13 +92,6 @@ export CENTOS_PKG_LIST="ant ant-nodeps ntp curl openssh-server subversion gcc"
 
 # yum Package to install the JDK under CentOS
 export JAVA_CENTOS="java-1.6.0-devel"
-
-# Packages that require the user approval to be installed (Please note the quotation mark at the end!!!)
-# There should be one package per line, but several packages may be included if they need to be treated 'as a block'
-# Those lines ending with a "+" will be interpreted as required by the system. If the user choose not to install them, the installation will exit.
-export BAD_PKG_LIST="gstreamer0.10-plugins-bad gstreamer0.10-plugins-bad-multiverse +"
-# Reasons why each of the "bad" packages should be installed (one per line, in the same order as the bad packages)
-export BAD_PKG_REASON="Provide support for h264 and mpeg2 codecs, which are patent-encumbered. Temporarily required for a basic system"
 
 # This is a backup file to preserve the list of installed packages in case something fails and the script is re-launched
 # The name should start with a '.' so that it is a hidden file and it is not erased with the rest of the files when a new execution starts
@@ -136,7 +123,7 @@ export MAVEN_URL="http://www.apache.org/dist//maven/binaries/$MAVEN_FILENAME"
 # Subdir under the user home where FELIX_HOME is
 export MAVEN_HOME=/usr/local/bin/maven
 # Memory settings for maven to build matterhorn
-export MAVEN_OPTS='-Xms256m -Xmx960m -XX:PermSize=64m -XX:MaxPermSize=256m'
+export MAVEN_OPTS='-Xms512m -Xmx960m -XX:PermSize=128m -XX:MaxPermSize=512m'
 # Path under FELIX_HOME where the general matterhorn configuration
 export GEN_PROPS=$FELIX_HOME/conf/config.properties
 # Path under FELIX_HOME where the default multi-tenancy configuration is located
@@ -150,7 +137,7 @@ export DEPLOY_DIR=matterhorn
 export JAVA_PREFIX=/usr/lib/jvm
 # A regexp to filter the right jvm directory from among all the installed ones
 # The chosen JAVA_HOME will be $JAVA_PREFIX/`ls $JAVA_PREFIX | grep $JAVA_PATTERN`
-export JAVA_PATTERN=java-6-sun                                           
+export JAVA_PATTERN=java-6-openjdk                                           
                                                                          
 # Path to the maven2 repository, under the user home
 export M2_SUFFIX=.m2/repository
@@ -438,13 +425,13 @@ while [[ ! "$source_ok" ]] ; do
     while [[ ! "$build_ok" ]]; do
 	cd $SOURCE
 	if [ "$MATTERHORN_PROFILE" == "work" ]; then
-	  PROFILE="-Pworker,ingest,$WORKSPACE_VERSION"
+	  PROFILE="-Pworker,ingest,serviceregistry,$WORKSPACE_VERSION"
 	fi
 	if [ "$MATTERHORN_PROFILE" == "admin" ]; then
-	  PROFILE="-Padmin,dist-stub,engage-stub,worker-stub,workspace"
+	  PROFILE="-Padmin,dist-stub,engage-stub,worker-stub,workspace,serviceregistry"
 	fi
 	if [ "$MATTERHORN_PROFILE" == "engage" ]; then
-	  PROFILE="-Pengage,dist,$WORKSPACE_VERSION"
+	  PROFILE="-Pengage,dist,serviceregistry,$WORKSPACE_VERSION"
 	fi
 	su $USERNAME -c "mvn clean install $PROFILE -DdeployTo=${HOME}/${OC_DIR##*/}/${FELIX_HOME##*/}/${DEPLOY_DIR}"
 	if [[ "$?" -ne 0 ]]; then
