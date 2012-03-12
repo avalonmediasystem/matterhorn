@@ -4,7 +4,7 @@
     <title>AJAX file upload</title>
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <script type="text/javascript" src="jquery/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery/jquery.js"></script>
     <script type="text/javascript" src="js/oc.utils.js"></script>
     <script type="text/javascript">
       
@@ -38,13 +38,13 @@
           } else {
             
           }
-          
           $.ajax({
             url: CREATE_NEW_JOB_URL,
             data: {
               filename : filename,
               filesize : filesize,
-              chunksize: chunksize
+              chunksize: chunksize,
+              flavor   : ocUtils.getURLParam('flavor')
             },
             success: function(job_id) {
               $('.track-id').val(job_id);
