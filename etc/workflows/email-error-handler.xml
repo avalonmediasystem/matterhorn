@@ -1,0 +1,47 @@
+<definition>
+  <id>email-error</id>
+  <description>Notifies the logs and via email that an error occurred</description>
+  <operations>
+
+    <!-- Sends an email -->
+    <operation
+	id="send-email"
+	fail-on-error="true"
+	exception-handler-workflow="error"
+	description="Sends email">
+      <configurations>
+	<configuration key="to">from@address.example</configuration>
+	<configuration key="from">to@address.example</configuration>
+	<configuration key="host">email.server.example</configuration>
+	<configuration key="subject">Probando</configuration>
+	<configuration key="user">user@domain.example</configuration>
+	<configuration key="password">P4S5w0rd</configuration>
+      </configurations>
+    </operation>
+    
+    <!-- Cleanup the temporary files from the working file repository -->
+    <operation
+      id="cleanup"
+      fail-on-error="true"
+      exception-handler-workflow="error"
+      description="Cleaning up">
+      <configurations>
+        <configuration key="preserve-flavors">*/source,dublincore/*</configuration>
+      </configurations>
+    </operation>
+
+    <!-- Zip the mediapackage -->
+
+    <operation
+      id="zip"
+      description="Cleaning up after failure">
+      <configurations>
+        <configuration key="zip-collection">failed.zips</configuration>
+        <configuration key="include-flavors">*/source,dublincore/*</configuration>
+        <configuration key="compression">false</configuration>
+      </configurations>
+    </operation>
+  
+  </operations>
+  
+</definition>
