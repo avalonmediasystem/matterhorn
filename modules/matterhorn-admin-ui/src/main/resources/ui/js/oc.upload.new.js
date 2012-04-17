@@ -342,8 +342,12 @@ ocUpload.UI = (function() {
       $progress.find('.progress-label-left').text(received + ' received');
       $progress.find('.progress-label-right').text(total + ' total');
       
-      if(message.payload.currentsize == message.payload.totalsize || message.state == ocUpload.UPLOAD_COMPLETE) {
-        ocUpload.Listener.uploadComplete(message.id, message.payload.url);
+      if (message.payload.currentsize == message.payload.totalsize) {
+        if(message.state == ocUpload.UPLOAD_COMPLETE) {
+          ocUpload.Listener.uploadComplete(message.id, message.payload.url);
+        } else {
+          ocUpload.UI.setProgress('Processing upload, this may take some time.');
+        } 
       }
     } else {
       $progress.find('.upload-label').text(' ');
@@ -762,7 +766,7 @@ ocUpload.Ingest = (function() {
       success: function(data){
         window.debug = data;
         //id = $('identifier', data).text();
-        id = $(data).find('[nodeName="dcterms:identifier"]').text();
+        id = $(ocUtils.xmlToString(data)).children().first().text()
       }
     });
     return id;

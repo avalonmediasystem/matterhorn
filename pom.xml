@@ -4,7 +4,7 @@
   <groupId>org.opencastproject</groupId>
   <artifactId>base</artifactId>
   <packaging>pom</packaging>
-  <version>1.4-SNAPSHOT</version>
+  <version>1.5-SNAPSHOT</version>
   <name>matterhorn</name>
   <description>The Opencast Project's Matterhorn software is a media capture, processing, and distribution system</description>
   <url>http://opencastproject.org</url>
@@ -34,12 +34,14 @@
       <modules>
         <module>modules/matterhorn-admin-ui</module>
         <module>modules/matterhorn-authorization-xacml</module>
+        <module>modules/matterhorn-caption-api</module>
         <module>modules/matterhorn-capture-admin-service-api</module>
         <module>modules/matterhorn-capture-admin-service-impl</module>
-		<module>modules/matterhorn-cas</module>
         <module>modules/matterhorn-common</module>
         <module>modules/matterhorn-conductor</module>
+        <module>modules/matterhorn-composer-service-api</module>
         <module>modules/matterhorn-db</module>
+        <module>modules/matterhorn-distribution-service-api</module>
         <module>modules/matterhorn-dublincore</module>
         <module>modules/matterhorn-fileupload</module>
         <module>modules/matterhorn-episode-service-api</module>
@@ -48,6 +50,7 @@
         <module>modules/matterhorn-gstreamer-service-api</module>
         <module>modules/matterhorn-ingest-service-api</module>
         <module>modules/matterhorn-ingest-service-impl</module>
+		<module>modules/matterhorn-inspection-service-api</module>
         <module>modules/matterhorn-json</module>
         <module>modules/matterhorn-kernel</module>
         <module>modules/matterhorn-lti</module>
@@ -60,14 +63,20 @@
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-scheduler-api</module>
         <module>modules/matterhorn-scheduler-impl</module>
+	    <module>modules/matterhorn-search-service-api</module>
         <module>modules/matterhorn-series-service-api</module>
         <module>modules/matterhorn-series-service-impl</module>
 		<module>modules/matterhorn-speech-recognition-service-api</module>
+        <module>modules/matterhorn-static</module>
         <module>modules/matterhorn-solr</module>
+        <module>modules/matterhorn-textanalyzer-api</module>
         <module>modules/matterhorn-userdirectory-ldap</module>
+        <module>modules/matterhorn-videosegmenter-api</module>
         <module>modules/matterhorn-webconsole</module>
         <module>modules/matterhorn-workflow-service-api</module>
         <module>modules/matterhorn-workflow-service-impl</module>
+        <module>modules/matterhorn-working-file-repository-service-api</module>
+        <module>modules/matterhorn-workspace-api</module>
       </modules>
     </profile>
 
@@ -88,8 +97,11 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <modules>
+        <module>modules/matterhorn-common</module>
         <module>modules/matterhorn-gstreamer-service-api</module>
         <module>modules/matterhorn-gstreamer-service-remote</module>
+        <module>modules/matterhorn-json</module>
+        <module>modules/matterhorn-serviceregistry</module>
         <module>modules/matterhorn-static</module>
       </modules>
     </profile>
@@ -117,7 +129,8 @@
         <module>modules/matterhorn-series-service-impl</module>
         <module>modules/matterhorn-solr</module>
         <module>modules/matterhorn-workflow-service-api</module>
-        <module>modules/matterhorn-workflow-service-remote</module>
+        <module>modules/matterhorn-working-file-repository-service-api</module>
+        <module>modules/matterhorn-workspace-api</module>
       </modules>
     </profile>
 
@@ -145,6 +158,8 @@
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-static</module>
         <module>modules/matterhorn-webconsole</module>
+        <module>modules/matterhorn-workflow-service-api</module>
+        <module>modules/matterhorn-workspace-api</module>
       </modules>
     </profile>
 
@@ -170,6 +185,7 @@
         <module>modules/matterhorn-runtime-dependencies</module>
         <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-webconsole</module>
+        <module>modules/matterhorn-workspace-api</module>
       </modules>
     </profile>
 
@@ -202,6 +218,7 @@
         <module>modules/matterhorn-usertracking-service-api</module>
         <module>modules/matterhorn-usertracking-service-impl</module>
         <module>modules/matterhorn-webconsole</module>
+        <module>modules/matterhorn-workspace-api</module>
       </modules>
     </profile>
 
@@ -225,10 +242,10 @@
         <module>modules/matterhorn-metadata-api</module>
         <module>modules/matterhorn-mpeg7</module>
         <module>modules/matterhorn-runtime-dependencies</module>
-        <module>modules/matterhorn-runtime-info-ui</module>
         <module>modules/matterhorn-search-service-api</module>
         <module>modules/matterhorn-search-service-remote</module>
         <module>modules/matterhorn-webconsole</module>
+        <module>modules/matterhorn-workspace-api</module>
       </modules>
     </profile>
 
@@ -266,6 +283,7 @@
         <module>modules/matterhorn-videosegmenter-api</module>
         <module>modules/matterhorn-videosegmenter-impl</module>
         <module>modules/matterhorn-webconsole</module>
+        <module>modules/matterhorn-workspace-api</module>
       </modules>
     </profile>
 
@@ -285,14 +303,16 @@
         <module>modules/matterhorn-inspection-service-remote</module>
         <module>modules/matterhorn-json</module>
         <module>modules/matterhorn-kernel</module>
+        <module>modules/matterhorn-metadata-api</module>
+        <module>modules/matterhorn-mpeg7</module>
         <module>modules/matterhorn-runtime-dependencies</module>
-        <module>modules/matterhorn-runtime-info-ui</module>
 		<module>modules/matterhorn-speech-recognition-service-api</module>
         <module>modules/matterhorn-textanalyzer-api</module>
         <module>modules/matterhorn-textanalyzer-remote</module>
         <module>modules/matterhorn-videosegmenter-api</module>
         <module>modules/matterhorn-videosegmenter-remote</module>
         <module>modules/matterhorn-webconsole</module>
+        <module>modules/matterhorn-workspace-api</module>
       </modules>
     </profile>
 
@@ -302,6 +322,8 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
+        <module>modules/matterhorn-common</module>
+        <module>modules/matterhorn-json</module>
         <module>modules/matterhorn-working-file-repository-service-api</module>
         <module>modules/matterhorn-working-file-repository-service-impl</module>
         <module>modules/matterhorn-workspace-api</module>
@@ -315,6 +337,8 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <modules>
+        <module>modules/matterhorn-common</module>
+        <module>modules/matterhorn-json</module>
         <module>modules/matterhorn-working-file-repository-service-api</module>
         <module>modules/matterhorn-working-file-repository-service-remote</module>
         <module>modules/matterhorn-workspace-api</module>
@@ -328,7 +352,9 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
+        <module>modules/matterhorn-common</module>
         <module>modules/matterhorn-db</module>
+        <module>modules/matterhorn-json</module>
         <module>modules/matterhorn-kernel</module>
         <module>modules/matterhorn-serviceregistry</module>
       </modules>
@@ -340,62 +366,10 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <modules>
+        <module>modules/matterhorn-common</module>
         <module>modules/matterhorn-kernel</module>
-        <module>modules/matterhorn-serviceregistry-remote</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>directory-db</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>modules/matterhorn-common</module>
-        <module>modules/matterhorn-db</module>
-        <module>modules/matterhorn-userdirectory-jpa</module>
-        <module>modules/matterhorn-dataloader</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>directory-ldap</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <modules>
-        <module>modules/matterhorn-common</module>
-        <module>modules/matterhorn-userdirectory-ldap</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>capture</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <modules>
-        <module>modules/matterhorn-common</module>
         <module>modules/matterhorn-json</module>
-        <module>modules/matterhorn-kernel</module>
-        <module>modules/matterhorn-capture-admin-service-api</module>
-        <module>modules/matterhorn-capture-agent-api</module>
-        <module>modules/matterhorn-capture-agent-impl</module>
-        <module>modules/matterhorn-confidence-monitoring-ui</module>
-        <module>modules/matterhorn-runtime-dependencies</module>
-        <module>modules/matterhorn-runtime-info-ui</module>
-        <module>modules/matterhorn-static</module>
-        <module>modules/matterhorn-webconsole</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>cas</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <modules>
-        <module>modules/matterhorn-cas</module>
+        <module>modules/matterhorn-serviceregistry-remote</module>
       </modules>
     </profile>
 
@@ -417,6 +391,66 @@
         <module>modules/matterhorn-workspace-api</module>
         <module>modules/matterhorn-mpeg7</module>
         <module>modules/matterhorn-oaipmh</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>directory-db</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>modules/matterhorn-common</module>
+        <module>modules/matterhorn-dataloader</module>
+        <module>modules/matterhorn-db</module>
+        <module>modules/matterhorn-dublincore</module>
+        <module>modules/matterhorn-json</module>
+        <module>modules/matterhorn-metadata-api</module>
+        <module>modules/matterhorn-series-service-api</module>
+        <module>modules/matterhorn-userdirectory-jpa</module>
+        <module>modules/matterhorn-workspace-api</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>directory-ldap</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <modules>
+        <module>modules/matterhorn-common</module>
+        <module>modules/matterhorn-json</module>
+        <module>modules/matterhorn-userdirectory-ldap</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>directory-cas</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <modules>
+        <module>modules/matterhorn-cas</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>capture</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <modules>
+        <module>modules/matterhorn-common</module>
+        <module>modules/matterhorn-json</module>
+        <module>modules/matterhorn-kernel</module>
+        <module>modules/matterhorn-capture-admin-service-api</module>
+        <module>modules/matterhorn-capture-agent-api</module>
+        <module>modules/matterhorn-capture-agent-impl</module>
+        <module>modules/matterhorn-confidence-monitoring-ui</module>
+        <module>modules/matterhorn-runtime-dependencies</module>
+        <module>modules/matterhorn-runtime-info-ui</module>
+        <module>modules/matterhorn-static</module>
+        <module>modules/matterhorn-webconsole</module>
       </modules>
     </profile>
 
@@ -553,7 +587,7 @@
             <phase>install</phase>
             <configuration>
               <target if="deployTo">
-                <copy file="${project.build.directory}/${project.build.finalName}.jar" todir="${deployTo}"
+                <copy file="${project.build.directory}/${project.build.finalName}.jar" todir="${deployTo}/lib/matterhorn"
                   failonerror="false" />
               </target>
             </configuration>

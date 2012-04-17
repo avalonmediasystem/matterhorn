@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
@@ -28,7 +28,7 @@
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
-      <artifactId>matterhorn-workflow-service-impl</artifactId>
+      <artifactId>matterhorn-workflow-service-api</artifactId>
       <version>${project.version}</version>
     </dependency>
 	<dependency>

@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
@@ -19,11 +19,6 @@
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-static</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.opencastproject</groupId>
-      <artifactId>matterhorn-distribution-service-download</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

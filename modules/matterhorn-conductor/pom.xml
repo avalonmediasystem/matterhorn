@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
@@ -44,11 +44,6 @@
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-gstreamer-service-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.opencastproject</groupId>
-      <artifactId>matterhorn-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -159,12 +154,6 @@
     	<artifactId>jna</artifactId>
     	<version>3.2.4</version>
     </dependency>
-    <dependency>
-    	<groupId>org.apache.geronimo.javamail</groupId>
-    	<artifactId>geronimo-javamail_1.4_mail</artifactId>
-    	<version>1.8.3</version>
-    	<type>bundle</type>
-    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -223,8 +212,7 @@
               OSGI-INF/operations/zip.xml,
               OSGI-INF/operations/watermark.xml,
               OSGI-INF/operations/speech-recognition.xml,
-              OSGI-INF/operations/distribute-youtube.xml,
-              OSGI-INF/operations/email.xml
+              OSGI-INF/operations/distribute-youtube.xml
               <!-- OSGI-INF/operations/distribute-itunesu.xml -->
             </Service-Component>
           </instructions>

@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
@@ -300,6 +300,7 @@
               OSGI-INF/jsonp.xml,
               OSGI-INF/organization-directory-service.xml,
               OSGI-INF/organization-filter.xml,
+              OSGI-INF/current-job-filter.xml,
               OSGI-INF/pingback.xml,
               OSGI-INF/rest.xml,
               OSGI-INF/security-service.xml,
