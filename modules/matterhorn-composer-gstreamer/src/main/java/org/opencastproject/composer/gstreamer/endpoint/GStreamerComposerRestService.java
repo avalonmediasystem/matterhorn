@@ -500,4 +500,10 @@ public class GStreamerComposerRestService extends AbstractJobProducerEndpoint {
             + "    <checksum type=\"md5\">8f6cd99bbb6d591107f3b5c47ee51f2c</checksum>\n" + "    <tags>\n"
             + "      <tag>lang:fr</tag>\n" + "    </tags>\n" + "  </catalog>\n" + "</captions>\n";
   }
+
+  @Override
+  public ServiceRegistry getServiceRegistry() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
