@@ -4,8 +4,6 @@
 # Configure these variables to match your environment
 ##
 
-FELIX_HOME=/home/sinho/workspace/matterhorn
-
 if [ -z "$FELIX_HOME" ]; then
   PWD=`pwd`
   if [ -f "$PWD/bin/felix.jar" ]; then
