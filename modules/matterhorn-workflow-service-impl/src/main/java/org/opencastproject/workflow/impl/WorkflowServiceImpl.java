@@ -1154,7 +1154,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
    * @see org.opencastproject.workflow.api.WorkflowService#getWorkflowInstances(org.opencastproject.workflow.api.WorkflowQuery)
    */
   public WorkflowSet getWorkflowInstances(WorkflowQuery query) throws WorkflowDatabaseException {
-    return index.getWorkflowInstances(query, READ_PERMISSION, true);
+    return index.getWorkflowInstances(query, WRITE_PERMISSION, true);
   }
 
   /**
@@ -1168,7 +1168,7 @@ public class WorkflowServiceImpl implements WorkflowService, JobProducer, Manage
     if (!user.hasRole(GLOBAL_ADMIN_ROLE)) {
       throw new UnauthorizedException(user, getClass().getName() + ".getForAdministrativeRead");
     }
-    return index.getWorkflowInstances(query, READ_PERMISSION, false);
+    return index.getWorkflowInstances(query, WRITE_PERMISSION, false);
   }
 
   /**
