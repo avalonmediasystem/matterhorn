@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0"
+ name="org.opencastproject.smil.endpoint.SmilRestService" immediate="true" activate="activate">
+  <implementation class="org.opencastproject.smil.endpoint.SmilRestService" />
+  <property name="service.description" value="SMIL REST Endpoint" />
+  <property name="opencast.service.type" value="org.opencastproject.smil" />
+  <property name="opencast.service.path" value="/smil" />
+  <service>
+    <provide interface="org.opencastproject.smil.endpoint.SmilRestService" />
+  </service>
+</scr:component>
