@@ -13,19 +13,21 @@
  *  permissions and limitations under the License.
  *
  */
-@XmlSchema(
-           elementFormDefault = XmlNsForm.QUALIFIED,
-           attributeFormDefault = XmlNsForm.UNQUALIFIED,
-           xmlns = {
-               @XmlNs(
-                      namespaceURI = "http://www.opencastproject.org/matterhorn/",
-                      prefix = "oc"),
-               @XmlNs(namespaceURI = "http://www.w3.org/2001/SMIL20/Language",
-                      prefix = "")
+package org.opencastproject.smil.api;
 
-           })
-package org.opencastproject.smil.entity;
+public class SmilException extends Exception {
+  
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-import javax.xml.bind.annotation.XmlSchema;
-import javax.xml.bind.annotation.XmlNs;
-import javax.xml.bind.annotation.XmlNsForm;
+  public SmilException(String message) {
+    super(message);
+  }
+
+  public SmilException(String message, Throwable ex) {
+    super(message, ex);
+  }
+
+}

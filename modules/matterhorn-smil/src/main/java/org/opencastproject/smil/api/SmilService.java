@@ -15,6 +15,42 @@
  */
 package org.opencastproject.smil.api;
 
+import org.opencastproject.smil.entity.Smil;
+import org.opencastproject.smil.entity.SmilElement;
+import org.opencastproject.util.NotFoundException;
+
 public interface SmilService {
+
+  /**
+   * create a new SMIL document based on the workflowID
+   * 
+   * @param workflowId the worklfowId
+   * @return a new SMIL document
+   * @throws SmilException if an error occurs
+   */
+  Smil createNewSmil(long workflowId) throws SmilException;
+
+  /**
+   * retrieve a SMIL document based on the workflowID
+   * 
+   * @param workflowId the worklfowId
+   * @return the SMIL document
+   * @throws SmilException if an error occurs
+   * @throws NotFoundException if the SMIL document could not be found
+   */
+  Smil getSmil(long worklfowId) throws SmilException, NotFoundException;
+
+  /**
+   * add a element to a specified element
+   * 
+   * @param workflowId the id of the workflow the SMIL document belongs to
+   * @param e the element to add
+   * @param elementId the id of the element the parallel element should be added to
+   * @return the updated SMIL document
+   * @throws SmilException if an error occurs
+   * @throws NotFoundException if the SMIL document could not be found
+   */
+  Smil addElement(long workflowId, SmilElement e, String elementId)
+      throws SmilException, NotFoundException;
 
 }
