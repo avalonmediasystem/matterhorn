@@ -29,8 +29,15 @@
           <instructions>
             <Bundle-SymbolicName> ${project.artifactId} </Bundle-SymbolicName>
             <Import-Package>*</Import-Package>
-            <Export-Package> org.opencastproject.videoeditor.impl;version=${project.version} </Export-Package>
-            <Private-Package></Private-Package>
+            <Private-Packagepriva>
+              org.gstreamer
+            </Private-Packagepriva>
+            <Export-Package> 
+              org.opencastproject.videoeditor.impl;version=${project.version}
+            </Export-Package>
+            <Embed-Dependency>
+              gstreamer-java;inline=true
+            </Embed-Dependency>
             <Service-Component>
               OSGI-INF/videoeditor-service.xml
             </Service-Component>
@@ -62,6 +69,11 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.gstreamer-java</groupId>
+            <artifactId>gstreamer-java</artifactId>
+            <version>1.5</version>
         </dependency>
     </dependencies>
 </project>

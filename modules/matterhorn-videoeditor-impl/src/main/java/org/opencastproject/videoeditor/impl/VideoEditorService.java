@@ -16,11 +16,12 @@
 package org.opencastproject.videoeditor.impl;
 
 import java.util.Dictionary;
+import org.gstreamer.Gst;
 import org.opencastproject.job.api.Job;
-import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.videoeditor.api.VideoEditor;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,13 +34,24 @@ public class VideoEditorService implements VideoEditor, ManagedService {
   /** The logging instance */
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorService.class);
   
+  
+  protected void activate(ComponentContext context)
+  {
+    Gst.init();
+  }
+  
+  protected void deactivate(ComponentContext context)
+  {
+    Gst.deinit();
+  }
+  
   @Override
   public void updated(Dictionary dctnr) throws ConfigurationException {
     logger.debug("updated");
   }
   
   @Override
-  public Job process(Smil smil) {
+  public Job process(String smil) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 }

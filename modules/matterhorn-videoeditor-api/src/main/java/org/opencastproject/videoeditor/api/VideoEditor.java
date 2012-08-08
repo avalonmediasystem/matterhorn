@@ -16,7 +16,6 @@
 package org.opencastproject.videoeditor.api;
 
 import org.opencastproject.job.api.Job;
-import org.opencastproject.smil.entity.Smil;
 
 public interface VideoEditor {
 
@@ -27,5 +26,5 @@ public interface VideoEditor {
    * @param smil Smil element with processing metadata (path to source files, cutting points, ...)
    * @return Job
    */
-  Job process(Smil smil);
+  Job process(String smil);
 }
