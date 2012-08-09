@@ -15,6 +15,7 @@
  */
 package org.opencastproject.videoeditor.gstreamer;
 
+import java.util.Dictionary;
 import org.gstreamer.Bus;
 import org.gstreamer.Element;
 import org.gstreamer.Pipeline;
@@ -29,17 +30,20 @@ import org.slf4j.LoggerFactory;
  *
  * @author wsmirnow
  */
-public class VideoEditorGstreamer {
+public class VideoEditorPipeline {
   
   /** The logging instance */
-  private static final Logger logger = LoggerFactory.getLogger(VideoEditorGstreamer.class);
+  private static final Logger logger = LoggerFactory.getLogger(VideoEditorPipeline.class);
   
   private static final int WAIT_FOR_NULL_SLEEP_TIME = 1000;
   public static final long GST_SECOND = 1000000000L;
+  public static final long GST_MILLI_SECOND = 1000000L;
   
+  private Dictionary properties;
   private Pipeline pipeline;
   
-  public VideoEditorGstreamer() {
+  public VideoEditorPipeline(Dictionary properties) {
+    this.properties = properties;
     pipeline = new Pipeline();
   }
   
@@ -63,6 +67,7 @@ public class VideoEditorGstreamer {
         }
       } else return true;
     }
+    pipeline.setState(State.NULL);
     return false;
   }
   
@@ -119,5 +124,25 @@ public class VideoEditorGstreamer {
         logger.warn("WARNING from {}: ", source.getName(), message);
       }
     });
+  }
+  
+  public String getState() {
+    if (pipeline == null) return "null";
+    
+    switch(pipeline.getState()) {
+      case NULL:
+        return "null";
+      case READY:
+        return "ready";
+      case PAUSED:
+        return "paused";
+      case PLAYING:
+        return "playing";
+      case VOID_PENDING:
+        return "pending";
+      default: 
+        // wouldn't pass
+        return "";
+    }
   }
 }
