@@ -3,6 +3,9 @@
   <scr:component>
     <implementation class="org.opencastproject.videoeditor.impl.VideoEditorService" />
     <property name="service.description" value="Video Editor Service (precesses smil)" />
+    <property name="opencast.service.type" value="org.opencastproject.videoeditor" />
+<!--    <property name="opencast.service.path" value="/videoeditor" />
+    <property name="opencast.service.jobproducer" value="true" />-->
     <service>
       <provide interface="org.opencastproject.videoeditor.api.VideoEditor" />
       <provide interface="org.osgi.service.cm.ManagedService" />

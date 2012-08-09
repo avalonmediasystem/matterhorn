@@ -28,7 +28,9 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName> ${project.artifactId} </Bundle-SymbolicName>
-            <Import-Package>*</Import-Package>
+            <Import-Package>
+              *;resolution:=optional
+            </Import-Package>
             <Private-Packagepriva>
               org.gstreamer
             </Private-Packagepriva>
@@ -36,7 +38,8 @@
               org.opencastproject.videoeditor.impl;version=${project.version}
             </Export-Package>
             <Embed-Dependency>
-              gstreamer-java;inline=true
+              gstreamer-java;inline=true,
+              jna;inline=true
             </Embed-Dependency>
             <Service-Component>
               OSGI-INF/videoeditor-service.xml
@@ -49,7 +52,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>matterhorn-smil</artifactId>
+            <artifactId>matterhorn-videoeditor-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -59,7 +62,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>matterhorn-videoeditor-api</artifactId>
+            <artifactId>matterhorn-smil</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -74,6 +77,11 @@
             <groupId>com.googlecode.gstreamer-java</groupId>
             <artifactId>gstreamer-java</artifactId>
             <version>1.5</version>
+        </dependency>
+        <dependency>
+          <groupId>net.java.dev.jna</groupId>
+          <artifactId>jna</artifactId>
+          <version>3.2.4</version>
         </dependency>
     </dependencies>
 </project>
