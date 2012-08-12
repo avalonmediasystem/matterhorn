@@ -1,0 +1,179 @@
+#player-container {
+  clear: both;
+  border: none;
+  width: 90%;
+  height: 350px;
+}
+
+.hidden {
+  display: none;
+}
+
+input.pointInput {
+  width: 60px;
+  border: 0px solid white;
+}
+
+#actions {
+  margin: 0 auto;
+  margin-top: 16px;
+  text-align: center;
+  width: 100%;
+}
+
+.rule {
+  width: 115px;
+  margin-right: 62%;
+}
+
+a.secondaryButton,a.secondaryButton:link,a.secondaryButton:visited {
+  margin-right: 16px;
+  cursor: pointer;
+  color: #2d8f8b;
+}
+
+a.secondaryButton:hover,a.secondaryButton:focus {
+  color: #2d8f8b;
+  text-decoration: underline;
+}
+
+#metadata-container {
+  margin-bottom: 8px;
+}
+
+#trackForm table {
+  width: 90%;
+  margin: 0 auto;
+}
+
+#trackError {
+  color: red;
+  margin: 0 auto;
+}
+
+.formField-list label {
+  width: 30%;
+  float: left;
+  text-align: right;
+  margin-right: 5px;
+}
+
+#splitter {
+  background-color: lime;
+  width: 250px;
+}
+
+#editor {
+  height: 350px;
+  padding: 10px;
+}
+
+#boxes {
+  padding-top: 20px;
+  width: 100%;
+}
+
+#leftBox {
+  float: left;
+  border: 1px solid black;
+  width: 465px;
+  height: 300px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+#rightBox {
+  float: left;
+  border: 1px solid black;
+  margin-left: 10px;
+  width: 300px;
+}
+
+#cancelButton {
+  
+}
+
+#okButton {
+  background-color: lime;
+}
+
+.playButton {
+  width: 20px !important;
+}
+
+#rightBox input {
+  width: 95px;
+  margin-top: 10px;
+}
+
+#rightBox textarea {
+  margin-bottom: 5px;
+  width: 100%;
+  height: 70px;
+}
+
+#descriptionDiv {
+  margin: 10px;
+}
+
+.box_right {
+  text-align: right;
+}
+
+.splitNumber {
+  background-color: lime;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  border-bottom: 1px solid black;
+  border-right: 1px solid black;
+}
+
+.splitText {
+  margin-left: 30px;
+}
+
+.splitRemover {
+  float: right;
+  border-bottom: 1px solid black;
+  border-left: 1px solid black;
+  width: 20px;
+  height: 20px;
+  margin-top: -16px;
+}
+
+.splitRemover input {
+  width: 20px;
+  height: 20px;
+}
+
+.splitItem {
+  border: 1px solid black;
+  height: 80px;
+  margin: 1px;
+}
+
+.splitItem:hover {
+  border: 1px solid red;
+}
+
+.splitItemSelected {
+  border: 2px solid blue !important;
+}
+
+.splitItemDisabled {
+  opacity: 0.2;
+  filter: alpha(opacity =       20); /* For IE8 and earlier */
+}
+
+.clipItem {
+  border-color: black;
+}
+
+.floatLeft {
+  float: left;
+}
+
+.floatRight {
+  float: right;
+}

@@ -93,6 +93,11 @@
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
+      <artifactId>matterhorn-smil</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-dublincore</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -201,6 +206,7 @@
               OSGI-INF/operations/cleanup.xml,
               OSGI-INF/operations/compose.xml,
               OSGI-INF/operations/coverart.xml,
+              OSGI-INF/operations/editor.xml,
               OSGI-INF/operations/distribute-acl.xml,
               OSGI-INF/operations/distribute-download.xml,
               OSGI-INF/operations/distribute-streaming.xml,
