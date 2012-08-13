@@ -73,6 +73,7 @@
 						</Import-Package>
 						<Export-Package>
               org.opencastproject.smil.api.*;version=${project.version},
+              org.opencastproject.smil.entity.*;version=${project.version}
             </Export-Package>
 						<Service-Component>
 							OSGI-INF/smil-service-rest.xml,
