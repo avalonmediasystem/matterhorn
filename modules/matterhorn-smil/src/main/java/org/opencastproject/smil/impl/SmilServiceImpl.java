@@ -31,9 +31,9 @@ import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
 import org.opencastproject.smil.api.SmilException;
 import org.opencastproject.smil.api.SmilService;
-import org.opencastproject.smil.entity.ContainerElement;
+import org.opencastproject.smil.entity.MediaElement;
+import org.opencastproject.smil.entity.ParallelElement;
 import org.opencastproject.smil.entity.Smil;
-import org.opencastproject.smil.entity.SmilElement;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowService;
@@ -53,8 +53,7 @@ public class SmilServiceImpl implements SmilService {
   private static final String SMIL_FLAVOR_STRING = "smil/smil";
   private static final MediaPackageElementFlavor SMIL_FLAVOR;
   private static final String SMIL_FILENAME = "smil.smil";
-  private static final Logger logger = LoggerFactory
-      .getLogger(SmilServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(SmilServiceImpl.class);
 
   static {
     SMIL_FLAVOR = MediaPackageElementFlavor.parseFlavor(SMIL_FLAVOR_STRING);
@@ -65,14 +64,13 @@ public class SmilServiceImpl implements SmilService {
 
     // set up de-/serialization
     ClassLoader cl = Smil.class.getClassLoader();
-    JAXBContext jctx = JAXBContext.newInstance(
-        "org.opencastproject.smil.entity", cl);
+    JAXBContext jctx = JAXBContext.newInstance("org.opencastproject.smil.entity", cl);
     smilMarshaller = jctx.createMarshaller();
     smilUnmarshaller = jctx.createUnmarshaller();
   }
 
   @Override
-  public Smil createNewSmil(long workflowId) throws SmilException {
+  public Smil createNewSmil(long workflowId) throws SmilException, NotFoundException {
     Smil smil = new Smil();
     smil.setWorkflowId(workflowId);
     WorkflowInstance workflow = null;
@@ -81,19 +79,20 @@ public class SmilServiceImpl implements SmilService {
       workflow = workflowService.getWorkflowById(workflowId);
       mp = workflow.getMediaPackage();
 
-      mp = ingestService.addCatalog(IOUtils.toInputStream(smilToXML(smil)),
-          SMIL_FILENAME, SMIL_FLAVOR, mp);
+      mp = ingestService.addCatalog(IOUtils.toInputStream(smilToXML(smil)), SMIL_FILENAME,
+          SMIL_FLAVOR, mp);
       workflow.setMediaPackage(mp);
       workflowService.update(workflow);
 
       Catalog[] catalogs = mp.getCatalogs(SMIL_FLAVOR);
       if (catalogs.length == 0) {
-        throw new SmilException(
-            "SMIL Catalog is not in Mediapackage but should be");
+        throw new SmilException("SMIL Catalog is not in Mediapackage but should be");
       }
       smil.setId(catalogs[0].getIdentifier());
       logger.info("new ID of SMIL: " + smil.getId());
       storeSmil(smil);
+    } catch (NotFoundException e) {
+      throw e;
     } catch (Exception e) {
       throw new SmilException(e.getMessage(), e);
     }
@@ -106,19 +105,28 @@ public class SmilServiceImpl implements SmilService {
   }
 
   @Override
-  public Smil addElement(long workflowId, SmilElement e, String elementId)
+  public Smil addMediaElement(long workflowId, MediaElement e, String elementId)
       throws SmilException, NotFoundException {
     Smil smil = loadSmil(workflowId);
-    ContainerElement ce = smil.getContainerElement(elementId);
-    if (ce == null) {
-      throw new NotFoundException("could not find ContainerElement with id "
-          + elementId);
+    ParallelElement pe = smil.getParallel(elementId);
+    if (pe == null) {
+      throw new NotFoundException("ParallelElement with id: " + elementId + " not found");
     }
-    smil.addElementToContainer(e, ce);
+    smil.addElementTo(e, pe);
+    storeSmil(smil);
+
+    return smil;
+  }
+
+  @Override
+  public Smil addParallelElement(long workflowId, ParallelElement p) throws SmilException,
+      NotFoundException {
+    Smil smil = loadSmil(workflowId);
+    smil.getBody().getSequence().addParallel(p);
     storeSmil(smil);
     return smil;
   }
-  
+
   /**
    * load a SMIL document
    * 
@@ -128,8 +136,7 @@ public class SmilServiceImpl implements SmilService {
    * @throws SmilException
    * @throws NotFoundException
    */
-  private Smil loadSmil(long workflowId) throws SmilException,
-      NotFoundException {
+  private Smil loadSmil(long workflowId) throws SmilException, NotFoundException {
     Smil smil = null;
     try {
       WorkflowInstance workflow = workflowService.getWorkflowById(workflowId);
@@ -138,8 +145,8 @@ public class SmilServiceImpl implements SmilService {
       if (catalogs.length == 0) {
         throw new NotFoundException("SMIL Document could not be found");
       }
-      URI uri = workspace.getURI(mp.getIdentifier().compact(),
-          catalogs[0].getIdentifier(), SMIL_FILENAME);
+      URI uri = workspace.getURI(mp.getIdentifier().compact(), catalogs[0].getIdentifier(),
+          SMIL_FILENAME);
       File smilFile = workspace.get(uri);
       smil = (Smil) smilUnmarshaller.unmarshal(smilFile);
     } catch (NotFoundException e) {
@@ -153,8 +160,7 @@ public class SmilServiceImpl implements SmilService {
   private void storeSmil(Smil smil) throws SmilException {
     logger.debug("trying to store SMIL");
     try {
-      WorkflowInstance workflow = workflowService.getWorkflowById(smil
-          .getWorkflowId());
+      WorkflowInstance workflow = workflowService.getWorkflowById(smil.getWorkflowId());
       MediaPackage mp = workflow.getMediaPackage();
       workspace.put(mp.getIdentifier().compact(), smil.getId(), SMIL_FILENAME,
           IOUtils.toInputStream(smilToXML(smil)));

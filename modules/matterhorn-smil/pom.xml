@@ -72,21 +72,13 @@
 							*;resolution:=optional
 						</Import-Package>
 						<Export-Package>
-              org.opencastproject.smil.impl.*;version=${project.version},
-              org.opencastproject.smil.endpoint;version=${project.version}
+              org.opencastproject.smil.api.*;version=${project.version},
             </Export-Package>
 						<Service-Component>
 							OSGI-INF/smil-service-rest.xml,
 							OSGI-INF/smil-service.xml
 						</Service-Component>
 					</instructions>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<configuration>
-					<excludes>org/w3c/dom/smil/*</excludes>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -16,11 +16,12 @@
 @XmlSchema(
            elementFormDefault = XmlNsForm.QUALIFIED,
            attributeFormDefault = XmlNsForm.UNQUALIFIED,
+           namespace = "http://www.w3.org/2006/SMIL30/WD/Language",
            xmlns = {
                @XmlNs(
                       namespaceURI = "http://www.opencastproject.org/matterhorn/",
                       prefix = "oc"),
-               @XmlNs(namespaceURI = "http://www.w3.org/2001/SMIL20/Language",
+               @XmlNs(namespaceURI = "http://www.w3.org/2006/SMIL30/WD/Language",
                       prefix = "")
 
            })

@@ -23,8 +23,8 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import org.opencastproject.mediapackage.MediaPackage;
 
-@XmlRootElement(name = "smil")
-@XmlSeeAlso({ SequenceElement.class, MediaElement.class })
+@XmlRootElement(name = "smil", namespace = "http://www.w3.org/2006/SMIL30/WD/Language")
+@XmlSeeAlso({ SequenceElement.class, MediaElement.class, BodyElement.class, ParallelElement.class })
 public class Smil {
 
   private BodyElement body;
@@ -39,31 +39,12 @@ public class Smil {
     body = new BodyElement();
   }
 
-  public void addElementToContainer(SmilElement e, ContainerElement to) {
+  public ParallelElement getParallel(String elementId) {
+    return this.body.getSequence().getParallel(elementId);
+  }
+
+  public void addElementTo(MediaElement e, ParallelElement to) {
     to.addElement(e);
-  }
-
-  public ContainerElement getContainerElement(String id) {
-    ContainerElement e = null;
-    e = getContainerElement(id, body);
-    return e;
-  }
-
-  private ContainerElement getContainerElement(String id, ContainerElement in) {
-    if (in.getId().equals(id)) {
-      return in;
-    }
-    SmilElement e = in.getElement(id);
-    if (e != null) {
-      return (ContainerElement) e;
-    } else {
-      for (SmilElement elem : in.getElements()) {
-        if (elem instanceof ContainerElement) {
-          return getContainerElement(id, (ContainerElement) elem);
-        }
-      }
-    }
-    return (ContainerElement) e;
   }
 
   @XmlElement(name = "body", type = BodyElement.class)

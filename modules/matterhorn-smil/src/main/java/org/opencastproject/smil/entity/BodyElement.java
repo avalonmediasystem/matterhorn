@@ -15,21 +15,25 @@
  */
 package org.opencastproject.smil.entity;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "body")
-public class BodyElement extends ContainerElement {
+public class BodyElement extends SmilElement {
 
-  @Override
-  @XmlElements({ @XmlElement(name = "par", type = ParallelElement.class),
-      @XmlElement(name = "seq", type = SequenceElement.class),
-      @XmlElement(name = "ref", type = MediaElement.class) })
-  public List<SmilElement> getElements() {
-    return elements;
+  private SequenceElement sequence;
+
+  public BodyElement() {
+    setSequence(new SequenceElement());
+  }
+
+  public SequenceElement getSequence() {
+    return sequence;
+  }
+
+  @XmlElement(name = "seq")
+  public void setSequence(SequenceElement sequence) {
+    this.sequence = sequence;
   }
 
 }

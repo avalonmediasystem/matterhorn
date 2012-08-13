@@ -152,25 +152,13 @@ public class MediaElement extends SmilElement {
     this.title = title;
   }
 
-  @XmlAttribute(name = "element",
-                namespace = "http://www.opencastproject.org/matterhorn/")
+  @XmlAttribute
   public String getMhElement() {
     return mhElement;
   }
 
   public void setMhElement(String mhElement) {
     this.mhElement = mhElement;
-  }
-
-  public boolean equals(MediaElement e) {
-    return this.getId().equals(e.getId());
-  }
-
-  public int hashCode() {
-    int hash = 7;
-    hash = 31 * hash;
-    hash = 31 * hash + (null == getId() ? 0 : getId().hashCode());
-    return hash;
   }
 
 }

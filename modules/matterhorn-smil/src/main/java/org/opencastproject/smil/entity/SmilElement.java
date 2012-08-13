@@ -50,5 +50,16 @@ public abstract class SmilElement {
   public void setSmil(Smil smil) {
     this.smil = smil;
   }
+  
+  public boolean equals(MediaElement e) {
+    return this.getId().equals(e.getId());
+  }
+
+  public int hashCode() {
+    int hash = 7;
+    hash = 31 * hash;
+    hash = 31 * hash + (null == getId() ? 0 : getId().hashCode());
+    return hash;
+  }
 
 }

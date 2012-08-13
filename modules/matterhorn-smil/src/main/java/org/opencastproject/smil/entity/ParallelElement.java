@@ -15,21 +15,40 @@
  */
 package org.opencastproject.smil.entity;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "par")
-public class ParallelElement extends ContainerElement {
+public class ParallelElement extends SmilElement {
 
-  @Override
-  @XmlElements({ @XmlElement(name = "par", type = ParallelElement.class),
-      @XmlElement(name = "seq", type = SequenceElement.class),
-      @XmlElement(name = "ref", type = MediaElement.class) })
-  public List<SmilElement> getElements() {
+  private List<MediaElement> elements;
+
+  public ParallelElement() {
+    this.elements = new LinkedList<MediaElement>();
+  }
+
+  @XmlElement(name = "ref")
+  public List<MediaElement> getElements() {
     return elements;
+  }
+
+  public void setElements(List<MediaElement> elements) {
+    this.elements = elements;
+  }
+
+  public void addElement(MediaElement e) {
+    this.elements.add(e);
+  }
+
+  public void removeElement(MediaElement e) {
+    for (MediaElement elem : this.elements) {
+      if (elem.equals(e)) {
+        this.elements.remove(elem);
+      }
+    }
   }
 
 }

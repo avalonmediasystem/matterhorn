@@ -15,6 +15,7 @@
  */
 package org.opencastproject.smil.endpoint;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -27,8 +28,8 @@ import org.opencastproject.smil.api.SmilException;
 import org.opencastproject.smil.api.SmilService;
 import org.opencastproject.smil.entity.MediaElement;
 import org.opencastproject.smil.entity.ParallelElement;
-import org.opencastproject.smil.entity.SequenceElement;
 import org.opencastproject.smil.entity.Smil;
+import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestQuery;
 import org.opencastproject.util.doc.rest.RestResponse;
@@ -47,126 +48,161 @@ import org.slf4j.LoggerFactory;
              title = "SMIL RestService")
 public class SmilRestService {
 
-  private static final Logger logger = LoggerFactory
-      .getLogger(SmilRestService.class);
-
-  private static final String PARALLEL_TYPE = "parallel";
-  private static final String SEQUENCE_TYPE = "sequence";
+  private static final Logger logger = LoggerFactory.getLogger(SmilRestService.class);
 
   private SmilService smilService;
 
   @GET
   @Path("testSmil")
-  @Produces(MediaType.APPLICATION_XML)
+  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
   @RestQuery(
              description = "get a test SMIL file",
              name = "testSmil",
              returnDescription = "returns a test SMIL",
+             restParameters = { @RestParameter(
+                                               description = "the return format",
+                                               name = "format",
+                                               isRequired = false,
+                                               type = RestParameter.Type.STRING) },
              reponses = { @RestResponse(
                                         description = "SMIL was created successfully",
                                         responseCode = 200) })
-  public Response getTestSmil() {
+  public Response getTestSmil(@QueryParam("format") @DefaultValue("xml") String format) {
     Smil smil = new Smil();
-
-    SequenceElement s = new SequenceElement();
-
-    MediaElement e = new MediaElement("test.mov", "0.0s", "1.35s");
-    s.addElement(e);
-
-    e = new MediaElement("test.mov", "2.43s", "5.543s");
-    e.setMhElement("b190351e-8dfe-4596-9f1d-8417fae66596");
-    s.addElement(e);
-
-    e = new MediaElement("test.mov", "12.0s", "13.35s");
-    s.addElement(e);
-
+    
     ParallelElement p = new ParallelElement();
+    smil.getBody().getSequence().addParallel(p);
+    
+    MediaElement m = new MediaElement();
+    m.setClipBegin("123.123s");
+    m.setClipEnd("321.312s");
+    m.setType("video");
+    m.setSrc("http://www.google.de/avi.avi");
+    
+    p.addElement(m);
+    m = new MediaElement();
+    m.setClipBegin("123.123s");
+    m.setClipEnd("321.312s");
+    m.setType("video");
+    m.setSrc("http://www.google.de/avi.avi");
+    p.addElement(m);
+    
+    p = new ParallelElement();
+    smil.getBody().getSequence().addParallel(p);
+    
+    m = new MediaElement();
+    m.setClipBegin("123.123s");
+    m.setClipEnd("321.312s");
+    m.setType("video");
+    m.setSrc("http://www.google.de/avi.avi");
+    
+    p.addElement(m);
+    m = new MediaElement();
+    m.setClipBegin("123.123s");
+    m.setClipEnd("321.312s");
+    m.setType("video");
+    m.setSrc("http://www.google.de/avi.avi");
+    p.addElement(m);
 
-    p.addElement(s);
-
-    smil.getBody().addElement(s);
-    smil.getBody().addElement(p);
-
-    return Response.ok(smil).build();
+    return getEntityResponse(smil, format);
   }
 
   @GET
   @Path("new")
-  @Produces(MediaType.APPLICATION_XML)
+  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
   @RestQuery(
              description = "get a new SMIL document",
              name = "new",
-             restParameters = { @RestParameter(description = "The workflowId.",
-                                               isRequired = false,
-                                               name = "workflowId",
-                                               type = RestParameter.Type.STRING) },
+             restParameters = {
+                 @RestParameter(
+                                description = "The workflowId.",
+                                isRequired = false,
+                                name = "workflowId",
+                                type = RestParameter.Type.STRING),
+                 @RestParameter(
+                                description = "the return format",
+                                name = "format",
+                                isRequired = false,
+                                type = RestParameter.Type.STRING) },
              returnDescription = "returns a new SMIL",
              reponses = {
-                 @RestResponse(description = "SMIL was created successfully",
-                               responseCode = 200),
+                 @RestResponse(description = "SMIL was created successfully", responseCode = 200),
                  @RestResponse(
                                description = "An error occurred while creating SMIL",
-                               responseCode = 500) })
-  public Response getNew(@QueryParam("workflowId") long workflowId) {
-    logger.info("creating new Smil Document");
+                               responseCode = 500),
+                 @RestResponse(
+                               description = "the SMIL document could not be found inside the worklfow",
+                               responseCode = 404) })
+  public Response getNew(@QueryParam("workflowId") long workflowId,
+                         @QueryParam("format") @DefaultValue("xml") String format) {
+    logger.debug("creating new Smil Document");
     Smil smil = null;
     try {
-      smilService.createNewSmil(workflowId);
+      smil = smilService.createNewSmil(workflowId);
     } catch (SmilException e) {
-      logger.error("error while creating new SMIL Document", e);
-      return Response.serverError().entity(buildUnexpectedErrorMessage(e))
-          .build();
+      logger.error("error while creating new SMIL Document");
+      return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
+    } catch (NotFoundException e) {
+      logger.error("could not find workflow {}", workflowId);
+      return Response.status(404).entity(buildUnexpectedErrorMessage(e)).build();
     }
-    return Response.ok(smil).build();
+    return getEntityResponse(smil, format);
   }
 
   @GET
   @Path("get/{workflowId}")
-  @Produces(MediaType.APPLICATION_XML)
+  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
   @RestQuery(
              description = "get a SMIL document by workflowId",
              name = "get",
-             pathParameters = { @RestParameter(description = "The workflowId.",
+             pathParameters = { @RestParameter(
+                                               description = "The workflowId.",
                                                isRequired = false,
                                                name = "workflowId",
                                                type = RestParameter.Type.STRING) },
+             restParameters = { @RestParameter(
+                                               description = "the return format",
+                                               name = "format",
+                                               isRequired = false,
+                                               type = RestParameter.Type.STRING) },
              returnDescription = "returns the associated SMIL",
              reponses = {
-                 @RestResponse(description = "SMIL was retrieved successfully",
-                               responseCode = 200),
+                 @RestResponse(description = "SMIL was retrieved successfully", responseCode = 200),
                  @RestResponse(
                                description = "An error occurred while retrieving SMIL",
                                responseCode = 500) })
-  public Response getSmil(@PathParam("workflowId") long workflowId) {
+  public Response getSmil(@PathParam("workflowId") long workflowId,
+                          @QueryParam("format") @DefaultValue("xml") String format) {
+    logger.debug("retrieving SMIL document from workflow: {}", workflowId);
     Smil smil = null;
     try {
       smil = smilService.getSmil(workflowId);
-    } catch (Exception e) {
-      logger.error("error while retrieving SMIL", e);
-      return Response.serverError().entity(buildUnexpectedErrorMessage(e))
-          .build();
+    } catch (NotFoundException e) {
+      logger.error("could not find SMIL");
+      return Response.status(404).entity(buildUnexpectedErrorMessage(e)).build();
+    } catch (SmilException e) {
+      logger.error("error while retrieving SMIL");
+      return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
     }
-    return Response.ok(smil).build();
+    return getEntityResponse(smil, format);
   }
 
   @GET
-  @Path("add/{type:parallel|sequence}/{workflowId}/{elementId}")
-  @Produces(MediaType.APPLICATION_XML)
+  @Path("addParallel/{workflowId}")
+  @Produces(MediaType.TEXT_PLAIN)
   @RestQuery(
              description = "add a parallel or sequence Element to given Element",
-             name = "addElement",
-             pathParameters = {
-                 @RestParameter(description = "The workflowId.",
-                                isRequired = false, name = "workflowId",
-                                type = RestParameter.Type.STRING),
-                 @RestParameter(
-                                description = "the type of the ContainerElement",
-                                isRequired = false, name = "type",
-                                type = RestParameter.Type.STRING),
-                 @RestParameter(
-                                description = "the elementId the element should be added to",
-                                isRequired = false, name = "elementId",
-                                type = RestParameter.Type.STRING) },
+             name = "addParallel",
+             pathParameters = { @RestParameter(
+                                               description = "the elementId the element should be added to",
+                                               isRequired = false,
+                                               name = "workflowId",
+                                               type = RestParameter.Type.STRING) },
+             restParameters = { @RestParameter(
+                                               description = "the return format",
+                                               name = "format",
+                                               isRequired = false,
+                                               type = RestParameter.Type.STRING) },
              returnDescription = "returns the edited SMIL",
              reponses = {
                  @RestResponse(
@@ -177,58 +213,68 @@ public class SmilRestService {
                                responseCode = 500) })
   public Response addElementTo(@PathParam("workflowId") long workflowId,
                                @PathParam("elementId") String elementId,
-                               @PathParam("type") String type) {
-    Smil smil = null;
-
+                               @QueryParam("format") @DefaultValue("xml") String format) {
+    ParallelElement p = new ParallelElement();
     try {
-      if (type.equals(PARALLEL_TYPE)) {
-        smil = smilService.addElement(workflowId, new ParallelElement(),
-            elementId);
-      } else if (type.equals(SEQUENCE_TYPE)) {
-        smil = smilService.addElement(workflowId, new SequenceElement(),
-            elementId);
-      } else {
-        throw new SmilException("type " + type + " is not allowed");
-      }
-    } catch (Exception e) {
-      logger.error("error while adding element SMIL", e);
-      return Response.serverError().entity(buildUnexpectedErrorMessage(e))
-          .build();
+      smilService.addParallelElement(workflowId, p);
+    } catch (NotFoundException e) {
+      logger.error("could not find SMIL");
+      return Response.status(404).entity(buildUnexpectedErrorMessage(e)).build();
+    } catch (SmilException e) {
+      logger.error("error while adding element to SMIL");
+      return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
     }
-    return Response.ok(smil).build();
+    return Response.ok(p.getId()).build();
   }
 
   @GET
-  @Path("addMediaElement//{workflowId}/{elementId}")
-  @Produces(MediaType.APPLICATION_XML)
+  @Path("addMediaElement/{workflowId}/{elementId}")
+  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
   @RestQuery(
              description = "adds a media element to the specified container element",
              name = "addMediaElement",
              returnDescription = "returns the edited SMIL document",
              pathParameters = {
-                 @RestParameter(description = "The workflowId.",
-                                isRequired = false, name = "workflowId",
+                 @RestParameter(
+                                description = "The workflowId.",
+                                isRequired = false,
+                                name = "workflowId",
                                 type = RestParameter.Type.STRING),
                  @RestParameter(
                                 description = "the elementId the element should be added to",
-                                isRequired = false, name = "elementId",
+                                isRequired = false,
+                                name = "elementId",
                                 type = RestParameter.Type.STRING) },
              restParameters = {
-                 @RestParameter(description = "the type of the element",
-                                isRequired = false, name = "type",
+                 @RestParameter(
+                                description = "the type of the element",
+                                isRequired = false,
+                                name = "type",
                                 type = RestParameter.Type.STRING),
-                 @RestParameter(description = "the begin of the element",
-                                isRequired = false, name = "clipBegin",
+                 @RestParameter(
+                                description = "the return format",
+                                name = "format",
+                                isRequired = false,
                                 type = RestParameter.Type.STRING),
-                 @RestParameter(description = "the end of the element",
-                                isRequired = false, name = "clipEnd",
+                 @RestParameter(
+                                description = "the begin of the element",
+                                isRequired = false,
+                                name = "clipBegin",
                                 type = RestParameter.Type.STRING),
-                 @RestParameter(description = "the source of the element",
-                                isRequired = false, name = "src",
+                 @RestParameter(
+                                description = "the end of the element",
+                                isRequired = false,
+                                name = "clipEnd",
+                                type = RestParameter.Type.STRING),
+                 @RestParameter(
+                                description = "the source of the element",
+                                isRequired = false,
+                                name = "src",
                                 type = RestParameter.Type.STRING),
                  @RestParameter(
                                 description = "the corrosponding matterhorn element to this element",
-                                isRequired = false, name = "mhElement",
+                                isRequired = false,
+                                name = "mhElement",
                                 type = RestParameter.Type.STRING), },
              reponses = {
                  @RestResponse(
@@ -243,7 +289,8 @@ public class SmilRestService {
                                   @QueryParam("clipBegin") String clipBegin,
                                   @QueryParam("clipEnd") String clipEnd,
                                   @QueryParam("src") String src,
-                                  @QueryParam("mhElement") String mhElement) {
+                                  @QueryParam("mhElement") String mhElement,
+                                  @QueryParam("format") @DefaultValue("xml") String format) {
     Smil smil = null;
 
     try {
@@ -253,14 +300,35 @@ public class SmilRestService {
       m.setClipEnd(clipEnd);
       m.setSrc(src);
       m.setMhElement(mhElement);
-      smil = smilService.addElement(workflowId, m, elementId);
-    } catch (Exception e) {
-      logger.error("error while adding media element");
-      return Response.serverError().entity(buildUnexpectedErrorMessage(e))
-          .build();
+      smil = smilService.addMediaElement(workflowId, m, elementId);
+    } catch (NotFoundException e) {
+      logger.error("could not find SMIL");
+      return Response.status(404).entity(buildUnexpectedErrorMessage(e)).build();
+    } catch (SmilException e) {
+      logger.error("error while adding media element to SMIL");
+      return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
     }
 
-    return Response.ok(smil).build();
+    return getEntityResponse(smil, format);
+  }
+
+  /**
+   * 
+   * @param smil
+   * @param format
+   * @return
+   */
+  private Response getEntityResponse(Smil smil, String format) {
+    try {
+      if ("json".equals(format)) {
+        return Response.ok(smil).type(MediaType.APPLICATION_JSON).build();
+      } else {
+        return Response.ok(smil).type(MediaType.APPLICATION_XML).build();
+      }
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
+    }
   }
 
   /**
