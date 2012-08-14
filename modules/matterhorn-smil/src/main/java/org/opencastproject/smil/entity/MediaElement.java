@@ -19,6 +19,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "ref")
+/**
+ * the MediaElement representing a cutting part
+ */
 public class MediaElement extends SmilElement {
 
   private String alt;
@@ -32,7 +35,6 @@ public class MediaElement extends SmilElement {
   private String type;
   private String longdesc;
   private String mhElement;
-
 
   public MediaElement() {
     this(null, null, null);
@@ -97,11 +99,11 @@ public class MediaElement extends SmilElement {
   public String getClipBegin() {
     return this.clipBegin;
   }
-  
+
   public int getClipBeginMS() {
     String tmp = clipBegin.replace("s", "");
     double f = Double.valueOf(tmp);
-    
+
     return (int) (f * 1000d);
   }
 
@@ -113,11 +115,11 @@ public class MediaElement extends SmilElement {
   public String getClipEnd() {
     return this.clipEnd;
   }
-  
+
   public int getClipEndMS() {
     String tmp = clipEnd.replace("s", "");
     double f = Double.valueOf(tmp);
-    
+
     return (int) (f * 1000d);
   }
 

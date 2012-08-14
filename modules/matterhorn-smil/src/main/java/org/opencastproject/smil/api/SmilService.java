@@ -55,6 +55,7 @@ public interface SmilService {
       NotFoundException;
 
   /**
+   * add a parallel element to the body sequence
    * 
    * @param workflowId the id of the workflow the SMIL document belongs to
    * @param p the parallelElement to add
@@ -64,5 +65,26 @@ public interface SmilService {
    */
   Smil addParallelElement(long workflowId, ParallelElement p) throws SmilException,
       NotFoundException;
+
+  /**
+   * remove an element from the SMIL document
+   * 
+   * @param workflowId the id of the workflow the SMIL document belongs to
+   * @param elementId the id of the element to remove
+   * @return the updated SMIL document
+   * @throws SmilException if an error occurs
+   * @throws NotFoundException if the SMIL document could not be found
+   */
+  Smil removeElement(long workflowId, String elementId) throws SmilException, NotFoundException;
+
+  /**
+   * removes all elements from the SMIL Document
+   * 
+   * @param workflowId the id of the workflow the SMIL document belongs to
+   * @return the updated SMIL document
+   * @throws SmilException if an error occurs
+   * @throws NotFoundException if the SMIL document could not be found
+   */
+  Smil clearSmil(long workflowId) throws SmilException, NotFoundException;
 
 }

@@ -69,16 +69,16 @@ public class SmilRestService {
                                         responseCode = 200) })
   public Response getTestSmil(@QueryParam("format") @DefaultValue("xml") String format) {
     Smil smil = new Smil();
-    
+
     ParallelElement p = new ParallelElement();
     smil.getBody().getSequence().addParallel(p);
-    
+
     MediaElement m = new MediaElement();
     m.setClipBegin("123.123s");
     m.setClipEnd("321.312s");
     m.setType("video");
     m.setSrc("http://www.google.de/avi.avi");
-    
+
     p.addElement(m);
     m = new MediaElement();
     m.setClipBegin("123.123s");
@@ -86,16 +86,16 @@ public class SmilRestService {
     m.setType("video");
     m.setSrc("http://www.google.de/avi.avi");
     p.addElement(m);
-    
+
     p = new ParallelElement();
     smil.getBody().getSequence().addParallel(p);
-    
+
     m = new MediaElement();
     m.setClipBegin("123.123s");
     m.setClipEnd("321.312s");
     m.setType("video");
     m.setSrc("http://www.google.de/avi.avi");
-    
+
     p.addElement(m);
     m = new MediaElement();
     m.setClipBegin("123.123s");
@@ -198,11 +198,6 @@ public class SmilRestService {
                                                isRequired = false,
                                                name = "workflowId",
                                                type = RestParameter.Type.STRING) },
-             restParameters = { @RestParameter(
-                                               description = "the return format",
-                                               name = "format",
-                                               isRequired = false,
-                                               type = RestParameter.Type.STRING) },
              returnDescription = "returns the edited SMIL",
              reponses = {
                  @RestResponse(
@@ -211,9 +206,9 @@ public class SmilRestService {
                  @RestResponse(
                                description = "An error occurred while editing SMIL",
                                responseCode = 500) })
-  public Response addElementTo(@PathParam("workflowId") long workflowId,
-                               @PathParam("elementId") String elementId,
-                               @QueryParam("format") @DefaultValue("xml") String format) {
+  public Response addParallelElement(@PathParam("workflowId") long workflowId,
+                                     @PathParam("elementId") String elementId,
+                                     @QueryParam("format") @DefaultValue("xml") String format) {
     ParallelElement p = new ParallelElement();
     try {
       smilService.addParallelElement(workflowId, p);
@@ -225,6 +220,47 @@ public class SmilRestService {
       return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
     }
     return Response.ok(p.getId()).build();
+  }
+
+  @GET
+  @Path("/remove/{workflowId}/{elementId}")
+  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+  @RestQuery(
+             description = "remove a given element",
+             name = "remove",
+             pathParameters = {
+                 @RestParameter(
+                                description = "the workflowId",
+                                name = "workflowId",
+                                isRequired = false,
+                                type = RestParameter.Type.STRING),
+                 @RestParameter(
+                                description = "the elementId of the element to delete",
+                                isRequired = false,
+                                name = "elementId",
+                                type = RestParameter.Type.STRING) },
+             returnDescription = "returns the edited SMIL",
+             reponses = {
+                 @RestResponse(
+                               description = "SMIL was manipulated successfully",
+                               responseCode = 200),
+                 @RestResponse(
+                               description = "An error occurred while editing SMIL",
+                               responseCode = 500) })
+  public Response removeElement(@PathParam("workflowId") long workflowId,
+                                @PathParam("elementId") String elementId,
+                                @QueryParam("format") @DefaultValue("xml") String format) {
+    Smil smil = null;
+    try {
+      smil = smilService.removeElement(workflowId, elementId);
+    } catch (NotFoundException e) {
+      logger.error("could not find SMIL");
+      return Response.status(404).entity(buildUnexpectedErrorMessage(e)).build();
+    } catch (SmilException e) {
+      logger.error("error while adding media element to SMIL");
+      return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
+    }
+    return getEntityResponse(smil, format);
   }
 
   @GET
@@ -301,6 +337,43 @@ public class SmilRestService {
       m.setSrc(src);
       m.setMhElement(mhElement);
       smil = smilService.addMediaElement(workflowId, m, elementId);
+    } catch (NotFoundException e) {
+      logger.error("could not find SMIL");
+      return Response.status(404).entity(buildUnexpectedErrorMessage(e)).build();
+    } catch (SmilException e) {
+      logger.error("error while adding media element to SMIL");
+      return Response.serverError().entity(buildUnexpectedErrorMessage(e)).build();
+    }
+
+    return getEntityResponse(smil, format);
+  }
+
+  @GET
+  @Path("clear/{workflowId}")
+  @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+  @RestQuery(
+             description = "clears a SMIL file",
+             name = "clear",
+             returnDescription = "returns the edited SMIL document",
+             pathParameters = { @RestParameter(
+                                               description = "The workflowId.",
+                                               isRequired = false,
+                                               name = "workflowId",
+                                               type = RestParameter.Type.STRING) },
+             restParameters = { @RestParameter(
+                                               description = "the return format",
+                                               name = "format",
+                                               isRequired = false,
+                                               type = RestParameter.Type.STRING) },
+             reponses = { @RestResponse(
+                                        description = "SMIL was created successfully",
+                                        responseCode = 200) })
+  public Response clearDocument(@PathParam("workflowId") long workflowId,
+                                @QueryParam("format") @DefaultValue("xml") String format) {
+    Smil smil = null;
+    
+    try {
+      smil = smilService.clearSmil(workflowId);
     } catch (NotFoundException e) {
       logger.error("could not find SMIL");
       return Response.status(404).entity(buildUnexpectedErrorMessage(e)).build();

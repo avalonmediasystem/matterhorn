@@ -33,6 +33,7 @@ import org.opencastproject.smil.api.SmilException;
 import org.opencastproject.smil.api.SmilService;
 import org.opencastproject.smil.entity.MediaElement;
 import org.opencastproject.smil.entity.ParallelElement;
+import org.opencastproject.smil.entity.SequenceElement;
 import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workflow.api.WorkflowInstance;
@@ -42,12 +43,30 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Implementation of the SMIL service
+ */
 public class SmilServiceImpl implements SmilService {
 
+  /**
+   * the workspace
+   */
   private Workspace workspace;
+  /**
+   * a marshaller to marshal an SMIL object to XML
+   */
   private Marshaller smilMarshaller;
+  /**
+   * an unmarshaller to unmarshal the XML to a SMIL document
+   */
   private Unmarshaller smilUnmarshaller;
+  /**
+   * the workflowservice
+   */
   private WorkflowService workflowService;
+  /**
+   * the ingest service
+   */
   private IngestService ingestService;
 
   private static final String SMIL_FLAVOR_STRING = "smil/smil";
@@ -59,6 +78,12 @@ public class SmilServiceImpl implements SmilService {
     SMIL_FLAVOR = MediaPackageElementFlavor.parseFlavor(SMIL_FLAVOR_STRING);
   }
 
+  /**
+   * called when service is activated
+   * 
+   * @param cc the context
+   * @throws Exception
+   */
   protected void activate(final ComponentContext cc) throws Exception {
     logger.info("activating SMIL Service");
 
@@ -78,13 +103,21 @@ public class SmilServiceImpl implements SmilService {
     try {
       workflow = workflowService.getWorkflowById(workflowId);
       mp = workflow.getMediaPackage();
+      Catalog[] catalogs = mp.getCatalogs(SMIL_FLAVOR);
+      if (catalogs.length != 0) {
+        logger.debug("removing old SMIL Catalogs");
+        for (Catalog c : catalogs) {
+          mp.remove(c);
+          workspace.delete(mp.getIdentifier().compact(), c.getIdentifier());
+        }
+      }
 
       mp = ingestService.addCatalog(IOUtils.toInputStream(smilToXML(smil)), SMIL_FILENAME,
           SMIL_FLAVOR, mp);
       workflow.setMediaPackage(mp);
       workflowService.update(workflow);
 
-      Catalog[] catalogs = mp.getCatalogs(SMIL_FLAVOR);
+      catalogs = mp.getCatalogs(SMIL_FLAVOR);
       if (catalogs.length == 0) {
         throw new SmilException("SMIL Catalog is not in Mediapackage but should be");
       }
@@ -108,6 +141,16 @@ public class SmilServiceImpl implements SmilService {
   public Smil addMediaElement(long workflowId, MediaElement e, String elementId)
       throws SmilException, NotFoundException {
     Smil smil = loadSmil(workflowId);
+    logger.debug("trying to find path to track file");
+    try {
+      File f = workspace.get(new URI(e.getSrc()));
+      logger.debug("found file " + f.getAbsolutePath());
+      e.setSrc(f.getAbsolutePath());
+    } catch (NotFoundException ex) {
+
+    } catch (Exception ex) {
+      throw new SmilException(ex.getMessage(), ex);
+    }
     ParallelElement pe = smil.getParallel(elementId);
     if (pe == null) {
       throw new NotFoundException("ParallelElement with id: " + elementId + " not found");
@@ -123,6 +166,27 @@ public class SmilServiceImpl implements SmilService {
       NotFoundException {
     Smil smil = loadSmil(workflowId);
     smil.getBody().getSequence().addParallel(p);
+    storeSmil(smil);
+    return smil;
+  }
+
+  @Override
+  public Smil removeElement(long workflowId, String elementId) throws SmilException,
+      NotFoundException {
+    Smil smil = loadSmil(workflowId);
+
+    smil.removeElement(elementId);
+
+    storeSmil(smil);
+    return smil;
+  }
+
+  @Override
+  public Smil clearSmil(long workflowId) throws SmilException, NotFoundException {
+    Smil smil = loadSmil(workflowId);
+
+    smil.getBody().setSequence(new SequenceElement());
+
     storeSmil(smil);
     return smil;
   }
@@ -157,6 +221,12 @@ public class SmilServiceImpl implements SmilService {
     return smil;
   }
 
+  /**
+   * store the SMIL document in the mediapackage
+   * 
+   * @param smil the SMIL document
+   * @throws SmilException if something went wrong
+   */
   private void storeSmil(Smil smil) throws SmilException {
     logger.debug("trying to store SMIL");
     try {
@@ -169,24 +239,49 @@ public class SmilServiceImpl implements SmilService {
     }
   }
 
+  /**
+   * marshal a SMIL document to XML
+   * 
+   * @param smil the SMIL Object
+   * @return the XML representation of the SMIL document
+   * @throws JAXBException if something is wrong with the document
+   */
   private String smilToXML(Smil smil) throws JAXBException {
     StringWriter sw = new StringWriter();
     smilMarshaller.marshal(smil, sw);
     return sw.toString();
   }
 
+  /**
+   * deactivating service
+   */
   protected void deactivate() {
     logger.info("deactivating SMIL Service");
   }
 
+  /**
+   * set workspace
+   * 
+   * @param workspace the workspace
+   */
   protected void setWorkspace(Workspace workspace) {
     this.workspace = workspace;
   }
 
+  /**
+   * set workflowService
+   * 
+   * @param workflowService the worklfowservice
+   */
   protected void setWorkflowService(WorkflowService workflowService) {
     this.workflowService = workflowService;
   }
 
+  /**
+   * set the ingestservice
+   * 
+   * @param ingestService the ingestservice
+   */
   protected void setIngestService(IngestService ingestService) {
     this.ingestService = ingestService;
   }

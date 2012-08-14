@@ -15,21 +15,26 @@
  */
 package org.opencastproject.smil.entity;
 
-
 import javax.xml.bind.annotation.XmlAttribute;
 
 import org.opencastproject.mediapackage.identifier.IdBuilder;
 import org.opencastproject.mediapackage.identifier.UUIDIdBuilderImpl;
 
+/**
+ * base class for all SMIL elements
+ */
 public abstract class SmilElement {
 
   private String id;
-  
+
   private Smil smil;
 
   /** id builder, for internal use only */
   private static final IdBuilder idBuilder = new UUIDIdBuilderImpl();
 
+  /**
+   * default constructor (sets the id of the element)
+   */
   public SmilElement() {
     setId(idBuilder.createNew().compact());
   }
@@ -50,11 +55,20 @@ public abstract class SmilElement {
   public void setSmil(Smil smil) {
     this.smil = smil;
   }
-  
-  public boolean equals(MediaElement e) {
+
+  /**
+   * checks the equality to another SMIL element based on their id
+   * 
+   * @param e the SMIL element to compare
+   * @return true whether the given SmilElement has the same id, false else
+   */
+  public boolean equals(SmilElement e) {
     return this.getId().equals(e.getId());
   }
 
+  /**
+   * calculate a hashcode based on the id
+   */
   public int hashCode() {
     int hash = 7;
     hash = 31 * hash;

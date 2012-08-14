@@ -16,14 +16,87 @@
 
 var editor = editor || {};
 
+var SMIL_RESTSERVICE = "/smil/";
+var SMIL_FLAVOR = "smil/smil";
+
 editor.splitData = {};
 editor.splitData.splits = [];
-editor.player = {};
+editor.player = null;
+editor.smil = null;
 
 editor.updateSplitList = function() {
   $('#leftBox').html($('#splitElements').jqote(editor.splitData));
   $('.splitItem').click(splitItemClick);
   $('.splitRemover').click(splitRemoverClick);
+}
+
+editor.createSMIL = function() {
+  $.ajax({
+    url : SMIL_RESTSERVICE + "new",
+    data : {
+      workflowId : workflowInstance.id
+    }
+  });
+}
+
+editor.clearSMIL = function() {
+  $.ajax({
+    url : SMIL_RESTSERVICE + "clear/" + workflowInstance.id,
+    async : false
+  });
+}
+
+editor.saveSplitList = function() {
+  editor.clearSMIL();
+  $.each(editor.splitData.splits, function(key, value) {
+    if (value.enabled) {
+      parallelId = editor.addParallel();
+      $.each(workflowInstance.mediapackage.media.track, function(key, track) {
+        if (track.type.indexOf("work") != -1) {
+          value.src = track.url;
+          editor.addMediaElement(parallelId, value);
+        }
+      });
+    }
+  });
+}
+
+editor.addMediaElement = function(parallelId, data) {
+  $.ajax({
+    url : SMIL_RESTSERVICE + "addMediaElement/" + workflowInstance.id + "/" + parallelId,
+    data : data,
+    async : false,
+    success : function(data) {
+    }
+  })
+}
+
+editor.addParallel = function() {
+  var parallelId = "";
+  $.ajax({
+    url : SMIL_RESTSERVICE + "addParallel/" + workflowInstance.id,
+    success : function(data) {
+      parallelId = data;
+    },
+    async : false
+  });
+  return parallelId;
+}
+
+editor.downloadSMIL = function() {
+  var smil = null;
+  $.ajax({
+    url : SMIL_RESTSERVICE + "get/" + workflowInstance.id,
+    data : {
+      format : "json"
+    },
+    dataType : "json",
+    async : false,
+    success : function(data) {
+      smil = data;
+    }
+  });
+  return smil;
 }
 
 $(document).ready(function() {
@@ -58,13 +131,12 @@ function cancelButtonClick() {
 }
 
 function enabledRightBox(enabled) {
-  if(enabled) {
+  if (enabled) {
     $('#rightBox :input').removeProp('disabled');
   } else {
     $('#rightBox :input').prop('disabled', 'disabled');
   }
 }
-
 
 function splitButtonClick() {
   var currentTime = editor.player.getCurrentPosition();
@@ -95,8 +167,7 @@ function splitButtonClick() {
 }
 
 function waitForPlayerReady() {
-  if ($('#player-container')[0].contentWindow.Opencast
-      && $('#player-container')[0].contentWindow.Opencast.Player
+  if ($('#player-container')[0].contentWindow.Opencast && $('#player-container')[0].contentWindow.Opencast.Player
       && $('#player-container')[0].contentWindow.Opencast.Player.getDuration() != 0
       && $('#player-container')[0].contentWindow.Opencast.Player.getDuration() != -1) {
     ocUtils.log("player ready");
@@ -115,7 +186,44 @@ function playerReady() {
     enabled : true,
     description : ""
   });
+  smil = null;
+  $.each(workflowInstance.mediapackage.metadata.catalog, function(key, value) {
+    if (value.type == SMIL_FLAVOR) {
+      // download smil
+      smil = editor.downloadSMIL();
+      // check whether SMIL has already cutting points
+      if (smil.smil.body.seq.par) {
+        $('<div/>').html("Found existing SMIL. Do you want to take over the cutting list?").dialog({
+          buttons : {
+            Yes : function() {
+              editor.splitData.splits = [];
+              $.each(smil.smil.body.seq.par, function(key, value) {
+                value.ref = ocUtils.ensureArray(value.ref);
+                editor.splitData.splits.push({
+                  clipBegin : value.ref[0].clipBegin,
+                  clipEnd : value.ref[0].clipEnd,
+                  enabled : true,
+                  description : value.ref[0].description ? value.ref.description : "",
+                });
+              });
+              $(this).dialog('close');
+              editor.updateSplitList();
+            },
+            No : function() {
+              $(this).dialog('close');
+              editor.clearSMIL();
+            }
+          },
+          title : "Apply existent SMIL"
+        });
+      }
+    }
+  });
+  if (smil == null) {
+    editor.createSMIL();
+  }
   editor.updateSplitList();
+  $('#editor').removeClass('disabled');
 }
 
 function updateCurrentTime() {
@@ -135,12 +243,13 @@ function formatTime(time) {
 
 function splitRemoverClick() {
   item = $(this).parent();
-  id = item.attr('id');
-  if (!item.hasClass('splitItemDisabled')) {
+  id = item.prop('id');
+  id = id.replace("splitItem-", "");
+  if (!item.hasClass('disabled')) {
     $('#deleteDialog').dialog({
       buttons : {
         "Yes" : function() {
-          item.addClass('splitItemDisabled');
+          item.addClass('disabled');
           $('.splitItem').removeClass('splitItemSelected');
           $(this).dialog('close');
           setEnabled(id, false);
@@ -152,7 +261,7 @@ function splitRemoverClick() {
       title : "Remove Item?"
     });
   } else {
-    item.removeClass('splitItemDisabled');
+    item.removeClass('disabled');
     setEnabled(id, true);
   }
 }

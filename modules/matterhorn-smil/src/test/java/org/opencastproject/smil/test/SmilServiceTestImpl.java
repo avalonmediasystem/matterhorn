@@ -13,30 +13,27 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.smil.entity;
+package org.opencastproject.smil.test;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import static org.junit.Assert.*;
 
-@XmlRootElement(name = "body")
-/**
- * the BodyElement containing the SequenceElement
- */
-public class BodyElement extends SmilElement {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-  private SequenceElement sequence;
+public class SmilServiceTestImpl {
 
-  public BodyElement() {
-    setSequence(new SequenceElement());
+  @Before
+  public void setUp() throws Exception {
   }
 
-  public SequenceElement getSequence() {
-    return sequence;
+  @After
+  public void tearDown() throws Exception {
   }
 
-  @XmlElement(name = "seq")
-  public void setSequence(SequenceElement sequence) {
-    this.sequence = sequence;
+  @Test
+  public void test() {
+    fail("Not yet implemented");
   }
 
 }

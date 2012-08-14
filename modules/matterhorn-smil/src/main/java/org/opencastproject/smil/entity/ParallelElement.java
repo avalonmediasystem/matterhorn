@@ -22,6 +22,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "par")
+/**
+ * a ParallelElement can contain several MediaElements
+ */
 public class ParallelElement extends SmilElement {
 
   private List<MediaElement> elements;
@@ -39,10 +42,20 @@ public class ParallelElement extends SmilElement {
     this.elements = elements;
   }
 
+  /**
+   * add a MediaElement
+   * 
+   * @param e the element to add
+   */
   public void addElement(MediaElement e) {
     this.elements.add(e);
   }
 
+  /**
+   * remove a MediaElement from this item
+   * 
+   * @param e the element to remove
+   */
   public void removeElement(MediaElement e) {
     for (MediaElement elem : this.elements) {
       if (elem.equals(e)) {

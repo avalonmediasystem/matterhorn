@@ -161,7 +161,7 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   border: 2px solid blue !important;
 }
 
-.splitItemDisabled {
+.disabled {
   opacity: 0.2;
   filter: alpha(opacity =       20); /* For IE8 and earlier */
 }

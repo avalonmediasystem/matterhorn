@@ -15,24 +15,24 @@
  */
 package org.opencastproject.workflow.handler;
 
-import java.net.URI;
 import java.util.Map;
 
 import org.opencastproject.composer.api.ComposerService;
-import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.JobContext;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
-import org.opencastproject.mediapackage.MediaPackageElementParser;
 import org.opencastproject.mediapackage.Track;
+import org.opencastproject.security.api.UnauthorizedException;
 import org.opencastproject.smil.api.SmilException;
 import org.opencastproject.smil.api.SmilService;
 import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.util.NotFoundException;
+import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowOperationException;
 import org.opencastproject.workflow.api.WorkflowOperationInstance;
 import org.opencastproject.workflow.api.WorkflowOperationResult;
+import org.opencastproject.workflow.api.WorkflowService;
 import org.opencastproject.workflow.api.WorkflowOperationResult.Action;
 import org.opencastproject.workspace.api.Workspace;
 import org.osgi.service.component.ComponentContext;
@@ -62,7 +62,12 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
   /** The workspace */
   private Workspace workspace;
 
+  /**
+   * the smil service
+   */
   private SmilService smilService;
+
+  private WorkflowService workflowService;
 
   public void activate(ComponentContext cc) {
     super.activate(cc);
@@ -80,9 +85,17 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
   @Override
   public WorkflowOperationResult start(WorkflowInstance workflowInstance, JobContext context)
       throws WorkflowOperationException {
+    MediaPackage mp = null;
+    try {
+      logger.debug("adding SMIL to workflow");
+      smilService.createNewSmil(workflowInstance.getId());
+      mp = workflowService.getWorkflowById(workflowInstance.getId()).getMediaPackage();
+    } catch (Exception e) {
+      logger.error(e.getMessage());
+      throw new WorkflowOperationException(e.getMessage(), e);
+    } 
     logger.info("Holding for video edit...");
-
-    return createResult(Action.PAUSE);
+    return createResult(mp, Action.PAUSE);
   }
 
   /**
@@ -128,10 +141,11 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
                                         Map<String, String> properties)
       throws WorkflowOperationException {
 
-    logger.info("VideoEditing workflow {} using ", workflowInstance.getId());
+    logger.info("VideoEditing workflow {} using SMIL Document", workflowInstance.getId());
 
     try {
       Smil smil = smilService.getSmil(workflowInstance.getId());
+      logger.info("SMIL is ready for processing");
     } catch (SmilException e) {
       throw new WorkflowOperationException("SMIL Exception", e);
     } catch (NotFoundException e) {
@@ -146,47 +160,7 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
     MediaPackageElementFlavor matchingFlavor = MediaPackageElementFlavor
         .parseFlavor(configuredSourceFlavor);
 
-    for (Track t : workflowInstance.getMediaPackage().getTracks()) {
-      MediaPackageElementFlavor trackFlavor = t.getFlavor();
-      if (trackFlavor != null && matchingFlavor.matches(trackFlavor)) {
-        String profileId = currentOperation.getConfiguration(ENCODING_PROFILE_PROPERTY);
-
-        logger.info("Trimming {} to ", new String[] { t.toString() });
-
-        Track trimmedTrack = null;
-        try {
-          // Trim the track
-          Job job  = null;// = composerService.trim(t, profileId, trimStart, trimDuration);
-          if (!waitForStatus(job).isSuccess()) {
-            throw new WorkflowOperationException("Trimming of " + t + " failed");
-          }
-
-          trimmedTrack = (Track) MediaPackageElementParser.getFromXml(job.getPayload());
-          if (trimmedTrack == null) {
-            throw new WorkflowOperationException("Trimming failed to produce a track");
-          }
-
-          // Put the new track in the mediapackage area of the workspace
-          String fileName = getFileNameFromElements(t, trimmedTrack);
-          URI uri = workspace.moveTo(trimmedTrack.getURI(), workflowInstance.getMediaPackage()
-              .getIdentifier().compact(), trimmedTrack.getIdentifier(), fileName);
-          trimmedTrack.setURI(uri);
-
-          // Fix the flavor
-          MediaPackageElementFlavor trimmedFlavor = new MediaPackageElementFlavor(t.getFlavor()
-              .getType(), configuredTargetFlavorSubtype);
-          trimmedTrack.setFlavor(trimmedFlavor);
-
-          // Add the trimmed track to the mediapackage
-          workflowInstance.getMediaPackage().addDerived(trimmedTrack, t);
-        } catch (Exception e) {
-          logger.warn("Unable to trim: {}", e);
-          throw new WorkflowOperationException(e);
-        }
-      }
-    }
-
-    return super.resume(workflowInstance, context, properties);
+    return createResult(Action.PAUSE);
   }
 
   public void setSmilService(SmilService smilService) {
@@ -209,6 +183,10 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
    */
   public void setWorkspace(Workspace workspace) {
     this.workspace = workspace;
+  }
+
+  public void setWorkflowService(WorkflowService workflowService) {
+    this.workflowService = workflowService;
   }
 
 }

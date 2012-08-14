@@ -22,6 +22,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "seq")
+/**
+ * SequenceElement representing a &lt;seq &rt; element
+ */
 public class SequenceElement extends SmilElement {
 
   private List<ParallelElement> elements;
@@ -39,6 +42,12 @@ public class SequenceElement extends SmilElement {
     this.elements = elements;
   }
 
+  /**
+   * get a parallelElement by a given id
+   * 
+   * @param elementId the id of the element to retrieve
+   * @return the element if it exists, <code>null</code> else
+   */
   public ParallelElement getParallel(String elementId) {
     for (ParallelElement p : this.elements) {
       if (p.getId().equals(elementId)) {
@@ -48,10 +57,20 @@ public class SequenceElement extends SmilElement {
     return null;
   }
 
+  /**
+   * add a ParallelElement
+   * 
+   * @param p the ParallelElement to add
+   */
   public void addParallel(ParallelElement p) {
     this.elements.add(p);
   }
 
+  /**
+   * remove a ParallelElement
+   * 
+   * @param e the element to remove
+   */
   public void removeParallel(ParallelElement e) {
     for (ParallelElement elem : this.elements) {
       if (elem.equals(e)) {

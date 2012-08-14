@@ -25,6 +25,9 @@ import org.opencastproject.mediapackage.MediaPackage;
 
 @XmlRootElement(name = "smil", namespace = "http://www.w3.org/2006/SMIL30/WD/Language")
 @XmlSeeAlso({ SequenceElement.class, MediaElement.class, BodyElement.class, ParallelElement.class })
+/**
+ * base for the XML representation of SMIL
+ */
 public class Smil {
 
   private BodyElement body;
@@ -39,12 +42,52 @@ public class Smil {
     body = new BodyElement();
   }
 
+  /**
+   * get a ParallelElement with a given id
+   * 
+   * @param elementId the elementId of the ParallelElement
+   * @return the ParallelElement if it exists, null else
+   */
   public ParallelElement getParallel(String elementId) {
     return this.body.getSequence().getParallel(elementId);
   }
 
+  /**
+   * add a MediaElement to a given ParallelElement
+   * 
+   * @param e the MediaElement to add
+   * @param to the ParallelElement to add the MediaElement to
+   */
   public void addElementTo(MediaElement e, ParallelElement to) {
     to.addElement(e);
+  }
+
+  /**
+   * remove an element from the document, can be a MediaElement or a ParallelElement
+   * 
+   * @param elementId the id of the element to remove
+   */
+  public void removeElement(String elementId) {
+    for (ParallelElement p : getBody().getSequence().getElements()) {
+      if (p.getId().equals(elementId)) {
+        getBody().getSequence().removeParallel(p);
+      } else {
+        for (MediaElement e : p.getElements()) {
+          if (e.getId().equals(elementId)) {
+            p.getElements().remove(e);
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * clears the document by removing all elements
+   */
+  public void clearDocument() {
+    for (ParallelElement p : body.getSequence().getElements()) {
+      body.getSequence().removeParallel(p);
+    }
   }
 
   @XmlElement(name = "body", type = BodyElement.class)

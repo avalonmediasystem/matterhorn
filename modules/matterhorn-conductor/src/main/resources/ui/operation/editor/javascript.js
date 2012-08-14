@@ -13,6 +13,7 @@ var DCmetadata = null;
 var metadataChanged = false;
 var seriesChanged = false;
 var seriesServiceURL = false;
+var workflowInstance = null;
 
 var inpoint = 0;
 var outpoint = 0;
@@ -127,6 +128,7 @@ $(document)
             url : WORKFLOW_RESTSERVICE + id + ".json",
             async : false,
             success : function(data) {
+              workflowInstance = data.workflow;
               data = data.workflow.mediapackage.media.track;
               for (i = 0; i < data.length; i++) {
                 if (data[i].type.indexOf("work") != -1) {
@@ -649,14 +651,8 @@ function getTimeString(val0, val1, val2) {
  * Continues the Workflow
  */
 function continueWorkflow() {
-  // Get Video Duration
-  var videoDurationData = $('#player-container').contents().find('#oc_duration').text();
-  // Format 'Trim From'
-  var trimFromData = $('#inPoint').val();
-  trimFromData = ((trimFromData == '') || (trimFromData == null)) ? '00:00:00' : trimFromData;
-  // Format 'Trim To'
-  var trimToData = $('#outPoint').val();
-  trimToData = ((trimToData == '') || (trimToData == null)) ? videoDurationData : trimToData;
+
+  editor.saveSplitList();
 
   // if metadata was changed update DC catalog and mediapackage instance
   if (metadataChanged) {
@@ -765,31 +761,23 @@ function continueWorkflow() {
     }
   }
 
-  // If Input < Output
-  if (trimFromData < trimToData) {
-    var newduration = getTimeInMilliseconds(trimToData) - getTimeInMilliseconds(trimFromData);
-    postData['trimin'] = getTimeInMilliseconds(trimFromData);
-    // postData['trimout'] = getTimeInMilliseconds(trimToData);
-    postData['newduration'] = newduration;
-    var trackChanged = $('input:checkbox:not(:checked)').length != $('input:checkbox').length;
-    if (metadataChanged || seriesChanged || trackChanged) {
-      var mp = ocUtils.xmlToString(mediapackage);
-      mp = mp.replace(/ xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g, ''); // no
-      // luck
-      // with
-      // $(element).removeAttr('xmlns');
-      $.each($('input:checkbox:not(:checked)'), function(key, value) {
-        var trackId = $(value).prop("id");
-        trackId = trackId.split('/')[1];
-        mp = ocMediapackage.removeTrack(mp, trackId);
-      });
-      parent.ocRecordings.Hold.changedMediaPackage = mp;
-      // alert(mp);
-    }
-    parent.ocRecordings.continueWorkflow(postData);
-  } else {
-    $('div#errorMessage').html("The In-Point must not be bigger than the Out-Point");
+  var trackChanged = $('input:checkbox:not(:checked)').length != $('input:checkbox').length;
+  if (metadataChanged || seriesChanged || trackChanged) {
+    var mp = ocUtils.xmlToString(mediapackage);
+    mp = mp.replace(/ xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g, ''); // no
+    // luck
+    // with
+    // $(element).removeAttr('xmlns');
+    $.each($('input:checkbox:not(:checked)'), function(key, value) {
+      var trackId = $(value).prop("id");
+      trackId = trackId.split('/')[1];
+      mp = ocMediapackage.removeTrack(mp, trackId);
+    });
+    parent.ocRecordings.Hold.changedMediaPackage = mp;
+    // alert(mp);
   }
+  parent.ocRecordings.continueWorkflow(postData);
+
 }
 
 function cancel() {
