@@ -13,19 +13,15 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.videoeditor.api;
+package org.opencastproject.videoeditor.gstreamer.exceptions;
 
-import org.opencastproject.job.api.Job;
-import org.opencastproject.smil.entity.Smil;
+/**
+ *
+ * @author wsmirnow
+ */
+public class PipelineBuildException extends Exception {
 
-public interface VideoEditor {
-
-  String JOB_TYPE = "org.opencastproject.smil.processing";
-  
-  /**
-   * Start media processing described by smil file.
-   * @param smil processing description
-   * @return 
-   */
-  Job process(Smil smil);
+  public PipelineBuildException() {
+    super("Pipeline build failed!");
+  }
 }

@@ -15,10 +15,14 @@
  */
 package org.opencastproject.videoeditor.impl;
 
+import java.io.FileNotFoundException;
 import java.util.Dictionary;
 import org.gstreamer.Gst;
 import org.opencastproject.job.api.Job;
+import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.videoeditor.api.VideoEditor;
+import org.opencastproject.videoeditor.gstreamer.GstreamerFileTypeFinder;
+import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
@@ -27,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author wsmirnow
  */
 public class VideoEditorService implements VideoEditor, ManagedService {
 
@@ -38,20 +41,46 @@ public class VideoEditorService implements VideoEditor, ManagedService {
   protected void activate(ComponentContext context)
   {
     Gst.init();
+    String file = "/home/wsmirnow/Videos/Sintel.mp4";
+    logger.info("parse caps from " + file);
+    
+    try {
+      GstreamerFileTypeFinder tf = new GstreamerFileTypeFinder(file);
+      logger.info("{} is audio: {}", file, tf.isAudioFile());
+      logger.info("{} is image: {}", file, tf.isImageFile());
+      logger.info("{} is video: {}", file, tf.isVideoFile());
+      
+    } catch (FileNotFoundException ex) {
+      logger.error(ex.getMessage());
+    } catch (PipelineBuildException ex) {
+      logger.error(ex.getMessage());
+    }
+    file = "/home/wsmirnow/Videos/Sintel.mpg";
+    logger.info("parse caps from " + file);
+    try {
+      GstreamerFileTypeFinder tf = new GstreamerFileTypeFinder(file);
+      logger.info("{} is audio: {}", file, tf.isAudioFile());
+      logger.info("{} is image: {}", file, tf.isImageFile());
+      logger.info("{} is video: {}", file, tf.isVideoFile());
+      
+    } catch (FileNotFoundException ex) {
+      logger.error(ex.getMessage());
+    } catch (PipelineBuildException ex) {
+      logger.error(ex.getMessage());
+    }
   }
   
   protected void deactivate(ComponentContext context)
   {
-    Gst.deinit();
   }
   
   @Override
-  public void updated(Dictionary dctnr) throws ConfigurationException {
+  public void updated(Dictionary properties) throws ConfigurationException {
     logger.debug("updated");
   }
   
   @Override
-  public Job process(String smil) {
+  public Job process(Smil smil) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 }

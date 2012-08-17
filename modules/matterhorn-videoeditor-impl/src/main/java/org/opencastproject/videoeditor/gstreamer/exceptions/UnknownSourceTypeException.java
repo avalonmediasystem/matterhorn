@@ -13,7 +13,9 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.videoeditor.gstreamer.sources;
+package org.opencastproject.videoeditor.gstreamer.exceptions;
+
+import org.opencastproject.videoeditor.gstreamer.sources.GStreamerSourceBin;
 
 /**
  *

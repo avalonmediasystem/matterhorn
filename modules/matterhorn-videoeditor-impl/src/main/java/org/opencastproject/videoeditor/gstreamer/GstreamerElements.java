@@ -13,19 +13,18 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.videoeditor.api;
 
-import org.opencastproject.job.api.Job;
-import org.opencastproject.smil.entity.Smil;
+package org.opencastproject.videoeditor.gstreamer;
 
-public interface VideoEditor {
-
-  String JOB_TYPE = "org.opencastproject.smil.processing";
+/**
+ *
+ * @author wsmirnow
+ */
+public interface GstreamerElements {
   
-  /**
-   * Start media processing described by smil file.
-   * @param smil processing description
-   * @return 
-   */
-  Job process(Smil smil);
+  String FILESRC = "filesrc";
+  String DECODEBIN = "decodebin";
+  String DECODEBIN2 = "decodebin2";
+  String FAKESINK = "fakesink";
+
 }

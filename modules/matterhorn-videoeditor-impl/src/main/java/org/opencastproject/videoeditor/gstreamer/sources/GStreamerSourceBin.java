@@ -22,6 +22,7 @@ import org.gstreamer.Pad;
 import org.gstreamer.PadLinkReturn;
 import org.opencastproject.videoeditor.gstreamer.VideoEditorPipeline;
 import org.opencastproject.videoeditor.gstreamer.exceptions.CanNotAddElementException;
+import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

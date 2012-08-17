@@ -24,7 +24,6 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>2.0.1</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
@@ -32,11 +31,12 @@
             <Import-Package>
               *;resolution:=optional
             </Import-Package>
-            <Private-Packagepriva>
+            <Private-Package>
               org.gstreamer
-            </Private-Packagepriva>
+            </Private-Package>
             <Export-Package> 
-              org.opencastproject.videoeditor.impl;version=${project.version}
+              org.opencastproject.videoeditor.impl.*;version=${project.version},
+              org.opencastproject.videoeditor.gstreamer.*;version=${project.version}
             </Export-Package>
             <Embed-Dependency>
               gstreamer-java;inline=true,
@@ -66,14 +66,7 @@
       </plugin>
     </plugins>
   </build>
-  <repositories>
-    <repository>
-      <url>http://repo1.maven.org/maven2/</url>
-      <id>junit_4</id>
-      <layout>default</layout>
-      <name>Repository for library Library[junit_4]</name>
-    </repository>
-  </repositories>
+  
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -98,10 +91,15 @@
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
-    <dependency>
+<!--    <dependency>
       <groupId>com.googlecode.gstreamer-java</groupId>
       <artifactId>gstreamer-java</artifactId>
       <version>1.5</version>
+    </dependency>-->
+    <dependency>
+      <groupId>org.gstreamer</groupId>
+      <artifactId>gstreamer-java</artifactId>
+      <version>1.4-no-tests-and-bin-launch</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jna</groupId>
@@ -125,7 +123,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.10</version>
       <scope>test</scope>
     </dependency>
     <dependency>
