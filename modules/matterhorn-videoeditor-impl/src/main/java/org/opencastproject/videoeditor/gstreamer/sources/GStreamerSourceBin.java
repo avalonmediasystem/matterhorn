@@ -98,25 +98,27 @@ public class GStreamerSourceBin {
     defaultSource.set("priority", -1);
   }
   
-  public void addFileSource(String filePath, long start, long mediaStart, long mediaStop) 
+  public void addFileSource(String filePath, long startMillis, long mediaStartMillis, long mediaStopMillis) 
           throws CanNotAddElementException {
     
     Element filesource = ElementFactory.make("gnlfilesource", null);
     if (!gnlComposition.add(filesource)) {
       throw new CanNotAddElementException(gnlComposition, filesource);
     }
-    filesource.set("location", filePath);
-    filesource.set("start", start * VideoEditorPipeline.GST_MILLI_SECOND);
-    filesource.set("duration", (mediaStop - mediaStart) * VideoEditorPipeline.GST_MILLI_SECOND);
-    filesource.set("media-start", mediaStart * VideoEditorPipeline.GST_MILLI_SECOND);
-    filesource.set("media-stop", mediaStop * VideoEditorPipeline.GST_MILLI_SECOND);
     
-    long length = start + (mediaStop - mediaStart);
+    long start = startMillis > 0 ? startMillis : maxLength;
+    long length = start + (mediaStopMillis - mediaStartMillis);
     if (length > maxLength) {
       maxLength = length;
       defaultSource.set("start", 0L);
       defaultSource.set("duration", length * VideoEditorPipeline.GST_MILLI_SECOND);
     }
+    
+    filesource.set("location", filePath);
+    filesource.set("start", start * VideoEditorPipeline.GST_MILLI_SECOND);
+    filesource.set("duration", (mediaStopMillis - mediaStartMillis) * VideoEditorPipeline.GST_MILLI_SECOND);
+    filesource.set("media-start", mediaStartMillis * VideoEditorPipeline.GST_MILLI_SECOND);
+    filesource.set("media-stop", mediaStopMillis * VideoEditorPipeline.GST_MILLI_SECOND);
   }
   
   public Pad getSrcPad() {
@@ -137,5 +139,9 @@ public class GStreamerSourceBin {
   
   public long getLengthMillisecond() {
     return maxLength;
+  }
+  
+  public SourceType getSourceType() {
+    return type;
   }
 }

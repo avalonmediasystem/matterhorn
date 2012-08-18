@@ -103,7 +103,7 @@ public class GstreamerFileTypeFinder {
     pipeline.stop();
     pipeline = null;
     
-    Gst.deinit();
+//    Gst.deinit();
   }
 
   /**

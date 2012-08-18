@@ -13,20 +13,17 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.videoeditor.api;
 
-import java.io.File;
-import java.util.List;
-import org.opencastproject.smil.entity.Smil;
+package org.opencastproject.videoeditor.gstreamer;
 
-public interface VideoEditor {
+/**
+ *
+ * @author wsmirnow
+ */
+public interface GstreamerElementProperties {
 
-  String JOB_TYPE = "org.opencastproject.smil.processing";
+  String ASYNC = "async";
+  String LOCATION = "location";
+  String SYNC = "sync";
   
-  /**
-   * Start media processing described by smil file.
-   * @param smil processing description
-   * @return 
-   */
-  List<File> process(Smil smil);
 }

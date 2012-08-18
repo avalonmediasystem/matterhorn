@@ -43,7 +43,6 @@ public class GstreamerFileTypeFinderTest {
     if (!new File(CAMERA_TEST_FILE_PATH).exists()) {
       throw new Exception("Video testfile is not exist!");
     }
-    
     Gst.init();
   }
 
