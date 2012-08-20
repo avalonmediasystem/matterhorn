@@ -27,6 +27,7 @@ public class MediaElement extends SmilElement {
   private String alt;
   private String src;
   private String title;
+  private String description;
   private String author;
   private String clipBegin;
   private String clipEnd;
@@ -100,11 +101,11 @@ public class MediaElement extends SmilElement {
     return this.clipBegin;
   }
 
-  public int getClipBeginMS() {
+  public long getClipBeginMS() {
     String tmp = clipBegin.replace("s", "");
     double f = Double.valueOf(tmp);
 
-    return (int) (f * 1000d);
+    return (long) (f * 1000d);
   }
 
   public void setClipBegin(String clipBegin) {
@@ -116,11 +117,11 @@ public class MediaElement extends SmilElement {
     return this.clipEnd;
   }
 
-  public int getClipEndMS() {
+  public long getClipEndMS() {
     String tmp = clipEnd.replace("s", "");
     double f = Double.valueOf(tmp);
 
-    return (int) (f * 1000d);
+    return (long) (f * 1000d);
   }
 
   public void setClipEnd(String clipEnd) {
@@ -152,6 +153,14 @@ public class MediaElement extends SmilElement {
 
   public void setTitle(String title) {
     this.title = title;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   @XmlAttribute

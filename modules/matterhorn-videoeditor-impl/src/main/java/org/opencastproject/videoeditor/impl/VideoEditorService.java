@@ -76,8 +76,8 @@ public class VideoEditorService implements VideoEditor, ManagedService {
 
     for (ParallelElement pe : smil.getBody().getSequence().getElements()) {
       for (MediaElement me : pe.getElements()) {
-        int begin = me.getClipBeginMS();
-        int end = me.getClipEndMS();
+        long begin = me.getClipBeginMS();
+        long end = me.getClipEndMS();
         String srcFile = me.getSrc();
 
         try {
