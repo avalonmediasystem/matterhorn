@@ -5,6 +5,7 @@
 <link rel="stylesheet" type="text/css" href="/admin/css/jquery-ui/jquery-ui-admin.css" />
 <link rel="stylesheet" type="text/css" href="/admin/css/admin.css" />
 <link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="videoplayer.css">
 
 <script type="text/javascript" src="/admin/js/jquery/jquery.js"></script>
 <script type="text/javascript" src="/admin/js/jquery/jquery-ui.js"></script>
@@ -13,6 +14,8 @@
 <script type="text/javascript" src="/admin/js/oc.mediapackage.js"></script>
 <script type="text/javascript" src="/admin/js/jquery.jqote2.js"></script>
 <script type="text/javascript" src="jquery.timefield.js"></script>
+<script type="text/javascript" src="jquery.srt.js"></script>
+<script type="text/javascript" src="jquery.mhPlayer.js"></script>
 <script type="text/javascript" src="javascript.js"></script>
 <script type="text/javascript" src="editor.js"></script>
 </head>
@@ -26,15 +29,17 @@
   <div class="holdStateUI">
     <h1>Review/Trim Media</h1>
 
-    <center>
-      <iframe id="player-container"> </iframe>
+    <div id="videoContainer">
+      <video id="videoPlayer">
+        Your browser does not support HTML5 video.
+      </video>
       <div>
         <label>
           <span id="i18n_files_label">File(s)</span>:
         </label>
         <span id="files"></span>
       </div>
-    </center>
+    </div>
 
     <script type="text/x-jqote-template" id="template">
         <![CDATA[
@@ -78,10 +83,10 @@
     <div class="ui-helper-hidden" id="deleteDialog">
       <span>Remove this split item?</span>
     </div>
-    
+
     <div id="editor" class="form-box layout-centered disabled">
       <div id="splitter">
-        <input type="button" id="splitButton" value="split"/>
+        <input type="button" id="splitButton" value="split" />
         <span>split at current time</span> (<span id="current_time">00:00:00.000</span>)
       </div>
       <div id="boxes">
@@ -92,11 +97,9 @@
             <span id="splitIndex">#</span>
           </div>
           <div id="descriptionDiv">
-            <input type="hidden" id="splitUUID"/>
+            <input type="hidden" id="splitUUID" />
             <input type="button" id="playFrom" class="playButton" title="Play from IN-Point" />
-            <span class="clipItem" id="clipBegin"></span>
-            -
-            <span class="clipItem" id="clipEnd"></span>
+            <span class="clipItem" id="clipBegin"></span> - <span class="clipItem" id="clipEnd"></span>
             <input type="button" id="playTo" class="playButton" title="Play to OUT-Point" />
             <br />
             <label for="description">Description</label>
@@ -104,7 +107,7 @@
             <textarea id="splitDescription"></textarea>
             <div class="box_right">
               <input type="button" value="Cancel" id="cancelButton" />
-              <input type="button" value="OK" id="okButton"/>
+              <input type="button" value="OK" id="okButton" />
             </div>
           </div>
         </div>

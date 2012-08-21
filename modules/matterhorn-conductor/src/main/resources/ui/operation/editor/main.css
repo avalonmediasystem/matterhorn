@@ -1,0 +1,35 @@
+body {
+    background-color: #CCCCCC;
+    margin: 0;
+    padding: 0;
+    min-width: 1200px;
+}
+
+#header-line {
+    display: block;
+    overflow: hidden;
+    width: 580px;
+}
+
+.srt {
+    display: block;
+    overflow: hidden;
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 2px solid #666666;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+}
+
+.div_left {
+    width: 580px;
+    height: 250px;
+    float: left;
+}
+
+.div_right {
+    width: 580px;
+    height: 250px;
+    margin-left: 580px;
+}

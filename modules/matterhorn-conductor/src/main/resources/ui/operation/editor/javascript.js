@@ -14,6 +14,7 @@ var metadataChanged = false;
 var seriesChanged = false;
 var seriesServiceURL = false;
 var workflowInstance = null;
+var player = null;
 
 var inpoint = 0;
 var outpoint = 0;
@@ -106,20 +107,6 @@ $(document)
             metadataChanged = true;
           });
 
-          // Set default Values for In point and Out point
-          $('#player-container').load(function() {
-            $('#inPoint').val("00:00:00");
-            // Set a Timer for the while-Loop
-            this.intervalTimer = window.setInterval(function() {
-              // Ask if a default Out Point has been set
-              if (setOutPointDefaultValue()) {
-                // Clear the Intervall
-                $('#continueBtn').button('enable');
-                window.clearInterval(this.intervalTimer);
-              }
-            }, timerTimeout);
-          });
-
           // load tracks
           var tracks = {};
           tracks.tracks = [];
@@ -133,10 +120,17 @@ $(document)
               for (i = 0; i < data.length; i++) {
                 if (data[i].type.indexOf("work") != -1) {
                   tracks.tracks.push(data[i]);
+                } else if(data[i].type.indexOf("preview") != -1) {
+                  $('#videoPlayer').prepend('<source src="'+ data[i].url +'" type="' + data[i].mimetype + '"/>')
                 }
               }
             }
           });
+          
+          //create player
+          
+          player = $('#videoPlayer').mhPlayer();
+          console.log(player);
 
           $('#trackForm').append($('#template').jqote(tracks));
 
@@ -150,24 +144,6 @@ $(document)
           });
 
           // loading tracks ready
-
-          /**
-           * Tries to set the default Out point value
-           */
-          function setOutPointDefaultValue() {
-            // If Duration has been set
-            if ($('#player-container')[0].contentWindow.Opencast != null
-                && ($('#player-container')[0].contentWindow.Opencast.Player.getDuration() != 0) && !timerSet
-                && ($('#player-container')[0].contentWindow.Opencast.Player.getDuration() != -1)
-                && $('#player-container').contents().find('#oc_duration').text() != 'Initializing') {
-              $('#outPoint').val($('#player-container').contents().find('#oc_duration').text());
-              $('#newLength').val($('#player-container').contents().find('#oc_duration').text());
-              timerSet = true;
-              return true;
-            }
-
-            return false;
-          }
 
           // create Buttons
           $('.ui-button').button();
@@ -185,225 +161,119 @@ $(document)
           window.parent.ocRecordings.stopStatisticsUpdate();
           window.parent.$('#controlsFoot').hide(0);
 
-          // Event edit link clicked
-          $('#edit-link').click(function() {
-            // parent.Recordings.retryRecording(id);
-            parent.location.href = "/admin/upload.html?retry=" + id;
-            return false;
-          });
-
-          // Event set inpoint clicked
-          $('#set-trimin').click(function() {
-            $('#inPoint').val($('#player-container')[0].contentWindow.Opencast.Player.getCurrentTime());
-            checkInOutPoint();
-          });
-
-          // Event set outpoint clicked
-          $('#set-trimout').click(function() {
-            $('#outPoint').val($('#player-container')[0].contentWindow.Opencast.Player.getCurrentTime());
-            checkInOutPoint();
-          });
-
-          // Event forward one second (inpoint)
-          $('#step-in-forward').click(function() {
-            in_de_creaseObject($('#inPoint'), secondsForward);
-            checkInOutPoint();
-          });
-
-          // Event backward one second (inpoint)
-          $('#step-in-backward').click(function() {
-            in_de_creaseObject($('#inPoint'), -secondsForward);
-            checkInOutPoint();
-          });
-
-          // Event forward one second (outpoint)
-          $('#step-out-forward').click(function() {
-            in_de_creaseObject($('#outPoint'), secondsBackward);
-            checkInOutPoint();
-          });
-
-          // Event backward one second (outpoint)
-          $('#step-out-backward').click(function() {
-            in_de_creaseObject($('#outPoint'), -secondsBackward);
-            checkInOutPoint();
-          });
-
-          /**
-           * Checks if In point is bigger than Out point and prints an Error
-           * Message if this is the case
-           */
-          function checkInOutPoint() {
-            // Check if Out point is larger than the Video Duration
-            if (getTimeInMilliseconds($('#outPoint').val()) > getTimeInMilliseconds($('#player-container').contents()
-                .find('#oc_duration').text())) {
-              $('#outPoint').val($('#player-container').contents().find('#oc_duration').text());
-            }
-            // Check if In point is larger than the Video Duration
-            if (getTimeInMilliseconds($('#inPoint').val()) > getTimeInMilliseconds($('#player-container').contents()
-                .find('#oc_duration').text())) {
-              $('#inPoint').val($('#player-container').contents().find('#oc_duration').text());
-            }
-            if (getTimeInMilliseconds($('#inPoint').val()) >= getTimeInMilliseconds($('#outPoint').val())) {
-              $('div#errorMessage').html("Out point must be later than In point");
-              $('#trimming-hint').hide();
-              $('div#errorMessage').show();
-            } else {
-              calculateNewLength();
-              $('div#errorMessage').hide();
-              $('#trimming-hint').show();
-            }
-          }
-
-          function setValue(input, value) {
-            $('#' + input).val(value);
-          }
-
-          // start playing from current in point
-          $('#play-from-in').click(function() {
-            var videodisplay = $('#player-container')[0].contentWindow.Videodisplay;
-            videodisplay.pause();
-            var seekTime = getTimeInMilliseconds($('#inPoint').val());
-            videodisplay.seek(seekTime / 1000);
-            window.setTimeout(function() {
-              videodisplay.play();
-            }, 800);
-          });
-
-          // play last 10 seconds to out
-          $('#play-to-out').click(function() {
-            var videodisplay = $('#player-container')[0].contentWindow.Videodisplay;
-            videodisplay.pause();
-            var seekTime = getTimeInMilliseconds($('#outPoint').val()) / 1000;
-            var timeOut = 10000;
-            // If Out point < 10 Seconds
-            if ((seekTime - 10) <= 0) {
-              videodisplay.seek(0);
-              timeOut = seekTime * 1000;
-            } else {
-              videodisplay.seek(seekTime - 10);
-            }
-            window.setTimeout(function() {
-              videodisplay.play();
-              window.setTimeout(function() {
-                videodisplay.pause();
-              }, timeOut);
-
-            }, 800);
-          });
-
           // load preview player and metadata
-          $
-              .ajax({
-                url : '/workflow/instance/' + id + '.xml',
-                dataType : 'xml', // or XML..
-                success : function(data) {
-
-                  // clone mediapackage for editing
-                  mediapackage = ocUtils.createDoc('mediapackage', '');
-                  var clone = $(data.documentElement).find("mediapackage").clone();
-                  $(clone).children().appendTo($(mediapackage.documentElement));
-                  $(mediapackage.documentElement).attr('id', $(clone).attr('id'));
-                  $(mediapackage.documentElement).attr('start', $(clone).attr('start'));
-                  $(mediapackage.documentElement).attr('duration', $(clone).attr('duration'));
-
-                  // populate series field if information
-                  // present
-                  var seriesid = $(data.documentElement).find("mediapackage > series").text();
-                  if (seriesid != '') {
-                    $('#ispartof').val(seriesid);
-                    $('#series').val($(data.documentElement).find("mediapackage > seriestitle").text());
-                    $('#info-series')[0].innerHTML = $(data.documentElement).find("mediapackage > seriestitle").text();
-                  }
-
-                  // load metadata from DC xml for editing
-                  catalogUrl = $(data.documentElement).find(
-                      "mediapackage > metadata > catalog[type='dublincore/episode'] > url").text();
-                  $.ajax({
-                    url : catalogUrl,
-                    dataType : 'xml',
-                    error : function(XMLHttpRequest, textStatus, errorThrown) {
-                      $('div#errorMessage').html('error: ' + textStatus);
-                    },
-                    success : function(data) {
-                      DCmetadata = data;
-                      $(data.documentElement).children().each(function(index, elm) {
-                        var tagName = elm.tagName.split(/:/)[1];
-                        if ($(elm).text() != '') {
-                          $('#meta-' + tagName).val($(elm).text());
-                          if ($('#info-' + tagName).length > 0)
-                            $('#info-' + tagName)[0].innerHTML = $(elm).text();
-                          if (tagName === "category") {
-                            value = $(elm).text();
-                            $('#categorySelector').val(value.substr(0, 3));
-                            changedCategory();
-                            if (value.length > 3) {
-                              $('#category').val(value);
-                              changedSubCategory();
-                            }
-                          }
-                          if (tagName === "created") {
-                            $('#recordDate').datepicker('setDate', new Date($(elm).text()));
-                            $('#startTimeHour').val((new Date($(elm).text())).getHours());
-                            $('#startTimeMin').val((new Date($(elm).text())).getMinutes());
-                          }
-                        }
-                      });
-
-                      // save information that
-                      // some metadata changed
-                      $('.dcMetaField').change(function() {
-                        metadataChanged = true;
-                      });
-                      $('.ocMetaField').change(function() {
-                        metadataChanged = true;
-                      });
-                      parent.ocRecordings.adjustHoldActionPanelHeight();
-                    }
-                  });
-
-                  var previewFiles = new Array();
-
-                  $(data.documentElement).find("mediapackage > media > track").each(function(index, elm) {
-                    if ($(elm).attr('type').split(/\//)[1] == 'preview') {
-                      previewFiles.push($(elm).find('url').text());
-                    }
-                  });
-                  if (previewFiles.length > 0) {
-                    var url = PLAYER_URL + '?';
-                    for ( var i = 0; i < previewFiles.length; i++) {
-                      if (i == 0) {
-                        url += 'videoUrl=';
-                      } else {
-                        url += '&videoUrl' + (i + 1) + '=';
-                      }
-                      url += previewFiles[i];
-                    }
-                    $('#player-container').attr('src',
-                        url + "&play=false&preview=true&hideControls=false&hideAPLogo=true");
-                  } else {
-                    $('#player-container').text("No preview media files found for this media package.");
-                  }
-                  // show links to source media
-                  var singleFile = true;
-                  $(data.documentElement).find("mediapackage > media > track").each(
-                      function(index, elm) {
-                        if ($(elm).attr('type').split(/\//)[1] == 'source') {
-                          var link = document.createElement('a');
-                          var url = $(elm).find('url').text();
-                          $(link).attr('href', url);
-                          var filename = url.split(/\//);
-                          $(link).text(filename[filename.length - 1]).attr('title',
-                              'Download ' + filename[filename.length - 1] + ' for editing');
-                          if (singleFile) {
-                            singleFile = false;
-                          } else {
-                            $('#files').append($(document.createElement('span')).text(', '));
-                          }
-                          $('#files').append(link);
-                        }
-                      });
-                }
-              });
+//          $
+//              .ajax({
+//                url : '/workflow/instance/' + id + '.xml',
+//                dataType : 'xml', // or XML..
+//                success : function(data) {
+//
+//                  // clone mediapackage for editing
+//                  mediapackage = ocUtils.createDoc('mediapackage', '');
+//                  var clone = $(data.documentElement).find("mediapackage").clone();
+//                  $(clone).children().appendTo($(mediapackage.documentElement));
+//                  $(mediapackage.documentElement).attr('id', $(clone).attr('id'));
+//                  $(mediapackage.documentElement).attr('start', $(clone).attr('start'));
+//                  $(mediapackage.documentElement).attr('duration', $(clone).attr('duration'));
+//
+//                  // populate series field if information
+//                  // present
+//                  var seriesid = $(data.documentElement).find("mediapackage > series").text();
+//                  if (seriesid != '') {
+//                    $('#ispartof').val(seriesid);
+//                    $('#series').val($(data.documentElement).find("mediapackage > seriestitle").text());
+//                    $('#info-series')[0].innerHTML = $(data.documentElement).find("mediapackage > seriestitle").text();
+//                  }
+//
+//                  // load metadata from DC xml for editing
+//                  catalogUrl = $(data.documentElement).find(
+//                      "mediapackage > metadata > catalog[type='dublincore/episode'] > url").text();
+//                  $.ajax({
+//                    url : catalogUrl,
+//                    dataType : 'xml',
+//                    error : function(XMLHttpRequest, textStatus, errorThrown) {
+//                      $('div#errorMessage').html('error: ' + textStatus);
+//                    },
+//                    success : function(data) {
+//                      DCmetadata = data;
+//                      $(data.documentElement).children().each(function(index, elm) {
+//                        var tagName = elm.tagName.split(/:/)[1];
+//                        if ($(elm).text() != '') {
+//                          $('#meta-' + tagName).val($(elm).text());
+//                          if ($('#info-' + tagName).length > 0)
+//                            $('#info-' + tagName)[0].innerHTML = $(elm).text();
+//                          if (tagName === "category") {
+//                            value = $(elm).text();
+//                            $('#categorySelector').val(value.substr(0, 3));
+//                            changedCategory();
+//                            if (value.length > 3) {
+//                              $('#category').val(value);
+//                              changedSubCategory();
+//                            }
+//                          }
+//                          if (tagName === "created") {
+//                            $('#recordDate').datepicker('setDate', new Date($(elm).text()));
+//                            $('#startTimeHour').val((new Date($(elm).text())).getHours());
+//                            $('#startTimeMin').val((new Date($(elm).text())).getMinutes());
+//                          }
+//                        }
+//                      });
+//
+//                      // save information that
+//                      // some metadata changed
+//                      $('.dcMetaField').change(function() {
+//                        metadataChanged = true;
+//                      });
+//                      $('.ocMetaField').change(function() {
+//                        metadataChanged = true;
+//                      });
+//                      parent.ocRecordings.adjustHoldActionPanelHeight();
+//                    }
+//                  });
+//
+//                  var previewFiles = new Array();
+//
+//                  $(data.documentElement).find("mediapackage > media > track").each(function(index, elm) {
+//                    if ($(elm).attr('type').split(/\//)[1] == 'preview') {
+//                      previewFiles.push($(elm).find('url').text());
+//                    }
+//                  });
+//                  if (previewFiles.length > 0) {
+//                    var url = PLAYER_URL + '?';
+//                    for ( var i = 0; i < previewFiles.length; i++) {
+//                      if (i == 0) {
+//                        url += 'videoUrl=';
+//                      } else {
+//                        url += '&videoUrl' + (i + 1) + '=';
+//                      }
+//                      url += previewFiles[i];
+//                    }
+//                    $('#player-container').attr('src',
+//                        url + "&play=false&preview=true&hideControls=false&hideAPLogo=true");
+//                  } else {
+//                    $('#player-container').text("No preview media files found for this media package.");
+//                  }
+//                  // show links to source media
+//                  var singleFile = true;
+//                  $(data.documentElement).find("mediapackage > media > track").each(
+//                      function(index, elm) {
+//                        if ($(elm).attr('type').split(/\//)[1] == 'source') {
+//                          var link = document.createElement('a');
+//                          var url = $(elm).find('url').text();
+//                          $(link).attr('href', url);
+//                          var filename = url.split(/\//);
+//                          $(link).text(filename[filename.length - 1]).attr('title',
+//                              'Download ' + filename[filename.length - 1] + ' for editing');
+//                          if (singleFile) {
+//                            singleFile = false;
+//                          } else {
+//                            $('#files').append($(document.createElement('span')).text(', '));
+//                          }
+//                          $('#files').append(link);
+//                        }
+//                      });
+//                }
+//              });
 
           // Event: collapsable title clicked, de-/collapse
           // collapsables

@@ -155,7 +155,7 @@ function enabledRightBox(enabled) {
 }
 
 function splitButtonClick() {
-  var currentTime = editor.player.getCurrentPosition();
+  var currentTime = editor.player.prop('currentTime');
   for ( var i = 0; i < editor.splitData.splits.length; i++) {
     var splitItem = editor.splitData.splits[i];
     var clipBegin = parseFloat(splitItem.clipBegin.replace("s", ""));
@@ -182,9 +182,7 @@ function splitButtonClick() {
 }
 
 function waitForPlayerReady() {
-  if ($('#player-container')[0].contentWindow.Opencast && $('#player-container')[0].contentWindow.Opencast.Player
-      && $('#player-container')[0].contentWindow.Opencast.Player.getDuration() != 0
-      && $('#player-container')[0].contentWindow.Opencast.Player.getDuration() != -1) {
+  if ($('#videoPlayer').prop("readyState") == $('#videoPlayer').prop("HAVE_ENOUGH_DATA")) {
     ocUtils.log("player ready");
     playerReady();
   } else {
@@ -193,11 +191,12 @@ function waitForPlayerReady() {
 }
 
 function playerReady() {
-  editor.player = $('#player-container')[0].contentWindow.Opencast.Player;
-  setInterval(updateCurrentTime, 500);
+  editor.player = $('#videoPlayer');
+  //setInterval(updateCurrentTime, 500);
+  editor.player.bind('timeupdate', updateCurrentTime);
   editor.splitData.splits.push({
     clipBegin : '0s',
-    clipEnd : editor.player.getDuration() + "s",
+    clipEnd : editor.player.prop('duration') + "s",
     enabled : true,
     description : ""
   });
@@ -243,7 +242,7 @@ function playerReady() {
 }
 
 function updateCurrentTime() {
-  $('#current_time').html(formatTime(editor.player.getCurrentPosition()));
+  $('#current_time').html(formatTime(editor.player.prop("currentTime")));
 }
 
 function formatTime(time) {
@@ -252,7 +251,7 @@ function formatTime(time) {
     time = parseFloat(time);
   }
   seconds = parseInt(time);
-  millis = parseInt((time - seconds) * 1000);
+  millis = parseInt((time - seconds) * 100);
   formatted = ocUtils.formatSeconds(time) + "." + millis;
   return formatted;
 }

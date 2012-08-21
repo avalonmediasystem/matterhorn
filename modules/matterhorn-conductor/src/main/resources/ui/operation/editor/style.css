@@ -1,8 +1,13 @@
-#player-container {
+#videoContainer {
   clear: both;
   border: none;
-  width: 90%;
+  width: 500px;
+  margin: 0 auto;
   height: 350px;
+}
+
+#videoPlayer {
+  width: 100%
 }
 
 .hidden {
@@ -66,6 +71,7 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 #editor {
   height: 350px;
   padding: 10px;
+  margin-top: 50px;
 }
 
 #boxes {
