@@ -130,7 +130,9 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 }
 
 .splitText {
-  margin-left: 30px;
+  margin-left: 10px;
+  float: left;
+  width: 380px;
 }
 
 .splitRemover {
@@ -139,7 +141,6 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   border-left: 1px solid black;
   width: 20px;
   height: 20px;
-  margin-top: -16px;
 }
 
 .splitRemover input {

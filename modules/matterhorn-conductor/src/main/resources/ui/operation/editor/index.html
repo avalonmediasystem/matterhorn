@@ -60,7 +60,7 @@
     <script type="text/x-jqote-template" id="splitElements">
       <![CDATA[
           <% $.each(data[j].splits, function(key, split ) { %>
-            <div class="splitItem<% if(!split.enabled) { %> splitItemDisabled<% }%>" id="splitItem-<%= key %>">
+            <div class="splitItem<% if(!split.enabled) { %> disabled<% }%>" id="splitItem-<%= key %>">
               <div class="splitNumber floatLeft">
                 <span><%= (key + 1) %></span>
               </div>
@@ -93,11 +93,11 @@
           </div>
           <div id="descriptionDiv">
             <input type="hidden" id="splitUUID"/>
-            <input type="button" class="playButton" title="Play from IN-Point" />
+            <input type="button" id="playFrom" class="playButton" title="Play from IN-Point" />
             <span class="clipItem" id="clipBegin"></span>
             -
             <span class="clipItem" id="clipEnd"></span>
-            <input type="button" class="playButton" title="Play from OUT-Point" />
+            <input type="button" id="playTo" class="playButton" title="Play to OUT-Point" />
             <br />
             <label for="description">Description</label>
             <br />

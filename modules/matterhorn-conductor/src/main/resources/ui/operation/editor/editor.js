@@ -106,13 +106,28 @@ $(document).ready(function() {
   $('#okButton').click(okButtonClick);
   $('#cancelButton').click(cancelButtonClick);
   enabledRightBox(false);
+  initPlayButtons();
 })
+
+function initPlayButtons() {
+  $('#playFrom').click(function() {
+    startTime = $('#clipBegin').timefield('option', 'value').toString().replace("s", "");
+    editor.player.doSeek(startTime);
+    editor.player.doPlay();
+  });
+
+  $('#playTo').click(function() {
+    endTime = parseInt($('#clipEnd').timefield('option', 'value').toString().replace("s", ""));
+    editor.player.doSeek(Math.max(endTime - 5, 0));
+    editor.player.doPlay();
+  })
+}
 
 function okButtonClick() {
   id = $('#splitUUID').val();
   if (id != "") {
     splitItem = editor.splitData.splits[id];
-    splitItem.description = $('#splitDescription').html();
+    splitItem.description = $('#splitDescription').val();
     splitItem.clipBegin = $('#clipBegin').timefield('option', 'value');
     splitItem.clipEnd = $('#clipEnd').timefield('option', 'value');
     cancelButtonClick();
@@ -123,6 +138,7 @@ function okButtonClick() {
 function cancelButtonClick() {
   $('#splitDescription').html('');
   $('#splitUUID').val('');
+  $('#splitDescription').val("");
   $('#clipBegin').timefield('option', 'value', 0);
   $('#clipEnd').timefield('option', 'value', 0);
   $('#splitIndex').html('#');
@@ -145,7 +161,6 @@ function splitButtonClick() {
     var clipBegin = parseFloat(splitItem.clipBegin.replace("s", ""));
     var clipEnd = parseFloat(splitItem.clipEnd.replace("s", ""));
     if (clipBegin < currentTime && currentTime < clipEnd) {
-      ocUtils.log("foundItem");
       newEnd = "0s";
       if (editor.splitData.splits.length == i + 1) {
         newEnd = splitItem.clipEnd;
@@ -197,13 +212,14 @@ function playerReady() {
           buttons : {
             Yes : function() {
               editor.splitData.splits = [];
+              smil.smil.body.seq.par = ocUtils.ensureArray(smil.smil.body.seq.par);
               $.each(smil.smil.body.seq.par, function(key, value) {
                 value.ref = ocUtils.ensureArray(value.ref);
                 editor.splitData.splits.push({
                   clipBegin : value.ref[0].clipBegin,
                   clipEnd : value.ref[0].clipEnd,
                   enabled : true,
-                  description : value.ref[0].description ? value.ref.description : "",
+                  description : value.ref[0].description ? value.ref[0].description : "",
                 });
               });
               $(this).dialog('close');
@@ -271,13 +287,13 @@ function setEnabled(uuid, enabled) {
 }
 
 function splitItemClick() {
-  if (!$(this).hasClass('splitItemDisabled')) {
+  if (!$(this).hasClass('disabled')) {
     $('.splitItem').removeClass('splitItemSelected');
     $(this).addClass('splitItemSelected');
     id = $(this).attr('id');
     id = id.replace('splitItem-', '');
     splitItem = editor.splitData.splits[id];
-    $('#splitDescription').html(splitItem.description);
+    $('#splitDescription').val(splitItem.description);
     $('#splitUUID').val(id);
     $('#clipBegin').timefield('option', 'value', splitItem.clipBegin);
     $('#clipEnd').timefield('option', 'value', splitItem.clipEnd);

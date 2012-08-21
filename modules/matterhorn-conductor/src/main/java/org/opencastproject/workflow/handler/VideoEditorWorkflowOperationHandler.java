@@ -15,6 +15,8 @@
  */
 package org.opencastproject.workflow.handler;
 
+import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import org.opencastproject.composer.api.ComposerService;
@@ -26,6 +28,7 @@ import org.opencastproject.smil.api.SmilException;
 import org.opencastproject.smil.api.SmilService;
 import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.util.NotFoundException;
+import org.opencastproject.videoeditor.api.VideoEditor;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowOperationException;
 import org.opencastproject.workflow.api.WorkflowOperationInstance;
@@ -67,6 +70,8 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
 
   private WorkflowService workflowService;
 
+  private VideoEditor videoEditor;
+
   public void activate(ComponentContext cc) {
     super.activate(cc);
     setHoldActionTitle("Review / VideoEdit");
@@ -91,7 +96,7 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new WorkflowOperationException(e.getMessage(), e);
-    } 
+    }
     logger.info("Holding for video edit...");
     return createResult(mp, Action.PAUSE);
   }
@@ -141,9 +146,12 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
 
     logger.info("VideoEditing workflow {} using SMIL Document", workflowInstance.getId());
 
+    Smil smil = null;
+
     try {
-      Smil smil = smilService.getSmil(workflowInstance.getId());
+      smil = smilService.getSmil(workflowInstance.getId());
       logger.info("SMIL is ready for processing");
+      logger.info("videoeditor: {}", videoEditor);
     } catch (SmilException e) {
       throw new WorkflowOperationException("SMIL Exception", e);
     } catch (NotFoundException e) {
@@ -157,6 +165,11 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
         .getConfiguration(TARGET_FLAVOR_SUBTYPE_PROPERTY);
     MediaPackageElementFlavor matchingFlavor = MediaPackageElementFlavor
         .parseFlavor(configuredSourceFlavor);
+
+    List<File> files = videoEditor.process(smil);
+    for (File f : files) {
+      logger.info(f.toString());
+    }
 
     return createResult(Action.PAUSE);
   }
@@ -185,6 +198,10 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
 
   public void setWorkflowService(WorkflowService workflowService) {
     this.workflowService = workflowService;
+  }
+
+  public void setVideoEditorService(VideoEditor editor) {
+    this.videoEditor = editor;
   }
 
 }
