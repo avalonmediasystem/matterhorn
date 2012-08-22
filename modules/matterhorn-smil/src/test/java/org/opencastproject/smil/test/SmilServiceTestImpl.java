@@ -20,11 +20,16 @@ import static org.junit.Assert.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.opencastproject.smil.api.SmilService;
+import org.opencastproject.smil.impl.SmilServiceImpl;
 
 public class SmilServiceTestImpl {
+  
+  private SmilService smilService;
 
   @Before
   public void setUp() throws Exception {
+    smilService = new SmilServiceImpl();
   }
 
   @After

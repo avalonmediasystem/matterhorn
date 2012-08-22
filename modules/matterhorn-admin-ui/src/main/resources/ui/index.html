@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="/admin/css/jquery-ui/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="/admin/css/jquery-ui/jquery-ui-admin.css" />
     <link rel="stylesheet" type="text/css" href="/admin/css/admin.css" />
+    <link rel="stylesheet" type="text/css" href="/admin/css/metrics.css" />
     <!-- media package editor -->
     <link rel="stylesheet" type="text/css" href="../mediapackage-editor/style/mediapackageeditor.css" />
     <!-- SCRIPTS -->
@@ -24,6 +25,14 @@
     <script type="text/javascript" src="/admin/js/jquery.cookie.js"></script>
     <script type="text/javascript" language="javascript" src="/admin/js/js-class.js"></script>
     <script type="text/javascript" language="javascript" src="/admin/js/bluff-min.js"></script>
+    <script type="text/javascript" src="/admin/js/jquery.xmlns.js"></script>
+        
+    <!-- JMX Metrics -->
+  	<script type="text/javascript" src="/admin/js/json2.js"></script>
+  	<script type="text/javascript" src="/admin/js/jolokia-min.js"></script>
+  	<script type="text/javascript" src="/admin/js/jolokia-simple-min.js"></script>
+  	<script type="text/javascript" src="/admin/js/highcharts.js" ></script>
+  	
     <!-- media package editor -->
     <script type="text/javascript" src="../mediapackage-editor/scripts/jquery.mpeditor.js"></script>
     <script type="text/javascript" src="../mediapackage-editor/scripts/jquery.tmpl.min.js"></script>
@@ -34,6 +43,7 @@
     <script type="text/javascript" src="/admin/js/oc.series.list.js"></script>
     <script type="text/javascript" src="/admin/js/oc.capture.agent.js"></script>
     <script type="text/javascript" src="/admin/js/oc.statistics.js"></script>
+    <script type="text/javascript" src="/admin/js/oc.metrics.js"></script>
     <script type="text/javascript" src="/admin/js/oc.scheduler.js"></script>
     <script type="text/javascript" src="/admin/js/oc.workflow.js"></script>
     <script type="text/javascript" src="/admin/js/oc.view.series.js"></script>
@@ -65,6 +75,9 @@
         </li>
         <li>
           <a href="#statistics" title="Statistics" id="i18n_tab_statistics">Statistics</a>
+        </li>
+        <li>
+          <a href="#metrics" title="Metrics" id="i18n_tab_metrics">Metrics</a>
         </li>
       </ul>
     </script>
@@ -175,9 +188,16 @@
                 document.title = "Inspect" + matterhorn;
               },
               tab: "i18n_tab_recording"
+            },
+            "/metrics": {
+              init: function() {
+                ocMetrics.init();
+                document.title = "Metrics" + matterhorn;
+              },
+              tab: "i18n_tab_metrics"
             }
       };
-
+      
       // --
 
       /** Run the init code for the tab corresponding to the current path.

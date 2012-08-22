@@ -455,7 +455,7 @@
        * initial seek for the seek slider
        */
       var initialSeek = function() {
-        if (playerIsReady()) {
+        if (playerIsReady() == 4) {
           updateTime();
           video_seek.slider({
             value : 0,

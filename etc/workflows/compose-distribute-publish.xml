@@ -1,4 +1,5 @@
-<definition>
+<?xml version="1.0" encoding="UTF-8"?>
+<definition xmlns="http://workflow.opencastproject.org">
 
   <id>full</id>
   <title>Encode, Analyze, and Distribute</title>
@@ -11,15 +12,34 @@
   <![CDATA[
     <fieldset>
       <legend>Holds</legend>
-      <ul class="oc-ui-form-list">       
-          <li class="ui-helper-clearfix"><label class="scheduler-label">Processing should be paused to allow for:</label></li>        
-	  <label class="scheduler-label"></label>
-	  <span id="trimholdconfig">
-            <input type="checkbox" id="trimHold" name="trimHold" class="configField holdCheckbox" value="true">
-            <label for="trimHold" id="i18n_hold_for_trim">&nbsp;Review / Trim before encoding (with option to edit info)</label>
-	  </span>
+      <span>Processing should be paused to allow for:</span>
+      <ul class="oc-ui-checkbox-list">
+          <input id="videoPreview" name="videoPreview" type="checkbox" class="configField holdCheckbox" style="visibility:hidden" value="true"/>
+        <li class="ui-helper-clearfix">
+          <span id="trimholdconfig">
+            <input id="trimHold" name="trimHold" type="checkbox" class="configField holdCheckbox" value="true" />
+            <span id="i18n_hold_for_trim">&nbsp;Review / Trim before encoding (with option to edit info)</span>
+          </span>
+        </li>
+        <li class="ui-helper-clearfix">
+          <span id="captionconfig">
+            <input id="captionHold" name="captionHold" type="checkbox" class="configField holdCheckbox" value="true"/>
+            <span id="i18n_hold_for_caption">&nbsp;Captions file upload</span>
+          </span>
+        </li>
       </ul>
-    </fieldset>    
+    </fieldset>
+    <fieldset>
+      <legend>Archive</legend>
+      <ul class="oc-ui-form-list">       
+          <li class="ui-helper-clearfix">
+            <span id="archiveconfig">
+              <input id="archiveOp" name="archiveOp" type="checkbox" class="configField holdCheckbox" value="true"/>
+              <span id="i18n_activate_archive">&nbsp;Archive the media package</span>
+            </span>
+          </li>
+      </ul>
+    </fieldset>  
     <fieldset>
       <legend>Distribution</legend>
       <ul class="oc-ui-form-list">
@@ -37,13 +57,22 @@
         </li>
         <!-- field: License -->
         <li class="ui-helper-clearfix">
-          <label class="scheduler-label" for="license" id="licenseLabel"><span id="i18n_license_label">License</span>:</label>
-          <input type="text" class="oc-ui-form-field configField" id="license" name="license" maxlength="255" style="width:300px;"/>
+          <label class="scheduler-label"><span id="i18n_license_label">License</span>:</label>
+          <input type="text" class="formField" id="license" name="license">
         </li>
       </ul>
     </fieldset>
     <script type="text/javascript">
       var ocWorkflowPanel = ocWorkflowPanel || {};
+      
+      var checkVideoPreview = function(){
+        var checkValue = trimHold.checked || captionHold.checked;
+        videoPreview.checked = checkValue;
+      }
+      
+      trimHold.addEventListener("click",checkVideoPreview,false);
+      captionHold.addEventListener("click",checkVideoPreview,false);
+      
       ocWorkflowPanel.registerComponents = function(components){
         /* components with keys that begin with 'org.opencastproject.workflow.config' will be passed
          * into the workflow. The component's nodeKey must match the components array key.
@@ -52,21 +81,44 @@
          */
         components['org.opencastproject.workflow.config.trimHold'] = new ocAdmin.Component(
           ['trimHold'],
-          {key: 'org.opencastproject.workflow.config.trimHold'});
+          {key: 'org.opencastproject.workflow.config.trimHold'},
+          {getValue: function(){ return this.fields.trimHold.is(":checked"); }
+          });
+          
+        components['org.opencastproject.workflow.config.archiveOp'] = new ocAdmin.Component(
+          ['archiveOp'],
+          {key: 'org.opencastproject.workflow.config.archiveOp'},
+          {getValue: function(){ return this.fields.archiveOp.is(":checked");}
+          });
+          
+        components['org.opencastproject.workflow.config.captionHold'] = new ocAdmin.Component(
+          ['captionHold'],
+          {key: 'org.opencastproject.workflow.config.captionHold'},
+          {getValue: function(){ return this.fields.captionHold.is(":checked");}
+          });
+          
+        components['org.opencastproject.workflow.config.videoPreview'] = new ocAdmin.Component(
+          ['videoPreview'],
+          {key: 'org.opencastproject.workflow.config.videoPreview'},
+          {getValue: function(){ return this.fields.videoPreview.is(":checked");}
+          });
           
         ocScheduler.dublinCore.components['license'] = new ocAdmin.Component(
           ['license'],
-          {label: 'licenseLabel', key: 'license'});
+          {label: 'licenseLabel', key: 'license'}
+          );
           
           //etc...
       }
       ocWorkflowPanel.setComponentValues = function(values, components){
+        components['org.opencastproject.workflow.config.captionHold'].setValue(values['org.opencastproject.workflow.config.captionHold']);
         components['org.opencastproject.workflow.config.trimHold'].setValue(values['org.opencastproject.workflow.config.trimHold']);
+        components['org.opencastproject.workflow.config.videoPreview'].setValue(values['org.opencastproject.workflow.config.videoPreview']);
+        components['org.opencastproject.workflow.config.archiveOp'].setValue(values['org.opencastproject.workflow.config.archiveOp']);
         components['license'].setValue(values['license']);
       }
     </script>
   ]]>
-
   </configuration_panel>
 
   <operations>
@@ -148,32 +200,18 @@
 
     <operation
       id="compose"
-      if="${trimHold}"
+      if="${videoPreview}"
       fail-on-error="true"
       exception-handler-workflow="error"
       description="Encoding presenter (camera) video for preview">
       <configurations>
-        <configuration key="source-flavor">presenter/work</configuration>
-        <configuration key="target-flavor">presenter/preview</configuration>
+        <configuration key="source-flavor">*/work</configuration>
+        <configuration key="target-flavor">*/preview</configuration>
         <configuration key="encoding-profile">flash-preview.http</configuration>
       </configurations>
     </operation>
 
-    <operation
-      id="compose"
-      if="${trimHold}"
-      fail-on-error="true"
-      exception-handler-workflow="error"
-      description="Encoding presentation (screen) for preview">
-      <configurations>
-        <configuration key="source-flavor">presentation/work</configuration>
-        <configuration key="target-flavor">presentation/preview</configuration>
-        <configuration key="encoding-profile">flash-preview.http</configuration>
-      </configurations>
-    </operation>
-
-    <!-- hold to trim media-->
-   
+    <!-- hold to trim media--> 
     <operation
       id="trim"
       if="${trimHold}"
@@ -186,9 +224,18 @@
         <configuration key="encoding-profile">trim.work</configuration>
       </configurations>
 
-    </operation>  
+    </operation>
+    
+    <!-- hold for captions -->
+    <operation
+      id="caption"
+      if="${captionHold}"
+      fail-on-error="true"
+      exception-handler-workflow="error"
+      description="Waiting for user to upload captions">
+    </operation>
 
-    <!-- encode to engage player preview images -->
+   <!-- encode to engage player preview images -->
  
     <operation
       id="image"
@@ -317,54 +364,13 @@
       id="compose"
       fail-on-error="true"
       exception-handler-workflow="error"
-      description="Encoding presenter (camera) to mpeg4 audio download">
+      description="Encoding to feed download formats">
       <configurations>
-        <configuration key="source-flavor">presenter/trimmed</configuration>
-
-        <configuration key="target-flavor">presenter/delivery</configuration>
+        <configuration key="source-flavor">*/trimmed</configuration>
+        <configuration key="target-flavor">*/delivery</configuration>
         <configuration key="target-tags">rss, atom</configuration>
-        <configuration key="encoding-profile">feed-m4a.http</configuration>
+        <configuration key="encoding-profiles">feed-m4a.http, feed-avi.http</configuration>
       </configurations>
-    </operation>
-    <operation
-      id="compose"
-      fail-on-error="true"
-      exception-handler-workflow="error"
-      description="Encoding presentation (screen) to mpeg4 audio download">
-      <configurations>
-
-        <configuration key="source-flavor">presentation/trimmed</configuration>
-        <configuration key="target-flavor">presentation/delivery</configuration>
-        <configuration key="target-tags">rss, atom</configuration>
-        <configuration key="encoding-profile">feed-m4a.http</configuration>
-      </configurations>
-    </operation>
-    <operation
-      id="compose"
-      fail-on-error="true"
-      exception-handler-workflow="error"
-      description="Encoding presenter (camera) to avi/mpeg4 download">
-
-      <configurations>
-        <configuration key="source-flavor">presenter/trimmed</configuration>
-        <configuration key="target-flavor">presenter/delivery</configuration>
-        <configuration key="target-tags">rss, atom</configuration>
-        <configuration key="encoding-profile">feed-avi.http</configuration>
-      </configurations>
-    </operation>
-
-    <operation
-      id="compose"
-      fail-on-error="true"
-      exception-handler-workflow="error"
-      description="Encoding presentation (screen) to avi/mpeg4 download">
-      <configurations>
-        <configuration key="source-flavor">presentation/trimmed</configuration>
-        <configuration key="target-flavor">presentation/delivery</configuration>
-        <configuration key="target-tags">rss, atom</configuration>
-        <configuration key="encoding-profile">feed-avi.http</configuration>
-      </configurations>
-
     </operation>
     
     <!-- encode to feed preview images -->
@@ -476,6 +482,7 @@
     <!-- Archive the current state of the mediapackage -->
 
     <operation
+      if="${archiveOp}"
       id="archive"
       fail-on-error="true"
       exception-handler-workflow="error"
@@ -502,8 +509,7 @@
       fail-on-error="false"
       description="Cleaning up">
       <configurations>
-
-        <configuration key="preserve-flavors">*/source,dublincore/*</configuration>
+        <configuration key="preserve-flavors"></configuration>
       </configurations>
     </operation>
   </operations>

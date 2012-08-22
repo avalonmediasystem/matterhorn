@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="5.0">
+<file name="/opt/matterhorn/MH-8100/modules/matterhorn-distribution-service-streaming-remote/src/main/java/org/opencastproject/distribution/streaming/remote/StreamingDistributionServiceRemoteImpl.java">
+</file>
+</checkstyle>

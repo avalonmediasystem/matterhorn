@@ -1,0 +1,5 @@
+#Wed Aug 22 15:27:23 CEST 2012
+/opt/matterhorn/MH-8100/modules/matterhorn-userdirectory-jpa/src/main/java/org/opencastproject/userdirectory/jpa/JpaUser.java=1343983749000
+/opt/matterhorn/MH-8100/modules/matterhorn-userdirectory-jpa/src/main/java/org/opencastproject/userdirectory/jpa/JpaUserAndRoleProvider.java=1343983749000
+/opt/matterhorn/MH-8100/modules/matterhorn-userdirectory-jpa/src/test/java/org/opencastproject/userdirectory/jpa/JpaUserProviderTest.java=1343983749000
+configuration*?=4D6165BC152DABBAFA114C44F3C2B20BAF0ABB58

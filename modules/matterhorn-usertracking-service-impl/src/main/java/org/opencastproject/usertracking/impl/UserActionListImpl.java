@@ -19,6 +19,8 @@ import org.opencastproject.usertracking.api.UserAction;
 import org.opencastproject.usertracking.api.UserActionList;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -31,8 +33,8 @@ import javax.xml.bind.annotation.XmlType;
 /**
  * A {@link List} of {@link UserActionList}s
  */
-@XmlType(name = "annotations", namespace = "http://usertracking.opencastproject.org")
-@XmlRootElement(name = "annotations", namespace = "http://usertracking.opencastproject.org")
+@XmlType(name = "actions", namespace = "http://usertracking.opencastproject.org")
+@XmlRootElement(name = "actions", namespace = "http://usertracking.opencastproject.org")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UserActionListImpl implements UserActionList {
 
@@ -45,18 +47,24 @@ public class UserActionListImpl implements UserActionList {
   @XmlAttribute(name = "limit")
   protected int limit;
 
-  @XmlElement(name = "annotation", namespace = "http://usertracking.opencastproject.org")
-  protected List<UserActionImpl> annotations;
+  @XmlElement(name = "action", namespace = "http://usertracking.opencastproject.org")
+  protected List<UserActionImpl> actions;
 
   public void add(UserAction annotation) {
-    annotations.add((UserActionImpl)annotation);
+    actions.add((UserActionImpl) annotation);
   }
 
+  public void add(Collection<UserAction> userActions) {
+    for (UserAction userAction : userActions) {
+      actions.add((UserActionImpl)userAction);
+    }
+  }
+  
   /**
    * A no-arg constructor needed by JAXB
    */
   public UserActionListImpl() {
-    this.annotations = new ArrayList<UserActionImpl>();
+    this.actions = new ArrayList<UserActionImpl>();
   }
 
   public void setTotal(int total) {
@@ -69,5 +77,25 @@ public class UserActionListImpl implements UserActionList {
 
   public void setOffset(int offset) {
     this.offset = offset;
+  }
+  
+  public int getTotal() {
+    return total;
+  }
+  
+  public int getLimit() {
+    return limit;
+  }
+  
+  public int getOffset() {
+    return offset;
+  }
+  
+  public List<UserAction> getUserActions() {
+    List<UserAction> userActions = new LinkedList<UserAction>();
+    for (UserActionImpl userActionImpl : actions) {
+      userActions.add(userActionImpl);
+    }
+    return userActions;
   }
 }

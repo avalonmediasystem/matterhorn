@@ -303,6 +303,11 @@ public class SmilRestService {
                                 name = "clipEnd",
                                 type = RestParameter.Type.STRING),
                  @RestParameter(
+                                description = "the description of the element",
+                                isRequired = false,
+                                name = "description",
+                                type = RestParameter.Type.STRING),
+                 @RestParameter(
                                 description = "the source of the element",
                                 isRequired = false,
                                 name = "src",
@@ -325,6 +330,7 @@ public class SmilRestService {
                                   @QueryParam("clipBegin") String clipBegin,
                                   @QueryParam("clipEnd") String clipEnd,
                                   @QueryParam("src") String src,
+                                  @QueryParam("description") String description,
                                   @QueryParam("mhElement") String mhElement,
                                   @QueryParam("format") @DefaultValue("xml") String format) {
     Smil smil = null;
@@ -335,6 +341,7 @@ public class SmilRestService {
       m.setClipBegin(clipBegin);
       m.setClipEnd(clipEnd);
       m.setSrc(src);
+      m.setDescription(description);
       m.setMhElement(mhElement);
       smil = smilService.addMediaElement(workflowId, m, elementId);
     } catch (NotFoundException e) {
@@ -371,7 +378,7 @@ public class SmilRestService {
   public Response clearDocument(@PathParam("workflowId") long workflowId,
                                 @QueryParam("format") @DefaultValue("xml") String format) {
     Smil smil = null;
-    
+
     try {
       smil = smilService.clearSmil(workflowId);
     } catch (NotFoundException e) {

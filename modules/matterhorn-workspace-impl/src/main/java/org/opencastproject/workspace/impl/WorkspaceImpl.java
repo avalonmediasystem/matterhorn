@@ -19,9 +19,11 @@ import org.opencastproject.security.api.TrustedHttpClient;
 import org.opencastproject.util.FileSupport;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.PathSupport;
+import org.opencastproject.util.jmx.JmxUtil;
 import org.opencastproject.workingfilerepository.api.PathMappable;
 import org.opencastproject.workingfilerepository.api.WorkingFileRepository;
 import org.opencastproject.workspace.api.Workspace;
+import org.opencastproject.workspace.impl.jmx.WorkspaceBean;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -30,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.params.BasicHttpParams;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Timer;
 
+import javax.management.ObjectInstance;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -61,6 +65,15 @@ public class WorkspaceImpl implements Workspace {
 
   /** Configuration key for the workspace root directory */
   public static final String WORKSPACE_ROOTDIR_KEY = "org.opencastproject.workspace.rootdir";
+
+  /** Workspace JMX type */
+  private static final String JMX_WORKSPACE_TYPE = "Workspace";
+
+  /** The JMX workspace bean */
+  private WorkspaceBean workspaceBean = new WorkspaceBean(this);
+
+  /** The JMX bean object instance */
+  private ObjectInstance registeredMXBean;
 
   protected String wsRoot = null;
   protected long maxAgeInSeconds = -1;
@@ -166,12 +179,15 @@ public class WorkspaceImpl implements Workspace {
         }
       }
     }
+
+    registeredMXBean = JmxUtil.registerMXBean(workspaceBean, JMX_WORKSPACE_TYPE);
   }
 
   /**
    * Callback from OSGi on service deactivation.
    */
   public void deactivate() {
+    JmxUtil.unregisterMXBean(registeredMXBean);
   }
 
   /**
@@ -232,6 +248,25 @@ public class WorkspaceImpl implements Workspace {
       } else if (HttpServletResponse.SC_NOT_MODIFIED == response.getStatusLine().getStatusCode()) {
         logger.debug("{} has not been modified.", urlString);
         return f;
+      } else if (HttpServletResponse.SC_ACCEPTED == response.getStatusLine().getStatusCode()) {
+        logger.debug("{} is not ready, try again in one minute.", urlString);
+        String token = response.getHeaders("token")[0].getValue();
+        get.setParams(new BasicHttpParams().setParameter("token", token));
+        Thread.sleep(60000);
+        while (true) {
+          response = trustedHttpClient.execute(get);
+          if (HttpServletResponse.SC_NOT_FOUND == response.getStatusLine().getStatusCode()) {
+            throw new NotFoundException(uri + " does not exist");
+          } else if (HttpServletResponse.SC_NOT_MODIFIED == response.getStatusLine().getStatusCode()) {
+            logger.debug("{} has not been modified.", urlString);
+            return f;
+          } else if (response.getStatusLine().getStatusCode() == HttpServletResponse.SC_ACCEPTED) {
+            logger.debug("{} is not ready, try again in one minute.", urlString);
+            Thread.sleep(60000);
+          } else {
+            break;
+          }
+        }
       }
 
       // if the lock file exists, another thread is currently downloading the file. wait for it.
@@ -601,6 +636,26 @@ public class WorkspaceImpl implements Workspace {
     collection = collection.substring(collection.lastIndexOf("/"));
     collection = collection.substring(collection.lastIndexOf("/") + 1, collection.length());
     return collection;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.workspace.api.Workspace#getTotalSpace()
+   */
+  @Override
+  public long getTotalSpace() {
+    return new File(wsRoot).getTotalSpace();
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.workspace.api.Workspace#getUsableSpace()
+   */
+  @Override
+  public long getUsableSpace() {
+    return new File(wsRoot).getUsableSpace();
   }
 
   /**

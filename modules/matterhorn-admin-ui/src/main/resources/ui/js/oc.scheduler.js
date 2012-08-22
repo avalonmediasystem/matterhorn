@@ -503,7 +503,7 @@ var ocScheduler = (function() {
   sched.loadKnownAgents = function() {
     $(this.agentList).empty();
     $(this.agentList).append($('<option></option>').val('').html('Choose one:'));
-    $.get(CAPTURE_ADMIN_URL + '/agents.xml', this.handleAgentList, 'xml');
+    $.get(CAPTURE_ADMIN_URL + '/agents.json', this.handleAgentList, 'json');
   };
 
   /**
@@ -512,10 +512,10 @@ var ocScheduler = (function() {
    *  @param {XML Document}
    */
   sched.handleAgentList = function(data) {
-    $.each($('name', data),
-    function(i, agent) {
-      $(sched.agentList).append($('<option></option>').val($(agent).text()).html($(agent).text()));
-    });
+	var agents = ocUtils.ensureArray(data.agents.agent);
+	$.each(agents, function(i, agent) {
+		$(sched.agentList).append($('<option></option>').val(agent.name).html(agent.name));
+	});
     sched.loadEvent();
   };
 
@@ -738,7 +738,7 @@ var ocScheduler = (function() {
             url: SERIES_URL + '/',
             data: {
               series: series,
-              acl: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><ns2:acl xmlns:ns2="org.opencastproject.security"><ace><role>' + anonymous_role + '</role><action>read</action><allow>true</allow></ace></ns2:acl>'
+              acl: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><acl xmlns="org.opencastproject.security"><ace><role>' + anonymous_role + '</role><action>read</action><allow>true</allow></ace></acl>'
             },
             dataType: 'xml',
             success: function(data){

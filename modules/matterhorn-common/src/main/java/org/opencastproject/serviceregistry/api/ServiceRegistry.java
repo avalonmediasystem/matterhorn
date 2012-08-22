@@ -282,6 +282,17 @@ public interface ServiceRegistry {
   List<Job> getJobs(String serviceType, Status status) throws ServiceRegistryException;
 
   /**
+   * Get all child jobs from a job
+   * 
+   * @param id
+   *          the parent job id
+   * @return a list of the child jobs ordered by execution
+   * @throws ServiceRegistryException
+   *           if there is a problem accessing the service registry
+   */
+  List<Job> getChildJobs(long id) throws NotFoundException, ServiceRegistryException;
+
+  /**
    * Finds the service registrations for this kind of job, ordered by load (lightest to heaviest).
    * 
    * @param serviceType
@@ -335,6 +346,15 @@ public interface ServiceRegistry {
    *           if there is a problem accessing the service registry
    */
   List<ServiceRegistration> getServiceRegistrations() throws ServiceRegistryException;
+
+  /**
+   * Finds all host registrations, including offline hosts and those in maintenance mode.
+   * 
+   * @return A list of host registrations
+   * @throws ServiceRegistryException
+   *           if there is a problem accessing the service registry
+   */
+  List<HostRegistration> getHostRegistrations() throws ServiceRegistryException;
 
   /**
    * Gets performance and runtime statistics for each known service registration.

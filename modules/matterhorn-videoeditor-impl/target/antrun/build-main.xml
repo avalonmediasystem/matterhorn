@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main" if="unpackTo">
+  <unzip dest="${unpackTo}/matterhorn-videoeditor-impl-1.4-SNAPSHOT" overwrite="true">
+    <fileset dir="/opt/matterhorn/MH-8100/modules/matterhorn-videoeditor-impl/target">
+      <include name="matterhorn-videoeditor-impl-1.4-SNAPSHOT.jar"/>
+    </fileset>
+  </unzip>
+</target>
+</project>
