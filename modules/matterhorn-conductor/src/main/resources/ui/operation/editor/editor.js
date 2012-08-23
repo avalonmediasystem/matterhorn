@@ -192,7 +192,8 @@ function waitForPlayerReady() {
 
 function playerReady() {
   editor.player = $('#videoPlayer');
-  //setInterval(updateCurrentTime, 500);
+  
+  // setInterval(updateCurrentTime, 500);
   editor.player.bind('timeupdate', updateCurrentTime);
   editor.splitData.splits.push({
     clipBegin : '0s',

@@ -1,13 +1,22 @@
 #videoContainer {
   clear: both;
   border: none;
-  width: 500px;
+  width: 90%;
   margin: 0 auto;
   height: 350px;
 }
 
 #videoPlayer {
   width: 100%
+}
+
+#videoPlayerSlave {
+  float: left;
+  margin-left: 10px;
+  margin-top: 2.5%;
+  width: 45%;
+  border: 1px solid black;
+  display: none;
 }
 
 .hidden {
@@ -71,7 +80,7 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 #editor {
   height: 350px;
   padding: 10px;
-  margin-top: 50px;
+  margin-top: 5%;
 }
 
 #boxes {
@@ -170,7 +179,7 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 
 .disabled {
   opacity: 0.2;
-  filter: alpha(opacity =       20); /* For IE8 and earlier */
+  filter: alpha(opacity =         20); /* For IE8 and earlier */
 }
 
 .clipItem {

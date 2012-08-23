@@ -110,6 +110,8 @@ $(document)
           // load tracks
           var tracks = {};
           tracks.tracks = [];
+          
+          var previewTracks = [];
 
           $.ajax({
             url : WORKFLOW_RESTSERVICE + id + ".json",
@@ -121,7 +123,7 @@ $(document)
                 if (data[i].type.indexOf("work") != -1) {
                   tracks.tracks.push(data[i]);
                 } else if(data[i].type.indexOf("preview") != -1) {
-                  $('#videoPlayer').prepend('<source src="'+ data[i].url +'" type="' + data[i].mimetype + '"/>')
+                  previewTracks.push(data[i]);
                 }
               }
             }
@@ -129,8 +131,25 @@ $(document)
           
           //create player
           
-          player = $('#videoPlayer').mhPlayer();
-          console.log(player);
+          $('#videoPlayer').prepend('<source src="'+ previewTracks[0].url +'" type="' + previewTracks[0].mimetype + '"/>')
+          player = $('#videoPlayer').mhPlayer({
+            fps: previewTracks[0].video.framerate,
+            duration: previewTracks[0].duration / 1000
+          });
+          
+          if(previewTracks.length == 2) {
+            $('#videoPlayerSlave').prepend('<source src="'+ previewTracks[1].url +'" type="' + previewTracks[1].mimetype + '"/>')
+            player = $('#videoPlayer').mhPlayer({
+              controls: false,
+              fps: previewTracks[1].video.framerate,
+              duration: previewTracks[1].duration / 1000
+            });
+            
+            $.mhPlayerSynch("#videoPlayer", "#videoPlayerSlave");
+            $('#videoPlayerSlave').show()
+          } else {
+            $('#videoContainer').css('margin-left', '25%');
+          }
 
           $('#trackForm').append($('#template').jqote(tracks));
 

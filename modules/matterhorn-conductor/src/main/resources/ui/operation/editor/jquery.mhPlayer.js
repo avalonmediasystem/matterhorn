@@ -132,7 +132,8 @@
       autoplay : 'false',
       subtitle : '',
       controls : 'true',
-      fps: 25
+      fps: 25,
+      duration: 0
     };
     // match default options and given options
     var options = $.extend(defaults, options);
@@ -250,6 +251,7 @@
         if (playerIsReady()) {
           currenttime = mhVideo.prop('currentTime');
           video_duration = mhVideo.prop('duration');
+          video_duration = video_duration != "Infinity" ? video_duration : options.duration;
           video_timer.text(formatTime(currenttime) + "/" + formatTime(video_duration));
         }
       }
@@ -264,7 +266,7 @@
        * @return a boolean value if player is in ready state
        */
       var playerIsReady = function() {
-        return mhVideo.prop('readyState');
+        return mhVideo.prop('readyState') >= mhVideo.prop('HAVE_FUTURE_DATA');
       }
 
       /**
@@ -455,7 +457,7 @@
        * initial seek for the seek slider
        */
       var initialSeek = function() {
-        if (playerIsReady() == 4) {
+        if (playerIsReady()) {
           updateTime();
           video_seek.slider({
             value : 0,
