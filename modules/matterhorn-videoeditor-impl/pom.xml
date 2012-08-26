@@ -59,7 +59,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>audio,camera</includeArtifactIds>
+              <includeArtifactIds>audio,camera,screen</includeArtifactIds>
             </configuration>
           </execution>
         </executions>
@@ -91,16 +91,16 @@
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
-<!--    <dependency>
+    <dependency>
       <groupId>com.googlecode.gstreamer-java</groupId>
       <artifactId>gstreamer-java</artifactId>
       <version>1.5</version>
-    </dependency>-->
-    <dependency>
+    </dependency>
+<!--    <dependency>
       <groupId>org.gstreamer</groupId>
       <artifactId>gstreamer-java</artifactId>
       <version>1.4-no-tests-and-bin-launch</version>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
@@ -116,6 +116,13 @@
     <dependency>
       <groupId>org.opencastproject.samples</groupId>
       <artifactId>camera</artifactId>
+      <version>1.0</version>
+      <type>mpg</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opencastproject.samples</groupId>
+      <artifactId>screen</artifactId>
       <version>1.0</version>
       <type>mpg</type>
       <scope>test</scope>

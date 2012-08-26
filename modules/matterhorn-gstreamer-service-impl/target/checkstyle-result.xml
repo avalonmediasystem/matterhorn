@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<checkstyle version="5.0">
-<file name="/opt/matterhorn/MH-8100/modules/matterhorn-gstreamer-service-impl/src/main/java/org/opencastproject/gstreamer/service/impl/endpoint/GStreamerRestService.java">
-</file>
-<file name="/opt/matterhorn/MH-8100/modules/matterhorn-gstreamer-service-impl/src/main/java/org/opencastproject/gstreamer/service/impl/GStreamerServiceImpl.java">
-</file>
-<file name="/opt/matterhorn/MH-8100/modules/matterhorn-gstreamer-service-impl/src/test/java/org/opencastproject/gstreamer/service/impl/GStreamerServiceImplTest.java">
-</file>
-</checkstyle>

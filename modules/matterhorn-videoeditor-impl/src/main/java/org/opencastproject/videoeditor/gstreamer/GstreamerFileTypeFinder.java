@@ -28,6 +28,7 @@ import org.gstreamer.Pad;
 import org.gstreamer.PadDirection;
 import org.gstreamer.Pipeline;
 import org.gstreamer.State;
+import org.gstreamer.lowlevel.MainLoop;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 
 /**
@@ -45,6 +46,8 @@ public class GstreamerFileTypeFinder {
    */
   private List<String> caps = Collections.synchronizedList(new LinkedList<String>());
   
+  private final MainLoop mainLoop = new MainLoop();
+  
   /**
    * Find the file media type
    * 
@@ -60,7 +63,9 @@ public class GstreamerFileTypeFinder {
     if (!sourceFile.exists() || !sourceFile.isFile())
       throw new FileNotFoundException();
     
+    Gst.setUseDefaultContext(true);
     Gst.init();
+    
     pipeline = Pipeline.launch(String.format(
             GstreamerElements.FILESRC + " location=\"%s\" ! "
             + GstreamerElements.DECODEBIN + " name=dec", 
@@ -82,7 +87,26 @@ public class GstreamerFileTypeFinder {
     decodebin.connect(new Element.NO_MORE_PADS() {
 
       public void noMorePads(Element element) {
-        Gst.quit();
+//        Gst.quit();
+        mainLoop.quit();
+      }
+    });
+    
+    pipeline.getBus().connect(new Bus.ERROR() {
+
+      @Override
+      public void errorMessage(GstObject source, int code, String message) {
+//        Gst.quit();
+        mainLoop.quit();
+      }
+    });
+    
+    pipeline.getBus().connect(new Bus.EOS() {
+
+      @Override
+      public void endOfStream(GstObject source) {
+//        Gst.quit();
+        mainLoop.quit();
       }
     });
     
@@ -91,14 +115,16 @@ public class GstreamerFileTypeFinder {
       public void stateChanged(GstObject source, State old, State current, State pending) {
 //        System.out.println(String.format("source: %s, old: %s, current: %s, pending: %s", source, old, current, pending));
         if (source == pipeline && current == State.PLAYING) {
-          Gst.quit();
+//          Gst.quit();
+          mainLoop.quit();
         }
       }
     });
     
     pipeline.play();
     
-    Gst.main();
+//    Gst.main();
+    mainLoop.run();
     
     pipeline.stop();
     pipeline = null;

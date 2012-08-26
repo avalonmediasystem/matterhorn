@@ -18,21 +18,19 @@ package org.opencastproject.videoeditor.impl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 import org.gstreamer.Gst;
 import org.opencastproject.smil.entity.MediaElement;
 import org.opencastproject.smil.entity.ParallelElement;
 import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.videoeditor.api.VideoEditor;
-import org.opencastproject.videoeditor.gstreamer.GstreamerFileTypeFinder;
 import org.opencastproject.videoeditor.gstreamer.VideoEditorPipeline;
 import org.opencastproject.videoeditor.gstreamer.exceptions.CanNotAddElementException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
-import org.opencastproject.videoeditor.gstreamer.sources.GStreamerSourceBin;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
@@ -64,68 +62,65 @@ public class VideoEditorService implements VideoEditor, ManagedService {
   }
 
   @Override
-  public List<File> process(Smil smil) {
+  public Set<String> process(Smil smil) {
 
     if (smil == null) {
-      return new LinkedList<File>();
-    }
-
-    List<File> files = new LinkedList<File>();
-
-    Map<String, GStreamerSourceBin> pipelineSources = new HashMap<String, GStreamerSourceBin>();
-
-    for (ParallelElement pe : smil.getBody().getSequence().getElements()) {
-      for (MediaElement me : pe.getElements()) {
-        long begin = me.getClipBeginMS();
-        long end = me.getClipEndMS();
-        String srcFile = me.getSrc();
-
-        try {
-          
-          GStreamerSourceBin sourceBin = pipelineSources.get(srcFile);
-          
-          if (sourceBin == null) {
-            GstreamerFileTypeFinder typeFinder;
-            typeFinder = new GstreamerFileTypeFinder(srcFile);
-
-            if (typeFinder.isAudioFile()) {
-              sourceBin = new GStreamerSourceBin(GStreamerSourceBin.SourceType.Audio);
-            } else if (typeFinder.isVideoFile()) {
-              sourceBin = new GStreamerSourceBin(GStreamerSourceBin.SourceType.Video);
-            }
-          }
-          
-          sourceBin.addFileSource(srcFile, -1, begin, end);
-          pipelineSources.put(srcFile, sourceBin);
-          
-
-        } catch (FileNotFoundException ex) {
-          logger.error("'{}' does not exist!", srcFile);
-        } catch (PipelineBuildException ex) {
-          logger.error("Can't build pipeline: {}", ex.getMessage());
-        } catch (UnknownSourceTypeException ex) {
-          logger.error(ex.getMessage());
-        } catch (CanNotAddElementException ex) {
-          logger.error(ex.getMessage());
-        }
-      }
+      return new HashSet<String>();
     }
     
     VideoEditorPipeline pipeline = new VideoEditorPipeline(properties);
-    
-    for (String srcFile : pipelineSources.keySet()) {
+
+    Map<String, FileSourceBins> pipelineSources = new Hashtable<String, FileSourceBins>();
+    for (ParallelElement pe : smil.getBody().getSequence().getElements()) {
+      for (MediaElement me : pe.getElements()) {
+
+        long begin = me.getClipBeginMS();
+        long end = me.getClipEndMS();
+        long duration = end - begin;
+        String srcFilePath = me.getSrc();
+
+        File srcFile = new File(srcFilePath);
+        int index = srcFile.getAbsolutePath().lastIndexOf('.');
+        String outputFilePath = srcFile.getAbsolutePath().substring(0, index) + "_edited"
+                  + srcFile.getAbsolutePath().substring(index, srcFile.getAbsolutePath().length());
+        
+        FileSourceBins sourceBins = pipelineSources.get(outputFilePath);
+        if (sourceBins == null) {
+          sourceBins = new FileSourceBins(outputFilePath);
+        }
+        
+        try {
+          sourceBins.addFileSource(srcFilePath, begin, duration);
+          pipelineSources.put(sourceBins.getOutputFilePath(), sourceBins);
+        } catch (UnknownSourceTypeException ex) {
+          logger.error(ex.getMessage());
+          return null;
+        } catch (CanNotAddElementException ex) {
+          logger.error(ex.getMessage());
+          return null;
+        } catch (FileNotFoundException ex) {
+          logger.error(ex.getMessage());
+          return null;
+        } catch (PipelineBuildException ex) {
+          logger.error(ex.getMessage());
+          return null;
+        }
+      }
+    }
+
+    for (FileSourceBins fileSourceBins : pipelineSources.values()) {
       try {
-        // TODO set output filename
-        String outputFilePath = srcFile + "_trimmed";
-        pipeline.addSourceBin(pipelineSources.get(srcFile), outputFilePath);
-        files.add(new File(outputFilePath));
+        logger.info("outputfile: " + fileSourceBins.getOutputFilePath());
+        pipeline.addSourceBinsAndCreatePipeline(fileSourceBins);
       } catch (PipelineBuildException ex) {
         logger.error(ex.getMessage());
+        return null;
       }
     }
     
-    pipeline.waitTilStop();
-    
-    return files;
+    pipeline.run();
+    pipeline.mainLoop();
+
+    return pipelineSources.keySet();
   }
 }

@@ -1,0 +1,80 @@
+/**
+ *  Copyright 2009, 2010 The Regents of the University of California
+ *  Licensed under the Educational Community License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance
+ *  with the License. You may obtain a copy of the License at
+ *
+ *  http://www.osedu.org/licenses/ECL-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an "AS IS"
+ *  BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ *  or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ *
+ */
+package org.opencastproject.videoeditor.impl;
+
+import java.io.FileNotFoundException;
+import org.opencastproject.videoeditor.gstreamer.GstreamerFileTypeFinder;
+import org.opencastproject.videoeditor.gstreamer.exceptions.CanNotAddElementException;
+import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
+import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
+import org.opencastproject.videoeditor.gstreamer.sources.GStreamerSourceBin;
+
+/**
+ *
+ * @author wsmirnow
+ */
+public class FileSourceBins {
+
+  private String outputFilePath = null;
+  private GStreamerSourceBin audioSourceBin = null;
+  private GStreamerSourceBin videoSourceBin = null;
+
+  public FileSourceBins(String outputFilePath) {
+    this.outputFilePath = outputFilePath;
+  }
+
+  public void addFileSource(String inputFilePath, long mediaStartMillis, long mediaDurationMillis)
+          throws UnknownSourceTypeException, CanNotAddElementException, FileNotFoundException, PipelineBuildException {
+
+
+    GstreamerFileTypeFinder typeFinder;
+    typeFinder = new GstreamerFileTypeFinder(inputFilePath);
+
+    if (typeFinder.isAudioFile()) {
+      if (audioSourceBin == null) {
+        audioSourceBin = new GStreamerSourceBin(GStreamerSourceBin.SourceType.Audio);
+      }
+      audioSourceBin.addFileSource(inputFilePath, mediaStartMillis, mediaDurationMillis);
+    }
+    
+    if (typeFinder.isVideoFile()) {
+      if (videoSourceBin == null) {
+        videoSourceBin = new GStreamerSourceBin(GStreamerSourceBin.SourceType.Video);
+      }
+      videoSourceBin.addFileSource(inputFilePath, mediaStartMillis, mediaDurationMillis);
+    }
+  }
+
+  public boolean hasAudioSource() {
+    return audioSourceBin != null;
+  }
+
+  public boolean hasVideoSource() {
+    return videoSourceBin != null;
+  }
+  
+  public String getOutputFilePath() {
+    return outputFilePath;
+  }
+  
+  public GStreamerSourceBin getAudioSourceBin() {
+    return audioSourceBin;
+  }
+  
+  public GStreamerSourceBin getVideoSourceBin() {
+    return videoSourceBin;
+  }
+}

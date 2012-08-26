@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<checkstyle version="5.0">
-<file name="/opt/matterhorn/MH-8100/modules/matterhorn-gstreamer-service-remote/src/main/java/org/opencastproject/gstreamer/remote/GStreamerServiceRemoteImpl.java">
-</file>
-</checkstyle>

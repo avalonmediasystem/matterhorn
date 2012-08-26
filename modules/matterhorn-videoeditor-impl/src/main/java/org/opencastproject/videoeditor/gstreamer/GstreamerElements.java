@@ -26,5 +26,6 @@ public interface GstreamerElements {
   String DECODEBIN = "decodebin";
   String DECODEBIN2 = "decodebin2";
   String FAKESINK = "fakesink";
+  String FILESINK = "filesink";
 
 }

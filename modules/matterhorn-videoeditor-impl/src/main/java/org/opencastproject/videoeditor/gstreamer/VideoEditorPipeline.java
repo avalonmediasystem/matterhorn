@@ -15,6 +15,7 @@
  */
 package org.opencastproject.videoeditor.gstreamer;
 
+import java.util.Date;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,8 +27,10 @@ import org.gstreamer.GstObject;
 import org.gstreamer.Pipeline;
 import org.gstreamer.State;
 import org.gstreamer.event.EOSEvent;
+import org.gstreamer.lowlevel.MainLoop;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.sources.GStreamerSourceBin;
+import org.opencastproject.videoeditor.impl.FileSourceBins;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,31 +49,38 @@ public class VideoEditorPipeline {
   public static final long GST_MILLI_SECOND = 1000000L;
   
   
-  public static final String DEFAULT_AUDIO_ENCODER = "mpeg2enc";
+  public static final String DEFAULT_AUDIO_ENCODER = "faac";
   public static final String DEFAULT_AUDIO_ENCODER_PROPERTIES = "";
   
-  public static final String DEFAULT_VIDEO_ENCODER = "lame";
+  public static final String DEFAULT_VIDEO_ENCODER = "x264enc";
   public static final String DEFAULT_VIDEO_ENCODER_PROPERTIES = "";
   
-  public static final String DEFAULT_MUXER = "mpegpsmux";
+  public static final String DEFAULT_MUXER = "mp4mux";
   public static final String DEFAULT_MUXER_PROPERTIES = "";
   
   
   private Dictionary properties;
   private Pipeline pipeline;
+  private MainLoop mainLoop = new MainLoop();
   
   public VideoEditorPipeline(Dictionary properties) {
     this.properties = properties;
+    
+    Gst.setUseDefaultContext(true);
     Gst.init();
     pipeline = new Pipeline();
   }
   
   public void run() {
-    logger.debug("starting pipeline...");
-    pipeline.setState(State.PLAYING);
+    logger.info("{} starting pipeline..." + new Date().toLocaleString());
+    pipeline.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_ALL, "videoeditor-pipeline", true);
+    
+    pipeline.play();
   }
   
   public boolean stop() {
+    if (pipeline == null) return true;
+    
     for (Element sourceElem : pipeline.getSources()) {
       logger.debug("sending EOS to {}", sourceElem.getName());
       sourceElem.sendEvent(new EOSEvent());
@@ -79,7 +89,7 @@ public class VideoEditorPipeline {
     for (int count = 0; count < 15; count++) {
       logger.debug("wait until pipeline stop...");
       if (pipeline != null) {
-        if (pipeline.getState(WAIT_FOR_NULL_SLEEP_TIME * GST_SECOND) == State.NULL) {
+        if (getState(WAIT_FOR_NULL_SLEEP_TIME * GST_SECOND) == State.NULL) {
           logger.debug("pipeline stopped");
           return true;
         }
@@ -89,8 +99,11 @@ public class VideoEditorPipeline {
     return false;
   }
   
-  public void waitTilStop() {
-    Gst.main();
+  public void mainLoop() {
+    
+    mainLoop.run();
+    logger.info("main quit!");
+    stop();
   }
   
   protected void addListener() {
@@ -103,7 +116,7 @@ public class VideoEditorPipeline {
        */
       @Override
       public void infoMessage(GstObject source, int code, String message) {
-        logger.debug("INFO from {}: ", source.getName(), message);
+        logger.info("INFO from {}: ", source.getName(), message);
       }
     });
     
@@ -129,8 +142,8 @@ public class VideoEditorPipeline {
        */
       @Override
       public void endOfStream(GstObject source) {
-        logger.debug("EOS: stop pipeline");
-        Gst.quit();
+        logger.info("EOS: stop pipeline");
+        mainLoop.quit();
         pipeline.setState(State.NULL);
         pipeline = null;
       }
@@ -147,63 +160,71 @@ public class VideoEditorPipeline {
         logger.warn("WARNING from {}: ", source.getName(), message);
       }
     });
-  }
-  
-  public String getStateString() {
-    if (pipeline == null) return "null";
     
-    switch(pipeline.getState()) {
-      case NULL:
-        return "null";
-      case READY:
-        return "ready";
-      case PAUSED:
-        return "paused";
-      case PLAYING:
-        return "playing";
-      case VOID_PENDING:
-        return "pending";
-      default: 
-        // wouldn't pass
-        return "";
-    }
+    pipeline.getBus().connect(new Bus.STATE_CHANGED() {
+
+      @Override
+      public void stateChanged(GstObject go, State state, State state1, State state2) {
+        logger.info("{} changed state to {}", new String[] {
+          go.getName(), state.toString()
+        });
+      }
+    });
   }
   
   public State getState() {
-    if (pipeline == null) return State.NULL;
-    return pipeline.getState();
+    return getState(0);
   }
   
-  public void addSourceBin(GStreamerSourceBin sourceBin, String outputFileName) 
+  public State getState(long timeout) {
+    if (pipeline == null) return State.NULL;
+    return pipeline.getState(timeout);
+  }
+  
+  public void addSourceBinsAndCreatePipeline(FileSourceBins sourceBins) 
           throws PipelineBuildException {
     
-    Element encoder = null;
-    switch (sourceBin.getType()) {
-      case Audio: 
-        createAudioEncoder();
-        break;
-      case Video: 
-        createVideoEncoder();
-        break;
-      default: return;
-    }
+    // create and link muxer and filesink    
     Element muxer = createMuxer();
-    Element fileSink = ElementFactory.make(GstreamerElements.FAKESINK, null);
-    pipeline.addMany(sourceBin.getBin(), encoder, muxer, fileSink);
+    Element fileSink = ElementFactory.make(GstreamerElements.FILESINK, null);
+    pipeline.addMany(muxer, fileSink);
     
-    if (!sourceBin.getSinkElement().link(encoder)) {
-      throw new PipelineBuildException();
-    }
-    if (!encoder.link(muxer)) {
-      throw new PipelineBuildException();
-    }
+    fileSink.set(GstreamerElementProperties.LOCATION, sourceBins.getOutputFilePath());
+    fileSink.set(GstreamerElementProperties.SYNC, false);
+    fileSink.set(GstreamerElementProperties.ASYNC, false);
+    
     if (!muxer.link(fileSink)) {
       throw new PipelineBuildException();
     }
     
-    fileSink.set(GstreamerElementProperties.LOCATION, outputFileName);
-    fileSink.set(GstreamerElementProperties.SYNC, false);
-    fileSink.set(GstreamerElementProperties.ASYNC, false);
+    GStreamerSourceBin sourceBin;
+    Element encoder = null;
+    
+    if (sourceBins.hasAudioSource()) {
+      // create and link audio bin and audio encoder
+      sourceBin = sourceBins.getAudioSourceBin();
+      encoder = createAudioEncoder();
+      pipeline.addMany(sourceBin.getBin(), encoder);
+      if (!sourceBin.getSinkElement().link(encoder)) {
+        throw new PipelineBuildException();
+      }
+      if (!encoder.link(muxer)) {
+        throw new PipelineBuildException();
+      }
+    }
+
+    if (sourceBins.hasVideoSource()) {
+      // create and link video bin and video encoder
+      sourceBin = sourceBins.getVideoSourceBin();
+      encoder = createVideoEncoder();
+      pipeline.addMany(sourceBin.getBin(), encoder);
+      if (!sourceBin.getSinkElement().link(encoder)) {
+        throw new PipelineBuildException();
+      }
+      if (!encoder.link(muxer)) {
+        throw new PipelineBuildException();
+      }
+    }
   }
   
   protected Element createAudioEncoder() {

@@ -15,8 +15,7 @@
  */
 package org.opencastproject.videoeditor.api;
 
-import java.io.File;
-import java.util.List;
+import java.util.Set;
 import org.opencastproject.smil.entity.Smil;
 
 public interface VideoEditor {
@@ -26,7 +25,7 @@ public interface VideoEditor {
   /**
    * Start media processing described by smil file.
    * @param smil processing description
-   * @return 
+   * @return Set with proccessed file pathes
    */
-  List<File> process(Smil smil);
+  Set<String> process(Smil smil);
 }
