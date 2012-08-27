@@ -15,9 +15,8 @@
  */
 package org.opencastproject.workflow.handler;
 
-import java.io.File;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.opencastproject.composer.api.ComposerService;
 import org.opencastproject.job.api.JobContext;
@@ -166,9 +165,9 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
     MediaPackageElementFlavor matchingFlavor = MediaPackageElementFlavor
         .parseFlavor(configuredSourceFlavor);
 
-    List<File> files = videoEditor.process(smil);
-    for (File f : files) {
-      logger.info(f.toString());
+    Set<String> files = videoEditor.process(smil);
+    for (String f : files) {
+      logger.info(f);
     }
 
     return createResult(Action.PAUSE);
