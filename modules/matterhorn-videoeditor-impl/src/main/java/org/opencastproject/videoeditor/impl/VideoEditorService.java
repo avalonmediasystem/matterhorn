@@ -15,6 +15,7 @@
  */
 package org.opencastproject.videoeditor.impl;
 
+import org.opencastproject.videoeditor.gstreamer.sources.FileSourceBins;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Dictionary;
@@ -28,7 +29,6 @@ import org.opencastproject.smil.entity.ParallelElement;
 import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.videoeditor.api.VideoEditor;
 import org.opencastproject.videoeditor.gstreamer.VideoEditorPipeline;
-import org.opencastproject.videoeditor.gstreamer.exceptions.CanNotAddElementException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
 import org.osgi.service.cm.ConfigurationException;
@@ -68,6 +68,7 @@ public class VideoEditorService implements VideoEditor, ManagedService {
       return new HashSet<String>();
     }
     
+    
     VideoEditorPipeline pipeline = new VideoEditorPipeline(properties);
 
     Map<String, FileSourceBins> pipelineSources = new Hashtable<String, FileSourceBins>();
@@ -81,7 +82,7 @@ public class VideoEditorService implements VideoEditor, ManagedService {
 
         File srcFile = new File(srcFilePath);
         int index = srcFile.getAbsolutePath().lastIndexOf('.');
-        String outputFilePath = srcFile.getAbsolutePath().substring(0, index) + "_edited"
+        String outputFilePath = srcFile.getAbsolutePath().substring(0, index) + "_trimmed"
                   + srcFile.getAbsolutePath().substring(index, srcFile.getAbsolutePath().length());
         
         FileSourceBins sourceBins = pipelineSources.get(outputFilePath);
@@ -93,9 +94,6 @@ public class VideoEditorService implements VideoEditor, ManagedService {
           sourceBins.addFileSource(srcFilePath, begin, duration);
           pipelineSources.put(sourceBins.getOutputFilePath(), sourceBins);
         } catch (UnknownSourceTypeException ex) {
-          logger.error(ex.getMessage());
-          return null;
-        } catch (CanNotAddElementException ex) {
           logger.error(ex.getMessage());
           return null;
         } catch (FileNotFoundException ex) {

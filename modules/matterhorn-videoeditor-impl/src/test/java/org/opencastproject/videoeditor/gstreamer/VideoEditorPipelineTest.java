@@ -24,10 +24,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opencastproject.videoeditor.gstreamer.exceptions.CanNotAddElementException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
-import org.opencastproject.videoeditor.impl.FileSourceBins;
+import org.opencastproject.videoeditor.gstreamer.sources.FileSourceBins;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +37,7 @@ import org.slf4j.LoggerFactory;
 public class VideoEditorPipelineTest {
   
   public static final String AUDIO_TEST_FILE_PATH = "target/dependency/audio-1.0.mp3";
-  public static final String VIDEO_TEST_FILE_PATH = "target/dependency/screen-1.0.mpg";
+  public static final String VIDEO_TEST_FILE_PATH = "target/dependency/camera-1.0.mpg";
   
   public static final String AUDIO_OUTPUT_PATH = "target/testoutput/audio.mpg";
   public static final String VIDEO_OUTPUT_PATH = "target/testoutput/screen.mpg";
@@ -105,14 +104,14 @@ public class VideoEditorPipelineTest {
       VideoEditorPipeline pipeline = new VideoEditorPipeline(null);
       FileSourceBins sourceBins = new FileSourceBins(new File(MUX_OUTPUT_PATH).getAbsolutePath());
       sourceBins.addFileSource(new File(AUDIO_TEST_FILE_PATH).getAbsolutePath(), 
-              TimeUnit.SECONDS.toMillis(122), TimeUnit.SECONDS.toMillis(10));
+              TimeUnit.SECONDS.toMillis(0), TimeUnit.SECONDS.toMillis(10));
       sourceBins.addFileSource(new File(AUDIO_TEST_FILE_PATH).getAbsolutePath(), 
-              TimeUnit.SECONDS.toMillis(21), TimeUnit.SECONDS.toMillis(26));
+              TimeUnit.SECONDS.toMillis(122), TimeUnit.SECONDS.toMillis(10));
       
       sourceBins.addFileSource(new File(VIDEO_TEST_FILE_PATH).getAbsolutePath(), 
-              TimeUnit.SECONDS.toMillis(122), TimeUnit.SECONDS.toMillis(10));
+              TimeUnit.SECONDS.toMillis(0), TimeUnit.SECONDS.toMillis(10));
       sourceBins.addFileSource(new File(VIDEO_TEST_FILE_PATH).getAbsolutePath(), 
-              TimeUnit.SECONDS.toMillis(21), TimeUnit.SECONDS.toMillis(26));
+              TimeUnit.SECONDS.toMillis(122), TimeUnit.SECONDS.toMillis(10));
       
       pipeline.addSourceBinsAndCreatePipeline(sourceBins);
       pipeline.addListener();
@@ -124,8 +123,6 @@ public class VideoEditorPipelineTest {
     } catch (FileNotFoundException ex) {
       Assert.fail();
     } catch (PipelineBuildException ex) {
-      Assert.fail();
-    } catch (CanNotAddElementException ex) {
       Assert.fail();
     } catch (UnknownSourceTypeException ex) {
       Assert.fail();

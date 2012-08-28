@@ -15,10 +15,11 @@
  */
 package org.opencastproject.videoeditor.gstreamer;
 
-import java.util.Date;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.gstreamer.Bin;
 import org.gstreamer.Bus;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
@@ -29,8 +30,7 @@ import org.gstreamer.State;
 import org.gstreamer.event.EOSEvent;
 import org.gstreamer.lowlevel.MainLoop;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
-import org.opencastproject.videoeditor.gstreamer.sources.GStreamerSourceBin;
-import org.opencastproject.videoeditor.impl.FileSourceBins;
+import org.opencastproject.videoeditor.gstreamer.sources.FileSourceBins;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +45,6 @@ public class VideoEditorPipeline {
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorPipeline.class);
   
   private static final int WAIT_FOR_NULL_SLEEP_TIME = 1000;
-  public static final long GST_SECOND = 1000000000L;
-  public static final long GST_MILLI_SECOND = 1000000L;
-  
   
   public static final String DEFAULT_AUDIO_ENCODER = "faac";
   public static final String DEFAULT_AUDIO_ENCODER_PROPERTIES = "";
@@ -62,6 +59,7 @@ public class VideoEditorPipeline {
   private Dictionary properties;
   private Pipeline pipeline;
   private MainLoop mainLoop = new MainLoop();
+  private String lastErrorMessage = null;
   
   public VideoEditorPipeline(Dictionary properties) {
     this.properties = properties;
@@ -72,7 +70,8 @@ public class VideoEditorPipeline {
   }
   
   public void run() {
-    logger.info("{} starting pipeline..." + new Date().toLocaleString());
+    logger.info("starting pipeline");
+    //TODO debug remove
     pipeline.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_ALL, "videoeditor-pipeline", true);
     
     pipeline.play();
@@ -89,7 +88,7 @@ public class VideoEditorPipeline {
     for (int count = 0; count < 15; count++) {
       logger.debug("wait until pipeline stop...");
       if (pipeline != null) {
-        if (getState(WAIT_FOR_NULL_SLEEP_TIME * GST_SECOND) == State.NULL) {
+        if (getState(TimeUnit.MILLISECONDS.toNanos(WAIT_FOR_NULL_SLEEP_TIME)) == State.NULL) {
           logger.debug("pipeline stopped");
           return true;
         }
@@ -130,6 +129,7 @@ public class VideoEditorPipeline {
       @Override
       public void errorMessage(GstObject source, int code, String message) {
         logger.warn("ERROR from {}: ", source.getName(), message);
+        lastErrorMessage = String.format("%s: %s", source.getName(), message);
       }
     });
     
@@ -197,34 +197,31 @@ public class VideoEditorPipeline {
       throw new PipelineBuildException();
     }
     
-    GStreamerSourceBin sourceBin;
-    Element encoder = null;
+    Bin sourceBin;
+    Element encoder;
     
     if (sourceBins.hasAudioSource()) {
       // create and link audio bin and audio encoder
       sourceBin = sourceBins.getAudioSourceBin();
       encoder = createAudioEncoder();
-      pipeline.addMany(sourceBin.getBin(), encoder);
-      if (!sourceBin.getSinkElement().link(encoder)) {
-        throw new PipelineBuildException();
-      }
-      if (!encoder.link(muxer)) {
+      pipeline.addMany(sourceBin, encoder);
+      if (!Element.linkMany(sourceBin, encoder, muxer)) {
         throw new PipelineBuildException();
       }
     }
 
     if (sourceBins.hasVideoSource()) {
-      // create and link video bin and video encoder
+      // create and link video bin and audio encoder
       sourceBin = sourceBins.getVideoSourceBin();
       encoder = createVideoEncoder();
-      pipeline.addMany(sourceBin.getBin(), encoder);
-      if (!sourceBin.getSinkElement().link(encoder)) {
-        throw new PipelineBuildException();
-      }
-      if (!encoder.link(muxer)) {
+      pipeline.addMany(sourceBin, encoder);
+      if (!Element.linkMany(sourceBin, encoder, muxer)) {
         throw new PipelineBuildException();
       }
     }
+  }
+  public String getLastErrorMessage() {
+    return lastErrorMessage;
   }
   
   protected Element createAudioEncoder() {

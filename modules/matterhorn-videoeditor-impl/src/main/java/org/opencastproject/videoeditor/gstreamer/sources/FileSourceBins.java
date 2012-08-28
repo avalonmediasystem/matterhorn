@@ -13,14 +13,13 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.videoeditor.impl;
+package org.opencastproject.videoeditor.gstreamer.sources;
 
 import java.io.FileNotFoundException;
+import org.gstreamer.Bin;
 import org.opencastproject.videoeditor.gstreamer.GstreamerFileTypeFinder;
-import org.opencastproject.videoeditor.gstreamer.exceptions.CanNotAddElementException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
-import org.opencastproject.videoeditor.gstreamer.sources.GStreamerSourceBin;
 
 /**
  *
@@ -36,9 +35,8 @@ public class FileSourceBins {
     this.outputFilePath = outputFilePath;
   }
 
-  public void addFileSource(String inputFilePath, long mediaStartMillis, long mediaDurationMillis)
-          throws UnknownSourceTypeException, CanNotAddElementException, FileNotFoundException, PipelineBuildException {
-
+  public void addFileSource(String inputFilePath, long mediaStartMillis, long durationMillis)
+          throws FileNotFoundException, UnknownSourceTypeException, PipelineBuildException {
 
     GstreamerFileTypeFinder typeFinder;
     typeFinder = new GstreamerFileTypeFinder(inputFilePath);
@@ -47,14 +45,14 @@ public class FileSourceBins {
       if (audioSourceBin == null) {
         audioSourceBin = new GStreamerSourceBin(GStreamerSourceBin.SourceType.Audio);
       }
-      audioSourceBin.addFileSource(inputFilePath, mediaStartMillis, mediaDurationMillis);
+      audioSourceBin.addFileSource(inputFilePath, mediaStartMillis, durationMillis);
     }
     
     if (typeFinder.isVideoFile()) {
       if (videoSourceBin == null) {
         videoSourceBin = new GStreamerSourceBin(GStreamerSourceBin.SourceType.Video);
       }
-      videoSourceBin.addFileSource(inputFilePath, mediaStartMillis, mediaDurationMillis);
+      videoSourceBin.addFileSource(inputFilePath, mediaStartMillis, durationMillis);
     }
   }
 
@@ -70,11 +68,11 @@ public class FileSourceBins {
     return outputFilePath;
   }
   
-  public GStreamerSourceBin getAudioSourceBin() {
-    return audioSourceBin;
+  public Bin getAudioSourceBin() {
+    return audioSourceBin.getBin();
   }
   
-  public GStreamerSourceBin getVideoSourceBin() {
-    return videoSourceBin;
+  public Bin getVideoSourceBin() {
+    return videoSourceBin.getBin();
   }
 }

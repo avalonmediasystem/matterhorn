@@ -17,12 +17,15 @@ package org.opencastproject.videoeditor.gstreamer.sources;
 
 import java.util.concurrent.TimeUnit;
 import org.gstreamer.Bin;
+import org.gstreamer.Caps;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
+import org.gstreamer.GhostPad;
 import org.gstreamer.Pad;
 import org.gstreamer.PadLinkReturn;
+import org.gstreamer.event.EOSEvent;
 import org.opencastproject.videoeditor.gstreamer.VideoEditorPipeline;
-import org.opencastproject.videoeditor.gstreamer.exceptions.CanNotAddElementException;
+import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,118 +43,113 @@ public class GStreamerSourceBin {
   /** The logging instance */
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorPipeline.class);
   
-  private SourceType type;
-  private Bin bin = null;
-  private Bin gnlComposition = null;
-  private Element converter = null;
-  private Element identity = null;
-  private Element queue = null;
-  private Element rate = null;
+  private final SourceType type;
+  private final Bin bin;
+  private final Bin gnlComposition;
+  private final Element converter;
+  private final Element identity;
+  private final Caps caps;
+  private final GhostPad ghostPad;
   
   /** Bin's max duration in millisecond */
   private long maxLengthMillis = 0L;
   
   private int sources = Integer.MAX_VALUE;
   
-  public GStreamerSourceBin(SourceType type) throws UnknownSourceTypeException {
+  public GStreamerSourceBin(SourceType type) throws UnknownSourceTypeException, PipelineBuildException {
     this.type = type;
     
     bin = new Bin();
+    gnlComposition = (Bin) ElementFactory.make("gnlcomposition", null);
+    identity = ElementFactory.make("identity", null);
     
     switch(type) {
       case Audio: 
         converter = ElementFactory.make("audioconvert", null);
-        rate = ElementFactory.make("audiorate", null);
+        caps = Caps.fromString("audio/x-raw-int; audio/x-raw-float");
         break;
       case Video: 
         converter = ElementFactory.make("ffmpegcolorspace", null);
-        rate = ElementFactory.make("videorate", null);
+        caps = Caps.fromString("video/x-raw-yuv; video/x-raw-rgb");
         break;
       default:
         throw new UnknownSourceTypeException(type);
     }
-    identity = ElementFactory.make("identity", null);
-    queue = ElementFactory.make("queue", null);
-    bin.addMany(converter, identity, queue, rate);
-    Element.linkMany(converter, identity, queue, rate);
-    identity.set("single-segment", true);
+    
+    bin.addMany(gnlComposition, converter, identity);
+    if (!Element.linkMany(converter, identity)) {
+      throw new PipelineBuildException();
+    }
+    
+    if (type == SourceType.Video)
+      identity.set("single-segment", true);
     identity.set("check-imperfect-timestamp", true);
     identity.set("check-imperfect-offset", true);
     
-    gnlComposition = (Bin) ElementFactory.make("gnlcomposition", null);
-    bin.add(gnlComposition);
+    ghostPad = new GhostPad(identity.getSrcPads().get(0).getName(), identity.getSrcPads().get(0));
+    bin.addPad(ghostPad);
+    
     gnlComposition.connect(new Element.PAD_ADDED() {
 
       @Override
       public void padAdded(Element source, Pad pad) {
-        logger.info("new pad added with caps: " + pad.getCaps().toString());
+        //TODO to debug
+        logger.info("new pad added {}.{} (cpas: {}): ", new String[] {
+          source.getName(), pad.getName(), pad.getCaps().toString()
+        });
 
-        if (converter.getSinkPads().get(0).acceptCaps(pad.getCaps())) {
-          
-          PadLinkReturn ret = pad.link(converter.getSinkPads().get(0));
-          if (ret != PadLinkReturn.OK) {
-            logger.error("pad not linked {}.{} -> {}.{}", new String[] {
-                    source.getName(),
-                    pad.getName(),
-                    converter.getName(),
-                    converter.getSinkPads().get(0).getName()
-            });
-          } else {
-            logger.info("pad linked {}.{} -> {}.{} with caps {}", new String[] {
+        if (pad.acceptCaps(caps)) {
+          PadLinkReturn plr = pad.link(converter.getSinkPads().get(0));
+          if (plr != PadLinkReturn.OK) {
+            logger.warn("pad link {}.{} -> {}.{} with status {}", new String[] {
               source.getName(),
               pad.getName(),
               converter.getName(),
-              converter.getSinkPads().get(0).getName(),
-              pad.getCaps().toString()
+              converter.getSrcPads().get(0).getName(),
+              plr.toString()
             });
           }
-        } else {
-          logger.info("peer does not accept caps {}.{} {}.{}", new String[] {
-              source.getName(),
-              pad.getName(),
-              converter.getName(),
-              converter.getSinkPads().get(0).getName()
-          });
+        }
+      }
+    });
+    
+    gnlComposition.connect(new Element.NO_MORE_PADS() {
+
+      @Override
+      public void noMorePads(Element element) {
+        if (!converter.getSinkPads().get(0).isLinked()) {
+          logger.error("Source element has no peer!");
+          converter.sendEvent(new EOSEvent());
         }
       }
     });
   }
   
-  public void addFileSource(String filePath, long mediaStartMillis, long mediaDurationMillis) 
-          throws CanNotAddElementException {
+  public void addFileSource(String filePath, long mediaStartMillis, long mediaDurationMillis) {
     
     Element filesource = ElementFactory.make("gnlfilesource", null);
-    if (!gnlComposition.add(filesource)) {
-      throw new CanNotAddElementException(gnlComposition, filesource);
-    }
+    gnlComposition.add(filesource);
     
     filesource.set("location", filePath);
     filesource.set("start", TimeUnit.MILLISECONDS.toNanos(maxLengthMillis));
     filesource.set("duration", TimeUnit.MILLISECONDS.toNanos(mediaDurationMillis));
     filesource.set("media-start", TimeUnit.MILLISECONDS.toNanos(mediaStartMillis));
     filesource.set("media-duration", TimeUnit.MILLISECONDS.toNanos(mediaDurationMillis));
+    filesource.set("caps", caps);
 //    filesource.set("priority", --sources);
     
     maxLengthMillis += mediaDurationMillis;
   }
   
   public Pad getSrcPad() {
-    return rate.getSrcPads().get(0);
-  }
-  
-  public Element getSinkElement() {
-    return rate;
+    return ghostPad;
   }
   
   public Bin getBin() {
     return bin;
   }
   
-  public SourceType getType() {
-    return type;
-  }
-  
-  public long getLengthMillisecond() {
+  public long getLengthMilliseconds() {
     return maxLengthMillis;
   }
   

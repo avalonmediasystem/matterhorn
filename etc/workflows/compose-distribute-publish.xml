@@ -168,15 +168,69 @@
 
     <!-- End Epiphan MCA operations -->
 
+    <!-- demux streams if needed -->
+    <operation
+      id="compose"
+      fail-on-error="false"
+      exception-handler-workflow="error"
+      description="Splitting presenter audio edit versions">
+      <configurations>
+        <configuration key="source-flavor">presenter/source</configuration>
+        <configuration key="target-flavor">presenter/trimm</configuration>
+        <configuration key="target-tags">audio</configuration>
+        <configuration key="encoding-profile">audio-only.work</configuration>
+      </configurations>
+    </operation>
+    
+    <operation
+      id="compose"
+      fail-on-error="false"
+      exception-handler-workflow="error"
+      description="plitting presenter video edit versions">
+      <configurations>
+        <configuration key="source-flavor">presenter/source</configuration>
+        <configuration key="target-flavor">presenter/trimm</configuration>
+        <configuration key="target-tags">video</configuration>
+        <configuration key="encoding-profile">video-only.work</configuration>
+      </configurations>
+    </operation>
+
+    <operation
+      id="compose"
+      fail-on-error="false"
+      exception-handler-workflow="error"
+      description="plitting presentation video edit versions">
+      <configurations>
+        <configuration key="source-flavor">presentation/source</configuration>
+        <configuration key="target-flavor">presentation/trimm</configuration>
+        <configuration key="target-tags">audio</configuration>
+        <configuration key="encoding-profile">audio-only.work</configuration>
+      </configurations>
+    </operation>
+    
+    <operation
+      id="compose"
+      fail-on-error="false"
+      exception-handler-workflow="error"
+      description="plitting presentation video edit versions">
+      <configurations>
+        <configuration key="source-flavor">presentation/source</configuration>
+        <configuration key="target-flavor">presentation/trimm</configuration>
+        <configuration key="target-tags">video</configuration>
+        <configuration key="encoding-profile">video-only.work</configuration>
+      </configurations>
+    </operation>
+    
+    <!-- mux av for trimm preview -->
     <operation
       id="prepare-av"
+      if="${videoPreview}"
       fail-on-error="true"
       exception-handler-workflow="error"
       description="Preparing presenter audio and video work versions">
       <configurations>
         <configuration key="source-flavor">presenter/source</configuration>
         <configuration key="target-flavor">presenter/work</configuration>
-
         <configuration key="rewrite">false</configuration>
         <configuration key="promiscuous-audio-muxing">true</configuration>
       </configurations>
@@ -184,20 +238,19 @@
 
     <operation
       id="prepare-av"
+      if="${videoPreview}"
       fail-on-error="true"
       exception-handler-workflow="error"
       description="Preparing presentation audio and video work version">
       <configurations>
         <configuration key="source-flavor">presentation/source</configuration>
-
         <configuration key="target-flavor">presentation/work</configuration>
         <configuration key="rewrite">false</configuration>
         <configuration key="promiscuous-audio-muxing">true</configuration>
       </configurations>
     </operation>
-
-    <!-- encode to hold preview player formats -->
-
+    
+    <!-- encode trimm preview as webm video -->
     <operation
       id="compose"
       if="${videoPreview}"
@@ -207,23 +260,23 @@
       <configurations>
         <configuration key="source-flavor">*/work</configuration>
         <configuration key="target-flavor">*/preview</configuration>
-        <configuration key="encoding-profile">flash-preview.http</configuration>
+        <configuration key="target-tags">webm</configuration>
+        <configuration key="encoding-profile">webm-preview.http</configuration>
       </configurations>
     </operation>
 
-    <!-- hold to trim media--> 
+    <!-- hold to edit media--> 
+    <!-- produce trimmed and muxed videos -->
     <operation
-      id="trim"
+      id="editor"
       if="${trimHold}"
       fail-on-error="true"
       exception-handler-workflow="error"
       description="Waiting for user to review / trim recording">
       <configurations>
-        <configuration key="source-flavor">*/work</configuration>
+        <configuration key="source-flavor">*/trimm</configuration>
         <configuration key="target-flavor-subtype">trimmed</configuration>
-        <configuration key="encoding-profile">trim.work</configuration>
       </configurations>
-
     </operation>
     
     <!-- hold for captions -->
