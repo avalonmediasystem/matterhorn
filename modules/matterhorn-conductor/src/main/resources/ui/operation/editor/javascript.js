@@ -15,6 +15,7 @@ var seriesChanged = false;
 var seriesServiceURL = false;
 var workflowInstance = null;
 var player = null;
+var previewTracks = [];
 
 var inpoint = 0;
 var outpoint = 0;
@@ -111,8 +112,6 @@ $(document)
           var tracks = {};
           tracks.tracks = [];
           
-          var previewTracks = [];
-
           $.ajax({
             url : WORKFLOW_RESTSERVICE + id + ".json",
             async : false,
@@ -167,7 +166,7 @@ $(document)
           // create Buttons
           $('.ui-button').button();
           // disable continue
-          $('#continueBtn').button('disable');
+          //$('#continueBtn').button('disable');
 
           // hide some stuff we don't want to see
           window.parent.$('#uploadContainer').hide(0);
