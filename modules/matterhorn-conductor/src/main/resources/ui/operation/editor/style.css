@@ -3,7 +3,6 @@
   border: none;
   width: 90%;
   margin: 0 auto;
-  height: 350px;
 }
 
 #videoPlayer {
@@ -75,17 +74,17 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 #splitter {
   background-color: lime;
   width: 250px;
+  float: left;
 }
 
 #editor {
   height: 350px;
-  padding: 10px;
-  margin-top: 5%;
 }
 
 #boxes {
   padding-top: 20px;
   width: 100%;
+  float: left;
 }
 
 #leftBox {
@@ -131,6 +130,30 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   margin: 10px;
 }
 
+#splitSegments {
+  height: 40px;
+  width: 100%;
+  float: left;
+  margin-top: 5px;
+}
+
+.splitSegmentItem {
+  border-right: 1px solid black;
+  float: left;
+  height: 100%;
+  background-color: white;
+  /* Firefox */
+  -moz-box-sizing: border-box;
+  /* WebKit */
+  -webkit-box-sizing: border-box;
+  /* Opera 9.5+, Google Chrome */
+  box-sizing: border-box;
+}
+
+.splitSegmentItem:hover {
+  background-color: #C1CDCD;
+}
+
 .box_right {
   text-align: right;
 }
@@ -167,19 +190,25 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   border: 1px solid black;
   height: 80px;
   margin: 1px;
+  /* Firefox */
+  -moz-box-sizing: border-box;
+  /* WebKit */
+  -webkit-box-sizing: border-box;
+  /* Opera 9.5+, Google Chrome */
+  box-sizing: border-box;
 }
 
 .splitItem:hover {
-  border: 1px solid red;
+  background-color: #C1CDCD;
 }
 
 .splitItemSelected {
-  border: 2px solid blue !important;
+  border: 1px solid blue !important;
 }
 
 .disabled {
   opacity: 0.2;
-  filter: alpha(opacity =         20); /* For IE8 and earlier */
+  filter: alpha(opacity =           20); /* For IE8 and earlier */
 }
 
 .clipItem {

@@ -180,7 +180,7 @@
       if (options.preview != '') {
         mhVideo.prop("poster", options.preview);
       }
-      var video_wrap = $('<div></div>').addClass(mainClass).addClass(options.theme);
+      var video_wrap = $('<div></div>').addClass(mainClass).addClass(options.theme).prop("id", "videoHolder");
       var subtle = (options.subtitle != '') ? '<div class="srt" data-video="' + mhVideo.attr("id") + '" data-srt="'
           + options.subtitle + '"></div>' : '';
       var video_controls = '';

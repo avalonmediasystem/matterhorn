@@ -20,26 +20,28 @@
 <script type="text/javascript" src="editor.js"></script>
 </head>
 <body>
-  <div class="lectureInfo" style="">
-    <h2 id="info-title"></h2>
-    <h4 id="info-creator"></h4>
-    <h4 id="info-series"></h4>
-  </div>
+  <div>
+    <div class="lectureInfo" style="">
+      <h2 id="info-title"></h2>
+      <h4 id="info-creator"></h4>
+      <h4 id="info-series"></h4>
+    </div>
 
-  <div class="holdStateUI">
-    <h1>Review/Trim Media</h1>
+    <div class="holdStateUI">
+      <h1>Review/Trim Media</h1>
 
-    <div id="videoContainer">
-      <video id="videoPlayer"> Your browser does not support HTML5 video.
-      </video>
+      <div id="videoContainer">
+        <video id="videoPlayer"> Your browser does not support HTML5 video.
+        </video>
 
-      <video id="videoPlayerSlave"> Your browser does not support HTML5 video.
-      </video>
-      <div>
-        <label>
-          <span id="i18n_files_label">File(s)</span>:
-        </label>
-        <span id="files"></span>
+        <video id="videoPlayerSlave"> Your browser does not support HTML5 video.
+        </video>
+        <div>
+          <label>
+            <span id="i18n_files_label">File(s)</span>:
+          </label>
+          <span id="files"></span>
+        </div>
       </div>
     </div>
 
@@ -64,6 +66,23 @@
         ]]>
       </script>
 
+    <script type="text/x-jqote-template" id="splitSegmentTemplate">
+        <![CDATA[
+          <% $.each(data[j].splits, function(key, split ) { 
+            if(split.enabled) {
+            var duration = previewTracks[0].duration / 1000;
+            var begin = parseFloat(split.clipBegin.toString().replace("s", ""));
+            var end = parseFloat(split.clipEnd.toString().replace("s", ""));
+            var perc = ((end - begin) / duration) * 100;
+          %>
+            <div class="splitSegmentItem" id="splitSegmentItem-<%= key %>" style="width:<%= perc%>%" title="<%= split.description%>">
+              
+            </div>
+          <% } %>
+          <% }); %>
+      ]]>
+      </script>
+
     <script type="text/x-jqote-template" id="splitElements">
       <![CDATA[
           <% $.each(data[j].splits, function(key, split ) { %>
@@ -86,7 +105,7 @@
       <span>Remove this split item?</span>
     </div>
 
-    <div id="editor" class="form-box layout-centered disabled">
+    <div id="editor" class="form-box layout-centered ui-widget">
       <div id="splitter">
         <input type="button" id="splitButton" value="split" />
         <span>split at current time</span> (<span id="current_time">00:00:00.000</span>)

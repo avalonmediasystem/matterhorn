@@ -26,6 +26,7 @@ editor.smil = null;
 
 editor.updateSplitList = function() {
   $('#leftBox').html($('#splitElements').jqote(editor.splitData));
+  $('#splitSegments').html($('#splitSegmentTemplate').jqote(editor.splitData));
   $('.splitItem').click(splitItemClick);
   $('.splitRemover').click(splitRemoverClick);
 }
@@ -112,14 +113,14 @@ $(document).ready(function() {
 function initPlayButtons() {
   $('#playFrom').click(function() {
     startTime = $('#clipBegin').timefield('option', 'value').toString().replace("s", "");
-    editor.player.doSeek(startTime);
-    editor.player.doPlay();
+    editor.player[0].currentTime = startTime;
+    editor.player[0].play();
   });
 
   $('#playTo').click(function() {
     endTime = parseInt($('#clipEnd').timefield('option', 'value').toString().replace("s", ""));
-    editor.player.doSeek(Math.max(endTime - 5, 0));
-    editor.player.doPlay();
+    editor.player[0].currentTime = Math.max(endTime, endTime - 5);
+    editor.player[0].play();
   })
 }
 
@@ -182,7 +183,7 @@ function splitButtonClick() {
 }
 
 function waitForPlayerReady() {
-  if ($('#videoPlayer').prop("readyState") == $('#videoPlayer').prop("HAVE_ENOUGH_DATA")) {
+  if ($('#videoPlayer').prop("readyState") >= $('#videoPlayer').prop("HAVE_FUTURE_DATA")) {
     ocUtils.log("player ready");
     playerReady();
   } else {
@@ -192,6 +193,8 @@ function waitForPlayerReady() {
 
 function playerReady() {
   editor.player = $('#videoPlayer');
+  
+  $('#videoHolder').append('<div id="splitSegments"></div>')
   
   // setInterval(updateCurrentTime, 500);
   editor.player.bind('timeupdate', updateCurrentTime);
@@ -240,6 +243,12 @@ function playerReady() {
   }
   editor.updateSplitList();
   $('#editor').removeClass('disabled');
+  
+  var height = parseInt($('.holdStateUI').css('height').replace("px", ""));
+  var heightVideo = parseInt($('#videoHolder').css('height').replace("px", ""));
+  
+  $('.holdStateUI').css('height', (height + heightVideo) + "px");
+  parent.ocRecordings.adjustHoldActionPanelHeight();
 }
 
 function updateCurrentTime() {
