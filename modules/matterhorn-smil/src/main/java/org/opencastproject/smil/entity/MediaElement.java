@@ -36,6 +36,7 @@ public class MediaElement extends SmilElement {
   private String type;
   private String longdesc;
   private String mhElement;
+  private String outputFile;
 
   public MediaElement() {
     this(null, null, null);
@@ -170,6 +171,14 @@ public class MediaElement extends SmilElement {
 
   public void setMhElement(String mhElement) {
     this.mhElement = mhElement;
+  }
+
+  public String getOutputFile() {
+    return outputFile;
+  }
+
+  public void setOutputFile(String outputFile) {
+    this.outputFile = outputFile;
   }
 
 }

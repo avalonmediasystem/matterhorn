@@ -29,6 +29,7 @@ import org.opencastproject.ingest.api.IngestService;
 import org.opencastproject.mediapackage.Catalog;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
+import org.opencastproject.mediapackage.Track;
 import org.opencastproject.smil.api.SmilException;
 import org.opencastproject.smil.api.SmilService;
 import org.opencastproject.smil.entity.MediaElement;
@@ -146,6 +147,12 @@ public class SmilServiceImpl implements SmilService {
       File f = workspace.get(new URI(e.getSrc()));
       logger.debug("found file " + f.getAbsolutePath());
       e.setSrc(f.getAbsolutePath());
+      
+      logger.debug("trying to get flavor of track: {}", e.getMhElement());
+      WorkflowInstance workflow = workflowService.getWorkflowById(workflowId);
+      Track t = workflow.getMediaPackage().getTrack(e.getMhElement());
+      e.setOutputFile(t.getFlavor().getSubtype() + "-" + t.getFlavor().getType());
+      logger.debug("outputFile for element {}: {}", e.getId(), e.getOutputFile());
     } catch (NotFoundException ex) {
 
     } catch (Exception ex) {
