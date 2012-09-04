@@ -18,11 +18,13 @@ var editor = editor || {};
 
 var SMIL_RESTSERVICE = "/smil/";
 var SMIL_FLAVOR = "smil/smil";
+var WAVEFORM_FLAVOR = "image/waveform";
 
 editor.splitData = {};
 editor.splitData.splits = [];
 editor.player = null;
 editor.smil = null;
+editor.canvas = null;
 
 editor.updateSplitList = function() {
   $('#leftBox').html($('#splitElements').jqote(editor.splitData));
@@ -55,6 +57,7 @@ editor.saveSplitList = function() {
       $.each(workflowInstance.mediapackage.media.track, function(key, track) {
         if (track.type.indexOf("work") != -1) {
           value.src = track.url;
+          value.mhElement = track.id;
           editor.addMediaElement(parallelId, value);
         }
       });
@@ -195,8 +198,12 @@ function playerReady() {
   editor.player = $('#videoPlayer');
   
   $('#videoHolder').append('<div id="splitSegments"></div>')
+  $('#videoHolder').append('<div id="waveform"></div>');
+  $('#waveform').append('<div id="imageDiv"><img id="waveformImage" alt="waveform"/></div>');
+  $('#waveform').append('<div id="canvasDiv"><canvas id="waveformCanvas" /></div>');
   
-  // setInterval(updateCurrentTime, 500);
+  editor.canvas = $('#waveformCanvas')[0];
+  
   editor.player.bind('timeupdate', updateCurrentTime);
   editor.splitData.splits.push({
     clipBegin : '0s',
@@ -204,6 +211,8 @@ function playerReady() {
     enabled : true,
     description : ""
   });
+  
+  // load smil if there is already one
   smil = null;
   $.each(workflowInstance.mediapackage.metadata.catalog, function(key, value) {
     if (value.type == SMIL_FLAVOR) {
@@ -243,6 +252,14 @@ function playerReady() {
   }
   editor.updateSplitList();
   $('#editor').removeClass('disabled');
+  
+  // load waveform image
+  $.each(ocUtils.ensureArray(workflowInstance.mediapackage.attachments.attachment), function(key, value) {
+    if(value.type == WAVEFORM_FLAVOR) {
+      $('#waveformImage').prop("src", value.url);
+      $('#waveformImage').addimagezoom();
+    }
+  });
   
   var height = parseInt($('.holdStateUI').css('height').replace("px", ""));
   var heightVideo = parseInt($('#videoHolder').css('height').replace("px", ""));

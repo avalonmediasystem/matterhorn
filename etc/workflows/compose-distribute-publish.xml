@@ -18,7 +18,7 @@
         <li class="ui-helper-clearfix">
           <span id="trimholdconfig">
             <input id="trimHold" name="trimHold" type="checkbox" class="configField holdCheckbox" value="true" />
-            <span id="i18n_hold_for_trim">&nbsp;Review / Trim before encoding (with option to edit info)</span>
+            <span id="i18n_hold_for_trim">&nbsp;Videoeditor (with option to edit info)</span>
           </span>
         </li>
         <li class="ui-helper-clearfix">
@@ -186,7 +186,7 @@
       id="compose"
       fail-on-error="false"
       exception-handler-workflow="error"
-      description="plitting presenter video edit versions">
+      description="Splitting presenter video edit versions">
       <configurations>
         <configuration key="source-flavor">presenter/source</configuration>
         <configuration key="target-flavor">presenter/trimm</configuration>
@@ -199,7 +199,7 @@
       id="compose"
       fail-on-error="false"
       exception-handler-workflow="error"
-      description="plitting presentation video edit versions">
+      description="Splitting presentation video edit versions">
       <configurations>
         <configuration key="source-flavor">presentation/source</configuration>
         <configuration key="target-flavor">presentation/trimm</configuration>
@@ -212,7 +212,7 @@
       id="compose"
       fail-on-error="false"
       exception-handler-workflow="error"
-      description="plitting presentation video edit versions">
+      description="Splitting presentation video edit versions">
       <configurations>
         <configuration key="source-flavor">presentation/source</configuration>
         <configuration key="target-flavor">presentation/trimm</configuration>
@@ -262,6 +262,31 @@
         <configuration key="target-flavor">*/preview</configuration>
         <configuration key="target-tags">webm</configuration>
         <configuration key="encoding-profile">webm-preview.http</configuration>
+      </configurations>
+    </operation>
+    
+    <!-- extract audio from video in wave format for waveform -->
+    <operation
+      id="compose"
+      if="${trimHold}"
+      fail-on-error="false"
+      description="Extracting audio for waveform generation">
+      <configurations>
+        <configuration key="source-flavor">*/work</configuration>
+        <configuration key="target-flavor">audio/waveform</configuration>
+        <configuration key="target-tags">waveform</configuration>
+        <configuration key="encoding-profile">audio-waveform.http</configuration>
+      </configurations>
+    </operation>
+    
+    <!-- generate waveform from wav file -->
+    <operation
+      id="waveform"
+      if="${trimHold}"
+      fail-on-error="false"
+      description="Generating waveform">
+      <configurations>
+        <configuration key="source-flavor">*/waveform</configuration>
       </configurations>
     </operation>
 
