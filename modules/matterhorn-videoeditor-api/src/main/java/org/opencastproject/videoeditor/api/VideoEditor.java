@@ -27,5 +27,5 @@ public interface VideoEditor {
    * @param smil processing description
    * @return Set with proccessed file pathes
    */
-  Set<String> process(Smil smil);
+  Set<String> process(Smil smil) throws ProcessFailedException;
 }

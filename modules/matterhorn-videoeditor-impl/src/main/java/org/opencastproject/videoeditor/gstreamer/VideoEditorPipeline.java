@@ -15,25 +15,24 @@
  */
 package org.opencastproject.videoeditor.gstreamer;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.gstreamer.Bin;
 import org.gstreamer.Bus;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
-import org.gstreamer.Gst;
 import org.gstreamer.GstObject;
 import org.gstreamer.Pipeline;
 import org.gstreamer.State;
 import org.gstreamer.event.EOSEvent;
 import org.gstreamer.lowlevel.MainLoop;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
-import org.opencastproject.videoeditor.gstreamer.sources.FileSourceBins;
+import org.opencastproject.videoeditor.gstreamer.sources.SourceBinsFactory;
+import org.opencastproject.videoeditor.impl.VideoEditorProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  *
@@ -52,25 +51,26 @@ public class VideoEditorPipeline {
   public static final String DEFAULT_VIDEO_ENCODER = "x264enc";
   public static final String DEFAULT_VIDEO_ENCODER_PROPERTIES = "";
   
-  public static final String DEFAULT_MUXER = "mp4mux";
-  public static final String DEFAULT_MUXER_PROPERTIES = "";
+  public static final String DEFAULT_MUX = "mp4mux";
+  public static final String DEFAULT_MUX_PROPERTIES = "";
+  public static final String DEFAULT_OUTPUT_FILE_EXTENSION = ".mp4";
   
   
-  private Dictionary properties;
+  private Properties properties;
   private Pipeline pipeline;
   private MainLoop mainLoop = new MainLoop();
   private String lastErrorMessage = null;
   
-  public VideoEditorPipeline(Dictionary properties) {
-    this.properties = properties;
+  public VideoEditorPipeline(Properties properties) {
+    this.properties = properties != null ? properties : new Properties();
     
-    Gst.setUseDefaultContext(true);
-    Gst.init();
+//    Gst.setUseDefaultContext(true);
+//    Gst.init();
     pipeline = new Pipeline();
   }
   
   public void run() {
-    logger.info("starting pipeline");
+    logger.debug("starting pipeline...");
     //TODO debug remove
     pipeline.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_ALL, "videoeditor-pipeline", true);
     
@@ -101,7 +101,7 @@ public class VideoEditorPipeline {
   public void mainLoop() {
     
     mainLoop.run();
-    logger.info("main quit!");
+    logger.debug("main quit!");
     stop();
   }
   
@@ -115,7 +115,7 @@ public class VideoEditorPipeline {
        */
       @Override
       public void infoMessage(GstObject source, int code, String message) {
-        logger.info("INFO from {}: ", source.getName(), message);
+        logger.debug("INFO from {}: ", source.getName(), message);
       }
     });
     
@@ -130,6 +130,9 @@ public class VideoEditorPipeline {
       public void errorMessage(GstObject source, int code, String message) {
         logger.warn("ERROR from {}: ", source.getName(), message);
         lastErrorMessage = String.format("%s: %s", source.getName(), message);
+        mainLoop.quit();
+        pipeline.setState(State.NULL);
+        pipeline = null;
       }
     });
     
@@ -142,7 +145,7 @@ public class VideoEditorPipeline {
        */
       @Override
       public void endOfStream(GstObject source) {
-        logger.info("EOS: stop pipeline");
+        logger.debug("EOS from {}: stop pipeline", new String[] { source.getName() });
         mainLoop.quit();
         pipeline.setState(State.NULL);
         pipeline = null;
@@ -164,10 +167,11 @@ public class VideoEditorPipeline {
     pipeline.getBus().connect(new Bus.STATE_CHANGED() {
 
       @Override
-      public void stateChanged(GstObject go, State state, State state1, State state2) {
-        logger.info("{} changed state to {}", new String[] {
-          go.getName(), state.toString()
-        });
+      public void stateChanged(GstObject source, State old, State current, State pending) {
+        if (source instanceof Pipeline)
+          logger.debug("{} changed state to {}", new String[] {
+            source.getName(), current.toString()
+          });
       }
     });
   }
@@ -176,16 +180,16 @@ public class VideoEditorPipeline {
     return getState(0);
   }
   
-  public State getState(long timeout) {
+  public State getState(long timeoutMillis) {
     if (pipeline == null) return State.NULL;
-    return pipeline.getState(timeout);
+    return pipeline.getState(TimeUnit.MILLISECONDS.toNanos(timeoutMillis));
   }
   
-  public void addSourceBinsAndCreatePipeline(FileSourceBins sourceBins) 
+  public void addSourceBinsAndCreatePipeline(SourceBinsFactory sourceBins) 
           throws PipelineBuildException {
     
     // create and link muxer and filesink    
-    Element muxer = createMuxer();
+    Element muxer = createMux();
     Element fileSink = ElementFactory.make(GstreamerElements.FILESINK, null);
     pipeline.addMany(muxer, fileSink);
     
@@ -220,20 +224,16 @@ public class VideoEditorPipeline {
       }
     }
   }
+  
   public String getLastErrorMessage() {
     return lastErrorMessage;
   }
   
   protected Element createAudioEncoder() {
-    String encoder;
-    String encoderProperties;
-    
-    // TODO get all from config
-    
-    encoder = DEFAULT_AUDIO_ENCODER;
+    String encoder = properties.getProperty(VideoEditorProperties.AUDIO_ENCODER, DEFAULT_AUDIO_ENCODER);
+    String encoderProperties = properties.getProperty(VideoEditorProperties.AUDIO_ENCODER_PROPERTIES, DEFAULT_AUDIO_ENCODER_PROPERTIES);
+        
     Element encoderElem = ElementFactory.make(encoder, null);
-    
-    encoderProperties = DEFAULT_AUDIO_ENCODER_PROPERTIES;
     Map<String, String> encoderPropertiesDict = getPropertiesFromString(encoderProperties);
     
     for (String key : encoderPropertiesDict.keySet()) {
@@ -244,15 +244,10 @@ public class VideoEditorPipeline {
   }
   
   protected Element createVideoEncoder() {
-    String encoder;
-    String encoderProperties;
-    
-    // TODO get all from config
-    
-    encoder = DEFAULT_VIDEO_ENCODER;
+    String encoder = properties.getProperty(VideoEditorProperties.VIDEO_ENCODER, DEFAULT_VIDEO_ENCODER);
+    String encoderProperties = properties.getProperty(VideoEditorProperties.VIDEO_ENCODER_PROPERTIES, DEFAULT_VIDEO_ENCODER_PROPERTIES);
+        
     Element encoderElem = ElementFactory.make(encoder, null);
-    
-    encoderProperties = DEFAULT_VIDEO_ENCODER_PROPERTIES;
     Map<String, String> encoderPropertiesDict = getPropertiesFromString(encoderProperties);
     
     for (String key : encoderPropertiesDict.keySet()) {
@@ -262,26 +257,21 @@ public class VideoEditorPipeline {
     return encoderElem;
   }
   
-  protected Element createMuxer() {
-    String muxer;
-    String muxerProperties;
+  protected Element createMux() {
+    String mux = properties.getProperty(VideoEditorProperties.MUX, DEFAULT_MUX);
+    String muxProperties = properties.getProperty(VideoEditorProperties.MUX_PROPERTIES, DEFAULT_MUX_PROPERTIES);
     
-    // TODO get all from config
+    Element muxElem = ElementFactory.make(mux, null);
+    Map<String, String> muxPropertiesDict = getPropertiesFromString(muxProperties);
     
-    muxer = DEFAULT_MUXER;
-    Element muxerElem = ElementFactory.make(muxer, null);
-    
-    muxerProperties = DEFAULT_MUXER_PROPERTIES;
-    Map<String, String> encoderPropertiesDict = getPropertiesFromString(muxerProperties);
-    
-    for (String key : encoderPropertiesDict.keySet()) {
-      muxerElem.set(key, encoderPropertiesDict.get(key));
+    for (String key : muxPropertiesDict.keySet()) {
+      muxElem.set(key, muxPropertiesDict.get(key));
     }
     
-    return muxerElem;
+    return muxElem;
   }
 
-  private Map<String, String> getPropertiesFromString(String encoderProperties) {
+  private static Map<String, String> getPropertiesFromString(String encoderProperties) {
     Map<String, String> properties = new HashMap<String, String>();
     
     for (String prop : encoderProperties.trim().split(" ")) {

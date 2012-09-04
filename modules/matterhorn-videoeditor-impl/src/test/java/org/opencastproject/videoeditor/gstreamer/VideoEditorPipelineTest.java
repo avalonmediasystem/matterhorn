@@ -17,16 +17,15 @@ package org.opencastproject.videoeditor.gstreamer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.gstreamer.State;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
-import org.opencastproject.videoeditor.gstreamer.sources.FileSourceBins;
+import org.opencastproject.videoeditor.gstreamer.sources.SourceBinsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,91 +33,103 @@ import org.slf4j.LoggerFactory;
  *
  * @author wsmirnow
  */
-public class VideoEditorPipelineTest {
-  
-  public static final String AUDIO_TEST_FILE_PATH = "target/dependency/audio-1.0.mp3";
-  public static final String VIDEO_TEST_FILE_PATH = "target/dependency/camera-1.0.mpg";
-  
-  public static final String AUDIO_OUTPUT_PATH = "target/testoutput/audio.mpg";
-  public static final String VIDEO_OUTPUT_PATH = "target/testoutput/screen.mpg";
-  public static final String MUX_OUTPUT_PATH = "target/testoutput/mux.mpg";
-  
-  public static final int WAIT_SEC = 3;
+public class VideoEditorPipelineTest extends GstreamerAbstractTest {
   
   /** The logging instance */
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorPipelineTest.class);
   
-  @BeforeClass
-  public static void setUpClass() throws Exception {
-    if (!new File(AUDIO_TEST_FILE_PATH).exists()) {
-      throw new Exception("Audio testfile does not exist!");
-    }
-    if (!new File(VIDEO_TEST_FILE_PATH).exists()) {
-      throw new Exception("Video testfile does not exist!");
-    }
-  }
-
-  @AfterClass
-  public static void tearDownClass() throws Exception {
-  }
+//  private String muxedFilePath = "/home/wsmirnow/Videos/Sintel.mp4";
   
-  @Before
-  public void setUp() {
-    if (new File(AUDIO_OUTPUT_PATH).exists())  {
-      new File(AUDIO_OUTPUT_PATH).delete();
-    } else if (!new File(AUDIO_OUTPUT_PATH).getParentFile().exists()) {
-      new File(AUDIO_OUTPUT_PATH).getParentFile().mkdir();
-    }
-    if (new File(VIDEO_OUTPUT_PATH).exists())  {
-      new File(VIDEO_OUTPUT_PATH).delete();
-    } else if (!new File(VIDEO_OUTPUT_PATH).getParentFile().exists()) {
-      new File(VIDEO_OUTPUT_PATH).getParentFile().mkdir();
-    }
-    
-    if (new File(MUX_OUTPUT_PATH).exists())  {
-      new File(MUX_OUTPUT_PATH).delete();
-    } else if (!new File(MUX_OUTPUT_PATH).getParentFile().exists()) {
-      new File(MUX_OUTPUT_PATH).getParentFile().mkdir();
-    }
-  }
-  
-  @After
-  public void tearDown() {
-//    if (new File(AUDIO_OUTPUT_PATH).exists())  {
-//      new File(AUDIO_OUTPUT_PATH).delete();
-//    }
-//    if (new File(VIDEO_OUTPUT_PATH).exists())  {
-//      new File(VIDEO_OUTPUT_PATH).delete();
-//    }
-//    if (new File(MUX_OUTPUT_PATH).exists())  {
-//      new File(MUX_OUTPUT_PATH).delete();
-//    }
-  }
-
   /**
    * Test of run and stop methods, of class VideoEditorPipeline.
    */
   @Test
-  public void testRunStop() {
+  public void testRunStopDemuxedSourceFiles() {
     try {
-      VideoEditorPipeline pipeline = new VideoEditorPipeline(null);
-      FileSourceBins sourceBins = new FileSourceBins(new File(MUX_OUTPUT_PATH).getAbsolutePath());
-      sourceBins.addFileSource(new File(AUDIO_TEST_FILE_PATH).getAbsolutePath(), 
+      final VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
+      SourceBinsFactory sourceBins = new SourceBinsFactory(new File(outputFilePath).getAbsolutePath());
+      sourceBins.addFileSource(new File(audioFilePath).getAbsolutePath(), 
               TimeUnit.SECONDS.toMillis(0), TimeUnit.SECONDS.toMillis(10));
-      sourceBins.addFileSource(new File(AUDIO_TEST_FILE_PATH).getAbsolutePath(), 
-              TimeUnit.SECONDS.toMillis(122), TimeUnit.SECONDS.toMillis(10));
+      sourceBins.addFileSource(new File(audioFilePath).getAbsolutePath(), 
+              TimeUnit.SECONDS.toMillis(60), TimeUnit.SECONDS.toMillis(10));
       
-      sourceBins.addFileSource(new File(VIDEO_TEST_FILE_PATH).getAbsolutePath(), 
+      sourceBins.addFileSource(new File(videoFilePath).getAbsolutePath(), 
               TimeUnit.SECONDS.toMillis(0), TimeUnit.SECONDS.toMillis(10));
-      sourceBins.addFileSource(new File(VIDEO_TEST_FILE_PATH).getAbsolutePath(), 
+      sourceBins.addFileSource(new File(videoFilePath).getAbsolutePath(), 
+              TimeUnit.SECONDS.toMillis(60), TimeUnit.SECONDS.toMillis(10));
+      
+      pipeline.addSourceBinsAndCreatePipeline(sourceBins);
+      pipeline.addListener();
+      
+      Thread runner = new Thread(new Runnable() {
+
+        @Override
+        public void run() {
+          pipeline.mainLoop();
+        }
+      });
+      
+      runner.start();
+      pipeline.run();
+      
+      try {
+        Thread.sleep(TimeUnit.SECONDS.toMillis(WAIT_SEC));
+        Assert.assertEquals(State.PLAYING, pipeline.getState(TimeUnit.SECONDS.toMillis(WAIT_SEC)));
+        runner.join();
+      } catch (InterruptedException ex) {
+        logger.warn("Test interrupted!");
+      } finally {
+        Assert.assertTrue(pipeline.stop());
+      }
+      
+      
+    } catch (FileNotFoundException ex) {
+      Assert.fail();
+    } catch (PipelineBuildException ex) {
+      Assert.fail();
+    } catch (UnknownSourceTypeException ex) {
+      Assert.fail();
+    }
+  }
+  
+  /**
+   * Test of run and stop methods, of class VideoEditorPipeline.
+   */
+  @Ignore
+  @Test
+  public void testRunStopMuxedSourceFile() {
+    try {
+      final VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
+      SourceBinsFactory sourceBins = new SourceBinsFactory(new File(outputFilePath).getAbsolutePath());
+      sourceBins.addFileSource(new File(muxedFilePath).getAbsolutePath(), 
+              TimeUnit.SECONDS.toMillis(0), TimeUnit.SECONDS.toMillis(10));
+      sourceBins.addFileSource(new File(muxedFilePath).getAbsolutePath(), 
               TimeUnit.SECONDS.toMillis(122), TimeUnit.SECONDS.toMillis(10));
       
       pipeline.addSourceBinsAndCreatePipeline(sourceBins);
       pipeline.addListener();
       
+      Thread runner = new Thread(new Runnable() {
+
+        @Override
+        public void run() {
+          pipeline.mainLoop();
+        }
+      });
+      
+      runner.start();
       pipeline.run();
-      pipeline.mainLoop();
-      Assert.assertTrue(pipeline.stop());
+      
+      try {
+        Thread.sleep(TimeUnit.SECONDS.toMillis(WAIT_SEC));
+        Assert.assertEquals(State.PLAYING, pipeline.getState(TimeUnit.SECONDS.toMillis(WAIT_SEC)));
+        runner.join();
+      } catch (InterruptedException ex) {
+        logger.warn("Test interrupted!");
+      } finally {
+        Assert.assertTrue(pipeline.stop());
+      }
+      
       
     } catch (FileNotFoundException ex) {
       Assert.fail();

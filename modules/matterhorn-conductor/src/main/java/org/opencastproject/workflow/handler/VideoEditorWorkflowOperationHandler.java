@@ -17,7 +17,6 @@ package org.opencastproject.workflow.handler;
 
 import java.util.Map;
 import java.util.Set;
-
 import org.opencastproject.composer.api.ComposerService;
 import org.opencastproject.job.api.JobContext;
 import org.opencastproject.mediapackage.MediaPackage;
@@ -27,13 +26,14 @@ import org.opencastproject.smil.api.SmilException;
 import org.opencastproject.smil.api.SmilService;
 import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.util.NotFoundException;
+import org.opencastproject.videoeditor.api.ProcessFailedException;
 import org.opencastproject.videoeditor.api.VideoEditor;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowOperationException;
 import org.opencastproject.workflow.api.WorkflowOperationInstance;
 import org.opencastproject.workflow.api.WorkflowOperationResult;
-import org.opencastproject.workflow.api.WorkflowService;
 import org.opencastproject.workflow.api.WorkflowOperationResult.Action;
+import org.opencastproject.workflow.api.WorkflowService;
 import org.opencastproject.workspace.api.Workspace;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -164,10 +164,15 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
         .getConfiguration(TARGET_FLAVOR_SUBTYPE_PROPERTY);
     MediaPackageElementFlavor matchingFlavor = MediaPackageElementFlavor
         .parseFlavor(configuredSourceFlavor);
-
-    Set<String> files = videoEditor.process(smil);
-    for (String f : files) {
-      logger.info(f);
+    
+    try {
+      Set<String> files = videoEditor.process(smil);
+      for (String f : files) {
+        logger.info(f);
+      }
+    } catch (ProcessFailedException ex) {
+      logger.error(ex.getMessage());
+      throw new WorkflowOperationException("Smil processing failed!");
     }
 
     return createResult(Action.PAUSE);

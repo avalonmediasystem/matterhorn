@@ -15,7 +15,7 @@
  */
 package org.opencastproject.videoeditor.gstreamer.exceptions;
 
-import org.opencastproject.videoeditor.gstreamer.sources.GStreamerSourceBin;
+import org.opencastproject.videoeditor.gstreamer.sources.GnonlinSourceBin;
 
 /**
  *
@@ -23,7 +23,7 @@ import org.opencastproject.videoeditor.gstreamer.sources.GStreamerSourceBin;
  */
 public class UnknownSourceTypeException extends Exception {
   
-  public UnknownSourceTypeException(GStreamerSourceBin.SourceType type) {
+  public UnknownSourceTypeException(GnonlinSourceBin.SourceType type) {
     super(String.format("Sourcetype not supported: %s", type));
   }
 }

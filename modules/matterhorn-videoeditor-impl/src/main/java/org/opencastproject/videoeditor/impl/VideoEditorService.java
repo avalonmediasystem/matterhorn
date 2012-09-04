@@ -15,22 +15,27 @@
  */
 package org.opencastproject.videoeditor.impl;
 
-import org.opencastproject.videoeditor.gstreamer.sources.FileSourceBins;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashSet;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import org.gstreamer.Gst;
 import org.opencastproject.smil.entity.MediaElement;
 import org.opencastproject.smil.entity.ParallelElement;
 import org.opencastproject.smil.entity.Smil;
+import org.opencastproject.videoeditor.api.ProcessFailedException;
 import org.opencastproject.videoeditor.api.VideoEditor;
 import org.opencastproject.videoeditor.gstreamer.VideoEditorPipeline;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
+import org.opencastproject.videoeditor.gstreamer.sources.SourceBinsFactory;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
@@ -46,32 +51,42 @@ public class VideoEditorService implements VideoEditor, ManagedService {
    * The logging instance
    */
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorService.class);
-  private Dictionary properties;
+  private Properties properties;
+  
+  private boolean serviceRunning = false;
+  private List<VideoEditorPipeline> runningPipelines = Collections.synchronizedList(new LinkedList<VideoEditorPipeline>());
 
   protected void activate(ComponentContext context) {
+    Gst.setUseDefaultContext(true);
     Gst.init();
+    serviceRunning = true;
   }
 
   protected void deactivate(ComponentContext context) {
-    Gst.deinit();
+    serviceRunning = false;
+    for (VideoEditorPipeline pipeline : runningPipelines) {
+      pipeline.stop();
+    }
   }
 
   @Override
   public void updated(Dictionary properties) throws ConfigurationException {
-    this.properties = properties;
+    this.properties = new Properties();
+    Enumeration keys = properties.keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      this.properties.put(key, properties.get(key));
+    }
   }
 
   @Override
-  public Set<String> process(Smil smil) {
+  public Set<String> process(Smil smil) throws ProcessFailedException {
 
     if (smil == null) {
-      return new HashSet<String>();
+      return null;
     }
     
-    
-    VideoEditorPipeline pipeline = new VideoEditorPipeline(properties);
-
-    Map<String, FileSourceBins> pipelineSources = new Hashtable<String, FileSourceBins>();
+    Map<String, SourceBinsFactory> pipelineSources = new Hashtable<String, SourceBinsFactory>();
     for (ParallelElement pe : smil.getBody().getSequence().getElements()) {
       for (MediaElement me : pe.getElements()) {
 
@@ -79,15 +94,23 @@ public class VideoEditorService implements VideoEditor, ManagedService {
         long end = me.getClipEndMS();
         long duration = end - begin;
         String srcFilePath = me.getSrc();
-
-        File srcFile = new File(srcFilePath);
-        int index = srcFile.getAbsolutePath().lastIndexOf('.');
-        String outputFilePath = srcFile.getAbsolutePath().substring(0, index) + "_trimmed"
-                  + srcFile.getAbsolutePath().substring(index, srcFile.getAbsolutePath().length());
+        String outputFilePath = me.getOutputFile();
         
-        FileSourceBins sourceBins = pipelineSources.get(outputFilePath);
+        if (outputFilePath == null || outputFilePath.isEmpty()) {
+
+          String suffix = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_SUFFIX, "_trimmed");
+          String extension = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_SUFFIX, VideoEditorPipeline.DEFAULT_OUTPUT_FILE_EXTENSION);
+
+          File srcFile = new File(srcFilePath);
+          int index = srcFile.getAbsolutePath().lastIndexOf('.');
+          outputFilePath = srcFile.getAbsolutePath().substring(0, index) + suffix + extension;
+
+          me.setOutputFile(outputFilePath);
+        }
+        
+        SourceBinsFactory sourceBins = pipelineSources.get(outputFilePath);
         if (sourceBins == null) {
-          sourceBins = new FileSourceBins(outputFilePath);
+          sourceBins = new SourceBinsFactory(outputFilePath);
         }
         
         try {
@@ -95,29 +118,50 @@ public class VideoEditorService implements VideoEditor, ManagedService {
           pipelineSources.put(sourceBins.getOutputFilePath(), sourceBins);
         } catch (UnknownSourceTypeException ex) {
           logger.error(ex.getMessage());
-          return null;
+          throw new ProcessFailedException(ex.getMessage());
         } catch (FileNotFoundException ex) {
           logger.error(ex.getMessage());
-          return null;
+          throw new ProcessFailedException(ex.getMessage());
         } catch (PipelineBuildException ex) {
           logger.error(ex.getMessage());
-          return null;
+          throw new ProcessFailedException(ex.getMessage());
         }
       }
     }
 
-    for (FileSourceBins fileSourceBins : pipelineSources.values()) {
+    for (SourceBinsFactory fileSourceBin : pipelineSources.values()) {
+      
+      if (!serviceRunning) throw new ProcessFailedException("Service unavailable!");
+      
+      VideoEditorPipeline runningPipeline = new VideoEditorPipeline(properties);
       try {
-        logger.info("outputfile: " + fileSourceBins.getOutputFilePath());
-        pipeline.addSourceBinsAndCreatePipeline(fileSourceBins);
+        runningPipeline.addSourceBinsAndCreatePipeline(fileSourceBin);
+        
+        runningPipelines.add(runningPipeline);
+        runningPipeline.run();
+        runningPipeline.mainLoop();
+        
+        if (!serviceRunning) {
+          throw new ProcessFailedException("Service unavailable!");
+        }
+        
+        String error = runningPipeline.getLastErrorMessage();
+        if (error != null) {
+          logger.warn("Last pipeline error: " + error);
+          //TODO throw exception?
+        }
+        
       } catch (PipelineBuildException ex) {
+        //TODO logger error
         logger.error(ex.getMessage());
-        return null;
+        throw new ProcessFailedException(ex.getMessage());
+      } finally {
+        if (runningPipelines.contains(runningPipeline)) {
+          runningPipelines.remove(runningPipeline);
+        }
+        runningPipeline = null;
       }
     }
-    
-    pipeline.run();
-    pipeline.mainLoop();
 
     return pipelineSources.keySet();
   }

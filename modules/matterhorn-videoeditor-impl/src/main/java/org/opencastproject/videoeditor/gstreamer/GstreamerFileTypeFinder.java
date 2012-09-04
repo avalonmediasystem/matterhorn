@@ -22,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.gstreamer.Bus;
 import org.gstreamer.Element;
-import org.gstreamer.Gst;
 import org.gstreamer.GstObject;
 import org.gstreamer.Pad;
 import org.gstreamer.PadDirection;
@@ -63,8 +62,8 @@ public class GstreamerFileTypeFinder {
     if (!sourceFile.exists() || !sourceFile.isFile())
       throw new FileNotFoundException();
     
-    Gst.setUseDefaultContext(true);
-    Gst.init();
+//    Gst.setUseDefaultContext(true);
+//    Gst.init();
     
     pipeline = Pipeline.launch(String.format(
             GstreamerElements.FILESRC + " location=\"%s\" ! "

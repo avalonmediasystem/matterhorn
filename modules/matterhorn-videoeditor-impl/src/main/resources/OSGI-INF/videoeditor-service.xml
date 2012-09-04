@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
-  <scr:component>
+  <scr:component
+    activate="activate"
+    deactivate="deactivate">
+      
     <implementation class="org.opencastproject.videoeditor.impl.VideoEditorService" />
     <property name="service.description" value="Video Editor Service (precesses smil)" />
     <property name="opencast.service.type" value="org.opencastproject.videoeditor" />
