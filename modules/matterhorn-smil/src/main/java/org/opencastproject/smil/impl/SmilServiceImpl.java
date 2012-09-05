@@ -16,14 +16,7 @@
 package org.opencastproject.smil.impl;
 
 import java.io.File;
-import java.io.StringWriter;
 import java.net.URI;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-
 import org.apache.commons.io.IOUtils;
 import org.opencastproject.ingest.api.IngestService;
 import org.opencastproject.mediapackage.Catalog;
@@ -54,14 +47,6 @@ public class SmilServiceImpl implements SmilService {
    */
   private Workspace workspace;
   /**
-   * a marshaller to marshal an SMIL object to XML
-   */
-  private Marshaller smilMarshaller;
-  /**
-   * an unmarshaller to unmarshal the XML to a SMIL document
-   */
-  private Unmarshaller smilUnmarshaller;
-  /**
    * the workflowservice
    */
   private WorkflowService workflowService;
@@ -87,12 +72,6 @@ public class SmilServiceImpl implements SmilService {
    */
   protected void activate(final ComponentContext cc) throws Exception {
     logger.info("activating SMIL Service");
-
-    // set up de-/serialization
-    ClassLoader cl = Smil.class.getClassLoader();
-    JAXBContext jctx = JAXBContext.newInstance("org.opencastproject.smil.entity", cl);
-    smilMarshaller = jctx.createMarshaller();
-    smilUnmarshaller = jctx.createUnmarshaller();
   }
 
   @Override
@@ -113,7 +92,7 @@ public class SmilServiceImpl implements SmilService {
         }
       }
 
-      mp = ingestService.addCatalog(IOUtils.toInputStream(smilToXML(smil)), SMIL_FILENAME,
+      mp = ingestService.addCatalog(IOUtils.toInputStream(smil.toXML()), SMIL_FILENAME,
           SMIL_FLAVOR, mp);
       workflow.setMediaPackage(mp);
       workflowService.update(workflow);
@@ -218,8 +197,7 @@ public class SmilServiceImpl implements SmilService {
       }
       URI uri = workspace.getURI(mp.getIdentifier().compact(), catalogs[0].getIdentifier(),
           SMIL_FILENAME);
-      File smilFile = workspace.get(uri);
-      smil = (Smil) smilUnmarshaller.unmarshal(smilFile);
+      smil = Smil.fromXML(workspace.get(uri));
     } catch (NotFoundException e) {
       throw e;
     } catch (Exception e) {
@@ -240,23 +218,10 @@ public class SmilServiceImpl implements SmilService {
       WorkflowInstance workflow = workflowService.getWorkflowById(smil.getWorkflowId());
       MediaPackage mp = workflow.getMediaPackage();
       workspace.put(mp.getIdentifier().compact(), smil.getId(), SMIL_FILENAME,
-          IOUtils.toInputStream(smilToXML(smil)));
+          IOUtils.toInputStream(smil.toXML()));
     } catch (Exception e) {
       throw new SmilException(e.getMessage());
     }
-  }
-
-  /**
-   * marshal a SMIL document to XML
-   * 
-   * @param smil the SMIL Object
-   * @return the XML representation of the SMIL document
-   * @throws JAXBException if something is wrong with the document
-   */
-  private String smilToXML(Smil smil) throws JAXBException {
-    StringWriter sw = new StringWriter();
-    smilMarshaller.marshal(smil, sw);
-    return sw.toString();
   }
 
   /**

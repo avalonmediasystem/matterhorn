@@ -77,6 +77,7 @@ public class VideoEditorService implements VideoEditor, ManagedService {
       Object key = keys.nextElement();
       this.properties.put(key, properties.get(key));
     }
+    logger.info("Properties updated!");
   }
 
   @Override
@@ -98,7 +99,7 @@ public class VideoEditorService implements VideoEditor, ManagedService {
         
         if (outputFilePath == null || outputFilePath.isEmpty()) {
 
-          String suffix = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_SUFFIX, "_trimmed");
+          String suffix = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_SUFFIX, VideoEditorPipeline.DEFAULT_OUTPUT_FILE_SUFFIX);
           String extension = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_SUFFIX, VideoEditorPipeline.DEFAULT_OUTPUT_FILE_EXTENSION);
 
           File srcFile = new File(srcFilePath);

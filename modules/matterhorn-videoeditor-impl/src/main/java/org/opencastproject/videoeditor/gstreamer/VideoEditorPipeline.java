@@ -53,6 +53,8 @@ public class VideoEditorPipeline {
   
   public static final String DEFAULT_MUX = "mp4mux";
   public static final String DEFAULT_MUX_PROPERTIES = "";
+  
+  public static final String DEFAULT_OUTPUT_FILE_SUFFIX = "_trimmed";
   public static final String DEFAULT_OUTPUT_FILE_EXTENSION = ".mp4";
   
   

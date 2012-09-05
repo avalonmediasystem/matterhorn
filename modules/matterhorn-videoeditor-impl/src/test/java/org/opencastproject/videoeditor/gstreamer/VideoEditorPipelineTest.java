@@ -38,7 +38,7 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
   /** The logging instance */
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorPipelineTest.class);
   
-//  private String muxedFilePath = "/home/wsmirnow/Videos/Sintel.mp4";
+//  private String muxedFilePath = "/home/wsmirnow/Videos/Sintel.mpg";
   
   /**
    * Test of run and stop methods, of class VideoEditorPipeline.

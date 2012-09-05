@@ -15,6 +15,13 @@
  */
 package org.opencastproject.smil.entity;
 
+import java.io.File;
+import java.io.StringReader;
+import java.io.StringWriter;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -126,4 +133,41 @@ public class Smil {
     this.workflowId = workflowId;
   }
 
+  /**
+   * marshal a SMIL document to XML
+   * 
+   * @return the XML representation of the SMIL document
+   * @throws JAXBException if something is wrong with the document
+   */
+  public String toXML() throws JAXBException {
+    StringWriter sw = new StringWriter();
+    JAXBContext jctx = JAXBContext.newInstance("org.opencastproject.smil.entity", Smil.class.getClassLoader());
+    Marshaller smilMarshaller = jctx.createMarshaller();
+    smilMarshaller.marshal(this, sw);
+    return sw.toString();
+  }
+  
+  /**
+   * unmarshal a SMIL document from XML
+   * 
+   * @return SMIL document represented by XML
+   * @throws JAXBException if something is wrong with the document
+   */
+  public static Smil fromXML(String smilXML) throws JAXBException {
+    JAXBContext jctx = JAXBContext.newInstance(Smil.class);
+    Unmarshaller smilUnmarshaller = jctx.createUnmarshaller();
+    return (Smil) smilUnmarshaller.unmarshal(new StringReader(smilXML));
+  }
+  
+  /**
+   * unmarshal a SMIL document from XML file
+   * 
+   * @return SMIL document represented by XML file
+   * @throws JAXBException if something is wrong with the document
+   */
+  public static Smil fromXML(File smilXMLFile) throws JAXBException {
+    JAXBContext jctx = JAXBContext.newInstance(Smil.class);
+    Unmarshaller smilUnmarshaller = jctx.createUnmarshaller();
+    return (Smil) smilUnmarshaller.unmarshal(smilXMLFile);
+  }
 }
