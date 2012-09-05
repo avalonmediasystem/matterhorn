@@ -237,7 +237,7 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 
 .disabled {
   opacity: 0.2;
-  filter: alpha(opacity =           20); /* For IE8 and earlier */
+  filter: alpha(opacity =             20); /* For IE8 and earlier */
 }
 
 .clipItem {
@@ -250,4 +250,13 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 
 .floatRight {
   float: right;
+}
+
+.magnifyarea { /* CSS to add shadow to magnified image. Optional */
+  box-shadow: 5px 5px 7px #818181;
+  -webkit-box-shadow: 5px 5px 7px #818181;
+  -moz-box-shadow: 5px 5px 7px #818181;
+  filter: progid:DXImageTransform.Microsoft.dropShadow(color=#818181, offX=5,
+    offY=5, positive=true );
+  background: white;
 }

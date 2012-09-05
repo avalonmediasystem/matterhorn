@@ -200,14 +200,14 @@ function playerReady() {
   $('#videoHolder').append('<div id="splitSegments"></div>')
   $('#videoHolder').append('<div id="waveform"></div>');
   $('#waveform').append('<div id="imageDiv"><img id="waveformImage" alt="waveform"/></div>');
-  $('#waveform').append('<div id="canvasDiv"><canvas id="waveformCanvas" /></div>');
+//  $('#waveform').append('<div id="canvasDiv"><canvas id="waveformCanvas" /></div>');
   
-  editor.canvas = $('#waveformCanvas')[0];
+//  editor.canvas = $('#waveformCanvas')[0];
   
   editor.player.bind('timeupdate', updateCurrentTime);
   editor.splitData.splits.push({
     clipBegin : '0s',
-    clipEnd : editor.player.prop('duration') + "s",
+    clipEnd : workflowInstance.mediapackage.duration / 1000 + "s",
     enabled : true,
     description : ""
   });

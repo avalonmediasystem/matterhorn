@@ -11,7 +11,7 @@
 jQuery('head').append('<style type="text/css">.featuredimagezoomerhidden {visibility: hidden!important;}</style>');
 
 var featuredimagezoomer={
-  loadinggif: 'spinningred.gif', //full path or URL to "loading" gif
+  loadinggif: 'img/spinningred.gif', //full path or URL to "loading" gif
   magnifycursor: 'crosshair', //Value for CSS's 'cursor' attribute, added to original image
 
   /////NO NEED TO EDIT BEYOND HERE////////////////

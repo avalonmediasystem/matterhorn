@@ -187,24 +187,30 @@ $(document)
             success : function(data) {
               // clone mediapackage for editing
               mediapackage = ocUtils.createDoc('mediapackage', '');
-              var clone = $(data).find("ns3\\:mediapackage").clone();
+              
+              $.xmlns["mp"] = "http://mediapackage.opencastproject.org";
+              
+              $(data).find('mediapackage').clone()
+
+              var clone = $(data).find('mediapackage').clone();
+
               $(clone).children().appendTo($(mediapackage.documentElement));
               $(mediapackage.documentElement).attr('id', $(clone).attr('id'));
               $(mediapackage.documentElement).attr('start', $(clone).attr('start'));
               $(mediapackage.documentElement).attr('duration', $(clone).attr('duration'));
-              
+
               console.log(mediapackage);
             }
           })
 
-           // save information that
-           // some metadata changed
-           $('.dcMetaField').change(function() {
-             metadataChanged = true;
-           });
-           $('.ocMetaField').change(function() {
-             metadataChanged = true;
-           });
+          // save information that
+          // some metadata changed
+          $('.dcMetaField').change(function() {
+            metadataChanged = true;
+          });
+          $('.ocMetaField').change(function() {
+            metadataChanged = true;
+          });
 
           // // load preview player and metadata
           // $.ajax({
