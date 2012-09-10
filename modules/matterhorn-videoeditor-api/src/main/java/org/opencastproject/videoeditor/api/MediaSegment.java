@@ -13,20 +13,23 @@
  *  permissions and limitations under the License.
  *
  */
+
 package org.opencastproject.videoeditor.api;
 
-import java.util.List;
-import org.opencastproject.mediapackage.Track;
-import org.opencastproject.smil.entity.Smil;
-
-public interface VideoEditor {
-
-  String JOB_TYPE = "org.opencastproject.smil.processing";
+/**
+ *
+ */
+public interface MediaSegment {
   
   /**
-   * Start media processing described by smil file.
-   * @param smil processing description
-   * @return Set with proccessed file pathes
+   * Returns segment start timestamp in milliseconds.
+   * @return start timestamp in milliseconds
    */
-  List<Track> process(Smil smil) throws ProcessFailedException;
+  long getSegmentStart();
+  
+  /**
+   * Returns segment stop timestamp in milliseconds.
+   * @return stop timestamp in milliseconds
+   */
+  long getSegmentStop();
 }

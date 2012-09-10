@@ -13,20 +13,34 @@
  *  permissions and limitations under the License.
  *
  */
+
 package org.opencastproject.videoeditor.api;
 
 import java.util.List;
-import org.opencastproject.mediapackage.Track;
-import org.opencastproject.smil.entity.Smil;
 
-public interface VideoEditor {
+/**
+ *
+ */
+public interface SileceDetectionService {
 
-  String JOB_TYPE = "org.opencastproject.smil.processing";
+  /**
+   * Run audio silence detection on file.
+   * This method is blocking.
+   * 
+   * @param filePath filePath to audio (or muxed) file
+   * @return List with found segments (start / stop timestamps in milliseconds)
+   * @throws ProcessFailedException if fails
+   */ 
+   
+  List<MediaSegment> detect(String filePath) throws ProcessFailedException;
   
   /**
-   * Start media processing described by smil file.
-   * @param smil processing description
-   * @return Set with proccessed file pathes
+   * Interrupt running silence detection for given file.
    */
-  List<Track> process(Smil smil) throws ProcessFailedException;
+  void interruptDetection(String filePath);
+  
+  /**
+   * Interrupt all running silence detections.
+   */
+  void interruptAllDetections();
 }
