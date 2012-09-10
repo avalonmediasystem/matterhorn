@@ -14,6 +14,7 @@
 <script type="text/javascript" src="/admin/js/oc.mediapackage.js"></script>
 <script type="text/javascript" src="/admin/js/jquery.jqote2.js"></script>
 <script type="text/javascript" src="/admin/js/jquery.xmlns.js"></script>
+<script type="text/javascript" src="/admin/js/ext/shortcut.js"></script>
 <script type="text/javascript" src="jquery.timefield.js"></script>
 <script type="text/javascript" src="jquery.srt.js"></script>
 <script type="text/javascript" src="jquery.mhPlayer.js"></script>
@@ -34,9 +35,6 @@
 
       <div id="videoContainer">
         <video id="videoPlayer"> Your browser does not support HTML5 video.
-        </video>
-
-        <video id="videoPlayerSlave"> Your browser does not support HTML5 video.
         </video>
         <div>
           <label>
@@ -71,16 +69,16 @@
     <script type="text/x-jqote-template" id="splitSegmentTemplate">
         <![CDATA[
           <% $.each(data[j].splits, function(key, split ) { 
-            if(split.enabled) {
             var duration = previewTracks[0].duration / 1000;
             var begin = parseFloat(split.clipBegin.toString().replace("s", ""));
             var end = parseFloat(split.clipEnd.toString().replace("s", ""));
             var perc = ((end - begin) / duration) * 100;
           %>
-            <div class="splitSegmentItem" id="splitSegmentItem-<%= key %>" style="width:<%= perc%>%" title="<%= split.description%>">
+            <div class="splitSegmentItem<%= !split.enabled ? ' splitSegmentDisabled disabled' : '' %>" 
+                 id="splitSegmentItem-<%= key %>" 
+                 style="width:<%= perc%>%" title="<%= split.description%>">
               
             </div>
-          <% } %>
           <% }); %>
       ]]>
       </script>
@@ -108,10 +106,6 @@
     </div>
 
     <div id="editor" class="form-box layout-centered ui-widget">
-      <div id="splitter">
-        <input type="button" id="splitButton" value="split" />
-        <span>split at current time</span> (<span id="current_time">00:00:00.000</span>)
-      </div>
       <div id="boxes">
         <div id="leftBox"></div>
 
@@ -121,14 +115,21 @@
           </div>
           <div id="descriptionDiv">
             <input type="hidden" id="splitUUID" />
-            <input type="button" id="playFrom" class="playButton" title="Play from IN-Point" />
-            <span class="clipItem" id="clipBegin"></span> - <span class="clipItem" id="clipEnd"></span>
-            <input type="button" id="playTo" class="playButton" title="Play to OUT-Point" />
+            
+            <a id="clipBeginPrevFrame" class="frameButton" title="Previous Frame"></a>
+            <span class="clipItem" id="clipBegin"></span>
+            <a id="clipBeginNextFrame" class="frameButton" title="Next Frame"></a>
+            - 
+            <a id="clipEndPrevFrame" class="frameButton" title="Previous Frame"></a>
+            <span class="clipItem" id="clipEnd"></span>
+            <a id="clipEndNextFrame" class="frameButton" title="Next Frame"></a>
+            
             <br />
             <label for="description">Description</label>
             <br />
             <textarea id="splitDescription"></textarea>
             <div class="box_right">
+              <input type="button" value="Delete" id="deleteButton" />
               <input type="button" value="Cancel" id="cancelButton" />
               <input type="button" value="OK" id="okButton" />
             </div>

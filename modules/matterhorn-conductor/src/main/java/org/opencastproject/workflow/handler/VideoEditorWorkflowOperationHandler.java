@@ -17,6 +17,7 @@ package org.opencastproject.workflow.handler;
 
 import java.util.Map;
 import java.util.Set;
+
 import org.opencastproject.composer.api.ComposerService;
 import org.opencastproject.job.api.JobContext;
 import org.opencastproject.mediapackage.MediaPackage;

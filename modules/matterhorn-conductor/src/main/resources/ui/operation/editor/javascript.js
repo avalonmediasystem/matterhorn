@@ -138,18 +138,21 @@ $(document)
           });
 
           if (previewTracks.length == 2) {
-            $('#videoPlayerSlave').prepend(
+
+            var videoSlave = '<video id="videoPlayerSlave"> Your browser does not support HTML5 video.</video>';
+            videoSlave = $(videoSlave).prepend(
                 '<source src="' + previewTracks[1].url + '" type="' + previewTracks[1].mimetype + '"/>')
-            player = $('#videoPlayer').mhPlayer({
-              controls : false,
-              fps : previewTracks[1].video.framerate,
-              duration : previewTracks[1].duration / 1000
-            });
+            $('#videoPlayer').after(videoSlave);
+            // player = $('#videoPlayerSlave').mhPlayer({
+            // controls : false,
+            // fps : previewTracks[1].video.framerate,
+            // duration : previewTracks[1].duration / 1000
+            // });
 
             $.mhPlayerSynch("#videoPlayer", "#videoPlayerSlave");
             $('#videoPlayerSlave').show()
           } else {
-            $('#videoContainer').css('margin-left', '25%');
+            $('#videoPlayer').css("width", "100%");
           }
 
           $('#trackForm').append($('#template').jqote(tracks));
@@ -187,9 +190,9 @@ $(document)
             success : function(data) {
               // clone mediapackage for editing
               mediapackage = ocUtils.createDoc('mediapackage', '');
-              
+
               $.xmlns["mp"] = "http://mediapackage.opencastproject.org";
-              
+
               $(data).find('mediapackage').clone()
 
               var clone = $(data).find('mediapackage').clone();

@@ -22,15 +22,25 @@ var WAVEFORM_FLAVOR = "image/waveform";
 
 editor.splitData = {};
 editor.splitData.splits = [];
+editor.selectedSplit = null;
 editor.player = null;
 editor.smil = null;
 editor.canvas = null;
 
 editor.updateSplitList = function() {
+  cancelButtonClick();
   $('#leftBox').html($('#splitElements').jqote(editor.splitData));
   $('#splitSegments').html($('#splitSegmentTemplate').jqote(editor.splitData));
   $('.splitItem').click(splitItemClick);
+  $('.splitSegmentItem').click(splitItemClick);
   $('.splitRemover').click(splitRemoverClick);
+
+  $('.splitSegmentItem').dblclick(jumpToSegment);
+  $('.splitItem').dblclick(jumpToSegment);
+
+  $('.splitSegmentItem').hover(splitHoverIn, splitHoverOut);
+  $('.splitItem').hover(splitHoverIn, splitHoverOut);
+
 }
 
 editor.createSMIL = function() {
@@ -106,25 +116,95 @@ editor.downloadSMIL = function() {
 $(document).ready(function() {
   waitForPlayerReady();
   $('.clipItem').timefield();
-  $('#splitButton').click(splitButtonClick);
+  $('.video-split-button').click(splitButtonClick);
   $('#okButton').click(okButtonClick);
   $('#cancelButton').click(cancelButtonClick);
+  $('#deleteButton').click(splitRemoverClick);
+
+  // add shortcuts for easier editing
+  shortcut.add("s", splitButtonClick);
+  shortcut.add("a", function() {
+    pauseVideo();
+    $('.video-prev-frame').click();
+  });
+  shortcut.add("d", function() {
+    pauseVideo();
+    $('.video-next-frame').click();
+  });
+  shortcut.add("Space", function() {
+    if (editor.player.prop("paused")) {
+      editor.player[0].play();
+    } else {
+      editor.player[0].pause();
+    }
+  });
+
   enabledRightBox(false);
   initPlayButtons();
 })
 
-function initPlayButtons() {
-  $('#playFrom').click(function() {
-    startTime = $('#clipBegin').timefield('option', 'value').toString().replace("s", "");
-    editor.player[0].currentTime = startTime;
-    editor.player[0].play();
-  });
+function jumpToSegment() {
+  id = $(this).prop('id');
+  id = id.replace('splitItem-', '');
+  id = id.replace('splitSegmentItem-', '');
 
-  $('#playTo').click(function() {
-    endTime = parseInt($('#clipEnd').timefield('option', 'value').toString().replace("s", ""));
-    editor.player[0].currentTime = Math.max(endTime, endTime - 5);
-    editor.player[0].play();
-  })
+  editor.player.prop("currentTime", editor.splitData.splits[id].clipBegin.replace("s", ""));
+}
+
+function splitHoverIn(evt) {
+  id = $(this).prop('id');
+  id = id.replace('splitItem-', '');
+  id = id.replace('splitSegmentItem-', '');
+
+  $('#splitItem-' + id).addClass('hover');
+  if (!$('#splitSegmentItem-' + id).hasClass("splitSegmentItemSelected")) {
+    $('#splitSegmentItem-' + id).addClass('hover hoverOpacity');
+  }
+}
+
+function splitHoverOut(evt) {
+  id = $(this).prop('id');
+  id = id.replace('splitItem-', '');
+  id = id.replace('splitSegmentItem-', '');
+
+  $('#splitItem-' + id).removeClass('hover');
+  $('#splitSegmentItem-' + id).removeClass('hover hoverOpacity');
+}
+
+function initPlayButtons() {
+  $('#clipBeginPrevFrame, #clipEndPrevFrame').button({
+    text : false,
+    icons : {
+      primary : "ui-icon-arrowthickstop-1-w"
+    } 
+  });
+  
+  $('#clipBeginNextFrame, #clipEndNextFrame').button({
+    text : false,
+    icons : {
+      primary : "ui-icon-arrowthickstop-1-e"
+    } 
+  });
+  
+  // init clickhandler
+  $('#clipBeginPrevFrame').click(function() {
+    
+    $('.video-prev-frame').click();
+    console.log(editor.player.prop("currentTime"));
+  });
+    
+  $('#clipEndPrevFrame').click(function() {
+    
+  });
+  
+ $('#clipBeginNextFrame').click(function() {
+    
+  });
+ 
+ $('#clipEndNextFrame').click(function() {
+   
+ });
+  
 }
 
 function okButtonClick() {
@@ -147,14 +227,18 @@ function cancelButtonClick() {
   $('#clipEnd').timefield('option', 'value', 0);
   $('#splitIndex').html('#');
   $('.splitItem').removeClass('splitItemSelected');
+  $('.splitSegmentItem').removeClass('splitSegmentItemSelected');
+  editor.selectedSplit = null;
   enabledRightBox(false);
 }
 
 function enabledRightBox(enabled) {
   if (enabled) {
     $('#rightBox :input').removeProp('disabled');
+    $('.frameButton').button("enable");
   } else {
     $('#rightBox :input').prop('disabled', 'disabled');
+    $('.frameButton').button("disable");
   }
 }
 
@@ -196,22 +280,20 @@ function waitForPlayerReady() {
 
 function playerReady() {
   editor.player = $('#videoPlayer');
-  
-  $('#videoHolder').append('<div id="splitSegments"></div>')
-  $('#videoHolder').append('<div id="waveform"></div>');
-  $('#waveform').append('<div id="imageDiv"><img id="waveformImage" alt="waveform"/></div>');
-//  $('#waveform').append('<div id="canvasDiv"><canvas id="waveformCanvas" /></div>');
-  
-//  editor.canvas = $('#waveformCanvas')[0];
-  
-  editor.player.bind('timeupdate', updateCurrentTime);
+
+  // create additional data output
+  $('#videoHolder').append('<div id="segementsWaveform"></div>');
+  $('#segementsWaveform').append('<div id="splitSegments"></div>')
+  $('#segementsWaveform').append('<div id="imageDiv"><img id="waveformImage" alt="waveform"/></div>');
+
+  // create standard split point
   editor.splitData.splits.push({
     clipBegin : '0s',
     clipEnd : workflowInstance.mediapackage.duration / 1000 + "s",
     enabled : true,
     description : ""
   });
-  
+
   // load smil if there is already one
   smil = null;
   $.each(workflowInstance.mediapackage.metadata.catalog, function(key, value) {
@@ -247,25 +329,35 @@ function playerReady() {
       }
     }
   });
+  // create smil if it doesn't exist
   if (smil == null) {
     editor.createSMIL();
   }
+  // update split list and enable the editor
   editor.updateSplitList();
   $('#editor').removeClass('disabled');
-  
+
   // load waveform image
   $.each(ocUtils.ensureArray(workflowInstance.mediapackage.attachments.attachment), function(key, value) {
-    if(value.type == WAVEFORM_FLAVOR) {
+    if (value.type == WAVEFORM_FLAVOR) {
       $('#waveformImage').prop("src", value.url);
       $('#waveformImage').addimagezoom();
     }
   });
-  
+
+  // adjust size of the holdState UI
   var height = parseInt($('.holdStateUI').css('height').replace("px", ""));
   var heightVideo = parseInt($('#videoHolder').css('height').replace("px", ""));
-  
   $('.holdStateUI').css('height', (height + heightVideo) + "px");
   parent.ocRecordings.adjustHoldActionPanelHeight();
+
+  $('#videoHolder').focus();
+}
+
+function pauseVideo() {
+  if (!editor.player.prop("paused")) {
+    editor.player[0].pause();
+  }
 }
 
 function updateCurrentTime() {
@@ -287,11 +379,14 @@ function splitRemoverClick() {
   item = $(this).parent();
   id = item.prop('id');
   id = id.replace("splitItem-", "");
-  if (!item.hasClass('disabled')) {
+  if (id == "") {
+    id = $('#splitUUID').val();
+  }
+  if (editor.splitData.splits[id].enabled) {
     $('#deleteDialog').dialog({
       buttons : {
         "Yes" : function() {
-          item.addClass('disabled');
+          $('#splitItem-' + id).addClass('disabled');
           $('.splitItem').removeClass('splitItemSelected');
           $(this).dialog('close');
           setEnabled(id, false);
@@ -303,22 +398,33 @@ function splitRemoverClick() {
       title : "Remove Item?"
     });
   } else {
-    item.removeClass('disabled');
+    $('#splitItem-' + id).removeClass('disabled');
     setEnabled(id, true);
   }
 }
 
 function setEnabled(uuid, enabled) {
   editor.splitData.splits[uuid].enabled = enabled;
+  editor.updateSplitList();
 }
 
 function splitItemClick() {
   if (!$(this).hasClass('disabled')) {
+
+    $('.splitSegmentItem').removeClass('splitSegmentItemSelected');
     $('.splitItem').removeClass('splitItemSelected');
-    $(this).addClass('splitItemSelected');
-    id = $(this).attr('id');
+
+    $('#splitItem-' + id).addClass('splitItemSelected');
+    $('#splitSegmentItem-' + id).addClass('splitSegmentItemSelected');
+
+    $('#splitSegmentItem-' + id).removeClass('hover hoverOpacity');
+
+    id = $(this).prop('id');
     id = id.replace('splitItem-', '');
+    id = id.replace('splitSegmentItem-', '');
+
     splitItem = editor.splitData.splits[id];
+    editor.selectedSplit = splitItem;
     $('#splitDescription').val(splitItem.description);
     $('#splitUUID').val(id);
     $('#clipBegin').timefield('option', 'value', splitItem.clipBegin);

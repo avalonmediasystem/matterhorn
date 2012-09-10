@@ -17,7 +17,7 @@
 	float: left;
 	position: relative;
 	padding: 5px;
-	width: 50%;
+	width: 90%;
 	
 	border: 2px solid #666666;
 	-moz-border-radius: 2px;
@@ -77,6 +77,21 @@
 }
 
 .mhVideoPlayer.default .video-next-frame {
+  display: block;
+  width: 35px;
+  height: 22px;
+  margin-left: 115px;
+  margin-top: -24px;
+  
+  opacity: 0.7;
+  
+  -moz-transition: all 0.2s ease-in-out;
+  -webkit-transition: all 0.2s ease-in-out;
+  -o-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out; 
+}
+
+.mhVideoPlayer.default .video-split-button {
   display: block;
   width: 35px;
   height: 22px;

@@ -6,15 +6,14 @@
 }
 
 #videoPlayer {
-  width: 100%
+  width: 50%;
+  max-height: 300px;
 }
 
 #videoPlayerSlave {
   float: left;
   margin-left: 10px;
-  margin-top: 2.5%;
-  width: 45%;
-  border: 1px solid black;
+  max-height: 300px;
   display: none;
 }
 
@@ -90,7 +89,7 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 #leftBox {
   float: left;
   border: 1px solid black;
-  width: 465px;
+  width: 400px;
   height: 300px;
   overflow-y: scroll;
   overflow-x: hidden;
@@ -100,7 +99,7 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   float: left;
   border: 1px solid black;
   margin-left: 10px;
-  width: 300px;
+  width: 350px;
 }
 
 #cancelButton {
@@ -130,8 +129,8 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   margin: 10px;
 }
 
-#waveform {
-  height: 65px;
+#segementsWaveform {
+  height: 122px;
   width: 100%;
   float: left;
   margin-top: 5px;
@@ -144,33 +143,23 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   z-index: 0;
 }
 
-#canvasDiv {
-  width: 100%;
-  position: absolute;
-  z-index: 1;
-}
-
-#waveformCanvas {
-  width: 100%;
-  height: 65px;
-}
-
 #waveformImage {
   width: 100%;
 }
 
 #splitSegments {
-  height: 40px;
+  height: 100%;
   width: 100%;
   float: left;
-  margin-top: 5px;
+  position: absolute;
+  z-index: 1;
 }
 
 .splitSegmentItem {
-  border-right: 1px solid black;
+  border-right: 1px solid #990000;
   float: left;
   height: 100%;
-  background-color: white;
+  /*background-color: white; */
   /* Firefox */
   -moz-box-sizing: border-box;
   /* WebKit */
@@ -179,8 +168,35 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   box-sizing: border-box;
 }
 
-.splitSegmentItem:hover {
+.splitSegmentItemSelected {
+  border-right: 1px solid #990000;
+  float: left;
+  height: 100%;
+  /*background-color: white; */
+  /* Firefox */
+  -moz-box-sizing: border-box;
+  /* WebKit */
+  -webkit-box-sizing: border-box;
+  /* Opera 9.5+, Google Chrome */
+  box-sizing: border-box;
+  background-color: blue;
+  opacity: 0.5;
+  filter:alpha(opacity=50); /* For IE8 and earlier */
+}
+
+.hover {
   background-color: #C1CDCD;
+}
+
+.hoverOpacity {
+  opacity: 0.4;
+  filter:alpha(opacity=40); /* For IE8 and earlier */
+}
+
+.splitSegmentDisabled {
+  background-color: gray;
+  opacity: 0.6 !important;
+  filter:alpha(opacity=60) !important; /* For IE8 and earlier */
 }
 
 .box_right {
@@ -199,7 +215,7 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 .splitText {
   margin-left: 10px;
   float: left;
-  width: 380px;
+  width: 315px;
 }
 
 .splitRemover {
@@ -217,8 +233,9 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 
 .splitItem {
   border: 1px solid black;
-  height: 80px;
+  height: 50px;
   margin: 1px;
+  overflow: hidden;
   /* Firefox */
   -moz-box-sizing: border-box;
   /* WebKit */
@@ -227,17 +244,13 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   box-sizing: border-box;
 }
 
-.splitItem:hover {
-  background-color: #C1CDCD;
-}
-
 .splitItemSelected {
   border: 1px solid blue !important;
 }
 
 .disabled {
   opacity: 0.2;
-  filter: alpha(opacity =             20); /* For IE8 and earlier */
+  filter: alpha(opacity = 20); /* For IE8 and earlier */
 }
 
 .clipItem {
@@ -250,6 +263,17 @@ a.secondaryButton:hover,a.secondaryButton:focus {
 
 .floatRight {
   float: right;
+}
+
+.frameButton {
+  height: 22px;
+  vertical-align: middle;
+  opacity: 0.7;
+  
+  -moz-transition: all 0.2s ease-in-out;
+  -webkit-transition: all 0.2s ease-in-out;
+  -o-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out; 
 }
 
 .magnifyarea { /* CSS to add shadow to magnified image. Optional */

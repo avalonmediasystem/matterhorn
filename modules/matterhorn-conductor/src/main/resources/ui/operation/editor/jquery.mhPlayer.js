@@ -149,6 +149,8 @@
       
       var strPrevFrame = "Previous Frame";
       var strNextFrame = "Next Frame";
+      
+      var strSplit = "split at current time";
 
       /*************************************************************************
        * class names
@@ -165,6 +167,8 @@
       
       var classNextFrame = "video-next-frame";
       var classPreviousFrame = "video-prev-frame";
+      
+      var classSplit = "video-split-button";
 
       /*************************************************************************
        * variables
@@ -189,6 +193,7 @@
         '<div class="' + classVideoControls + ' ' + $(val).attr('id') + '">' + 
           '<a class="' + classVideoPlay + '" title="' + strPlay + '"></a>' +
           '<a class="' + classPreviousFrame + '" title="' + strPrevFrame + '"></a>' +
+          '<a class="' + classSplit + '" title="' + strSplit + '"></a>' +
           '<a class="' + classNextFrame + '" title="' + strNextFrame + '"></a>' +
           '<div class="' + classVideoTimer + '"></div>' + 
           '<div class="' + classVolumeBox + '">' + 
@@ -218,6 +223,8 @@
       
       var next_btn = $('.' + classNextFrame, video_container);
       var prev_btn = $('.' + classPreviousFrame, video_container);
+      
+      var split_btn = $('.' + classSplit, video_container);
       
       video_controls.hide();
 
@@ -369,6 +376,15 @@
           } 
         });
       }
+      
+      var setUISplitButton = function() {
+        split_btn.button({
+          text: false,
+          icons: {
+            primary: "ui-icon-scissors"
+          }
+        });
+      }
 
       /*************************************************************************
        * on-events
@@ -431,6 +447,7 @@
         newPos = newPos + 0.00001; // FIXES A SAFARI SEEK ISSUE. myVdieo.currentTime = 0.04 would give SMPTE 00:00:00:00 wheras it should give 00:00:00:01
         
         mhVideo.prop('currentTime', newPos); // TELL THE PLAYER TO GO HERE
+        updateTime();
       } 
 
       /*************************************************************************
@@ -507,6 +524,7 @@
       setUiVolumeOnButton();
       setUiNextFrameButton();
       setUiPrevFrameButton();
+      setUISplitButton();
       pause();
       // disable browser-specific controls
       mhVideo.removeAttr('controls');
