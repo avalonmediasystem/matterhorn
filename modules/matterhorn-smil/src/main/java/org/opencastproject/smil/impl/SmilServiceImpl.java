@@ -198,6 +198,7 @@ public class SmilServiceImpl implements SmilService {
       URI uri = workspace.getURI(mp.getIdentifier().compact(), catalogs[0].getIdentifier(),
           SMIL_FILENAME);
       smil = Smil.fromXML(workspace.get(uri));
+      smil.setMediaPackage(mp);
     } catch (NotFoundException e) {
       throw e;
     } catch (Exception e) {
