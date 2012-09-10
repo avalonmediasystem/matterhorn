@@ -28,6 +28,7 @@ import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeExc
 public class SourceBinsFactory {
 
   private String outputFilePath = null;
+  private String sourceMHElementID = null;
   private GnonlinSourceBin audioSourceBin = null;
   private GnonlinSourceBin videoSourceBin = null;
 
@@ -74,5 +75,13 @@ public class SourceBinsFactory {
   
   public Bin getVideoSourceBin() {
     return videoSourceBin.getBin();
+  }
+  
+  public void setSourceMHElementID(String sourceMHElementID) {
+    this.sourceMHElementID = sourceMHElementID;
+  }
+  
+  public String getSourceMHElementID() {
+    return sourceMHElementID;
   }
 }

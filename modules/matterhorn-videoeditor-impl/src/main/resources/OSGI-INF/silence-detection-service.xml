@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
+  <scr:component
+    activate="activate"
+    deactivate="deactivate">
+      
+    <implementation class="org.opencastproject.videoeditor.impl.SilenceDetectionServiceImpl" />
+    <property name="service.description" value="Silence detection service" />
+    <property name="opencast.service.type" value="org.opencastproject.silencedetection" />
+    <service>
+      <provide interface="org.opencastproject.videoeditor.api.SilenceDetectionService" />
+      <provide interface="org.osgi.service.cm.ManagedService" />
+    </service>
+  </scr:component>
+</scr:components>

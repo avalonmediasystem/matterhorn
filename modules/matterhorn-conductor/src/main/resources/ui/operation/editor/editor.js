@@ -65,7 +65,7 @@ editor.saveSplitList = function() {
     if (value.enabled) {
       parallelId = editor.addParallel();
       $.each(workflowInstance.mediapackage.media.track, function(key, track) {
-        if (track.type.indexOf("work") != -1) {
+        if (track.type.indexOf("trimm") != -1) {
           value.src = track.url;
           value.mhElement = track.id;
           editor.addMediaElement(parallelId, value);

@@ -40,8 +40,8 @@ class FileSourceBin {
 
     bin = new Bin();
     
-    Element filesource = ElementFactory.make("filesrc", null);
-    Element decodebin = ElementFactory.make("decodebin", null);
+    final Element filesource = ElementFactory.make("filesrc", null);
+    final Element decodebin = ElementFactory.make("decodebin", null);
     final Element capsfilter = ElementFactory.make("capsfilter", null);
     
     bin.addMany(filesource, decodebin, capsfilter);
@@ -50,7 +50,7 @@ class FileSourceBin {
     capsfilter.setCaps(caps);
     
     filesource.link(decodebin);
-    
+        
     decodebin.connect(new Element.PAD_ADDED() {
 
       @Override

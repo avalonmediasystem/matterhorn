@@ -73,8 +73,7 @@ public class VideoEditorPipeline {
   
   public void run() {
     logger.debug("starting pipeline...");
-    //TODO debug remove
-    pipeline.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_ALL, "videoeditor-pipeline", true);
+//    pipeline.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_ALL, "videoeditor-pipeline", true);
     
     pipeline.play();
   }
@@ -153,6 +152,7 @@ public class VideoEditorPipeline {
         pipeline = null;
       }
     });
+    
     pipeline.getBus().connect(new Bus.WARNING() {
 
       /**

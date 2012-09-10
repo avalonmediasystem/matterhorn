@@ -15,8 +15,8 @@
  */
 package org.opencastproject.workflow.handler;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.opencastproject.composer.api.ComposerService;
 import org.opencastproject.job.api.JobContext;
@@ -141,6 +141,22 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
    */
   @Override
   public WorkflowOperationResult resume(WorkflowInstance workflowInstance, JobContext context,
+                                        Map<String, String> properties)  throws WorkflowOperationException {
+    try {
+      return resumeLoop(workflowInstance, context, properties);
+    } catch (Exception ex) {
+      logger.error(ex.getMessage());
+      return createResult(Action.PAUSE);
+    }
+  }
+  
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.workflow.api.ResumableWorkflowOperationHandler#resume(org.opencastproject.workflow.api.WorkflowInstance,
+   *      JobContext, java.util.Map)
+   */
+  public WorkflowOperationResult resumeLoop(WorkflowInstance workflowInstance, JobContext context,
                                         Map<String, String> properties)
       throws WorkflowOperationException {
 
@@ -165,17 +181,15 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
         .getConfiguration(TARGET_FLAVOR_SUBTYPE_PROPERTY);
     MediaPackageElementFlavor matchingFlavor = MediaPackageElementFlavor
         .parseFlavor(configuredSourceFlavor);
-    
     try {
-      Set<String> files = videoEditor.process(smil);
-      for (String f : files) {
-        logger.info(f);
-      }
+      List<Track> tracks = videoEditor.process(smil);
+      
+      // TODO set (source) and target flavour
+      
     } catch (ProcessFailedException ex) {
-      logger.error(ex.getMessage());
-      throw new WorkflowOperationException("Smil processing failed!");
+      throw new WorkflowOperationException("Smil processing failed! " + ex.getMessage());
     }
-
+    
     return createResult(Action.PAUSE);
   }
 

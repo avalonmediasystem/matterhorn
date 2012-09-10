@@ -37,14 +37,13 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
   
   /** The logging instance */
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorPipelineTest.class);
-  
-//  private String muxedFilePath = "/home/wsmirnow/Videos/Sintel.mpg";
-  
+      
   /**
    * Test of run and stop methods, of class VideoEditorPipeline.
    */
   @Test
   public void testRunStopDemuxedSourceFiles() {
+    logger.info("Test pipeline with demuxed source files...");
     try {
       final VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
       SourceBinsFactory sourceBins = new SourceBinsFactory(new File(outputFilePath).getAbsolutePath());
@@ -82,7 +81,6 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
         Assert.assertTrue(pipeline.stop());
       }
       
-      
     } catch (FileNotFoundException ex) {
       Assert.fail();
     } catch (PipelineBuildException ex) {
@@ -98,6 +96,7 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
   @Ignore
   @Test
   public void testRunStopMuxedSourceFile() {
+    logger.info("Test pipeline with muxed source file...");
     try {
       final VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
       SourceBinsFactory sourceBins = new SourceBinsFactory(new File(outputFilePath).getAbsolutePath());
@@ -129,7 +128,6 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
       } finally {
         Assert.assertTrue(pipeline.stop());
       }
-      
       
     } catch (FileNotFoundException ex) {
       Assert.fail();

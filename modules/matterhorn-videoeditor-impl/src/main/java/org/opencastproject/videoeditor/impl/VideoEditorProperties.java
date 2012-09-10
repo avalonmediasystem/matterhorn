@@ -34,4 +34,10 @@ public interface VideoEditorProperties {
   String OUTPUT_FILE_SUFFIX = "outputfile.suffix";
   String OUTPUT_FILE_EXTENSION = "outputfile.extension";
   
+  /** Timespan in seconds before silece cut begin. */
+  String SILENCE_PRE_LENGTH = "silence.pre.length";
+  /** Minimum length in seconds to accept silence sequence. */
+  String SILENCE_MIN_LENGTH = "silence.min.length";
+  /** Silence threshold in decibel (e.g. -50 for loud classrooms, -35 for very silent indoor location). */
+  String SILENCE_THRESHOLD_DB = "silence.threshold.db";
 }

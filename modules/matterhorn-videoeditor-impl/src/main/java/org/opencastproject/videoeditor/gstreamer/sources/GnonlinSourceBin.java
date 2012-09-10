@@ -82,8 +82,8 @@ public class GnonlinSourceBin {
     
     if (type == SourceType.Video)
       identity.set("single-segment", true);
-    identity.set("check-imperfect-timestamp", true);
-    identity.set("check-imperfect-offset", true);
+//    identity.set("check-imperfect-timestamp", true);
+//    identity.set("check-imperfect-offset", true);
     
     Pad srcPad = rate.getSrcPads().get(0);
     bin.addPad(new GhostPad(srcPad.getName(), srcPad));

@@ -43,7 +43,8 @@
               jna;inline=true
             </Embed-Dependency>
             <Service-Component>
-              OSGI-INF/videoeditor-service.xml
+              OSGI-INF/videoeditor-service.xml,
+              OSGI-INF/silence-detection-service.xml
             </Service-Component>
           </instructions>
         </configuration>
@@ -71,7 +72,8 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>matterhorn-videoeditor-api</artifactId>
-      <version>${project.version}</version>
+      <version>1.4-SNAPSHOT</version>
+      <type>jar</type>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -152,5 +154,10 @@
       <version>2.4</version>
       <scope>test</scope>
     </dependency>-->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>matterhorn-inspection-service-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>
