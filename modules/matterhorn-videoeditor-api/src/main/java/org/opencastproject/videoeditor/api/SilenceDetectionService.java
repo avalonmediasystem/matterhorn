@@ -21,7 +21,7 @@ import java.util.List;
 /**
  *
  */
-public interface SileceDetectionService {
+public interface SilenceDetectionService {
 
   /**
    * Run audio silence detection on file.
