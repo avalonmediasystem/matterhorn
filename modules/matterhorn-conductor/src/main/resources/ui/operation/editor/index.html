@@ -73,12 +73,15 @@
             var begin = parseFloat(split.clipBegin.toString().replace("s", ""));
             var end = parseFloat(split.clipEnd.toString().replace("s", ""));
             var perc = ((end - begin) / duration) * 100;
+            var width = $('#segementsWaveform').width();
+            if(width * perc >= 2) {
           %>
             <div class="splitSegmentItem<%= !split.enabled ? ' splitSegmentDisabled disabled' : '' %>" 
                  id="splitSegmentItem-<%= key %>" 
                  style="width:<%= perc%>%" title="<%= split.description%>">
               
             </div>
+          <%  } %>
           <% }); %>
       ]]>
       </script>

@@ -90,9 +90,12 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
       throws WorkflowOperationException {
     MediaPackage mp = null;
     try {
-      logger.debug("adding SMIL to workflow");
-      smilService.createNewSmil(workflowInstance.getId());
-      mp = workflowService.getWorkflowById(workflowInstance.getId()).getMediaPackage();
+      mp = workflowInstance.getMediaPackage();
+      if (mp.getCatalogs(MediaPackageElementFlavor.parseFlavor("smil/smil")).length == 0) {
+        logger.debug("adding SMIL to workflow");
+        smilService.createNewSmil(workflowInstance.getId());
+        mp = workflowService.getWorkflowById(workflowInstance.getId()).getMediaPackage();
+      }
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new WorkflowOperationException(e.getMessage(), e);
@@ -141,7 +144,8 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
    */
   @Override
   public WorkflowOperationResult resume(WorkflowInstance workflowInstance, JobContext context,
-                                        Map<String, String> properties)  throws WorkflowOperationException {
+                                        Map<String, String> properties)
+      throws WorkflowOperationException {
     try {
       return resumeLoop(workflowInstance, context, properties);
     } catch (Exception ex) {
@@ -149,7 +153,7 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
       return createResult(Action.PAUSE);
     }
   }
-  
+
   /**
    * {@inheritDoc}
    * 
@@ -157,7 +161,7 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
    *      JobContext, java.util.Map)
    */
   public WorkflowOperationResult resumeLoop(WorkflowInstance workflowInstance, JobContext context,
-                                        Map<String, String> properties)
+                                            Map<String, String> properties)
       throws WorkflowOperationException {
 
     logger.info("VideoEditing workflow {} using SMIL Document", workflowInstance.getId());
@@ -183,13 +187,13 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
         .parseFlavor(configuredSourceFlavor);
     try {
       List<Track> tracks = videoEditor.process(smil);
-      
+
       // TODO set (source) and target flavour
-      
+
     } catch (ProcessFailedException ex) {
       throw new WorkflowOperationException("Smil processing failed! " + ex.getMessage());
     }
-    
+
     return createResult(Action.PAUSE);
   }
 

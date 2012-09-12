@@ -138,6 +138,7 @@ $(document).ready(function() {
       editor.player[0].pause();
     }
   });
+  shortcut.add("c", playCurrentSplitItem);
 
   enabledRightBox(false);
   initPlayButtons();
@@ -176,35 +177,35 @@ function initPlayButtons() {
     text : false,
     icons : {
       primary : "ui-icon-arrowthickstop-1-w"
-    } 
+    }
   });
-  
+
   $('#clipBeginNextFrame, #clipEndNextFrame').button({
     text : false,
     icons : {
       primary : "ui-icon-arrowthickstop-1-e"
-    } 
+    }
   });
-  
+
   // init clickhandler
   $('#clipBeginPrevFrame').click(function() {
-    
+
     $('.video-prev-frame').click();
     console.log(editor.player.prop("currentTime"));
   });
-    
+
   $('#clipEndPrevFrame').click(function() {
-    
+
   });
-  
- $('#clipBeginNextFrame').click(function() {
-    
+
+  $('#clipBeginNextFrame').click(function() {
+
   });
- 
- $('#clipEndNextFrame').click(function() {
-   
- });
-  
+
+  $('#clipEndNextFrame').click(function() {
+
+  });
+
 }
 
 function okButtonClick() {
@@ -240,6 +241,34 @@ function enabledRightBox(enabled) {
     $('#rightBox :input').prop('disabled', 'disabled');
     $('.frameButton').button("disable");
   }
+}
+
+function playCurrentSplitItem() {
+  var splitItem = getCurrentSplitItem();
+  if (splitItem != null) {
+    var clipBegin = parseFloat(splitItem.clipBegin.replace("s", ""));
+    var clipEnd = parseFloat(splitItem.clipEnd.replace("s", ""));
+    var duration = (clipEnd - clipBegin) * 1000;
+    editor.player.prop("currentTime", clipBegin);
+    
+    editor.player[0].play();
+    setTimeout(function() {
+      editor.player[0].pause();
+    }, duration);
+  }
+}
+
+function getCurrentSplitItem() {
+  var currentTime = editor.player.prop("currentTime");
+  for ( var i = 0; i < editor.splitData.splits.length; i++) {
+    var splitItem = editor.splitData.splits[i];
+    var clipBegin = parseFloat(splitItem.clipBegin.replace("s", ""));
+    var clipEnd = parseFloat(splitItem.clipEnd.replace("s", ""));
+    if (clipBegin < currentTime && currentTime < clipEnd) {
+      return splitItem;
+    }
+  }
+  return null;
 }
 
 function splitButtonClick() {

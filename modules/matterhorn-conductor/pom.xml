@@ -234,6 +234,7 @@
               OSGI-INF/operations/searchindex-remove.xml,
               OSGI-INF/operations/schedule.xml,
               OSGI-INF/operations/segmentpreviews.xml,
+              OSGI-INF/operations/silence.xml,
               OSGI-INF/operations/speech-recognition.xml,
               OSGI-INF/operations/tag.xml,
               OSGI-INF/operations/trim.xml,
