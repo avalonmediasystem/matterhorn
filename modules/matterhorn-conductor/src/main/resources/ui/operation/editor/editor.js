@@ -27,6 +27,9 @@ editor.player = null;
 editor.smil = null;
 editor.canvas = null;
 
+/**
+ * update split list in UI
+ */
 editor.updateSplitList = function() {
   cancelButtonClick();
   $('#leftBox').html($('#splitElements').jqote(editor.splitData));
@@ -43,6 +46,10 @@ editor.updateSplitList = function() {
 
 }
 
+/**
+ * create a new smil for the current workflow
+ * should already be handled by workflowoperationhandler
+ */
 editor.createSMIL = function() {
   $.ajax({
     url : SMIL_RESTSERVICE + "new",
@@ -52,6 +59,9 @@ editor.createSMIL = function() {
   });
 }
 
+/**
+ * clear the content of the smil
+ */
 editor.clearSMIL = function() {
   $.ajax({
     url : SMIL_RESTSERVICE + "clear/" + workflowInstance.id,
@@ -59,6 +69,9 @@ editor.clearSMIL = function() {
   });
 }
 
+/**
+ * save the content to smil file
+ */
 editor.saveSplitList = function() {
   editor.clearSMIL();
   $.each(editor.splitData.splits, function(key, value) {
@@ -75,6 +88,12 @@ editor.saveSplitList = function() {
   });
 }
 
+/**
+ * add a mediaelement to the smil
+ * 
+ * @param parallelId the id of the parallelElement this MediaElement should be added to
+ * @param data the data of this MediaElement
+ */
 editor.addMediaElement = function(parallelId, data) {
   $.ajax({
     url : SMIL_RESTSERVICE + "addMediaElement/" + workflowInstance.id + "/" + parallelId,
@@ -85,6 +104,9 @@ editor.addMediaElement = function(parallelId, data) {
   })
 }
 
+/**
+ * add a ParallelElement to the SMIL
+ */
 editor.addParallel = function() {
   var parallelId = "";
   $.ajax({
@@ -97,6 +119,10 @@ editor.addParallel = function() {
   return parallelId;
 }
 
+/**
+ * download the SMIL if there is already one
+ * e.g. from silence detection
+ */
 editor.downloadSMIL = function() {
   var smil = null;
   $.ajax({
@@ -113,14 +139,10 @@ editor.downloadSMIL = function() {
   return smil;
 }
 
-$(document).ready(function() {
-  waitForPlayerReady();
-  $('.clipItem').timefield();
-  $('.video-split-button').click(splitButtonClick);
-  $('#okButton').click(okButtonClick);
-  $('#cancelButton').click(cancelButtonClick);
-  $('#deleteButton').click(splitRemoverClick);
-
+/**
+ * add all shortcuts
+ */
+function addShortcuts() {
   // add shortcuts for easier editing
   shortcut.add("s", splitButtonClick);
   shortcut.add("a", function() {
@@ -139,11 +161,12 @@ $(document).ready(function() {
     }
   });
   shortcut.add("c", playCurrentSplitItem);
+  shortcut.add("Delete", splitRemoverClick);
+}
 
-  enabledRightBox(false);
-  initPlayButtons();
-})
-
+/**
+ * jump to beginning of current split item
+ */
 function jumpToSegment() {
   id = $(this).prop('id');
   id = id.replace('splitItem-', '');
@@ -152,6 +175,11 @@ function jumpToSegment() {
   editor.player.prop("currentTime", editor.splitData.splits[id].clipBegin.replace("s", ""));
 }
 
+/**
+ * handler for hover in events on split segements and -list
+ * 
+ * @param evt the corresponding event
+ */
 function splitHoverIn(evt) {
   id = $(this).prop('id');
   id = id.replace('splitItem-', '');
@@ -163,6 +191,11 @@ function splitHoverIn(evt) {
   }
 }
 
+/**
+ * handler for hover out events on split segements and -list
+ * 
+ * @param evt the corresponding event
+ */
 function splitHoverOut(evt) {
   id = $(this).prop('id');
   id = id.replace('splitItem-', '');
@@ -172,6 +205,9 @@ function splitHoverOut(evt) {
   $('#splitSegmentItem-' + id).removeClass('hover hoverOpacity');
 }
 
+/**
+ * init the playbuttons in the editing box
+ */
 function initPlayButtons() {
   $('#clipBeginPrevFrame, #clipEndPrevFrame').button({
     text : false,
@@ -208,6 +244,9 @@ function initPlayButtons() {
 
 }
 
+/**
+ * click handler for saving data in editing box
+ */
 function okButtonClick() {
   id = $('#splitUUID').val();
   if (id != "") {
@@ -220,6 +259,9 @@ function okButtonClick() {
   }
 }
 
+/**
+ * click handler for canceling editing
+ */
 function cancelButtonClick() {
   $('#splitDescription').html('');
   $('#splitUUID').val('');
@@ -233,6 +275,11 @@ function cancelButtonClick() {
   enabledRightBox(false);
 }
 
+/**
+ * enable/disable the right editing box
+ * 
+ * @param enabled whether enabled or not
+ */
 function enabledRightBox(enabled) {
   if (enabled) {
     $('#rightBox :input').removeProp('disabled');
@@ -243,6 +290,17 @@ function enabledRightBox(enabled) {
   }
 }
 
+function setCurrentTimeAsNewInpoint() {
+
+}
+
+function setCurrentTimeAsNewOutpoint() {
+
+}
+
+/**
+ * plays the current split item from it's beginning
+ */
 function playCurrentSplitItem() {
   var splitItem = getCurrentSplitItem();
   if (splitItem != null) {
@@ -250,7 +308,7 @@ function playCurrentSplitItem() {
     var clipEnd = parseFloat(splitItem.clipEnd.replace("s", ""));
     var duration = (clipEnd - clipBegin) * 1000;
     editor.player.prop("currentTime", clipBegin);
-    
+
     editor.player[0].play();
     setTimeout(function() {
       editor.player[0].pause();
@@ -258,6 +316,11 @@ function playCurrentSplitItem() {
   }
 }
 
+/**
+ * retrieves the current split item by time
+ * 
+ * @returns the current split item
+ */
 function getCurrentSplitItem() {
   var currentTime = editor.player.prop("currentTime");
   for ( var i = 0; i < editor.splitData.splits.length; i++) {
@@ -271,6 +334,9 @@ function getCurrentSplitItem() {
   return null;
 }
 
+/**
+ * click/shortcut handler for adding a split item at current time
+ */
 function splitButtonClick() {
   var currentTime = editor.player.prop('currentTime');
   for ( var i = 0; i < editor.splitData.splits.length; i++) {
@@ -298,6 +364,16 @@ function splitButtonClick() {
   }
 }
 
+/**
+ * show a dialog containing all shortcuts
+ */
+function showShortcuts() {
+
+}
+
+/**
+ * wait until the player is ready (has future data)
+ */
 function waitForPlayerReady() {
   if ($('#videoPlayer').prop("readyState") >= $('#videoPlayer').prop("HAVE_FUTURE_DATA")) {
     ocUtils.log("player ready");
@@ -307,13 +383,25 @@ function waitForPlayerReady() {
   }
 }
 
+/**
+ * when player is ready set all neccassary stuff
+ */
 function playerReady() {
   editor.player = $('#videoPlayer');
 
   // create additional data output
-  $('#videoHolder').append('<div id="segementsWaveform"></div>');
-  $('#segementsWaveform').append('<div id="splitSegments"></div>')
-  $('#segementsWaveform').append('<div id="imageDiv"><img id="waveformImage" alt="waveform"/></div>');
+  $('#videoHolder').append('<div id="segmentsWaveform"></div>');
+  $('#segmentsWaveform').append('<div id="splitSegments"></div>')
+  $('#segmentsWaveform').append('<div id="imageDiv"><img id="waveformImage" alt="waveform"/></div>');
+  $('#segmentsWaveform').append('<div id="currentTimeDiv"></div>');
+
+  editor.player.bind("timeupdate", function() {
+    var duration = workflowInstance.mediapackage.duration / 1000;
+    var perc = editor.player.prop("currentTime") / duration * 100;
+    $('#currentTimeDiv').animate({
+      left : perc + "%"
+    }, 10)
+  });
 
   // create standard split point
   editor.splitData.splits.push({
@@ -383,16 +471,27 @@ function playerReady() {
   $('#videoHolder').focus();
 }
 
+/**
+ * pause the video
+ */
 function pauseVideo() {
   if (!editor.player.prop("paused")) {
     editor.player[0].pause();
   }
 }
 
+/**
+ * updates the currentTime div
+ */
 function updateCurrentTime() {
   $('#current_time').html(formatTime(editor.player.prop("currentTime")));
 }
 
+/**
+ * formating a time String to hh:MM:ss.mm
+ * @param time the timeString
+ * @returns the formated time string
+ */
 function formatTime(time) {
   if (typeof time == "string") {
     time = time.replace("s", "");
@@ -404,10 +503,17 @@ function formatTime(time) {
   return formatted;
 }
 
+/**
+ * click/shortcut handler for removing current split item
+ */
 function splitRemoverClick() {
   item = $(this).parent();
   id = item.prop('id');
-  id = id.replace("splitItem-", "");
+  if (id != undefined) {
+    id = id.replace("splitItem-", "");
+  } else {
+    id = "";
+  }
   if (id == "") {
     id = $('#splitUUID').val();
   }
@@ -432,26 +538,42 @@ function splitRemoverClick() {
   }
 }
 
+/**
+ * enable/disable a split item
+ * 
+ * @param uuid
+ *          the id of the splitItem
+ * @param enabled
+ *          whether enabled or not
+ */
 function setEnabled(uuid, enabled) {
   editor.splitData.splits[uuid].enabled = enabled;
   editor.updateSplitList();
 }
 
+/**
+ * click handler for selecting a split item in segment bar or list
+ */
 function splitItemClick() {
+  // if it's not already disabled
   if (!$(this).hasClass('disabled')) {
 
+    // remove all selected classes
     $('.splitSegmentItem').removeClass('splitSegmentItemSelected');
     $('.splitItem').removeClass('splitItemSelected');
 
+    // get the id of the split item
+    id = $(this).prop('id');
+    id = id.replace('splitItem-', '');
+    id = id.replace('splitSegmentItem-', '');
+
+    // add the selected class to the corresponding items
     $('#splitItem-' + id).addClass('splitItemSelected');
     $('#splitSegmentItem-' + id).addClass('splitSegmentItemSelected');
 
     $('#splitSegmentItem-' + id).removeClass('hover hoverOpacity');
 
-    id = $(this).prop('id');
-    id = id.replace('splitItem-', '');
-    id = id.replace('splitSegmentItem-', '');
-
+    // load data into right box
     splitItem = editor.splitData.splits[id];
     editor.selectedSplit = splitItem;
     $('#splitDescription').val(splitItem.description);
@@ -462,3 +584,16 @@ function splitItemClick() {
     enabledRightBox(true);
   }
 }
+
+$(document).ready(function() {
+  waitForPlayerReady();
+  $('.clipItem').timefield();
+  $('.video-split-button').click(splitButtonClick);
+  $('#okButton').click(okButtonClick);
+  $('#cancelButton').click(cancelButtonClick);
+  $('#deleteButton').click(splitRemoverClick);
+
+  enabledRightBox(false);
+  initPlayButtons();
+  addShortcuts();
+})

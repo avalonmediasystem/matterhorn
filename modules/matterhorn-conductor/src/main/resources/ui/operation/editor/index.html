@@ -36,12 +36,6 @@
       <div id="videoContainer">
         <video id="videoPlayer"> Your browser does not support HTML5 video.
         </video>
-        <div>
-          <label>
-            <span id="i18n_files_label">File(s)</span>:
-          </label>
-          <span id="files"></span>
-        </div>
       </div>
     </div>
 
@@ -73,15 +67,12 @@
             var begin = parseFloat(split.clipBegin.toString().replace("s", ""));
             var end = parseFloat(split.clipEnd.toString().replace("s", ""));
             var perc = ((end - begin) / duration) * 100;
-            var width = $('#segementsWaveform').width();
-            if(width * perc >= 2) {
           %>
             <div class="splitSegmentItem<%= !split.enabled ? ' splitSegmentDisabled disabled' : '' %>" 
                  id="splitSegmentItem-<%= key %>" 
                  style="width:<%= perc%>%" title="<%= split.description%>">
               
             </div>
-          <%  } %>
           <% }); %>
       ]]>
       </script>
@@ -118,16 +109,11 @@
           </div>
           <div id="descriptionDiv">
             <input type="hidden" id="splitUUID" />
-            
-            <a id="clipBeginPrevFrame" class="frameButton" title="Previous Frame"></a>
-            <span class="clipItem" id="clipBegin"></span>
-            <a id="clipBeginNextFrame" class="frameButton" title="Next Frame"></a>
-            - 
-            <a id="clipEndPrevFrame" class="frameButton" title="Previous Frame"></a>
-            <span class="clipItem" id="clipEnd"></span>
-            <a id="clipEndNextFrame" class="frameButton" title="Next Frame"></a>
-            
-            <br />
+
+            <a id="clipBeginPrevFrame" class="frameButton" title="Previous Frame"></a> <span class="clipItem"
+              id="clipBegin"></span> <a id="clipBeginNextFrame" class="frameButton" title="Next Frame"></a> - <a
+              id="clipEndPrevFrame" class="frameButton" title="Previous Frame"></a> <span class="clipItem" id="clipEnd"></span>
+            <a id="clipEndNextFrame" class="frameButton" title="Next Frame"></a> <br />
             <label for="description">Description</label>
             <br />
             <textarea id="splitDescription"></textarea>
@@ -240,6 +226,41 @@
         type="button" class="ui-button ui-corner-all" value="Continue processing" />
       <!-- a id="edit-link" class="secondaryButton">Edit metadata, then continue</a -->
       <a onclick="cancel()" title="Cancel" class="secondaryButton">Cancel</a>
+    </div>
+
+    <div id="shortcuts" class="ui-helper-hidden">
+      <table border="0">
+        <tbody>
+          <tr>
+            <td>a</td>
+            <td>previous frame</td>
+          </tr>
+          <tr>
+            <td>d</td>
+            <td>next frame</td>
+          </tr>
+          <tr>
+            <td>s</td>
+            <td>split at current time</td>
+          </tr>
+          <tr>
+            <td>c</td>
+            <td>play current segment</td>
+          </tr>
+          <tr>
+            <td>x</td>
+            <td>play current time with 2s pre and post roll excluding deleted segments</td>
+          </tr>
+          <tr>
+            <td>space</td>
+            <td>play/paus</td>
+          </tr>
+          <tr>
+            <td>delete</td>
+            <td>delete currently selected segment</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </body>

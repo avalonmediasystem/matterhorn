@@ -129,12 +129,26 @@ a.secondaryButton:hover,a.secondaryButton:focus {
   margin: 10px;
 }
 
-#segementsWaveform {
+#segmentsWaveform {
   height: 122px;
   width: 100%;
   float: left;
   margin-top: 5px;
   position: relative;
+}
+
+#currentTimeDiv {
+  border-right: 1px solid green;
+  width: 1px;
+  height: 100%;
+  position: absolute;
+  /* Firefox */
+  -moz-box-sizing: border-box;
+  /* WebKit */
+  -webkit-box-sizing: border-box;
+  /* Opera 9.5+, Google Chrome */
+  box-sizing: border-box;
+  z-index: 3;
 }
 
 #imageDiv {

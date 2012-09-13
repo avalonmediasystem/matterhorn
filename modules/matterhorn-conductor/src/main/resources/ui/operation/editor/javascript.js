@@ -116,15 +116,75 @@ $(document)
             url : WORKFLOW_RESTSERVICE + id + ".json",
             async : false,
             success : function(data) {
+
+              // extract tracks
               workflowInstance = data.workflow;
               data = data.workflow.mediapackage.media.track;
+              var singleFile = true;
               for (i = 0; i < data.length; i++) {
                 if (data[i].type.indexOf("work") != -1) {
                   tracks.tracks.push(data[i]);
                 } else if (data[i].type.indexOf("preview") != -1) {
                   previewTracks.push(data[i]);
-                }
+                } 
               }
+
+              // populate series field if information
+              var seriesid = workflowInstance.mediapackage.series;
+              if (seriesid) {
+                $('#ispartof').val(seriesid);
+                $('#series').val(workflowInstance.mediapackage.seriestitle);
+                $('#info-series')[0].innerHTML = workflowInstance.mediapackage.seriestitle;
+              }
+
+              // load metadata from DC xml for editing
+              var catalogUrl = "";
+              $.each(ocUtils.ensureArray(workflowInstance.mediapackage.metadata.catalog), function(key, value) {
+                if (value.type == "dublincore/episode") {
+                  catalogUrl = value.url;
+                }
+              });
+              $.ajax({
+                url : catalogUrl,
+                dataType : 'xml',
+                error : function(XMLHttpRequest, textStatus, errorThrown) {
+                  $('div#errorMessage').html('error: ' + textStatus);
+                },
+                success : function(data) {
+                  DCmetadata = data;
+                  $(data.documentElement).children().each(function(index, elm) {
+                    var tagName = elm.tagName.split(/:/)[1];
+                    if ($(elm).text() != '') {
+                      $('#meta-' + tagName).val($(elm).text());
+                      if ($('#info-' + tagName).length > 0)
+                        $('#info-' + tagName)[0].innerHTML = $(elm).text();
+                      if (tagName === "category") {
+                        value = $(elm).text();
+                        $('#categorySelector').val(value.substr(0, 3));
+                        changedCategory();
+                        if (value.length > 3) {
+                          $('#category').val(value);
+                          changedSubCategory();
+                        }
+                      }
+                      if (tagName === "created") {
+                        $('#recordDate').datepicker('setDate', new Date($(elm).text()));
+                        $('#startTimeHour').val((new Date($(elm).text())).getHours());
+                        $('#startTimeMin').val((new Date($(elm).text())).getMinutes());
+                      }
+                    }
+                  });
+
+                  // save information that
+                  // some metadata changed
+                  $('.dcMetaField').change(function() {
+                    metadataChanged = true;
+                  });
+                  $('.ocMetaField').change(function() {
+                    metadataChanged = true;
+                  });
+                }
+              });
             }
           });
 
@@ -143,11 +203,6 @@ $(document)
             videoSlave = $(videoSlave).prepend(
                 '<source src="' + previewTracks[1].url + '" type="' + previewTracks[1].mimetype + '"/>')
             $('#videoPlayer').after(videoSlave);
-            // player = $('#videoPlayerSlave').mhPlayer({
-            // controls : false,
-            // fps : previewTracks[1].video.framerate,
-            // duration : previewTracks[1].duration / 1000
-            // });
 
             $.mhPlayerSynch("#videoPlayer", "#videoPlayerSlave");
             $('#videoPlayerSlave').show()
@@ -214,132 +269,6 @@ $(document)
           $('.ocMetaField').change(function() {
             metadataChanged = true;
           });
-
-          // // load preview player and metadata
-          // $.ajax({
-          // url : '/workflow/instance/' + id + '.xml',
-          // dataType : 'xml', // or XML..
-          // success : function(data) {
-          //
-          // // clone mediapackage for editing
-          // mediapackage = ocUtils.createDoc('mediapackage', '');
-          // var clone = $(data.documentElement).find("mediapackage").clone();
-          // $(clone).children().appendTo($(mediapackage.documentElement));
-          // $(mediapackage.documentElement).attr('id', $(clone).attr('id'));
-          // $(mediapackage.documentElement).attr('start',
-          // $(clone).attr('start'));
-          // $(mediapackage.documentElement).attr('duration',
-          // $(clone).attr('duration'));
-          //
-          // // populate series field if information
-          // // present
-          // var seriesid = $(data.documentElement).find("mediapackage >
-          // series").text();
-          // if (seriesid != '') {
-          // $('#ispartof').val(seriesid);
-          // $('#series').val($(data.documentElement).find("mediapackage >
-          // seriestitle").text());
-          // $('#info-series')[0].innerHTML =
-          // $(data.documentElement).find("mediapackage > seriestitle").text();
-          // }
-          //
-          // // load metadata from DC xml for editing
-          // catalogUrl = $(data.documentElement).find(
-          // "mediapackage > metadata > catalog[type='dublincore/episode'] >
-          // url").text();
-          // $.ajax({
-          // url : catalogUrl,
-          // dataType : 'xml',
-          // error : function(XMLHttpRequest, textStatus, errorThrown) {
-          // $('div#errorMessage').html('error: ' + textStatus);
-          // },
-          // success : function(data) {
-          // DCmetadata = data;
-          // $(data.documentElement).children().each(function(index, elm) {
-          // var tagName = elm.tagName.split(/:/)[1];
-          // if ($(elm).text() != '') {
-          // $('#meta-' + tagName).val($(elm).text());
-          // if ($('#info-' + tagName).length > 0)
-          // $('#info-' + tagName)[0].innerHTML = $(elm).text();
-          // if (tagName === "category") {
-          // value = $(elm).text();
-          // $('#categorySelector').val(value.substr(0, 3));
-          // changedCategory();
-          // if (value.length > 3) {
-          // $('#category').val(value);
-          // changedSubCategory();
-          // }
-          // }
-          // if (tagName === "created") {
-          // $('#recordDate').datepicker('setDate', new Date($(elm).text()));
-          // $('#startTimeHour').val((new Date($(elm).text())).getHours());
-          // $('#startTimeMin').val((new Date($(elm).text())).getMinutes());
-          // }
-          // }
-          // });
-          //
-          // // save information that
-          // // some metadata changed
-          // $('.dcMetaField').change(function() {
-          // metadataChanged = true;
-          // });
-          // $('.ocMetaField').change(function() {
-          // metadataChanged = true;
-          // });
-          // }
-          // });
-          // }
-          // });
-          // //
-          // // var previewFiles = new Array();
-          // //
-          // // $(data.documentElement).find("mediapackage > media >
-          // // track").each(function(index, elm) {
-          // // if ($(elm).attr('type').split(/\//)[1] == 'preview') {
-          // // previewFiles.push($(elm).find('url').text());
-          // // }
-          // // });
-          // // if (previewFiles.length > 0) {
-          // // var url = PLAYER_URL + '?';
-          // // for ( var i = 0; i < previewFiles.length; i++) {
-          // // if (i == 0) {
-          // // url += 'videoUrl=';
-          // // } else {
-          // // url += '&videoUrl' + (i + 1) + '=';
-          // // }
-          // // url += previewFiles[i];
-          // // }
-          // // $('#player-container').attr('src',
-          // // url +
-          // // "&play=false&preview=true&hideControls=false&hideAPLogo=true");
-          // // } else {
-          // // $('#player-container').text("No preview media files found for
-          // this
-          // // media package.");
-          // // }
-          // // // show links to source media
-          // // var singleFile = true;
-          // // $(data.documentElement).find("mediapackage > media >
-          // track").each(
-          // // function(index, elm) {
-          // // if ($(elm).attr('type').split(/\//)[1] == 'source') {
-          // // var link = document.createElement('a');
-          // // var url = $(elm).find('url').text();
-          // // $(link).attr('href', url);
-          // // var filename = url.split(/\//);
-          // // $(link).text(filename[filename.length - 1]).attr('title',
-          // // 'Download ' + filename[filename.length - 1] + ' for editing');
-          // // if (singleFile) {
-          // // singleFile = false;
-          // // } else {
-          // // $('#files').append($(document.createElement('span')).text(',
-          // '));
-          // // }
-          // // $('#files').append(link);
-          // // }
-          // // });
-          // // }
-          // // });
 
           // Event: collapsable title clicked, de-/collapse
           // collapsables
