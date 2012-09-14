@@ -153,8 +153,8 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
 
     try {
       smil = smilService.getSmil(workflowInstance.getId());
-      logger.info("SMIL is ready for processing");
-      logger.info("videoeditor: {}", videoEditor);
+      logger.debug("SMIL is ready for processing");
+      logger.debug("videoeditor: {}", videoEditor);
     } catch (SmilException e) {
       throw new WorkflowOperationException("SMIL Exception", e);
     } catch (NotFoundException e) {
@@ -168,8 +168,15 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
         .getConfiguration(TARGET_FLAVOR_SUBTYPE_PROPERTY);
     MediaPackageElementFlavor matchingFlavor = MediaPackageElementFlavor
         .parseFlavor(configuredSourceFlavor);
+    
+    MediaPackage mp = workflowInstance.getMediaPackage();
     try {
       List<Track> tracks = videoEditor.process(smil);
+      
+      for (Track t : tracks) {
+        t.setFlavor(new MediaPackageElementFlavor(t.getFlavor().getType(), configuredTargetFlavorSubtype));
+        mp.add(t);
+      }
 
       // TODO set (source) and target flavour
 
@@ -177,7 +184,7 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
       throw new WorkflowOperationException("Smil processing failed! " + ex.getMessage());
     }
 
-    return createResult(Action.PAUSE);
+    return createResult(mp, Action.CONTINUE);
   }
 
   public void setSmilService(SmilService smilService) {

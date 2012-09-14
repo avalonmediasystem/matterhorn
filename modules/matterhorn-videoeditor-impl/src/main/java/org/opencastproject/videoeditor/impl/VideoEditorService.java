@@ -176,12 +176,15 @@ public class VideoEditorService implements VideoEditor, ManagedService {
       // Have the encoded track inspected and return the result
       Job inspectionJob = null;
       try {
+        logger.debug("inspecting new track");
         inspectionJob = inspectionService.inspect(returnURL);
         JobBarrier barrier = new JobBarrier(serviceRegistry, inspectionJob);
         if (!barrier.waitForJobs().isSuccess()) {
           throw new ProcessFailedException("Media inspection of " + returnURL + " failed");
         }
         Track inspectedTrack = (Track) MediaPackageElementParser.getFromXml(inspectionJob.getPayload());
+        Track sourceTrack = smil.getMediaPackage().getTrack(fileSourceBin.getSourceMHElementID());
+        inspectedTrack.setFlavor(sourceTrack.getFlavor());
         inspectedTrack.setIdentifier(trackId);
         encodedTracks.add(inspectedTrack);
       } catch (MediaPackageException ex) {
