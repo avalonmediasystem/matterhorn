@@ -40,8 +40,8 @@ public abstract class GstreamerAbstractTest {
     
   public GstreamerAbstractTest() {
     try {
-      audioFilePath = new File(getClass().getResource("/testresources/testvideo.mp3").toURI()).getAbsolutePath();
-      videoFilePath = new File(getClass().getResource("/testresources/testvideo.mp4v").toURI()).getAbsolutePath();
+      audioFilePath = new File(getClass().getResource("/testresources/testvideo-a.mp4").toURI()).getAbsolutePath();
+      videoFilePath = new File(getClass().getResource("/testresources/testvideo-v.mp4").toURI()).getAbsolutePath();
       muxedFilePath = new File(getClass().getResource("/testresources/testvideo.mp4").toURI()).getAbsolutePath();
       outputFilePath = new File("target/testoutput/mux.mp4").getAbsolutePath();
     } catch (URISyntaxException ex) {

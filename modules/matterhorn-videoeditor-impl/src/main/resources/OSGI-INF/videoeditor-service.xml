@@ -13,11 +13,11 @@
       <provide interface="org.opencastproject.videoeditor.api.VideoEditor" />
       <provide interface="org.osgi.service.cm.ManagedService" />
     </service>
-<!--    <reference cardinality="1..1" interface="org.opencastproject.inspection.api.MediaInspectionService"
+    <reference cardinality="1..1" interface="org.opencastproject.inspection.api.MediaInspectionService"
                policy="static" bind="setInspectionService" />
     <reference cardinality="1..1" interface="org.opencastproject.serviceregistry.api.ServiceRegistry"
                policy="static" bind="setServiceRegistry" />
-    <reference name="workspace" interface="org.opencastproject.workspace.api.Workspace"
-                                     cardinality="1..1" policy="static" bind="setWorkspace" />-->
+    <reference cardinality="1..1" interface="org.opencastproject.workspace.api.Workspace"
+               policy="static" bind="setWorkspace" />
   </scr:component>
 </scr:components>

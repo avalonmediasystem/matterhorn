@@ -22,8 +22,6 @@ import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
 import org.gstreamer.GhostPad;
 import org.gstreamer.Pad;
-import org.gstreamer.PadDirection;
-import org.gstreamer.PadLinkReturn;
 import org.gstreamer.event.EOSEvent;
 import org.opencastproject.videoeditor.gstreamer.VideoEditorPipeline;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
@@ -52,31 +50,40 @@ public class GnonlinSourceBin {
   /** Bin's max duration in millisecond */
   private long maxLengthMillis = 0L;
   
-  GnonlinSourceBin(SourceType type) throws UnknownSourceTypeException, PipelineBuildException {
+  GnonlinSourceBin(SourceType type, Caps sourceCaps) throws UnknownSourceTypeException, PipelineBuildException {
     this.type = type;
     
     bin = new Bin();
     gnlComposition = (Bin) ElementFactory.make("gnlcomposition", null);
+    final Element decodebin = ElementFactory.make("decodebin", null);
     final Element identity = ElementFactory.make("identity", null);
+    final Element queue = ElementFactory.make("queue", null);
     final Element converter;
     final Element rate;
     switch(type) {
       case Audio: 
         converter = ElementFactory.make("audioconvert", null);
         rate = ElementFactory.make("audiorate", null);
-        caps = Caps.fromString("audio/x-raw-int; audio/x-raw-float");
+        if (sourceCaps != null)
+          caps = sourceCaps;
+        else 
+          caps = Caps.fromString("audio/x-raw-int; audio/x-raw-float");
+        
         break;
       case Video: 
         converter = ElementFactory.make("ffmpegcolorspace", null);
         rate = ElementFactory.make("videorate", null);
-        caps = Caps.fromString("video/x-raw-yuv; video/x-raw-rgb");
+        if (sourceCaps != null)
+          caps = sourceCaps;
+        else 
+          caps = Caps.fromString("video/x-raw-yuv; video/x-raw-rgb");
         break;
       default:
         throw new UnknownSourceTypeException(type);
     }
     
-    bin.addMany(gnlComposition, identity, converter, rate);
-    if (!Element.linkMany(identity, converter, rate)) {
+    bin.addMany(gnlComposition, decodebin, identity, converter, rate, queue);
+    if (!Element.linkMany(identity, converter, rate, queue)) {
       throw new PipelineBuildException();
     }
     
@@ -85,7 +92,7 @@ public class GnonlinSourceBin {
 //    identity.set("check-imperfect-timestamp", true);
 //    identity.set("check-imperfect-offset", true);
     
-    Pad srcPad = rate.getSrcPads().get(0);
+    Pad srcPad = queue.getSrcPads().get(0);
     bin.addPad(new GhostPad(srcPad.getName(), srcPad));
     
     gnlComposition.connect(new Element.PAD_ADDED() {
@@ -93,22 +100,17 @@ public class GnonlinSourceBin {
       @Override
       public void padAdded(Element source, Pad pad) {
         //TODO to debug
-        logger.debug("new pad added {}.{} (cpas: {}): ", new String[] {
+        logger.debug("new pad added {}.{} (caps: {}): ", new String[] {
           source.getName(), pad.getName(), pad.getCaps().toString()
         });
 
-        if (pad.getDirection() == PadDirection.SRC && pad.acceptCaps(caps)) {
-          PadLinkReturn plr = pad.link(identity.getSinkPads().get(0));
-          if (plr != PadLinkReturn.OK) {
-            logger.warn("pad link {}.{} -> {}.{} with status {}", new String[] {
-              source.getName(),
-              pad.getName(),
-              identity.getName(),
-              identity.getSinkPads().get(0).getName(),
-              plr.toString()
-            });
-          }
-        }
+        logger.debug("link {}.{} -> {}.{} with result {}", new String[] {
+          source.getName(),
+          pad.getName(),
+          decodebin.getName(),
+          decodebin.getSinkPads().get(0).getName(),
+          pad.link(decodebin.getSinkPads().get(0)).toString()
+        });
       }
     });
     
@@ -116,21 +118,38 @@ public class GnonlinSourceBin {
 
       @Override
       public void noMorePads(Element element) {
-        if (!identity.getSinkPads().get(0).isLinked()) {
-          logger.error(identity.getName() + " has no peer!");
+        if (!decodebin.getSinkPads().get(0).isLinked()) {
+          logger.error(decodebin.getName() + " has no peer!");
           // TODO doesn't working?!
           getBin().sendEvent(new EOSEvent());
+          
         }
+      }
+    });
+    
+    decodebin.connect(new Element.PAD_ADDED() {
+
+      @Override
+      public void padAdded(Element element, Pad pad) {
+        logger.debug("link {}.{} -> {}.{} with result {}, {}", new String[] {
+          element.getName(),
+          pad.getName(),
+          identity.getName(),
+          identity.getSinkPads().get(0).getName(),
+          pad.link(identity.getSinkPads().get(0)).toString(),
+          pad.getCaps().toString()
+        });
       }
     });
   }
   
   void addFileSource(String filePath, long mediaStartMillis, long mediaDurationMillis) {
     
-    Bin gnlsource = (Bin) ElementFactory.make("gnlsource", null);
-    gnlsource.add(new FileSourceBin(filePath, caps).getBin());
+    Bin gnlsource = (Bin) ElementFactory.make("gnlfilesource", null);
     gnlComposition.add(gnlsource);
         
+    gnlsource.set("location", filePath);
+    gnlsource.set("caps", caps);
     gnlsource.set("start", TimeUnit.MILLISECONDS.toNanos(maxLengthMillis));
     gnlsource.set("duration", TimeUnit.MILLISECONDS.toNanos(mediaDurationMillis));
     gnlsource.set("media-start", TimeUnit.MILLISECONDS.toNanos(mediaStartMillis));

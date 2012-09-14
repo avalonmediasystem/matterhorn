@@ -18,9 +18,9 @@ package org.opencastproject.videoeditor.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -38,7 +38,6 @@ import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.JobBarrier;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageElement;
-import org.opencastproject.mediapackage.MediaPackageElementFlavor;
 import org.opencastproject.mediapackage.MediaPackageElementParser;
 import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.mediapackage.Track;
@@ -96,6 +95,8 @@ public class VideoEditorService implements VideoEditor, ManagedService {
   protected void activate(ComponentContext context) {
     Gst.setUseDefaultContext(true);
     Gst.init();
+    
+    storageDir = context.getBundleContext().getProperty(STORAGE_DIR_PROPERTY_NAME);
     serviceRunning = true;
   }
 
@@ -104,7 +105,6 @@ public class VideoEditorService implements VideoEditor, ManagedService {
     for (VideoEditorPipeline pipeline : runningPipelines) {
       pipeline.stop();
     }
-    this.storageDir = context.getBundleContext().getProperty(STORAGE_DIR_PROPERTY_NAME);
   }
 
   @Override
@@ -133,20 +133,74 @@ public class VideoEditorService implements VideoEditor, ManagedService {
   @Override
   public List<Track> process(Smil smil) throws ProcessFailedException {
 
-    if (smil == null) {
-      return null;
-    }
-    try {
-      logger.info("processing smil:\n" + smil.toXML());
-    } catch (JAXBException ex) {
-      logger.error("can't serialize smil!");
+    if (smil == null || smil.getBody().getSequence().getElements().isEmpty()) {
+      throw new ProcessFailedException("Smil document is empty!");
+    } else {
+      logger.info("processing smil:");
+      try {
+        logger.info(smil.toXML());
+      } catch (JAXBException ex) {
+        throw new ProcessFailedException(ex.getMessage());
+      }
     }
     
+    Map<String, SourceBinsFactory> pipelineSources = createSourceBinsFromSmil(smil);
+    List<Track> encodedTracks = new LinkedList<Track>();
+
+    for (SourceBinsFactory fileSourceBin : pipelineSources.values()) {
+      if (!serviceRunning) throw new ProcessFailedException("Service unavailable!");
+      File encodedFile = runPipeline(fileSourceBin);
+      
+      // Put the file in the workspace
+      URI returnURL = null;
+      InputStream in = null;
+      String trackId = idBuilder.createNew().toString();
+      try {
+        in = new FileInputStream(encodedFile);
+        returnURL = workspace.putInCollection(COLLECTION, trackId + "_" + encodedFile.getName(), in);
+        logger.info("Copied the trimmed file to the workspace at {}", returnURL);
+        encodedFile.delete();
+        logger.info("Deleted the local copy of the trimmed file at {}", encodedFile.getAbsolutePath());
+      } catch (FileNotFoundException e) {
+        throw new ProcessFailedException("Encoded file " + encodedFile.getAbsolutePath() + " not found");
+      } catch (IOException e) {
+        throw new ProcessFailedException("Error putting " + encodedFile.getName() + " into the workspace");
+      } catch (IllegalArgumentException ex) {
+        throw new ProcessFailedException(ex.getMessage());
+      } finally {
+        IOUtils.closeQuietly(in);
+      }
+      if (encodedFile != null)
+        encodedFile.delete(); // clean up the encoding output, since the file is now safely stored in the file repo
+
+      // Have the encoded track inspected and return the result
+      Job inspectionJob = null;
+      try {
+        inspectionJob = inspectionService.inspect(returnURL);
+        JobBarrier barrier = new JobBarrier(serviceRegistry, inspectionJob);
+        if (!barrier.waitForJobs().isSuccess()) {
+          throw new ProcessFailedException("Media inspection of " + returnURL + " failed");
+        }
+        Track inspectedTrack = (Track) MediaPackageElementParser.getFromXml(inspectionJob.getPayload());
+        inspectedTrack.setIdentifier(trackId);
+        encodedTracks.add(inspectedTrack);
+      } catch (MediaPackageException ex) {
+        throw new ProcessFailedException(ex.getMessage());
+      } catch (MediaInspectionException e) {
+        throw new ProcessFailedException("Media inspection of " + returnURL + " failed");
+      }
+    }
+
+    return encodedTracks;
+  }
+  
+  protected Map<String, SourceBinsFactory> createSourceBinsFromSmil(Smil smil) throws ProcessFailedException {
+    Map<String, SourceBinsFactory> pipelineSources = new Hashtable<String, SourceBinsFactory>();
+    
+    MediaPackage mp = smil.getMediaPackage();
     String suffix = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_SUFFIX, VideoEditorPipeline.DEFAULT_OUTPUT_FILE_SUFFIX);
     String extension = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_EXTENSION, VideoEditorPipeline.DEFAULT_OUTPUT_FILE_EXTENSION);
 
-    MediaPackage mp = smil.getMediaPackage();
-    Map<String, SourceBinsFactory> pipelineSources = new Hashtable<String, SourceBinsFactory>();
     for (ParallelElement pe : smil.getBody().getSequence().getElements()) {
       for (MediaElement me : pe.getElements()) {
 
@@ -161,7 +215,7 @@ public class VideoEditorService implements VideoEditor, ManagedService {
           throw new ProcessFailedException("Source track or flavour is null!");
         
         String sourceFlafour = t.getFlavor().getType();
-        File outputDir = new File(storageDir + File.pathSeparator + smil.getId() + '-' + sourceFlafour);
+        File outputDir = new File(storageDir,smil.getId() + '-' + sourceFlafour);
         if (!outputDir.exists()) outputDir.mkdirs();
         
         File srcFile = new File(srcFilePath);
@@ -195,9 +249,11 @@ public class VideoEditorService implements VideoEditor, ManagedService {
         }
       }
     }
+    return pipelineSources;
+  }
+  
+  protected File runPipeline(SourceBinsFactory fileSourceBin) throws ProcessFailedException {
 
-    for (SourceBinsFactory fileSourceBin : pipelineSources.values()) {
-      
       if (!serviceRunning) throw new ProcessFailedException("Service unavailable!");
       
       VideoEditorPipeline runningPipeline = new VideoEditorPipeline(properties);
@@ -208,18 +264,26 @@ public class VideoEditorService implements VideoEditor, ManagedService {
         runningPipeline.run();
         runningPipeline.mainLoop();
         
+        File encodedFile = new File(fileSourceBin.getOutputFilePath());
         if (!serviceRunning) {
+          if (encodedFile.exists()) {
+            encodedFile.delete();
+          }
           throw new ProcessFailedException("Service unavailable!");
         }
         
         String error = runningPipeline.getLastErrorMessage();
         if (error != null) {
-          logger.warn("Last pipeline error: " + error);
-          //TODO throw exception?
+          logger.error("Pipeline exited with error: " + error);
+          if (encodedFile.exists()) {
+            encodedFile.delete();
+          }
+          throw new PipelineBuildException();
         }
         
+        return encodedFile;
+        
       } catch (PipelineBuildException ex) {
-        //TODO logger error
         logger.error(ex.getMessage());
         throw new ProcessFailedException(ex.getMessage());
       } finally {
@@ -228,59 +292,5 @@ public class VideoEditorService implements VideoEditor, ManagedService {
         }
         runningPipeline = null;
       }
-    }
-    
-    // create track list
-    
-    List<Track> encodedTracks = new LinkedList<Track>();
-    Track encodedTrack = null;
-    for (SourceBinsFactory source : pipelineSources.values()) {
-      
-      URI returnURL = null;
-      InputStream in = null;
-      try {
-        in = new FileInputStream(source.getOutputFilePath());
-        
-        returnURL = workspace.putInCollection(COLLECTION,
-               source.getOutputFilePath(), in);
-        logger.info("Copied the edited file to the workspace at {}", returnURL);
-        if (new File(source.getOutputFilePath()).delete()) {
-          logger.info("Deleted the local copy of the edited file at {}", source.getOutputFilePath());
-        } else {
-          logger.warn("Unable to delete edited file at {}", source.getOutputFilePath());
-        }
-      } catch (Exception e) {
-        throw new ProcessFailedException("Unable to put the edited file into the workspace!");
-      } finally {
-        IOUtils.closeQuietly(in);
-        // TODO delete working file
-      }
-      
-      try {
-        Job inspectionJob = inspectionService.inspect(new URI(source.getOutputFilePath()));
-        JobBarrier barrier = new JobBarrier(serviceRegistry, inspectionJob);
-        if (!barrier.waitForJobs().isSuccess()) {
-          throw new ProcessFailedException("Inspecting encoded file failed!");
-        }
-        encodedTrack = (Track) MediaPackageElementParser.getFromXml(inspectionJob.getPayload());
-        encodedTrack.setIdentifier(idBuilder.createNew().toString());
-        
-        Track t = mp.getTrack(source.getSourceMHElementID());
-        encodedTrack.setFlavor(new MediaPackageElementFlavor(t.getFlavor().getType(), TARGET_FLAVOUR));
-        encodedTracks.add(encodedTrack);
-        
-        
-      } catch (MediaPackageException ex) {
-        throw new ProcessFailedException(ex.getMessage());
-      } catch (URISyntaxException ex) {
-        throw new ProcessFailedException(ex.getMessage());
-      } catch (MediaInspectionException ex) {
-        throw new ProcessFailedException(ex.getMessage());
-      }
-    }
-
-    return encodedTracks;
   }
-  
-  
 }

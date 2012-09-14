@@ -133,119 +133,28 @@
     </operation>
 
     <!-- prepare audio/video tracks -->
-
-    <!-- Begin Epiphan MCA operations -->
-
-    <!-- This section is only relevant for the Epiphan MCA devices, however
-         it needs to be present for those to work.  Since it does not affect
-         normal CA ingests we will leave this in -->
-
-    <operation
-      id="compose"
-      fail-on-error="false"
-      exception-handler-workflow="error"
-      description="Splitting Media (if needed)">
-      <configurations>
-        <configuration key="source-flavor">multitrack/source</configuration>
-        <configuration key="target-flavor">presenter/source</configuration>
-        <configuration key="encoding-profile">epiphan.presenter</configuration>
-
-      </configurations>
-    </operation>
-
-    <operation
-      id="compose"
-      fail-on-error="false"
-      exception-handler-workflow="error"
-      description="Splitting Media (if needed)">
-      <configurations>
-        <configuration key="source-flavor">multitrack/source</configuration>
-        <configuration key="target-flavor">presentation/source</configuration>
-        <configuration key="encoding-profile">epiphan.presentation</configuration>
-
-      </configurations>
-    </operation>
-
-    <!-- End Epiphan MCA operations -->
-
-    <!-- demux streams if needed -->
-    <operation
-      id="compose"
-      fail-on-error="false"
-      exception-handler-workflow="error"
-      description="Splitting presenter audio edit versions">
-      <configurations>
-        <configuration key="source-flavor">presenter/source</configuration>
-        <configuration key="target-flavor">presenter/trimm</configuration>
-        <configuration key="target-tags">audio</configuration>
-        <configuration key="encoding-profile">audio-only.work</configuration>
-      </configurations>
-    </operation>
-    
-    <operation
-      id="compose"
-      fail-on-error="false"
-      exception-handler-workflow="error"
-      description="Splitting presenter video edit versions">
-      <configurations>
-        <configuration key="source-flavor">presenter/source</configuration>
-        <configuration key="target-flavor">presenter/trimm</configuration>
-        <configuration key="target-tags">video</configuration>
-        <configuration key="encoding-profile">video-only.work</configuration>
-      </configurations>
-    </operation>
-
-    <operation
-      id="compose"
-      fail-on-error="false"
-      exception-handler-workflow="error"
-      description="Splitting presentation video edit versions">
-      <configurations>
-        <configuration key="source-flavor">presentation/source</configuration>
-        <configuration key="target-flavor">presentation/trimm</configuration>
-        <configuration key="target-tags">audio</configuration>
-        <configuration key="encoding-profile">audio-only.work</configuration>
-      </configurations>
-    </operation>
-    
-    <operation
-      id="compose"
-      fail-on-error="false"
-      exception-handler-workflow="error"
-      description="Splitting presentation video edit versions">
-      <configurations>
-        <configuration key="source-flavor">presentation/source</configuration>
-        <configuration key="target-flavor">presentation/trimm</configuration>
-        <configuration key="target-tags">video</configuration>
-        <configuration key="encoding-profile">video-only.work</configuration>
-      </configurations>
-    </operation>
-    
-    <!-- mux av for trimm preview -->
     <operation
       id="prepare-av"
-      if="${videoPreview}"
       fail-on-error="true"
       exception-handler-workflow="error"
       description="Preparing presenter audio and video work versions">
       <configurations>
         <configuration key="source-flavor">presenter/source</configuration>
         <configuration key="target-flavor">presenter/work</configuration>
-        <configuration key="rewrite">false</configuration>
+        <configuration key="rewrite">true</configuration>
         <configuration key="promiscuous-audio-muxing">true</configuration>
       </configurations>
     </operation>
 
     <operation
       id="prepare-av"
-      if="${videoPreview}"
       fail-on-error="true"
       exception-handler-workflow="error"
       description="Preparing presentation audio and video work version">
       <configurations>
         <configuration key="source-flavor">presentation/source</configuration>
         <configuration key="target-flavor">presentation/work</configuration>
-        <configuration key="rewrite">false</configuration>
+        <configuration key="rewrite">true</configuration>
         <configuration key="promiscuous-audio-muxing">true</configuration>
       </configurations>
     </operation>
@@ -310,7 +219,7 @@
       exception-handler-workflow="error"
       description="Waiting for user to review / trim recording">
       <configurations>
-        <configuration key="source-flavor">*/trimm</configuration>
+        <configuration key="source-flavor">*/work</configuration>
         <configuration key="target-flavor-subtype">trimmed</configuration>
       </configurations>
     </operation>
@@ -325,7 +234,6 @@
     </operation>
 
    <!-- encode to engage player preview images -->
- 
     <operation
       id="image"
       fail-on-error="true"
@@ -336,7 +244,6 @@
         <configuration key="source-tags"></configuration>
         <configuration key="target-flavor">presenter/player+preview</configuration>
         <configuration key="target-tags">engage</configuration>
-
         <configuration key="encoding-profile">player-preview.http</configuration>
         <configuration key="time">1</configuration>
       </configurations>
@@ -348,8 +255,6 @@
       description="Encoding presentation (screen) to player preview image">
       <configurations>
         <configuration key="source-flavor">presentation/trimmed</configuration>
-
-        <configuration key="source-tags"></configuration>
         <configuration key="target-flavor">presentation/player+preview</configuration>
         <configuration key="target-tags">engage</configuration>
         <configuration key="encoding-profile">player-preview.http</configuration>
@@ -368,7 +273,6 @@
         <configuration key="source-flavor">presenter/trimmed</configuration>
         <configuration key="target-flavor">presenter/delivery</configuration>
         <configuration key="target-tags">engage</configuration>
-
         <configuration key="encoding-profile">flash.http</configuration>
       </configurations>
     </operation>
@@ -380,7 +284,6 @@
       <configurations>
         <configuration key="source-flavor">presentation/trimmed</configuration>
         <configuration key="target-flavor">presentation/delivery</configuration>
-
         <configuration key="target-tags">engage</configuration>
         <configuration key="encoding-profile">flash-vga.http</configuration>
       </configurations>
@@ -392,7 +295,6 @@
       description="Encoding presenter (screen) to flash audio download">
       <configurations>
         <configuration key="source-flavor">presenter/trimmed</configuration>
-
         <configuration key="target-flavor">presenter/delivery</configuration>
         <configuration key="target-tags">engage</configuration>
         <configuration key="encoding-profile">flash-audio.http</configuration>
@@ -408,7 +310,6 @@
       exception-handler-workflow="error"
       description="Extracting segments from presentation">
       <configurations>
-
         <configuration key="source-flavor">presentation/trimmed</configuration>
       </configurations>
     </operation>
@@ -422,7 +323,6 @@
       description="Encoding presenter (camera) to search result preview image">
       <configurations>
         <configuration key="source-flavor">presenter/trimmed</configuration>
-
         <configuration key="source-tags"></configuration>
         <configuration key="target-flavor">presenter/search+preview</configuration>
         <configuration key="target-tags">engage</configuration>
@@ -473,7 +373,6 @@
         <configuration key="source-flavor">presenter/trimmed</configuration>
         <configuration key="source-tags"></configuration>
         <configuration key="target-flavor">presenter/feed+preview</configuration>
-
         <configuration key="target-tags">rss, atom</configuration>
         <configuration key="encoding-profile">feed-cover.http</configuration>
         <configuration key="time">1</configuration>
@@ -485,7 +384,6 @@
       exception-handler-workflow="error"
       description="Encoding presentation (screen) to feed preview image">
       <configurations>
-
         <configuration key="source-flavor">presentation/trimmed</configuration>
         <configuration key="source-tags"></configuration>
         <configuration key="target-flavor">presentation/feed+preview</configuration>
@@ -507,7 +405,6 @@
         <configuration key="source-flavor">presentation/trimmed</configuration>
         <configuration key="source-tags"></configuration>
         <configuration key="target-flavor">presentation/segment+preview</configuration>
-
         <configuration key="reference-flavor">presentation/delivery</configuration>
         <configuration key="reference-tags">engage</configuration>
         <configuration key="target-tags">engage</configuration>
@@ -548,7 +445,6 @@
       exception-handler-workflow="error"
       description="Distributing to progressive downloads">
       <configurations>
-
         <configuration key="source-tags">engage,atom,rss,-publish</configuration>
         <configuration key="target-tags">publish</configuration>
       </configurations>
@@ -563,7 +459,6 @@
       description="Distributing to streaming server">
       <configurations>
         <configuration key="source-tags">engage,-publish</configuration>
-
         <configuration key="target-tags">publish</configuration>
       </configurations>
     </operation>

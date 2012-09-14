@@ -20,8 +20,6 @@ import java.io.FileNotFoundException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
-import org.gstreamer.State;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
@@ -45,7 +43,6 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
   public void testRunStopDemuxedSourceFiles() {
     logger.info("Test pipeline with demuxed source files...");
     try {
-      final VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
       SourceBinsFactory sourceBins = new SourceBinsFactory(new File(outputFilePath).getAbsolutePath());
       sourceBins.addFileSource(new File(audioFilePath).getAbsolutePath(), 
               TimeUnit.SECONDS.toMillis(0), TimeUnit.SECONDS.toMillis(10));
@@ -57,29 +54,15 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
       sourceBins.addFileSource(new File(videoFilePath).getAbsolutePath(), 
               TimeUnit.SECONDS.toMillis(60), TimeUnit.SECONDS.toMillis(10));
       
+      VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
       pipeline.addSourceBinsAndCreatePipeline(sourceBins);
-      pipeline.addListener();
+//      pipeline.addListener();
       
-      Thread runner = new Thread(new Runnable() {
-
-        @Override
-        public void run() {
-          pipeline.mainLoop();
-        }
-      });
-      
-      runner.start();
       pipeline.run();
+      pipeline.mainLoop();
       
-      try {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(WAIT_SEC));
-        Assert.assertEquals(State.PLAYING, pipeline.getState(TimeUnit.SECONDS.toMillis(WAIT_SEC)));
-        runner.join();
-      } catch (InterruptedException ex) {
-        logger.warn("Test interrupted!");
-      } finally {
-        Assert.assertTrue(pipeline.stop());
-      }
+      String lastError = pipeline.getLastErrorMessage();
+      Assert.assertNull("Last error should be null but it is: " + pipeline.getLastErrorMessage(), lastError);
       
     } catch (FileNotFoundException ex) {
       Assert.fail();
@@ -93,41 +76,28 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
   /**
    * Test of run and stop methods, of class VideoEditorPipeline.
    */
-  @Ignore
   @Test
   public void testRunStopMuxedSourceFile() {
     logger.info("Test pipeline with muxed source file...");
+    
+//    muxedFilePath =  "/home/wsmirnow/workspace/videoeditor/MH-8100/work/opencast/workspace/mediapackage/64e42a7b-9d82-4828-ae23-d26594fc4696/e7cba58e-c081-4819-985d-94c5da8fee40/webcam_muxed.mpg";
+//    muxedFilePath = "/home/wsmirnow/Videos/Sintel.mp4";
     try {
-      final VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
       SourceBinsFactory sourceBins = new SourceBinsFactory(new File(outputFilePath).getAbsolutePath());
       sourceBins.addFileSource(new File(muxedFilePath).getAbsolutePath(), 
               TimeUnit.SECONDS.toMillis(0), TimeUnit.SECONDS.toMillis(10));
       sourceBins.addFileSource(new File(muxedFilePath).getAbsolutePath(), 
-              TimeUnit.SECONDS.toMillis(122), TimeUnit.SECONDS.toMillis(10));
+              TimeUnit.SECONDS.toMillis(20), TimeUnit.SECONDS.toMillis(10));
       
+      VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
       pipeline.addSourceBinsAndCreatePipeline(sourceBins);
-      pipeline.addListener();
+//      pipeline.addListener();
       
-      Thread runner = new Thread(new Runnable() {
-
-        @Override
-        public void run() {
-          pipeline.mainLoop();
-        }
-      });
-      
-      runner.start();
       pipeline.run();
+      pipeline.mainLoop();
       
-      try {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(WAIT_SEC));
-        Assert.assertEquals(State.PLAYING, pipeline.getState(TimeUnit.SECONDS.toMillis(WAIT_SEC)));
-        runner.join();
-      } catch (InterruptedException ex) {
-        logger.warn("Test interrupted!");
-      } finally {
-        Assert.assertTrue(pipeline.stop());
-      }
+      String lastError = pipeline.getLastErrorMessage();
+      Assert.assertNull("Last error should be null but it is: " + pipeline.getLastErrorMessage(), lastError);
       
     } catch (FileNotFoundException ex) {
       Assert.fail();

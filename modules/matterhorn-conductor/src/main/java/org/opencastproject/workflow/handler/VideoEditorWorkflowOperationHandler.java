@@ -144,23 +144,6 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
    */
   @Override
   public WorkflowOperationResult resume(WorkflowInstance workflowInstance, JobContext context,
-                                        Map<String, String> properties)
-      throws WorkflowOperationException {
-    try {
-      return resumeLoop(workflowInstance, context, properties);
-    } catch (Exception ex) {
-      logger.error(ex.getMessage());
-      return createResult(Action.PAUSE);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.opencastproject.workflow.api.ResumableWorkflowOperationHandler#resume(org.opencastproject.workflow.api.WorkflowInstance,
-   *      JobContext, java.util.Map)
-   */
-  public WorkflowOperationResult resumeLoop(WorkflowInstance workflowInstance, JobContext context,
                                             Map<String, String> properties)
       throws WorkflowOperationException {
 

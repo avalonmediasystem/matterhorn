@@ -23,10 +23,10 @@ import org.gstreamer.Bin;
 import org.gstreamer.Bus;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
+import org.gstreamer.Gst;
 import org.gstreamer.GstObject;
 import org.gstreamer.Pipeline;
 import org.gstreamer.State;
-import org.gstreamer.event.EOSEvent;
 import org.gstreamer.lowlevel.MainLoop;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.sources.SourceBinsFactory;
@@ -66,43 +66,24 @@ public class VideoEditorPipeline {
   public VideoEditorPipeline(Properties properties) {
     this.properties = properties != null ? properties : new Properties();
     
-//    Gst.setUseDefaultContext(true);
-//    Gst.init();
     pipeline = new Pipeline();
   }
   
   public void run() {
     logger.debug("starting pipeline...");
-//    pipeline.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_ALL, "videoeditor-pipeline", true);
-    
     pipeline.play();
   }
   
   public boolean stop() {
     if (pipeline == null) return true;
-    
-    for (Element sourceElem : pipeline.getSources()) {
-      logger.debug("sending EOS to {}", sourceElem.getName());
-      sourceElem.sendEvent(new EOSEvent());
-    }
-    
-    for (int count = 0; count < 15; count++) {
-      logger.debug("wait until pipeline stop...");
-      if (pipeline != null) {
-        if (getState(TimeUnit.MILLISECONDS.toNanos(WAIT_FOR_NULL_SLEEP_TIME)) == State.NULL) {
-          logger.debug("pipeline stopped");
-          return true;
-        }
-      } else return true;
-    }
     pipeline.setState(State.NULL);
-    return false;
+    return true;
   }
   
   public void mainLoop() {
     
     mainLoop.run();
-    logger.debug("main quit!");
+    logger.debug("main loop quit!");
     stop();
   }
   
@@ -132,8 +113,7 @@ public class VideoEditorPipeline {
         logger.warn("ERROR from {}: ", source.getName(), message);
         lastErrorMessage = String.format("%s: %s", source.getName(), message);
         mainLoop.quit();
-        pipeline.setState(State.NULL);
-        pipeline = null;
+        Gst.quit();
       }
     });
     
@@ -148,8 +128,7 @@ public class VideoEditorPipeline {
       public void endOfStream(GstObject source) {
         logger.debug("EOS from {}: stop pipeline", new String[] { source.getName() });
         mainLoop.quit();
-        pipeline.setState(State.NULL);
-        pipeline = null;
+        Gst.quit();
       }
     });
     
@@ -170,10 +149,15 @@ public class VideoEditorPipeline {
 
       @Override
       public void stateChanged(GstObject source, State old, State current, State pending) {
-        if (source instanceof Pipeline)
+        if (source instanceof Pipeline) {
           logger.debug("{} changed state to {}", new String[] {
             source.getName(), current.toString()
           });
+          if (current == State.READY || current == State.PLAYING) {
+            pipeline.debugToDotFile(Pipeline.DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | Pipeline.DEBUG_GRAPH_SHOW_STATES, 
+                    "videoeditor-pipeline-" + current.name(), true);
+          }
+        }
       }
     });
   }
@@ -225,6 +209,8 @@ public class VideoEditorPipeline {
         throw new PipelineBuildException();
       }
     }
+    
+    addListener();
   }
   
   public String getLastErrorMessage() {
