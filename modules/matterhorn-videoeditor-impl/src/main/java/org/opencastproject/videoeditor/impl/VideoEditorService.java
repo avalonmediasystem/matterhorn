@@ -136,9 +136,9 @@ public class VideoEditorService implements VideoEditor, ManagedService {
     if (smil == null || smil.getBody().getSequence().getElements().isEmpty()) {
       throw new ProcessFailedException("Smil document is empty!");
     } else {
-      logger.info("processing smil:");
+      logger.debug("processing smil:");
       try {
-        logger.info(smil.toXML());
+        logger.debug(smil.toXML());
       } catch (JAXBException ex) {
         throw new ProcessFailedException(ex.getMessage());
       }
@@ -160,6 +160,7 @@ public class VideoEditorService implements VideoEditor, ManagedService {
         returnURL = workspace.putInCollection(COLLECTION, trackId + "_" + encodedFile.getName(), in);
         logger.info("Copied the trimmed file to the workspace at {}", returnURL);
         encodedFile.delete();
+        encodedFile.getParentFile().delete();
         logger.info("Deleted the local copy of the trimmed file at {}", encodedFile.getAbsolutePath());
       } catch (FileNotFoundException e) {
         throw new ProcessFailedException("Encoded file " + encodedFile.getAbsolutePath() + " not found");
@@ -215,10 +216,10 @@ public class VideoEditorService implements VideoEditor, ManagedService {
         String mhElementID = me.getMhElement();
         MediaPackageElement t = mp.getElementById(mhElementID);
         if (t == null || t.getFlavor() == null) 
-          throw new ProcessFailedException("Source track or flavour is null!");
+          throw new ProcessFailedException("Source track or flavor is null!");
         
-        String sourceFlafour = t.getFlavor().getType();
-        File outputDir = new File(storageDir,smil.getId() + '-' + sourceFlafour);
+        String sourceFlavor = t.getFlavor().getType();
+        File outputDir = new File(storageDir,smil.getId() + '-' + sourceFlavor);
         if (!outputDir.exists()) outputDir.mkdirs();
         
         File srcFile = new File(srcFilePath);

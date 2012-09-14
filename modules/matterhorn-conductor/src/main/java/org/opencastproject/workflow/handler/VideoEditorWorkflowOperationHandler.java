@@ -178,8 +178,6 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
         mp.add(t);
       }
 
-      // TODO set (source) and target flavour
-
     } catch (ProcessFailedException ex) {
       throw new WorkflowOperationException("Smil processing failed! " + ex.getMessage());
     }

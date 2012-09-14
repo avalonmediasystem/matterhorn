@@ -22,9 +22,11 @@ package org.opencastproject.videoeditor.impl;
  */
 public interface VideoEditorProperties {
 
+  String AUDIO_CAPS = "audio.caps";
   String AUDIO_ENCODER = "audio.encoder";
   String AUDIO_ENCODER_PROPERTIES = "audio.encoder.properties";
   
+  String VIDEO_CAPS = "video.caps";
   String VIDEO_ENCODER = "video.encoder";
   String VIDEO_ENCODER_PROPERTIES = "video.encoder.properties";
   

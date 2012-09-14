@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.gstreamer.Bin;
 import org.gstreamer.Bus;
+import org.gstreamer.Caps;
 import org.gstreamer.Element;
 import org.gstreamer.ElementFactory;
 import org.gstreamer.Gst;
@@ -46,7 +47,7 @@ public class VideoEditorPipeline {
   private static final int WAIT_FOR_NULL_SLEEP_TIME = 1000;
   
   public static final String DEFAULT_AUDIO_ENCODER = "faac";
-  public static final String DEFAULT_AUDIO_ENCODER_PROPERTIES = "";
+  public static final String DEFAULT_AUDIO_ENCODER_PROPERTIES = "bitrate=128000";
   
   public static final String DEFAULT_VIDEO_ENCODER = "x264enc";
   public static final String DEFAULT_VIDEO_ENCODER_PROPERTIES = "";
@@ -188,25 +189,36 @@ public class VideoEditorPipeline {
     }
     
     Bin sourceBin;
+    Element capsfilter;
     Element encoder;
     
     if (sourceBins.hasAudioSource()) {
       // create and link audio bin and audio encoder
       sourceBin = sourceBins.getAudioSourceBin();
+      capsfilter = ElementFactory.make("capsfilter", "audiocaps");
       encoder = createAudioEncoder();
-      pipeline.addMany(sourceBin, encoder);
-      if (!Element.linkMany(sourceBin, encoder, muxer)) {
+      pipeline.addMany(sourceBin, capsfilter, encoder);
+      if (!Element.linkMany(sourceBin, capsfilter, encoder, muxer)) {
         throw new PipelineBuildException();
+      }
+      
+      if (properties.containsKey(VideoEditorProperties.AUDIO_CAPS)) {
+        capsfilter.setCaps(Caps.fromString(properties.getProperty(VideoEditorProperties.AUDIO_CAPS)));
       }
     }
 
     if (sourceBins.hasVideoSource()) {
       // create and link video bin and audio encoder
       sourceBin = sourceBins.getVideoSourceBin();
+      capsfilter = ElementFactory.make("capsfilter", "videocaps");
       encoder = createVideoEncoder();
-      pipeline.addMany(sourceBin, encoder);
-      if (!Element.linkMany(sourceBin, encoder, muxer)) {
+      pipeline.addMany(sourceBin, capsfilter, encoder);
+      if (!Element.linkMany(sourceBin, capsfilter, encoder, muxer)) {
         throw new PipelineBuildException();
+      }
+      
+      if (properties.containsKey(VideoEditorProperties.VIDEO_CAPS)) {
+        capsfilter.setCaps(Caps.fromString(properties.getProperty(VideoEditorProperties.VIDEO_CAPS)));
       }
     }
     

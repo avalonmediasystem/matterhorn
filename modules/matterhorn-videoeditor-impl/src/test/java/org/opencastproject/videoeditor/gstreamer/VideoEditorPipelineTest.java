@@ -56,7 +56,6 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
       
       VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
       pipeline.addSourceBinsAndCreatePipeline(sourceBins);
-//      pipeline.addListener();
       
       pipeline.run();
       pipeline.mainLoop();
@@ -80,18 +79,15 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
   public void testRunStopMuxedSourceFile() {
     logger.info("Test pipeline with muxed source file...");
     
-//    muxedFilePath =  "/home/wsmirnow/workspace/videoeditor/MH-8100/work/opencast/workspace/mediapackage/64e42a7b-9d82-4828-ae23-d26594fc4696/e7cba58e-c081-4819-985d-94c5da8fee40/webcam_muxed.mpg";
-//    muxedFilePath = "/home/wsmirnow/Videos/Sintel.mp4";
     try {
       SourceBinsFactory sourceBins = new SourceBinsFactory(new File(outputFilePath).getAbsolutePath());
       sourceBins.addFileSource(new File(muxedFilePath).getAbsolutePath(), 
               TimeUnit.SECONDS.toMillis(0), TimeUnit.SECONDS.toMillis(10));
       sourceBins.addFileSource(new File(muxedFilePath).getAbsolutePath(), 
               TimeUnit.SECONDS.toMillis(20), TimeUnit.SECONDS.toMillis(10));
-      
+            
       VideoEditorPipeline pipeline = new VideoEditorPipeline(new Properties());
       pipeline.addSourceBinsAndCreatePipeline(sourceBins);
-//      pipeline.addListener();
       
       pipeline.run();
       pipeline.mainLoop();
