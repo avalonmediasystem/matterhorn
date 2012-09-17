@@ -38,9 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * workflowoperationhanlder for silencedetection
- * executes the silencedetection and adds a SMIL document to the mediapackage
- * containing the cutting points
+ * workflowoperationhandler for silencedetection executes the silencedetection and adds a SMIL
+ * document to the mediapackage containing the cutting points
  */
 public class SilenceDetectionWorkflowOperationHandler extends AbstractWorkflowOperationHandler {
 
@@ -86,12 +85,31 @@ public class SilenceDetectionWorkflowOperationHandler extends AbstractWorkflowOp
         mp = workflowService.getWorkflowById(workflowInstance.getId()).getMediaPackage();
 
         for (MediaSegment ms : segments) {
-          logger.debug("adding segment with  ({},{})", ms.getSegmentStart() / 1000,
-              ms.getSegmentStop() / 1000);
+          // checking whether first item starts at 0
+          if (segments.indexOf(ms) == 0 && ms.getSegmentStart() != 0) {
+            logger.debug("adding new first item, because old first item doesn't start at 0");
+            ParallelElement p = new ParallelElement();
+            p.addElement(new MediaElement("", "0", String.valueOf(ms.getSegmentStart() / 1000.0)));
+            smilService.addParallelElement(workflowInstance.getId(), p);
+          }
+
+          logger.debug("adding segment with  ({},{})", ms.getSegmentStart() / 1000.0,
+              ms.getSegmentStop() / 1000.0);
           ParallelElement p = new ParallelElement();
-          p.addElement(new MediaElement("", String.valueOf(ms.getSegmentStart() / 1000), String
-              .valueOf(ms.getSegmentStop() / 1000)));
+          p.addElement(new MediaElement("", String.valueOf(ms.getSegmentStart() / 1000.0), String
+              .valueOf(ms.getSegmentStop() / 1000.0)));
           smilService.addParallelElement(workflowInstance.getId(), p);
+
+          // checking whether last item end at media duration
+          if (segments.indexOf(ms) == segments.size() - 1
+              && ms.getSegmentStop() != mp.getDuration()) {
+            logger
+                .debug("adding new last item, because old last item doesn't end with duration of media");
+            p = new ParallelElement();
+            p.addElement(new MediaElement("", String.valueOf(ms.getSegmentStop() / 1000.0), String
+                .valueOf(mp.getDuration() / 1000.0)));
+            smilService.addParallelElement(workflowInstance.getId(), p);
+          }
         }
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
@@ -101,7 +119,7 @@ public class SilenceDetectionWorkflowOperationHandler extends AbstractWorkflowOp
 
     return createResult(mp, Action.CONTINUE);
   }
-  
+
   public void activate(ComponentContext cc) {
     super.activate(cc);
     logger.debug("Activating SilenceDetectionService");

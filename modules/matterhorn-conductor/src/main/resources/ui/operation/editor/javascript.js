@@ -256,8 +256,6 @@ $(document)
               $(mediapackage.documentElement).attr('id', $(clone).attr('id'));
               $(mediapackage.documentElement).attr('start', $(clone).attr('start'));
               $(mediapackage.documentElement).attr('duration', $(clone).attr('duration'));
-
-              console.log(mediapackage);
             }
           })
 

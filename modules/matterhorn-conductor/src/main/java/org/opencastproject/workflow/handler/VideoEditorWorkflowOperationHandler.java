@@ -18,7 +18,6 @@ package org.opencastproject.workflow.handler;
 import java.util.List;
 import java.util.Map;
 
-import org.opencastproject.composer.api.ComposerService;
 import org.opencastproject.job.api.JobContext;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
@@ -35,7 +34,6 @@ import org.opencastproject.workflow.api.WorkflowOperationInstance;
 import org.opencastproject.workflow.api.WorkflowOperationResult;
 import org.opencastproject.workflow.api.WorkflowOperationResult.Action;
 import org.opencastproject.workflow.api.WorkflowService;
-import org.opencastproject.workspace.api.Workspace;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,15 +51,6 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
 
   /** Name of the configuration option that provides the target flavors we will produce */
   private static final String TARGET_FLAVOR_SUBTYPE_PROPERTY = "target-flavor-subtype";
-
-  /** Name of the configuration option that provides the encoding profile */
-  private static final String ENCODING_PROFILE_PROPERTY = "encoding-profile";
-
-  /** The composer service */
-  private ComposerService composerService;
-
-  /** The workspace */
-  private Workspace workspace;
 
   /**
    * the smil service
@@ -163,11 +152,8 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
 
     // Get the source flavor to match
     WorkflowOperationInstance currentOperation = workflowInstance.getCurrentOperation();
-    String configuredSourceFlavor = currentOperation.getConfiguration(SOURCE_FLAVOR_PROPERTY);
     String configuredTargetFlavorSubtype = currentOperation
         .getConfiguration(TARGET_FLAVOR_SUBTYPE_PROPERTY);
-    MediaPackageElementFlavor matchingFlavor = MediaPackageElementFlavor
-        .parseFlavor(configuredSourceFlavor);
     
     MediaPackage mp = workflowInstance.getMediaPackage();
     try {
@@ -187,24 +173,6 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
 
   public void setSmilService(SmilService smilService) {
     this.smilService = smilService;
-  }
-
-  /**
-   * Sets the composer service.
-   * 
-   * @param composerService the composer service
-   */
-  public void setComposerService(ComposerService composerService) {
-    this.composerService = composerService;
-  }
-
-  /**
-   * Sets the workspace
-   * 
-   * @param workspace the workspace
-   */
-  public void setWorkspace(Workspace workspace) {
-    this.workspace = workspace;
   }
 
   public void setWorkflowService(WorkflowService workflowService) {

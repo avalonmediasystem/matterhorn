@@ -47,8 +47,8 @@ editor.updateSplitList = function() {
 }
 
 /**
- * create a new smil for the current workflow
- * should already be handled by workflowoperationhandler
+ * create a new smil for the current workflow should already be handled by
+ * workflowoperationhandler
  */
 editor.createSMIL = function() {
   $.ajax({
@@ -89,10 +89,12 @@ editor.saveSplitList = function() {
 }
 
 /**
- * add a mediaelement to the smil
+ * add a media element to the smil
  * 
- * @param parallelId the id of the parallelElement this MediaElement should be added to
- * @param data the data of this MediaElement
+ * @param parallelId
+ *          the id of the parallelElement this MediaElement should be added to
+ * @param data
+ *          the data of this MediaElement
  */
 editor.addMediaElement = function(parallelId, data) {
   $.ajax({
@@ -120,8 +122,7 @@ editor.addParallel = function() {
 }
 
 /**
- * download the SMIL if there is already one
- * e.g. from silence detection
+ * download the SMIL if there is already one e.g. from silence detection
  */
 editor.downloadSMIL = function() {
   var smil = null;
@@ -162,6 +163,9 @@ function addShortcuts() {
   });
   shortcut.add("c", playCurrentSplitItem);
   shortcut.add("Delete", splitRemoverClick);
+  shortcut.add("y", selectCurrentSplitItem);
+  shortcut.add("r", setCurrentTimeAsNewInpoint);
+  shortcut.add("t", setCurrentTimeAsNewOutpoint);
 }
 
 /**
@@ -178,7 +182,8 @@ function jumpToSegment() {
 /**
  * handler for hover in events on split segements and -list
  * 
- * @param evt the corresponding event
+ * @param evt
+ *          the corresponding event
  */
 function splitHoverIn(evt) {
   id = $(this).prop('id');
@@ -194,7 +199,8 @@ function splitHoverIn(evt) {
 /**
  * handler for hover out events on split segements and -list
  * 
- * @param evt the corresponding event
+ * @param evt
+ *          the corresponding event
  */
 function splitHoverOut(evt) {
   id = $(this).prop('id');
@@ -242,6 +248,34 @@ function initPlayButtons() {
 
   });
 
+  $('#shortcuts').button();
+
+  $('#shortcuts').click(function() {
+    $('#shortcutsDialog').dialog({
+      title : "shortcuts for video editing",
+      resizable : false,
+      buttons : {
+        Close : function() {
+          $(this).dialog("close");
+        }
+      }
+    })
+  });
+
+  $('#clearList').button();
+
+  $('#clearList').click(function() {
+    editor.splitData.splits = [];
+    // create standard split point
+    editor.splitData.splits.push({
+      clipBegin : '0s',
+      clipEnd : workflowInstance.mediapackage.duration / 1000 + "s",
+      enabled : true,
+      description : ""
+    });
+    editor.updateSplitList();
+  });
+
 }
 
 /**
@@ -250,10 +284,51 @@ function initPlayButtons() {
 function okButtonClick() {
   id = $('#splitUUID').val();
   if (id != "") {
+    id = parseInt(id);
     splitItem = editor.splitData.splits[id];
     splitItem.description = $('#splitDescription').val();
     splitItem.clipBegin = $('#clipBegin').timefield('option', 'value');
     splitItem.clipEnd = $('#clipEnd').timefield('option', 'value');
+
+    // it's the first check whether we need a new first item
+    if (id == 0) {
+      if (editor.splitData.splits.length > 1) {
+        var next = editor.splitData.splits[id + 1];
+        next.clipBegin = splitItem.clipEnd;
+      }
+      if ($('#clipBegin').timefield('option', 'seconds') != 0) {
+        var newSplitItem = {
+          description : "",
+          clipBegin : "0s",
+          enabled : true,
+          clipEnd : splitItem.clipBegin
+        };
+
+        // add new item to front
+        editor.splitData.splits.splice(0, 0, newSplitItem);
+      }
+    } else if (id == editor.splitData.splits.length - 1) {
+      if ($('#clipEnd').timefield('option', 'seconds') != editor.player.prop("duration")) {
+        var newLastItem = {
+          description : "",
+          enabled : true,
+          clipBegin : splitItem.clipEnd,
+          clipEnd : editor.player.prop("duration") + "s"
+        };
+
+        // add the new item to the end
+        editor.splitData.splits.push(newLastItem);
+      }
+      var prev = editor.splitData.splits[id - 1];
+      prev.clipEnd = splitItem.clipBegin
+    } else {
+      var next = editor.splitData.splits[id + 1];
+      var prev = editor.splitData.splits[id - 1];
+
+      prev.clipEnd = splitItem.clipBegin;
+      next.clipBegin = splitItem.clipEnd;
+    }
+
     cancelButtonClick();
     editor.updateSplitList();
   }
@@ -278,7 +353,8 @@ function cancelButtonClick() {
 /**
  * enable/disable the right editing box
  * 
- * @param enabled whether enabled or not
+ * @param enabled
+ *          whether enabled or not
  */
 function enabledRightBox(enabled) {
   if (enabled) {
@@ -290,12 +366,21 @@ function enabledRightBox(enabled) {
   }
 }
 
-function setCurrentTimeAsNewInpoint() {
+function selectCurrentSplitItem() {
+  var splitItem = getCurrentSplitItem();
+  $('#splitSegmentItem-' + splitItem.id).click();
+}
 
+function setCurrentTimeAsNewInpoint() {
+  if (editor.selectedSplit != null) {
+    $('#clipBegin').timefield('option', 'value', editor.player.prop("currentTime") + "s");
+  }
 }
 
 function setCurrentTimeAsNewOutpoint() {
-
+  if (editor.selectedSplit != null) {
+    $('#clipEnd').timefield('option', 'value', editor.player.prop("currentTime") + "s");
+  }
 }
 
 /**
@@ -328,6 +413,7 @@ function getCurrentSplitItem() {
     var clipBegin = parseFloat(splitItem.clipBegin.replace("s", ""));
     var clipEnd = parseFloat(splitItem.clipEnd.replace("s", ""));
     if (clipBegin < currentTime && currentTime < clipEnd) {
+      splitItem.id = i;
       return splitItem;
     }
   }
@@ -398,9 +484,7 @@ function playerReady() {
   editor.player.bind("timeupdate", function() {
     var duration = workflowInstance.mediapackage.duration / 1000;
     var perc = editor.player.prop("currentTime") / duration * 100;
-    $('#currentTimeDiv').animate({
-      left : perc + "%"
-    }, 10)
+    $('#currentTimeDiv').css("left", perc + "%");
   });
 
   // create standard split point
@@ -419,30 +503,30 @@ function playerReady() {
       smil = editor.downloadSMIL();
       // check whether SMIL has already cutting points
       if (smil.smil.body.seq.par) {
-        $('<div/>').html("Found existing SMIL. Do you want to take over the cutting list?").dialog({
-          buttons : {
-            Yes : function() {
-              editor.splitData.splits = [];
-              smil.smil.body.seq.par = ocUtils.ensureArray(smil.smil.body.seq.par);
-              $.each(smil.smil.body.seq.par, function(key, value) {
-                value.ref = ocUtils.ensureArray(value.ref);
-                editor.splitData.splits.push({
-                  clipBegin : value.ref[0].clipBegin,
-                  clipEnd : value.ref[0].clipEnd,
-                  enabled : true,
-                  description : value.ref[0].description ? value.ref[0].description : "",
-                });
-              });
-              $(this).dialog('close');
-              editor.updateSplitList();
-            },
-            No : function() {
-              $(this).dialog('close');
-              editor.clearSMIL();
-            }
-          },
-          title : "Apply existent SMIL"
-        });
+        $('<div/>').html("Found existing SMIL from silence detection. Do you want to transfer the data into the list?")
+            .dialog({
+              buttons : {
+                Yes : function() {
+                  editor.splitData.splits = [];
+                  smil.smil.body.seq.par = ocUtils.ensureArray(smil.smil.body.seq.par);
+                  $.each(smil.smil.body.seq.par, function(key, value) {
+                    value.ref = ocUtils.ensureArray(value.ref);
+                    editor.splitData.splits.push({
+                      clipBegin : value.ref[0].clipBegin,
+                      clipEnd : value.ref[0].clipEnd,
+                      enabled : true,
+                      description : value.ref[0].description ? value.ref[0].description : "",
+                    });
+                  });
+                  $(this).dialog('close');
+                  editor.updateSplitList();
+                },
+                No : function() {
+                  $(this).dialog('close');
+                }
+              },
+              title : "Apply existent SMIL"
+            });
       }
     }
   });
@@ -458,7 +542,10 @@ function playerReady() {
   $.each(ocUtils.ensureArray(workflowInstance.mediapackage.attachments.attachment), function(key, value) {
     if (value.type == WAVEFORM_FLAVOR) {
       $('#waveformImage').prop("src", value.url);
-      $('#waveformImage').addimagezoom();
+      $('#waveformImage').ready(function() {
+        $('#segmentsWaveform').height($('#waveformImage').height());
+      });
+      // $('#waveformImage').addimagezoom();
     }
   });
 
@@ -489,7 +576,9 @@ function updateCurrentTime() {
 
 /**
  * formating a time String to hh:MM:ss.mm
- * @param time the timeString
+ * 
+ * @param time
+ *          the timeString
  * @returns the formated time string
  */
 function formatTime(time) {

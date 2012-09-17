@@ -124,6 +124,8 @@
             </div>
           </div>
         </div>
+        <input type="button" title="show all shortcuts" id="shortcuts" value="Shortcuts" /> <br />
+        <input type="button" title="clear split split" value="clear split list" id="clearList" />
       </div>
     </div>
 
@@ -228,8 +230,8 @@
       <a onclick="cancel()" title="Cancel" class="secondaryButton">Cancel</a>
     </div>
 
-    <div id="shortcuts" class="ui-helper-hidden">
-      <table border="0">
+    <div id="shortcutsDialog" class="ui-helper-hidden">
+      <table border="1">
         <tbody>
           <tr>
             <td>a</td>
@@ -249,11 +251,19 @@
           </tr>
           <tr>
             <td>x</td>
-            <td>play current time with 2s pre and post roll excluding deleted segments</td>
+            <td>play current segment with 2s pre and post roll excluding deleted segments</td>
+          </tr>
+          <tr>
+            <td>r</td>
+            <td>set current time as new inpoint of selected item
+          </tr>
+          <tr>
+            <td>t</td>
+            <td>set current time as new outpoint of selected item
           </tr>
           <tr>
             <td>space</td>
-            <td>play/paus</td>
+            <td>play/pause</td>
           </tr>
           <tr>
             <td>delete</td>

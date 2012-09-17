@@ -3,7 +3,8 @@
   $.widget("ui.timefield", {
     // **CHANGE** set default values
     options : {
-      value : 0
+      value : 0,
+      seconds : 0
     },
 
     /**
@@ -75,6 +76,7 @@
         }
         this.inputItem.val(this._format(value));
         this.options.value = value;
+        this.options.seconds = parseFloat(value.replace("s", ""));
         break;
       default:
         this.options[key] = value;
