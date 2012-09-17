@@ -145,14 +145,20 @@ editor.downloadSMIL = function() {
  */
 function addShortcuts() {
   // add shortcuts for easier editing
-  shortcut.add("s", splitButtonClick);
+  shortcut.add("s", splitButtonClick, {
+    disable_in_input : true,
+  });
   shortcut.add("a", function() {
     pauseVideo();
     $('.video-prev-frame').click();
+  }, {
+    disable_in_input : true,
   });
   shortcut.add("d", function() {
     pauseVideo();
     $('.video-next-frame').click();
+  }, {
+    disable_in_input : true,
   });
   shortcut.add("Space", function() {
     if (editor.player.prop("paused")) {
@@ -160,12 +166,24 @@ function addShortcuts() {
     } else {
       editor.player[0].pause();
     }
+  }, {
+    disable_in_input : true,
   });
-  shortcut.add("c", playCurrentSplitItem);
-  shortcut.add("Delete", splitRemoverClick);
-  shortcut.add("y", selectCurrentSplitItem);
-  shortcut.add("r", setCurrentTimeAsNewInpoint);
-  shortcut.add("t", setCurrentTimeAsNewOutpoint);
+  shortcut.add("c", playCurrentSplitItem, {
+    disable_in_input : true,
+  });
+  shortcut.add("Delete", splitRemoverClick, {
+    disable_in_input : true,
+  });
+  shortcut.add("y", selectCurrentSplitItem, {
+    disable_in_input : true,
+  });
+  shortcut.add("r", setCurrentTimeAsNewInpoint, {
+    disable_in_input : true,
+  });
+  shortcut.add("t", setCurrentTimeAsNewOutpoint, {
+    disable_in_input : true,
+  });
 }
 
 /**
@@ -215,39 +233,16 @@ function splitHoverOut(evt) {
  * init the playbuttons in the editing box
  */
 function initPlayButtons() {
-  $('#clipBeginPrevFrame, #clipEndPrevFrame').button({
+  $('#clipBeginSet, #clipEndSet').button({
     text : false,
     icons : {
-      primary : "ui-icon-arrowthickstop-1-w"
+      primary : "ui-icon-arrowthickstop-1-s"
     }
   });
 
-  $('#clipBeginNextFrame, #clipEndNextFrame').button({
-    text : false,
-    icons : {
-      primary : "ui-icon-arrowthickstop-1-e"
-    }
-  });
-
-  // init clickhandler
-  $('#clipBeginPrevFrame').click(function() {
-
-    $('.video-prev-frame').click();
-    console.log(editor.player.prop("currentTime"));
-  });
-
-  $('#clipEndPrevFrame').click(function() {
-
-  });
-
-  $('#clipBeginNextFrame').click(function() {
-
-  });
-
-  $('#clipEndNextFrame').click(function() {
-
-  });
-
+  $('#clipBeginSet').click(setCurrentTimeAsNewInpoint);
+  $('#clipEndSet').click(setCurrentTimeAsNewOutpoint);
+  
   $('#shortcuts').button();
 
   $('#shortcuts').click(function() {
@@ -285,6 +280,18 @@ function okButtonClick() {
   id = $('#splitUUID').val();
   if (id != "") {
     id = parseInt(id);
+    if($('#clipBegin').timefield('option', 'value') > $('#clipEnd').timefield('option', 'value')) {
+      $('<div />').html("The inpoint is bigger than the outpoint. Please check.").dialog({
+        title: "Check in and outpoint",
+        resizable: false,
+        buttons: {
+          OK: function() {
+            $(this).dialog("close");
+          }
+        }
+      });
+      return;
+    }
     splitItem = editor.splitData.splits[id];
     splitItem.description = $('#splitDescription').val();
     splitItem.clipBegin = $('#clipBegin').timefield('option', 'value');
@@ -542,7 +549,7 @@ function playerReady() {
   $.each(ocUtils.ensureArray(workflowInstance.mediapackage.attachments.attachment), function(key, value) {
     if (value.type == WAVEFORM_FLAVOR) {
       $('#waveformImage').prop("src", value.url);
-      $('#waveformImage').ready(function() {
+      $('#waveformImage').load(function() {
         $('#segmentsWaveform').height($('#waveformImage').height());
       });
       // $('#waveformImage').addimagezoom();

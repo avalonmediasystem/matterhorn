@@ -217,7 +217,7 @@
       if="${trimHold}"
       fail-on-error="true"
       exception-handler-workflow="error"
-      description="Waiting for user to review / trim recording">
+      description="Waiting for user to review / video edit recording">
       <configurations>
         <configuration key="source-flavor">*/work</configuration>
         <configuration key="target-flavor-subtype">trimmed</configuration>
