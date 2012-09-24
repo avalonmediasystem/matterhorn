@@ -13,34 +13,12 @@
  *  permissions and limitations under the License.
  *
  */
-
 package org.opencastproject.videoeditor.api;
 
-import java.util.List;
+import org.opencastproject.job.api.Job;
+import org.opencastproject.smil.entity.Smil;
 
-/**
- *
- */
-public interface SilenceDetectionService {
-
-  /**
-   * Run audio silence detection on file.
-   * This method is blocking.
-   * 
-   * @param filePath filePath to audio (or muxed) file
-   * @return List with found segments (start / stop timestamps in milliseconds)
-   * @throws ProcessFailedException if fails
-   */ 
-   
-  List<MediaSegment> detect(String filePath) throws ProcessFailedException;
-  
-  /**
-   * Interrupt running silence detection for given file.
-   */
-  void interruptDetection(String filePath);
-  
-  /**
-   * Interrupt all running silence detections.
-   */
-  void interruptAllDetections();
+public interface VideoEditorService {
+    
+  Job processSmil(Smil smil) throws ProcessFailedException;
 }

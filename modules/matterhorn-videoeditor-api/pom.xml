@@ -31,7 +31,8 @@
               *;resolution:=optional
             </Import-Package>
             <Export-Package> 
-              org.opencastproject.videoeditor.api;version=${project.version} 
+              org.opencastproject.videoeditor.api;version=${project.version},
+              org.opencastproject.videoeditor.silencedetection.api;version=${project.version}
             </Export-Package>
           </instructions>
         </configuration>
@@ -45,10 +46,5 @@
             <version>1.4-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
-<!--        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>matterhorn-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>-->
     </dependencies>
 </project>

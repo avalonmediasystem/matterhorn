@@ -14,22 +14,23 @@
  *
  */
 
-package org.opencastproject.videoeditor.api;
+package org.opencastproject.videoeditor.silencedetection.api;
+
+import org.opencastproject.job.api.Job;
+import org.opencastproject.mediapackage.Track;
+import org.opencastproject.videoeditor.api.ProcessFailedException;
 
 /**
  *
  */
-public interface MediaSegment {
+public interface SilenceDetectionService {
   
   /**
-   * Returns segment start timestamp in milliseconds.
-   * @return start timestamp in milliseconds
-   */
-  long getSegmentStart();
-  
-  /**
-   * Returns segment stop timestamp in milliseconds.
-   * @return stop timestamp in milliseconds
-   */
-  long getSegmentStop();
+   * Run silence detection on audio (visual) file.
+   * 
+   * @param track track to detect non silent segments
+   * @return Job detection job
+   * @throws ProcessFailedException if fails
+   */ 
+  Job detect(Track track) throws ProcessFailedException;
 }
