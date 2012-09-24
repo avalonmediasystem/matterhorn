@@ -10,10 +10,10 @@
   </service>
   <reference name="SmilService" cardinality="1..1" interface="org.opencastproject.smil.api.SmilService"
     policy="static" bind="setSmilService" />
-  <reference name="detectionService" interface="org.opencastproject.videoeditor.api.SilenceDetectionService"
+  <reference name="detectionService" interface="org.opencastproject.videoeditor.silencedetection.api.SilenceDetectionService"
     cardinality="1..1" policy="static" bind="setDetectionService" />
-  <reference cardinality="1..1" interface="org.opencastproject.workspace.api.Workspace" name="Workspace"
-    policy="static" bind="setWorkspace" />
+  <reference name="ServiceRegistry" cardinality="1..1" interface="org.opencastproject.serviceregistry.api.ServiceRegistry"
+    policy="static" bind="setServiceRegistry" />
   <reference name="workflowService" interface="org.opencastproject.workflow.api.WorkflowService"
     cardinality="1..1" policy="static" bind="setWorkflowService" />
 </scr:component>

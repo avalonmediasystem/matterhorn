@@ -15,25 +15,26 @@
  */
 package org.opencastproject.workflow.handler;
 
-import java.util.List;
+import java.net.URI;
 import java.util.Map;
-
+import org.apache.commons.io.FilenameUtils;
+import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.JobContext;
 import org.opencastproject.mediapackage.MediaPackage;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
+import org.opencastproject.mediapackage.MediaPackageElementParser;
 import org.opencastproject.mediapackage.Track;
 import org.opencastproject.smil.api.SmilException;
 import org.opencastproject.smil.api.SmilService;
 import org.opencastproject.smil.entity.Smil;
 import org.opencastproject.util.NotFoundException;
-import org.opencastproject.videoeditor.api.ProcessFailedException;
-import org.opencastproject.videoeditor.api.VideoEditor;
+import org.opencastproject.videoeditor.api.VideoEditorService;
 import org.opencastproject.workflow.api.WorkflowInstance;
 import org.opencastproject.workflow.api.WorkflowOperationException;
 import org.opencastproject.workflow.api.WorkflowOperationInstance;
 import org.opencastproject.workflow.api.WorkflowOperationResult;
 import org.opencastproject.workflow.api.WorkflowOperationResult.Action;
-import org.opencastproject.workflow.api.WorkflowService;
+import org.opencastproject.workspace.api.Workspace;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +58,11 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
    */
   private SmilService smilService;
 
-  private WorkflowService workflowService;
+  private VideoEditorService videoEditorService;
+  
+  private Workspace workspace;
 
-  private VideoEditor videoEditor;
-
+  @Override
   public void activate(ComponentContext cc) {
     super.activate(cc);
     setHoldActionTitle("Review / VideoEdit");
@@ -83,7 +85,6 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
       if (mp.getCatalogs(MediaPackageElementFlavor.parseFlavor("smil/smil")).length == 0) {
         logger.debug("adding SMIL to workflow");
         smilService.createNewSmil(workflowInstance.getId());
-        mp = workflowService.getWorkflowById(workflowInstance.getId()).getMediaPackage();
       }
     } catch (Exception e) {
       logger.error(e.getMessage());
@@ -143,7 +144,6 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
     try {
       smil = smilService.getSmil(workflowInstance.getId());
       logger.debug("SMIL is ready for processing");
-      logger.debug("videoeditor: {}", videoEditor);
     } catch (SmilException e) {
       throw new WorkflowOperationException("SMIL Exception", e);
     } catch (NotFoundException e) {
@@ -157,30 +157,75 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
     
     MediaPackage mp = workflowInstance.getMediaPackage();
     try {
-      List<Track> tracks = videoEditor.process(smil);
       
-      for (Track t : tracks) {
-        t.setFlavor(new MediaPackageElementFlavor(t.getFlavor().getType(), configuredTargetFlavorSubtype));
-        mp.add(t);
+      Job job = videoEditorService.processSmil(smil);
+      if (!waitForStatus(job).isSuccess()) {
+        throw new WorkflowOperationException("Smil processing failed!");
+      }
+      
+      String editedTracksArr = job.getPayload();
+      if (editedTracksArr == null || editedTracksArr.isEmpty() 
+              || editedTracksArr.substring(1, editedTracksArr.length() - 1).split(",").length == 0) {
+        throw new WorkflowOperationException("Smil processing failed! Service returned empty track list.");
+      }
+      
+      for (String trackXml : editedTracksArr.substring(1, editedTracksArr.length() - 1).split(",")) {
+        Track editedTrack = (Track) MediaPackageElementParser.getFromXml(trackXml);
+        editedTrack.setFlavor(new MediaPackageElementFlavor(editedTrack.getFlavor().getType(), configuredTargetFlavorSubtype));
+        
+        // check if track reference to another
+        Track sourceTrack = null;
+        if (editedTrack.getReference() != null &&  !editedTrack.getReference().getIdentifier().isEmpty()) {
+          sourceTrack = mp.getTrack(editedTrack.getReference().getIdentifier());
+        }
+        
+        String fileName = null;
+        URI newUri;
+        
+        // add track to mediapackage
+        if (sourceTrack != null) {
+          fileName = FilenameUtils.getBaseName(sourceTrack.getURI().getPath().toString())
+                + "." + FilenameUtils.getExtension(editedTrack.getURI().getPath().toString());
+          newUri = workspace.moveTo(editedTrack.getURI(), mp.getIdentifier().compact(), editedTrack.getIdentifier(), fileName);
+          editedTrack.setURI(newUri);
+          logger.info("Add track for '{}' {} as a derived version of {} to mediapackage {}.", new String[] {
+            editedTrack.getFlavor().toString(), editedTrack.getIdentifier(), sourceTrack.getIdentifier(), mp.getIdentifier().toString()
+          });
+          mp.addDerived(editedTrack, sourceTrack);
+        } else {
+          fileName = FilenameUtils.getBaseName(editedTrack.getURI().getPath().toString())
+                + "." + FilenameUtils.getExtension(editedTrack.getURI().getPath().toString());
+          newUri = workspace.moveTo(editedTrack.getURI(), mp.getIdentifier().compact(), editedTrack.getIdentifier(), fileName);
+          editedTrack.setURI(newUri);
+          logger.info("Add track for '{}' {} to mediapackage {}.", new String[] {
+            editedTrack.getFlavor().toString(), editedTrack.getIdentifier(), mp.getIdentifier().toString()
+          });
+          mp.add(editedTrack);
+        }
       }
 
-    } catch (ProcessFailedException ex) {
+//    } catch (MediaPackageException ex) {
+//      throw new WorkflowOperationException("Smil processing failed! " + ex.getMessage());
+//    } catch (ProcessFailedException ex) {
+//      throw new WorkflowOperationException("Smil processing failed! " + ex.getMessage());
+    } catch (Exception ex) {
       throw new WorkflowOperationException("Smil processing failed! " + ex.getMessage());
     }
 
-    return createResult(mp, Action.CONTINUE);
+    logger.info("Videoeditor workflow {} finished.", workflowInstance.getId());
+//    return createResult(mp, Action.CONTINUE);
+    return super.resume(workflowInstance, context, properties);
   }
 
   public void setSmilService(SmilService smilService) {
     this.smilService = smilService;
   }
-
-  public void setWorkflowService(WorkflowService workflowService) {
-    this.workflowService = workflowService;
+  
+  public void setVideoEditorService(VideoEditorService editor) {
+    this.videoEditorService = editor;
   }
 
-  public void setVideoEditorService(VideoEditor editor) {
-    this.videoEditor = editor;
+  public void setWorkspace(Workspace workspace) {
+    this.workspace = workspace;
   }
-
 }

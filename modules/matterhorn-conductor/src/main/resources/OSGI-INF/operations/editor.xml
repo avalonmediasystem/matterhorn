@@ -12,8 +12,9 @@
     policy="static" bind="setServiceRegistry" />
   <reference name="SmilService" cardinality="1..1" interface="org.opencastproject.smil.api.SmilService"
     policy="static" bind="setSmilService" />
-  <reference name="workflowService" interface="org.opencastproject.workflow.api.WorkflowService"
-    cardinality="1..1" policy="static" bind="setWorkflowService" />
-  <reference name="videoeditorService" interface="org.opencastproject.videoeditor.api.VideoEditor"
+  <reference name="videoeditorService" interface="org.opencastproject.videoeditor.api.VideoEditorService"
     cardinality="1..1" policy="static" bind="setVideoEditorService" />
+  <reference name="workspace" interface="org.opencastproject.workspace.api.Workspace"
+    cardinality="1..1" policy="static" bind="setWorkspace" />
+  
 </scr:component>

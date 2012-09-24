@@ -70,7 +70,7 @@
         <module>modules/matterhorn-speech-recognition-service-api</module>
         <module>modules/matterhorn-static</module>
         <module>modules/matterhorn-solr</module>
-	<module>modules/matterhorn-smil</module>
+        <module>modules/matterhorn-smil</module>
         <module>modules/matterhorn-videoeditor-api</module>
         <module>modules/matterhorn-videoeditor-impl</module>
         <module>modules/matterhorn-textanalyzer-api</module>

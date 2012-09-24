@@ -13,32 +13,19 @@
  *  permissions and limitations under the License.
  *
  */
-
-package org.opencastproject.videoeditor.gstreamer.silencedetector;
-
-import org.opencastproject.videoeditor.api.MediaSegment;
+package org.opencastproject.videoeditor.silencedetection.impl;
 
 /**
  *
  * @author wsmirnow
  */
-public class MediaSegmentImpl implements MediaSegment {
+public interface SilenceDetectionProperties {
+  
+  /** Timespan in seconds before silece cut begin. */
+  String SILENCE_PRE_LENGTH = "silence.pre.length";
+  /** Minimum length in seconds to accept silence sequence. */
+  String SILENCE_MIN_LENGTH = "silence.min.length";
+  /** Silence threshold in decibel (e.g. -50 for loud classrooms, -35 for very silent indoor location). */
+  String SILENCE_THRESHOLD_DB = "silence.threshold.db";
 
-  private final long segmentStart;
-  private final long segmentStop;
-  
-  public MediaSegmentImpl(long segmentStart, long segmentStop) {
-    this.segmentStart = segmentStart;
-    this.segmentStop = segmentStop;
-  }
-  
-  @Override
-  public long getSegmentStart() {
-    return segmentStart;
-  }
-  
-  @Override
-  public long getSegmentStop() {
-    return segmentStop;
-  }
 }

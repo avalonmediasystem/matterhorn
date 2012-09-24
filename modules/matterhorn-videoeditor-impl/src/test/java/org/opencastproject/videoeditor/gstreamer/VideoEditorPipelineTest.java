@@ -78,7 +78,7 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
   @Test
   public void testRunStopMuxedSourceFile() {
     logger.info("Test pipeline with muxed source file...");
-    
+        
     try {
       SourceBinsFactory sourceBins = new SourceBinsFactory(new File(outputFilePath).getAbsolutePath());
       sourceBins.addFileSource(new File(muxedFilePath).getAbsolutePath(), 

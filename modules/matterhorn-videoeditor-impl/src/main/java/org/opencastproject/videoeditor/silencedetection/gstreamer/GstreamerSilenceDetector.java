@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.videoeditor.gstreamer.silencedetector;
+package org.opencastproject.videoeditor.silencedetection.gstreamer;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,12 +27,14 @@ import org.gstreamer.Pad;
 import org.gstreamer.Pipeline;
 import org.gstreamer.elements.FakeSink;
 import org.gstreamer.lowlevel.MainLoop;
-import org.opencastproject.videoeditor.api.MediaSegment;
 import org.opencastproject.videoeditor.api.ProcessFailedException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
-import org.opencastproject.videoeditor.impl.VideoEditorProperties;
+import org.opencastproject.videoeditor.silencedetection.api.MediaSegment;
+import org.opencastproject.videoeditor.silencedetection.api.MediaSegments;
+import org.opencastproject.videoeditor.silencedetection.impl.SilenceDetectionProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author wsmirnow
@@ -46,17 +48,21 @@ public class GstreamerSilenceDetector {
   private static final double DEFAULT_THRESHOLD_DB = -40L;
   
   private final Properties properties;
+  private final String trackId;
+  private final String filePath;
+  
   private final Pipeline pipeline;
   private final MainLoop mainLoop = new MainLoop();
-  
   private String lastPipelineError = null;
   
   private List<MediaSegment> segments = null;
   private long lastSilenceStart = 0;
   private long lastSilenceStop = 0;
   
-  public GstreamerSilenceDetector(Properties properties, String filePath) throws PipelineBuildException {
+  public GstreamerSilenceDetector(Properties properties, String trackId, String filePath) throws PipelineBuildException {
     this.properties = properties;
+    this.trackId = trackId;
+    this.filePath = filePath;
     pipeline = new Pipeline();
     
     final Element filesource = ElementFactory.make("filesrc", null);
@@ -78,16 +84,16 @@ public class GstreamerSilenceDetector {
     filesource.set("location", filePath);
     
     Long minSilenceLength;
-    if (properties.containsKey(VideoEditorProperties.SILENCE_PRE_LENGTH)) {
-      minSilenceLength = Long.parseLong(properties.getProperty(VideoEditorProperties.SILENCE_PRE_LENGTH));
+    if (properties.containsKey(SilenceDetectionProperties.SILENCE_PRE_LENGTH)) {
+      minSilenceLength = Long.parseLong(properties.getProperty(SilenceDetectionProperties.SILENCE_PRE_LENGTH));
     } else {
       minSilenceLength = DEFAULT_SILENCE_PRE_LENGTH;
     }
     cutter.set("run-length", TimeUnit.SECONDS.toNanos(minSilenceLength));
     
     Double thresholdDB = DEFAULT_THRESHOLD_DB;
-    if (properties.containsKey(VideoEditorProperties.SILENCE_THRESHOLD_DB)) {
-      thresholdDB = Double.parseDouble(properties.getProperty(VideoEditorProperties.SILENCE_THRESHOLD_DB));
+    if (properties.containsKey(SilenceDetectionProperties.SILENCE_THRESHOLD_DB)) {
+      thresholdDB = Double.parseDouble(properties.getProperty(SilenceDetectionProperties.SILENCE_THRESHOLD_DB));
     }
     cutter.set("threshold-dB", thresholdDB);
     
@@ -163,7 +169,7 @@ public class GstreamerSilenceDetector {
   
   private void addVideoSegment(long startMillis, long stopMillis) {
     if (startMillis < stopMillis)
-      segments.add(new MediaSegmentImpl(startMillis, stopMillis));
+      segments.add((MediaSegment) new MediaSegment(startMillis, stopMillis));
   }
   
   public void detect() throws ProcessFailedException {
@@ -177,23 +183,23 @@ public class GstreamerSilenceDetector {
       throw new ProcessFailedException(lastPipelineError);
     }
     
-     long minSilenceLength = TimeUnit.SECONDS.toMillis(DEFAULT_SILENCE_MIN_LENGTH);
-    if (properties.containsKey(VideoEditorProperties.SILENCE_MIN_LENGTH)) {
-      minSilenceLength = Long.parseLong(properties.getProperty(VideoEditorProperties.SILENCE_MIN_LENGTH));
-      minSilenceLength = TimeUnit.SECONDS.toMillis(lastSilenceStop);
+    long minSilenceLength = TimeUnit.SECONDS.toMillis(DEFAULT_SILENCE_MIN_LENGTH);
+    if (properties.containsKey(SilenceDetectionProperties.SILENCE_MIN_LENGTH)) {
+      minSilenceLength = Long.parseLong(properties.getProperty(SilenceDetectionProperties.SILENCE_MIN_LENGTH));
+      minSilenceLength = TimeUnit.SECONDS.toMillis(minSilenceLength);
     }
     
     List<MediaSegment> segmentsTmp = new LinkedList<MediaSegment>();
     MediaSegment lastSegment = null;
     for (int i = 0; i < segments.size(); i++) {
-      MediaSegment segment = segments.get(i);
+      MediaSegment segment = (MediaSegment) segments.get(i);
       if (lastSegment == null) {
         lastSegment = segment;
       } else {
       
         if (segment.getSegmentStart() - lastSegment.getSegmentStop() < minSilenceLength) {
           segmentsTmp.remove(lastSegment);
-          lastSegment = new MediaSegmentImpl(lastSegment.getSegmentStart(), segment.getSegmentStop());
+          lastSegment = (MediaSegment) new MediaSegment(lastSegment.getSegmentStart(), segment.getSegmentStop());
         } else {
           lastSegment = segment;
         }
@@ -209,7 +215,10 @@ public class GstreamerSilenceDetector {
     mainLoop.quit();
   }
   
-  public List<MediaSegment> getMediaSegments() {
-    return segments;
+  public MediaSegments getMediaSegments() {
+    if (segments == null)
+      return null;
+    
+    return new MediaSegments(trackId, filePath, segments);
   }
 }

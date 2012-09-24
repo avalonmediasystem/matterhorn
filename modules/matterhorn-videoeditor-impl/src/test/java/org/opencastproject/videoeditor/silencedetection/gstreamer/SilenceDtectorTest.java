@@ -13,18 +13,18 @@
  *  permissions and limitations under the License.
  *
  */
-package org.opencastproject.videoeditor.gstreamer.silencedetector;
+package org.opencastproject.videoeditor.silencedetection.gstreamer;
 
-import java.util.List;
 import java.util.Properties;
 import org.gstreamer.ClockTime;
 import org.junit.Assert;
 import org.junit.Test;
-import org.opencastproject.videoeditor.api.MediaSegment;
 import org.opencastproject.videoeditor.api.ProcessFailedException;
 import org.opencastproject.videoeditor.gstreamer.GstreamerAbstractTest;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
-import org.opencastproject.videoeditor.impl.VideoEditorProperties;
+import org.opencastproject.videoeditor.silencedetection.api.MediaSegment;
+import org.opencastproject.videoeditor.silencedetection.api.MediaSegments;
+import org.opencastproject.videoeditor.silencedetection.impl.SilenceDetectionProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,26 +32,25 @@ import org.slf4j.LoggerFactory;
  *
  * @author wsmirnow
  */
-public class GstreamerSilenceDetectorTest extends GstreamerAbstractTest {
+public class SilenceDtectorTest extends GstreamerAbstractTest {
   
-  private static final Logger logger = LoggerFactory.getLogger(GstreamerSilenceDetectorTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(SilenceDtectorTest.class);
   
   @Test
   public void detectorTest() {
-//    audioFilePath = "/home/wsmirnow/Videos/Sintel.mp4";
     logger.info("segmenting audio file '{}'...", audioFilePath);
     try {
-      GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(new Properties(), audioFilePath);
+      GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(new Properties(), "track-1", audioFilePath);
       Assert.assertNull(silenceDetector.getMediaSegments());
       
       silenceDetector.detect();
       
-      List<MediaSegment> segments = silenceDetector.getMediaSegments();
+      MediaSegments segments = silenceDetector.getMediaSegments();
       Assert.assertNotNull(segments);
-      Assert.assertTrue(segments.size() > 0);
+      Assert.assertTrue(segments.getMediaSegments().size() > 0);
       
       logger.info("segments found:");
-      for (MediaSegment segment : segments) {
+      for (MediaSegment segment : segments.getMediaSegments()) {
         Assert.assertTrue(segment.getSegmentStart() < segment.getSegmentStop());
         logger.info("{} ({}) - {} ({})", new String[] {
           ClockTime.fromMillis(segment.getSegmentStart()).toString(),
@@ -73,26 +72,27 @@ public class GstreamerSilenceDetectorTest extends GstreamerAbstractTest {
     logger.info("segmenting audio file '{}' with minimum silence length of 30 sec...", audioFilePath);
     
     Properties properties = new Properties();
-    properties.setProperty(VideoEditorProperties.SILENCE_MIN_LENGTH, "30");
+    properties.setProperty(SilenceDetectionProperties.SILENCE_MIN_LENGTH, "30");
 //    properties.setProperty(VideoEditorProperties.SILENCE_THRESHOLD_DB, "-75");
     
     try {
-      GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(properties, audioFilePath);
+      GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(properties, "track-1", audioFilePath);
       Assert.assertNull(silenceDetector.getMediaSegments());
       
       silenceDetector.detect();
       
-      List<MediaSegment> segments = silenceDetector.getMediaSegments();
+      MediaSegments segments = silenceDetector.getMediaSegments();
       Assert.assertNotNull(segments);
-      Assert.assertTrue(segments.size() == 1);
+      Assert.assertTrue(segments.getMediaSegments().size() == 1);
       
-      Assert.assertTrue(segments.get(0).getSegmentStart() < segments.get(0).getSegmentStop());
+      MediaSegment segment = segments.getMediaSegments().get(0);
+      Assert.assertTrue(segment.getSegmentStart() < segment.getSegmentStop());
       logger.info("segments found:");
       logger.info("{} ({}) - {} ({})", new String[] {
-        ClockTime.fromMillis(segments.get(0).getSegmentStart()).toString(),
-        Long.toString(segments.get(0).getSegmentStart()),
-        ClockTime.fromMillis(segments.get(0).getSegmentStop()).toString(),
-        Long.toString(segments.get(0).getSegmentStop())
+        ClockTime.fromMillis(segment.getSegmentStart()).toString(),
+        Long.toString(segment.getSegmentStart()),
+        ClockTime.fromMillis(segment.getSegmentStop()).toString(),
+        Long.toString(segment.getSegmentStop())
       });
             
     } catch (ProcessFailedException ex) {
@@ -106,7 +106,7 @@ public class GstreamerSilenceDetectorTest extends GstreamerAbstractTest {
   public void detectorFailTest() {
     logger.info("segmenting video only file '{}' should fail...", videoFilePath);
     try {
-      GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(new Properties(), videoFilePath);
+      GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(new Properties(), "track-1", videoFilePath);
       Assert.assertNull(silenceDetector.getMediaSegments());
       
       silenceDetector.detect();
