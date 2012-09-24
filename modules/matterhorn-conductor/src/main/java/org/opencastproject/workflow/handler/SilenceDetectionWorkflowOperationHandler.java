@@ -84,12 +84,23 @@ public class SilenceDetectionWorkflowOperationHandler extends AbstractWorkflowOp
         smilService.createNewSmil(workflowInstance.getId());
         mp = workflowService.getWorkflowById(workflowInstance.getId()).getMediaPackage();
 
+        MediaSegment previousSegment = null;
         for (MediaSegment ms : segments) {
           // checking whether first item starts at 0
           if (segments.indexOf(ms) == 0 && ms.getSegmentStart() != 0) {
             logger.debug("adding new first item, because old first item doesn't start at 0");
             ParallelElement p = new ParallelElement();
             p.addElement(new MediaElement("", "0", String.valueOf(ms.getSegmentStart() / 1000.0)));
+            smilService.addParallelElement(workflowInstance.getId(), p);
+          }
+
+          // checking whether last items end where current item starts
+          if (previousSegment != null && previousSegment.getSegmentStop() != ms.getSegmentStart()) {
+            logger.debug("adding new item, because previous end not the same as current start");
+            ParallelElement p = new ParallelElement();
+            p.addElement(new MediaElement("",
+                String.valueOf(previousSegment.getSegmentStop() / 1000.0), 
+                String.valueOf(ms.getSegmentStart() / 1000.0)));
             smilService.addParallelElement(workflowInstance.getId(), p);
           }
 
@@ -106,10 +117,12 @@ public class SilenceDetectionWorkflowOperationHandler extends AbstractWorkflowOp
             logger
                 .debug("adding new last item, because old last item doesn't end with duration of media");
             p = new ParallelElement();
-            p.addElement(new MediaElement("", String.valueOf(ms.getSegmentStop() / 1000.0), String
-                .valueOf(mp.getDuration() / 1000.0)));
+            p.addElement(new MediaElement("", 
+                String.valueOf(ms.getSegmentStop() / 1000.0), 
+                String.valueOf(mp.getDuration() / 1000.0)));
             smilService.addParallelElement(workflowInstance.getId(), p);
           }
+          previousSegment = ms;
         }
       } catch (Exception e) {
         logger.error(e.getMessage(), e);

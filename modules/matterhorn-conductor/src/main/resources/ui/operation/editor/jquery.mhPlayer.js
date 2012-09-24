@@ -150,6 +150,9 @@
       var strPrevFrame = "Previous Frame";
       var strNextFrame = "Next Frame";
       
+      var strPrevMarker = "Previous Marker";
+      var strNextMarker = "Next Marker";
+      
       var strSplit = "split at current time";
 
       /*************************************************************************
@@ -167,6 +170,9 @@
       
       var classNextFrame = "video-next-frame";
       var classPreviousFrame = "video-prev-frame";
+      
+      var classPreviousMarker = "video-previous-marker";
+      var classNextMarker = "video-next-marker";
       
       var classSplit = "video-split-button";
 
@@ -192,9 +198,11 @@
         video_controls = subtle + 
         '<div class="' + classVideoControls + ' ' + $(val).attr('id') + '">' + 
           '<a class="' + classVideoPlay + '" title="' + strPlay + '"></a>' +
+          '<a class="' + classPreviousMarker + '" title="' + strPrevMarker + '"></a>' +
           '<a class="' + classPreviousFrame + '" title="' + strPrevFrame + '"></a>' +
           '<a class="' + classSplit + '" title="' + strSplit + '"></a>' +
           '<a class="' + classNextFrame + '" title="' + strNextFrame + '"></a>' +
+          '<a class="' + classNextMarker + '" title="' + strNextMarker + '"></a>' +
           '<div class="' + classVideoTimer + '"></div>' + 
           '<div class="' + classVolumeBox + '">' + 
             '<div class="' + classVolumeSlider + '"></div>' + 
@@ -224,9 +232,14 @@
       var next_btn = $('.' + classNextFrame, video_container);
       var prev_btn = $('.' + classPreviousFrame, video_container);
       
+      var next_marker_btn = $('.' + classNextMarker, video_container);
+      var prev_marker_btn = $('.' + classPreviousMarker, video_container);
+      
       var split_btn = $('.' + classSplit, video_container);
       
       video_controls.hide();
+      
+      mhVideo.on("canplay", initialSeek);
 
       /*************************************************************************
        * utitlity functions
@@ -240,15 +253,17 @@
        * @return given time in seconds formatted to mm:ss
        */
       var formatTime = function(seconds) {
+        var h = "00";
         var m = "00";
         var s = "00";
         if (!isNaN(seconds) && (seconds >= 0)) {
+          h = (Math.floor(seconds / 3600) < 10) ? "0" + Math.floor(seconds / 3600) : Math.floor(seconds / 3600);
           m = (Math.floor(seconds / 60) < 10) ? "0" + Math.floor(seconds / 60) : Math.floor(seconds / 60);
           s = (Math.floor(seconds - (m * 60)) < 10) ? "0" + Math.floor(seconds - (m * 60)) : Math.floor(seconds
               - (m * 60));
           ms = parseInt((seconds - parseInt(seconds)) * 100);
         }
-        return m + ":" + s + "." + ms;
+        return h + ":" + m + ":" + s + "." + ms;
       };
 
       /**
@@ -273,7 +288,7 @@
        * @return a boolean value if player is in ready state
        */
       var playerIsReady = function() {
-        return mhVideo.prop('readyState') >= mhVideo.prop('HAVE_FUTURE_DATA');
+        return mhVideo.prop('readyState') >= mhVideo.prop('HAVE_CURRENT_DATA');
       }
 
       /**
@@ -363,7 +378,7 @@
         next_btn.button({
           text : false,
           icons : {
-            primary : "ui-icon-arrowthickstop-1-e"
+            primary : "ui-icon-arrowstop-1-e"
           } 
         });
       }
@@ -372,8 +387,26 @@
         prev_btn.button({
           text : false,
           icons : {
-            primary : "ui-icon-arrowthickstop-1-w"
+            primary : "ui-icon-arrowstop-1-w"
           } 
+        });
+      }
+      
+      var setUIPrevMarkerButton = function() {
+        prev_marker_btn.button({
+          text: false,
+          icons: {
+            primary: "ui-icon-seek-prev"
+          }
+        });
+      }
+      
+      var setUINextMarkerButton = function() {
+        next_marker_btn.button({
+          text: false,
+          icons: {
+            primary: "ui-icon-seek-next"
+          }
         });
       }
       
@@ -385,7 +418,7 @@
           }
         });
       }
-
+      
       /*************************************************************************
        * on-events
        ************************************************************************/
@@ -406,8 +439,9 @@
        */
       var onSeekUpdate = function() {
         updateTime();
+        currenttime = mhVideo.prop('currentTime');
         if (!seeksliding) {
-          video_seek.slider('value', currenttime)
+          video_seek.slider('value', currenttime);
         }
         ;
       };
@@ -524,6 +558,8 @@
       setUiVolumeOnButton();
       setUiNextFrameButton();
       setUiPrevFrameButton();
+      setUINextMarkerButton();
+      setUIPrevMarkerButton();
       setUISplitButton();
       pause();
       // disable browser-specific controls

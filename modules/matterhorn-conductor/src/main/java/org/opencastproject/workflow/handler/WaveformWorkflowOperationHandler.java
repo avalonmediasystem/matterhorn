@@ -93,7 +93,7 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
     MediaPackage mediaPackage = workflowInstance.getMediaPackage();
 
     logger.debug("source-flavor{}", workflowInstance.getConfiguration("source-flavor"));
-    logger.info("generating waveform png form mediapackage {}", mediaPackage.getIdentifier()
+    logger.info("generating waveform png from mediapackage {}", mediaPackage.getIdentifier()
         .compact());
 
     Track[] tracks = mediaPackage.getTracks(audioFlavor);
@@ -108,7 +108,11 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
       File waveFile = workspace.get(tracks[0].getURI());
       logger.debug("wave file: {}", waveFile);
       Wave wave = new Wave(waveFile);
-      logger.debug("format: {}", wave.getWaveHeader().getFormat());
+      if (!wave.getWaveHeader().valid) {
+        logger.error("no valid wave headers. stopping waveformgeneration");
+        throw new WorkflowOperationException("no valid wave headers");
+      }
+      logger.debug("waveHeaders: {}", wave.getWaveHeader());
       // AudioInputStream in = AudioSystem.getAudioInputStream(waveFile);
       FileInputStream in = new FileInputStream(waveFile);
       // ignore first 44 bytes because that's the header of the wave file
@@ -315,8 +319,9 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
      * Constructor
      * 
      * @param filename Wave file
+     * @throws IOException
      */
-    public Wave(String filename) {
+    public Wave(String filename) throws IOException {
       this(new File(filename));
     }
 
@@ -324,16 +329,19 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
      * constructor
      * 
      * @param f the wav file
+     * @throws IOException
      */
-    public Wave(File f) {
+    public Wave(File f) throws IOException {
       try {
         InputStream inputStream = new FileInputStream(f);
         initWaveWithInputStream(inputStream);
         inputStream.close();
       } catch (FileNotFoundException e) {
-        e.printStackTrace();
+        logger.error(e.getMessage(), e);
+        throw e;
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.error(e.getMessage(), e);
+        throw e;
       }
     }
 
@@ -341,8 +349,9 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
      * Constructor
      * 
      * @param inputStream Wave file input stream
+     * @throws IOException
      */
-    public Wave(InputStream inputStream) {
+    public Wave(InputStream inputStream) throws IOException {
       initWaveWithInputStream(inputStream);
     }
 
@@ -361,8 +370,9 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
      * init the object with an input stream
      * 
      * @param inputStream the inputstream to initialize from
+     * @throws IOException
      */
-    private void initWaveWithInputStream(InputStream inputStream) {
+    private void initWaveWithInputStream(InputStream inputStream) throws IOException {
       // reads the first 44 bytes for header
       waveHeader = new WaveHeader(inputStream);
 
@@ -372,7 +382,8 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
           data = new byte[inputStream.available()];
           inputStream.read(data);
         } catch (IOException e) {
-          e.printStackTrace();
+          logger.error(e.getMessage(), e);
+          throw e;
         }
         // end load data
       } else {
@@ -483,7 +494,7 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
         // dis.close();
 
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.error(e.getMessage(), e);
         return false;
       }
 

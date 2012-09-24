@@ -63,6 +63,7 @@
     <script type="text/x-jqote-template" id="splitSegmentTemplate">
         <![CDATA[
           <% $.each(data[j].splits, function(key, split ) { 
+            split.id = key;
             var duration = previewTracks[0].duration / 1000;
             var begin = parseFloat(split.clipBegin.toString().replace("s", ""));
             var end = parseFloat(split.clipEnd.toString().replace("s", ""));
@@ -80,17 +81,24 @@
     <script type="text/x-jqote-template" id="splitElements">
       <![CDATA[
           <% $.each(data[j].splits, function(key, split ) { %>
-            <div class="splitItem<% if(!split.enabled) { %> disabled<% }%>" id="splitItem-<%= key %>">
-              <div class="splitNumber floatLeft">
-                <span><%= (key + 1) %></span>
-              </div>
-              <div class="splitText">
-                <span><%= formatTime(split.clipBegin) %></span> - <span><%= formatTime(split.clipEnd) %></span> <br />
-                <p><%= split.description %></p>
-              </div>
+            <div class="splitItem" id="splitItem-<%= key %>">
+              <div id="splitItemDiv-<%= key %>" class="splitItemDiv<% if(!split.enabled) { %> disabled<% }%>">
+                <div class="splitNumber floatLeft">
+                  <span><%= (key + 1) %></span>
+                </div>
+                <div class="splitText">
+                  <span><%= formatTime(split.clipBegin) %></span> - <span><%= formatTime(split.clipEnd) %></span> <br />
+                  <p><%= split.description %></p>
+               </div>
+            </div>
+            <div class="splitRemoverDiv">
               <div class="splitRemover">
-                <input type="button" />
-              </div>
+                <% if(split.enabled) { %>
+                  <a title="Remove this item" class="splitRemoverLink" id="splitRemover-<%= key %>"></a>
+                <% } else { %>
+                  <a title="Readd this item" class="splitAdderLink" id="splitAdder-<%= key %>"></a>
+                <% } %>
+              </div></div>
             </div>
           <% }); %>
       ]]>
@@ -118,7 +126,7 @@
             <br />
             <textarea id="splitDescription"></textarea>
             <div class="box_right">
-              <input type="button" value="Delete" id="deleteButton" />
+              <input type="button" value="Remove" id="deleteButton" />
               <input type="button" value="Cancel" id="cancelButton" />
               <input type="button" value="OK" id="okButton" />
             </div>
@@ -234,40 +242,56 @@
       <table border="1">
         <tbody>
           <tr>
-            <td>a</td>
+            <td><span id="trim_previous_frame"></span></td>
             <td>previous frame</td>
           </tr>
           <tr>
-            <td>d</td>
+            <td><span id="trim_next_frame"></span></td>
             <td>next frame</td>
           </tr>
           <tr>
-            <td>s</td>
+            <td><span id="trim_split_at_current_time"></span></td>
             <td>split at current time</td>
           </tr>
           <tr>
-            <td>c</td>
+            <td><span id="trim_play_current_segment"></span></td>
             <td>play current segment</td>
           </tr>
           <tr>
-            <td>x</td>
+            <td><span id="trim_play_current_pre_post"></span></td>
             <td>play current segment with 2s pre and post roll excluding deleted segments</td>
           </tr>
           <tr>
-            <td>r</td>
+            <td><span id="trim_set_current_time_as_inpoint"></span></td>
             <td>set current time as new inpoint of selected item
           </tr>
           <tr>
-            <td>t</td>
+            <td><span id="trim_set_current_time_as_outpoint"></span></td>
             <td>set current time as new outpoint of selected item
           </tr>
           <tr>
-            <td>space</td>
+            <td><span id="trim_play_pause"></span></td>
             <td>play/pause</td>
           </tr>
           <tr>
-            <td>delete</td>
+            <td><span id="trim_play_ending_of_current_segment"></span></td>
+            <td>play ending of current segment</td>
+          </tr>
+          <tr>
+            <td><span id="trim_delete_selected_segment"></span></td>
             <td>delete currently selected segment</td>
+          </tr>
+          <tr>
+            <td><span id="trim_select_item_at_current_time"></span></td>
+            <td>select segment at current time</td>
+          </tr>
+          <tr>
+            <td><span id="trim_previous_marker"></span></td>
+            <td>jump to previous marker</td>
+          </tr>
+          <tr>
+            <td><span id="trim_next_marker"></span></td>
+            <td>jump to next marker</td>
           </tr>
         </tbody>
       </table>

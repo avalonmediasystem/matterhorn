@@ -62,6 +62,15 @@ public final class RestUtil {
     return b;
   }
 
+  /**
+   * create a partial file response
+   * @param f the requested file
+   * @param contentType the contentType to send
+   * @param fileName the filename to send
+   * @param rangeHeader the range header
+   * @return the Responsebuilder
+   * @throws IOException if something goes wrong
+   */
   public static Response.ResponseBuilder partialFileResponse(File f, String contentType,
                                                              Option<String> fileName,
                                                              String rangeHeader) throws IOException {
@@ -82,6 +91,7 @@ public final class RestUtil {
       end = fileLength - 1;
     }
 
+    // send partial response status code
     Response.ResponseBuilder response = Response.status(206);
 
     if (start <= end) {

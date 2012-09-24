@@ -188,7 +188,6 @@ $(document)
           });
 
           // create player
-
           $('#videoPlayer').prepend(
               '<source src="' + previewTracks[0].url + '" type="' + previewTracks[0].mimetype + '"/>')
           player = $('#videoPlayer').mhPlayer({
