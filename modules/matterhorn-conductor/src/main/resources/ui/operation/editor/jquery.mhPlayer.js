@@ -153,6 +153,8 @@
       var strPrevMarker = "Previous Marker";
       var strNextMarker = "Next Marker";
       
+      var strPlayPrePost = "Play at current playhead with 2s pre roll and 2s post roll excluding removed items";
+      
       var strSplit = "split at current time";
 
       /*************************************************************************
@@ -173,6 +175,8 @@
       
       var classPreviousMarker = "video-previous-marker";
       var classNextMarker = "video-next-marker";
+      
+      var classPlayPrePost = "video-play-pre-post";
       
       var classSplit = "video-split-button";
 
@@ -197,12 +201,15 @@
       if (controls) {
         video_controls = subtle + 
         '<div class="' + classVideoControls + ' ' + $(val).attr('id') + '">' + 
-          '<a class="' + classVideoPlay + '" title="' + strPlay + '"></a>' +
-          '<a class="' + classPreviousMarker + '" title="' + strPrevMarker + '"></a>' +
-          '<a class="' + classPreviousFrame + '" title="' + strPrevFrame + '"></a>' +
-          '<a class="' + classSplit + '" title="' + strSplit + '"></a>' +
-          '<a class="' + classNextFrame + '" title="' + strNextFrame + '"></a>' +
-          '<a class="' + classNextMarker + '" title="' + strNextMarker + '"></a>' +
+          '<div class="videocontrolsDiv">' +
+            '<a class="' + classVideoPlay + '" title="' + strPlay + '"></a>' +
+            '<a class="' + classPreviousMarker + '" title="' + strPrevMarker + '"></a>' +
+            '<a class="' + classPreviousFrame + '" title="' + strPrevFrame + '"></a>' +
+            '<a class="' + classSplit + '" title="' + strSplit + '"></a>' +
+            '<a class="' + classPlayPrePost + '" title="' + strPlayPrePost + '"></a>' +
+            '<a class="' + classNextFrame + '" title="' + strNextFrame + '"></a>' +
+            '<a class="' + classNextMarker + '" title="' + strNextMarker + '"></a>' +
+          '</div>' +
           '<div class="' + classVideoTimer + '"></div>' + 
           '<div class="' + classVolumeBox + '">' + 
             '<div class="' + classVolumeSlider + '"></div>' + 
@@ -236,6 +243,7 @@
       var prev_marker_btn = $('.' + classPreviousMarker, video_container);
       
       var split_btn = $('.' + classSplit, video_container);
+      var prePost_btn = $('.' + classPlayPrePost, video_container);
       
       video_controls.hide();
       
@@ -396,7 +404,7 @@
         prev_marker_btn.button({
           text: false,
           icons: {
-            primary: "ui-icon-seek-prev"
+            primary: "ui-icon-seek-first"
           }
         });
       }
@@ -405,7 +413,7 @@
         next_marker_btn.button({
           text: false,
           icons: {
-            primary: "ui-icon-seek-next"
+            primary: "ui-icon-seek-end"
           }
         });
       }
@@ -417,6 +425,15 @@
             primary: "ui-icon-scissors"
           }
         });
+      }
+      
+      var setUIPrePostButton = function() {
+        prePost_btn.button({
+          text:false,
+          icons: {
+            primary: "ui-icon-refresh"
+          }
+        })
       }
       
       /*************************************************************************
@@ -561,6 +578,7 @@
       setUINextMarkerButton();
       setUIPrevMarkerButton();
       setUISplitButton();
+      setUIPrePostButton();
       pause();
       // disable browser-specific controls
       mhVideo.removeAttr('controls');

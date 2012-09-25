@@ -285,35 +285,49 @@ function playWithoutDeleted() {
   editor.player[0].pause();
   currentTime = editor.player.prop("currentTime");
   currentSplit = getCurrentSplitItem();
-  startTime = parseFloat(currentSplit.clipEnd.replace("s", "")) - 2;
-  nextSplit = editor.splitData.splits[currentSplit.id + 2];
-  
+  startTime = currentTime - 2;
+  nextSplit = editor.splitData.splits[currentSplit.id + 1]
+
+  // set current time -2s for pre roll
+  editor.player.prop("currentTime", startTime);
+
+  // if next split is disabled jump over it
+  if (!nextSplit.enabled) {
+
+  } else {
+    editor.player.on("play", {
+      duration : 4000,
+      endTime : currentTime + 2
+    }, onPlay);
+    editor.player[0].play();
+  }
+
   editor.player.prop("currentTime", startTime);
   editor.player.on("play", {
-    duration: 2000,
-    endTime: startTime + 2
+    duration : 2000,
+    endTime : startTime + 2
   }, onPlay);
   editor.player.on("pause", function(evt) {
     editor.player.off("pause");
     editor.player.prop("currentTime", nextSplit.clipBegin.replace("s", ""));
-    editor.player.on("play",{
-      duration: 2000,
-      endTime: parseFloat(nextSplit.clipBegin.replace("s", "")) + 2
+    editor.player.on("play", {
+      duration : 2000,
+      endTime : parseFloat(nextSplit.clipBegin.replace("s", "")) + 2
     }, onPlay);
     editor.player[0].play();
   });
-  
+
   editor.player[0].play();
-  
-// for (i = currentSplit.id + 1; i < editor.splitData.splits.length; i++) {
-// split = editor.splitData.splits[i];
-// if (split.enabled) {
-// segments.push({
-// clipBegin : split.clipBegin,
-// clipEnd : split.clipEnd
-// });
-// }
-// }
+
+  // for (i = currentSplit.id + 1; i < editor.splitData.splits.length; i++) {
+  // split = editor.splitData.splits[i];
+  // if (split.enabled) {
+  // segments.push({
+  // clipBegin : split.clipBegin,
+  // clipEnd : split.clipEnd
+  // });
+  // }
+  // }
 }
 
 /**
@@ -437,7 +451,8 @@ function okButtonClick() {
   id = $('#splitUUID').val();
   if (id != "") {
     id = parseInt(id);
-    if ($('#clipBegin').timefield('option', 'value') > $('#clipEnd').timefield('option', 'value')) {
+    if (parseFloat($('#clipBegin').timefield('option', 'value').replace("s", "")) > parseFloat($('#clipEnd').timefield(
+        'option', 'value').replace("s", ""))) {
       $('<div />').html("The inpoint is bigger than the outpoint. Please check.").dialog({
         title : "Check in and outpoint",
         resizable : false,
@@ -454,47 +469,51 @@ function okButtonClick() {
     splitItem.clipBegin = $('#clipBegin').timefield('option', 'value');
     splitItem.clipEnd = $('#clipEnd').timefield('option', 'value');
 
-    // it's the first check whether we need a new first item
-    if (id == 0) {
-      if (editor.splitData.splits.length > 1) {
-        var next = editor.splitData.splits[id + 1];
-        next.clipBegin = splitItem.clipEnd;
-      }
-      if ($('#clipBegin').timefield('option', 'seconds') != 0) {
-        var newSplitItem = {
-          description : "",
-          clipBegin : "0s",
-          enabled : true,
-          clipEnd : splitItem.clipBegin
-        };
-
-        // add new item to front
-        editor.splitData.splits.splice(0, 0, newSplitItem);
-      }
-    } else if (id == editor.splitData.splits.length - 1) {
-      if ($('#clipEnd').timefield('option', 'seconds') != editor.player.prop("duration")) {
-        var newLastItem = {
-          description : "",
-          enabled : true,
-          clipBegin : splitItem.clipEnd,
-          clipEnd : editor.player.prop("duration") + "s"
-        };
-
-        // add the new item to the end
-        editor.splitData.splits.push(newLastItem);
-      }
-      var prev = editor.splitData.splits[id - 1];
-      prev.clipEnd = splitItem.clipBegin
-    } else {
-      var next = editor.splitData.splits[id + 1];
-      var prev = editor.splitData.splits[id - 1];
-
-      prev.clipEnd = splitItem.clipBegin;
-      next.clipBegin = splitItem.clipEnd;
-    }
+    checkPrevAndNext(id);
 
     cancelButtonClick();
     editor.updateSplitList();
+  }
+}
+
+function checkPrevAndNext(id) {
+  // it's the first check whether we need a new first item
+  if (id == 0) {
+    if (editor.splitData.splits.length > 1) {
+      var next = editor.splitData.splits[id + 1];
+      next.clipBegin = splitItem.clipEnd;
+    }
+    if ($('#clipBegin').timefield('option', 'seconds') != 0) {
+      var newSplitItem = {
+        description : "",
+        clipBegin : "0s",
+        enabled : true,
+        clipEnd : splitItem.clipBegin
+      };
+
+      // add new item to front
+      editor.splitData.splits.splice(0, 0, newSplitItem);
+    }
+  } else if (id == editor.splitData.splits.length - 1) {
+    if ($('#clipEnd').timefield('option', 'seconds') != editor.player.prop("duration")) {
+      var newLastItem = {
+        description : "",
+        enabled : true,
+        clipBegin : splitItem.clipEnd,
+        clipEnd : editor.player.prop("duration") + "s"
+      };
+
+      // add the new item to the end
+      editor.splitData.splits.push(newLastItem);
+    }
+    var prev = editor.splitData.splits[id - 1];
+    prev.clipEnd = splitItem.clipBegin
+  } else {
+    var next = editor.splitData.splits[id + 1];
+    var prev = editor.splitData.splits[id - 1];
+
+    prev.clipEnd = splitItem.clipBegin;
+    next.clipBegin = splitItem.clipEnd;
   }
 }
 
@@ -524,9 +543,11 @@ function enabledRightBox(enabled) {
   if (enabled) {
     $('#rightBox :input').removeProp('disabled');
     $('.frameButton').button("enable");
+    $('#descriptionCurrentTimeDiv').show();
   } else {
     $('#rightBox :input').prop('disabled', 'disabled');
     $('.frameButton').button("disable");
+    $('#descriptionCurrentTimeDiv').hide();
   }
 }
 
@@ -593,7 +614,7 @@ function onPlay(evt) {
 function onTimeout() {
   editor.player[0].pause();
   var check = function() {
-    if(endTime > editor.player.prop("currentTime")) {
+    if (endTime > editor.player.prop("currentTime")) {
       editor.player[0].play();
       window.setTimeout(check, 10);
     } else {
@@ -734,6 +755,13 @@ function playerReady() {
           $('.holdStateUI').height($('#segmentsWaveform').height() + $('#videoPlayer').height() + 70);
         });
         // $('#waveformImage').addimagezoom();
+        // $('#splitSegments').mouseover(function(evt) {
+        // $('#waveformImage').trigger("mouseover");
+        // }).mouseout(function(evt) {
+        // $('#waveformImage').trigger("mouseout");
+        // }).mousemove(function(evt) {
+        // $('#waveformImage').trigger("mousemove");
+        // })
       }
     });
 
@@ -743,10 +771,35 @@ function playerReady() {
     $('.holdStateUI').css('height', (height + heightVideo) + "px");
     parent.ocRecordings.adjustHoldActionPanelHeight();
 
-    $('#videoHolder').focus();
+    // grab the focus in the Iframe so one can use
+    // the keyboard shortcuts
+    $(window).focus();
 
-    $('#video-previous-marker').click(previousSegment);
-    $('#video-next-marker').click(nextSegment);
+    //add click handler for btns in control bar
+    $('.video-previous-marker').click(previousSegment);
+    $('.video-next-marker').click(nextSegment);
+    $('.video-play-pre-post').click(playWithoutDeleted);
+    
+    // add timelistener for current time in description div
+    editor.player.on("timeupdate", function() {
+      $('#descriptionCurrentTime').html(formatTime(editor.player.prop("currentTime")));
+    });
+    
+    //add evtl handler for enter in editing fields
+    $('#clipBegin input').keyup(function(evt) {
+      if (evt.keyCode == 13) {
+        editor.selectedSplit.clipBegin = $('#clipBegin').timefield('option', 'value');
+        checkPrevAndNext(editor.selectedSplit.id);
+        editor.updateSplitList();
+      }
+    });
+    $('#clipEnd input').keyup(function(evt) {
+      if (evt.keyCode == 13) {
+        editor.selectedSplit.clipEnd = $('#clipEnd').timefield('option', 'value');
+        checkPrevAndNext(editor.selectedSplit.id);
+        editor.updateSplitList();
+      }
+    });
   }
 }
 

@@ -117,11 +117,12 @@
           </div>
           <div id="descriptionDiv">
             <input type="hidden" id="splitUUID" />
-
-            <a id="clipBeginSet" class="frameButton" title="set current time as new inpoint"></a> 
-            <span class="clipItem" id="clipBegin"></span> - 
-            <span class="clipItem" id="clipEnd"></span>
-            <a id="clipEndSet" class="frameButton" title="set current time as new outpoint"></a> <br />
+            <div id="descriptionCurrentTimeDiv" class="ui-helper-hidden">
+              <span>current Time:</span> <span id="descriptionCurrentTime" title="current time"></span><br />
+            </div>
+            <a id="clipBeginSet" class="frameButton" title="set current time as new inpoint"></a> <span class="clipItem"
+              id="clipBegin"></span> - <span class="clipItem" id="clipEnd"></span> <a id="clipEndSet"
+              class="frameButton" title="set current time as new outpoint"></a> <br />
             <label for="description">Description</label>
             <br />
             <textarea id="splitDescription"></textarea>
@@ -132,7 +133,8 @@
             </div>
           </div>
         </div>
-        <input type="button" title="show all shortcuts" id="shortcuts" value="Shortcuts" /> <br />
+        <input type="button" title="show all shortcuts" id="shortcuts" value="Shortcuts" />
+        <br />
         <input type="button" title="clear split split" value="clear split list" id="clearList" />
       </div>
     </div>
@@ -188,9 +190,12 @@
                 maxlength="255" /></li>
             <li class="additionalMeta"><label class="scheduler-label" for="subject" id="subjectLabel"
                 style="width: 15%;">
+                <span id="i18n_sub_category">Category</span>:
+              </label> <input type="text" class="oc-ui-form-field dcMetaField" name="subject" id="meta-subject" maxlength="255" /></li>
+            <li class="additionMeta"><label class="scheduler-label" for="categorySelector"
+                id="categorySelectorLabel" style="width: 15%;">
                 <span id="i18n_sub_label">Subject</span>:
-              </label> <input type="text" class="oc-ui-form-field dcMetaField" name="subject" id="meta-subject" maxlength="255" />
-              <select name="categorySelector" id="categorySelector" class="oc-ui-form-field"></select> <label
+              </label> <select name="categorySelector" id="categorySelector" class="oc-ui-form-field"></select> <label
                 class="scheduler-label" for="category" id="categoryLabel" style="width: 15%;">
                 <span id="i18n_cat_label"></span>
               </label> <select name="category" id="category" class="oc-ui-form-field ocMetaField"></select></li>
@@ -203,7 +208,11 @@
                 <option value="de">German</option>
                 <option value="it">Italian</option>
                 <option value="es">Spanish</option>
-            </select> <input type="text" class="oc-ui-form-field dcMetaField" name="language" id="meta-language" maxlength="255" /></li>
+            </select></li>
+            <li><label class="scheduler-label" for="meta-language" id="meta-languageLabel" style="width: 15%;">
+                <span id="i18n_lang_label"></span></label>
+                <input type="text" class="oc-ui-form-field dcMetaField" name="language" id="meta-language"
+                  maxlength="255" /></li>
             <li class="additionalMeta"><label class="scheduler-label" for="rightsholder" id="rightsholderLabel"
                 style="width: 15%;">
                 <span id="i18n_rights_label">Copyright</span>:

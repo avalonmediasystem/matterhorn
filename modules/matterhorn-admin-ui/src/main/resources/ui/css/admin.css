@@ -136,7 +136,7 @@ ul.itemnav li span.dev-prop-val { text-align:left; width:70%;}
 .configRow span {float: left;}
 .configRow div {float: right;}
 #holdActionStage {margin:20px; padding:0 0 20px;}
-#holdActionUI {border:none; width:100%; overflow:hidden;}
+#holdActionUI {border:none; width:100%; overflow: auto;}
 
 /* missing field container */
 #missingFieldsContainer {

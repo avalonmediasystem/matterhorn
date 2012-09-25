@@ -97,6 +97,7 @@ public final class RestUtil {
     if (start <= end) {
       long contentLength = end - start + 1;
       response.header("Accept-Ranges", "bytes");
+      response.header("Connection", "Close");
       response.header("Content-Length", contentLength + "");
       response.header("Content-Range", "bytes " + start + "-" + end + "/" + fileLength);
       response.header("Content-Type", contentType);

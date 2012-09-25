@@ -23,6 +23,17 @@
         newVal += parseInt(val[2].split(".")[1]) / 1000;
         self._setOption('value', newVal);
       });
+      this.inputItem.keyup(function(evt) {
+        if(evt.keyCode == 13) {
+          val = self.inputItem.val();
+          val = val.split(':');
+          newVal = parseInt(val[0]) * 3600;
+          newVal += parseInt(val[1]) * 60;
+          newVal += parseInt(val[2]);
+          newVal += parseInt(val[2].split(".")[1]) / 1000;
+          self._setOption('value', newVal);
+        }
+      });
       this.element.append(this.inputItem);
     },
 
