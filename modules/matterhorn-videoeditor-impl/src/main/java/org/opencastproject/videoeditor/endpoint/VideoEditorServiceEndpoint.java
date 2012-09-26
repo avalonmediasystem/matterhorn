@@ -54,35 +54,24 @@ public class VideoEditorServiceEndpoint extends AbstractJobProducerEndpoint {
   
   @POST
   @Path("/process-smil")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({ MediaType.APPLICATION_XML })
   @RestQuery(name = "processsmil", description = "Create smil processing job.", 
           returnDescription = "Smil processing job.",
           restParameters = {
             @RestParameter(name = "smil", type = RestParameter.Type.TEXT,
-              description = "Smil document to process.", isRequired = true),
-            @RestParameter(name = "format", type = RestParameter.Type.STRING,
-              description = "Output format.", isRequired = false, defaultValue = "xml")
+              description = "Smil document to process.", isRequired = true)
           },
           reponses = {
             @RestResponse(description = "Smil processing job created successfully.", responseCode = 200),
             @RestResponse(description = "Internal server error.", responseCode = 500)
           })
-  public Response processSmil(@QueryParam("smil") Smil smil, @QueryParam("format") String format) {
+  public Response processSmil(@QueryParam("smil") Smil smil) {
     try {
       Job job = videoEditorService.processSmil(smil);
-      return getEntityResponse(job, format);
+      return Response.ok(new JaxbJob(job)).build();
     } catch (Exception ex) {
       return Response.serverError().entity(ex.getMessage()).build();
     }
-  }
-  
-  private Response getEntityResponse(Job job, String format) {
-    if ("json".equals(format)) {
-      return Response.ok(new JaxbJob(job)).type(MediaType.APPLICATION_JSON).build();
-    } else if ("xml".equals(format)) {
-      return Response.ok(new JaxbJob(job)).type(MediaType.APPLICATION_XML).build();
-    }
-    return Response.serverError().entity("Unknown response format! Please chose xml or json.").build();
   }
   
   @Override

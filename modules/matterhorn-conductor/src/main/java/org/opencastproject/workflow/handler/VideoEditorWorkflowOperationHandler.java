@@ -16,11 +16,13 @@
 package org.opencastproject.workflow.handler;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FilenameUtils;
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.JobContext;
 import org.opencastproject.mediapackage.MediaPackage;
+import org.opencastproject.mediapackage.MediaPackageElement;
 import org.opencastproject.mediapackage.MediaPackageElementFlavor;
 import org.opencastproject.mediapackage.MediaPackageElementParser;
 import org.opencastproject.mediapackage.Track;
@@ -163,14 +165,17 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
         throw new WorkflowOperationException("Smil processing failed!");
       }
       
-      String editedTracksArr = job.getPayload();
-      if (editedTracksArr == null || editedTracksArr.isEmpty() 
-              || editedTracksArr.substring(1, editedTracksArr.length() - 1).split(",").length == 0) {
+      String editedTracks = job.getPayload();
+      if (editedTracks == null || editedTracks.isEmpty()) {
         throw new WorkflowOperationException("Smil processing failed! Service returned empty track list.");
       }
       
-      for (String trackXml : editedTracksArr.substring(1, editedTracksArr.length() - 1).split(",")) {
-        Track editedTrack = (Track) MediaPackageElementParser.getFromXml(trackXml);
+      List<? extends MediaPackageElement> tracks =  MediaPackageElementParser.getArrayFromXml(editedTracks);
+      
+      for (MediaPackageElement editedMPElem : tracks) {
+        if (!(editedMPElem instanceof Track)) continue;
+        
+        Track editedTrack = (Track) editedMPElem;
         editedTrack.setFlavor(new MediaPackageElementFlavor(editedTrack.getFlavor().getType(), configuredTargetFlavorSubtype));
         
         // check if track reference to another
@@ -213,8 +218,8 @@ public class VideoEditorWorkflowOperationHandler extends ResumableWorkflowOperat
     }
 
     logger.info("Videoeditor workflow {} finished.", workflowInstance.getId());
-//    return createResult(mp, Action.CONTINUE);
-    return super.resume(workflowInstance, context, properties);
+    return createResult(mp, Action.CONTINUE);
+//    return super.resume(workflowInstance, context, properties);
   }
 
   public void setSmilService(SmilService smilService) {

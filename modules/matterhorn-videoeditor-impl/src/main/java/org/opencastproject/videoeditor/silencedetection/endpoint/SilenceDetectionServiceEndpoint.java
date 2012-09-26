@@ -50,36 +50,25 @@ public class SilenceDetectionServiceEndpoint extends AbstractJobProducerEndpoint
   
   @POST
   @Path("/detect")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({ MediaType.APPLICATION_XML })
   @RestQuery(name = "detect", description = "Create silence detection job.", 
           returnDescription = "Silence detection job.",
           restParameters = {
             @RestParameter(name = "track", type = RestParameter.Type.TEXT,
-              description = "Track where to run silence detection.", isRequired = true),
-            @RestParameter(name = "format", type = RestParameter.Type.STRING,
-              description = "Output format.", isRequired = false, defaultValue = "xml")
+              description = "Track where to run silence detection.", isRequired = true)
           },
           reponses = {
             @RestResponse(description = "Silence detection job created successfully.", responseCode = 200),
             @RestResponse(description = "Internal server error.", responseCode = 500)
           })
-  public Response detect(@QueryParam("track") String trackXml, @QueryParam("format") String format) {
+  public Response detect(@QueryParam("track") String trackXml) {
     try {
       Track track = (Track) MediaPackageElementParser.getFromXml(trackXml);
       Job job = silenceDetectionService.detect(track);
-      return getEntityResponse(job, format);
+      return Response.ok(new JaxbJob(job)).build();
     } catch (Exception ex) {
       return Response.serverError().entity(ex.getMessage()).build();
     }
-  }
-  
-  private Response getEntityResponse(Job job, String format) {
-    if ("json".equals(format)) {
-      return Response.ok(new JaxbJob(job)).type(MediaType.APPLICATION_JSON).build();
-    } else if ("xml".equals(format)) {
-      return Response.ok(new JaxbJob(job)).type(MediaType.APPLICATION_XML).build();
-    }
-    return Response.serverError().entity("Unknown response format! Please chose xml or json.").build();
   }
   
   @Override

@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.LinkedList;
@@ -35,7 +34,6 @@ import org.opencastproject.job.api.AbstractJobProducer;
 import org.opencastproject.job.api.Job;
 import org.opencastproject.job.api.JobBarrier;
 import org.opencastproject.mediapackage.MediaPackage;
-import org.opencastproject.mediapackage.MediaPackageElementFlavor;
 import org.opencastproject.mediapackage.MediaPackageElementParser;
 import org.opencastproject.mediapackage.MediaPackageException;
 import org.opencastproject.mediapackage.Track;
@@ -109,7 +107,7 @@ public class VideoEditorServiceImpl extends AbstractJobProducer implements Video
     super(JOB_TYPE);
   }
 
-  protected String processSmil(Job job, Smil smil, Track track) throws ProcessFailedException {
+  protected Track processSmil(Job job, Smil smil, Track track) throws ProcessFailedException {
     String outputFileExtension = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_EXTENSION, VideoEditorPipeline.DEFAULT_OUTPUT_FILE_EXTENSION);
     if (!outputFileExtension.startsWith("."))
       outputFileExtension = '.' + outputFileExtension;
@@ -175,10 +173,10 @@ public class VideoEditorServiceImpl extends AbstractJobProducer implements Video
       }
       Track editedTrack = (Track) MediaPackageElementParser.getFromXml(inspectionJob.getPayload());
       editedTrack.setIdentifier(newTrackId);
-      editedTrack.setFlavor(new MediaPackageElementFlavor(track.getFlavor().getType(), FLAVOR_SUBTYPE_EDITED));
+      editedTrack.setFlavor(track.getFlavor());
       editedTrack.referTo(track);
             
-      return MediaPackageElementParser.getAsXml(editedTrack);
+      return editedTrack;
 
     } catch (MediaInspectionException ex) {
       throw new ProcessFailedException("Inspecting encoded Track failed with: " + ex.getMessage());
@@ -241,19 +239,20 @@ public class VideoEditorServiceImpl extends AbstractJobProducer implements Video
       }
       
       logger.info("Start processing smil {}.", smil.getId());
-      List<String> results = new LinkedList<String>();
+      List<Track> results = new LinkedList<Track>();
       for (String trackXml : args) {
         Track track = (Track) MediaPackageElementParser.getFromXml(trackXml);
-        logger.info("Editing track '{}' id: {}.", new String[] {
+        logger.debug("Editing track '{}' id: {}.", new String[] {
           track.getFlavor().getType(), track.getIdentifier()
         });
-        String result = processSmil(job, smil, track);
-        logger.info("Track {} edited.", track.getIdentifier());
-        results.add(result);
+        
+        Track editedTrack = processSmil(job, smil, track);
+        logger.debug("Track {} edited.", track.getIdentifier());
+        results.add(editedTrack);
       }
-      
       logger.info("Smil {} precessing finished.", smil.getId());
-      return Arrays.toString(results.toArray());
+            
+      return MediaPackageElementParser.getArrayAsXml(results);
     }
 
     throw new ProcessFailedException("Can't handle this operation: " + job.getOperation());
