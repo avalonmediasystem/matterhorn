@@ -207,6 +207,10 @@ function addShortcuts() {
       });
     }
   });
+  
+  $.each(default_config, function(key, value) {
+    $('#' + key.replace(".", "_")).html(value);
+  });
 
   // add shortcuts for easier editing
   shortcut.add(default_config[SPLIT_AT_CURRENT_TIME], splitButtonClick, {
