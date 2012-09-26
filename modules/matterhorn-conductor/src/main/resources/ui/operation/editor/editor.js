@@ -285,15 +285,32 @@ function playWithoutDeleted() {
   editor.player[0].pause();
   currentTime = editor.player.prop("currentTime");
   currentSplit = getCurrentSplitItem();
+  if(!currentSplit.enabled) {
+    currentSplit = editor.splitData.splits[currentSplit.id - 1];
+  }
   startTime = currentTime - 2;
   nextSplit = editor.splitData.splits[currentSplit.id + 1]
+  nextStart = parseFloat(nextSplit.clipBegin.replace("s", ""));
 
   // set current time -2s for pre roll
   editor.player.prop("currentTime", startTime);
 
   // if next split is disabled jump over it
   if (!nextSplit.enabled) {
-
+    ocUtils.log("starting jump over");
+    editor.player.on("play", {
+      duration : (nextStart - startTime) * 1000,
+      endTime : nextStart
+    }, onPlay);
+    editor.player.on("pause", function(evt) {
+      editor.player.off("pause");
+      editor.player.prop("currentTime", nextSplit.clipEnd.replace("s", ""));
+      editor.player.on("play", {
+        duration : 2000,
+        endTime : parseFloat(nextSplit.clipEnd.replace("s", "")) + 2
+      }, onPlay);
+    });
+    editor.player[0].play();
   } else {
     editor.player.on("play", {
       duration : 4000,
@@ -301,33 +318,6 @@ function playWithoutDeleted() {
     }, onPlay);
     editor.player[0].play();
   }
-
-  editor.player.prop("currentTime", startTime);
-  editor.player.on("play", {
-    duration : 2000,
-    endTime : startTime + 2
-  }, onPlay);
-  editor.player.on("pause", function(evt) {
-    editor.player.off("pause");
-    editor.player.prop("currentTime", nextSplit.clipBegin.replace("s", ""));
-    editor.player.on("play", {
-      duration : 2000,
-      endTime : parseFloat(nextSplit.clipBegin.replace("s", "")) + 2
-    }, onPlay);
-    editor.player[0].play();
-  });
-
-  editor.player[0].play();
-
-  // for (i = currentSplit.id + 1; i < editor.splitData.splits.length; i++) {
-  // split = editor.splitData.splits[i];
-  // if (split.enabled) {
-  // segments.push({
-  // clipBegin : split.clipBegin,
-  // clipEnd : split.clipEnd
-  // });
-  // }
-  // }
 }
 
 /**
@@ -775,17 +765,17 @@ function playerReady() {
     // the keyboard shortcuts
     $(window).focus();
 
-    //add click handler for btns in control bar
+    // add click handler for btns in control bar
     $('.video-previous-marker').click(previousSegment);
     $('.video-next-marker').click(nextSegment);
     $('.video-play-pre-post').click(playWithoutDeleted);
-    
+
     // add timelistener for current time in description div
     editor.player.on("timeupdate", function() {
       $('#descriptionCurrentTime').html(formatTime(editor.player.prop("currentTime")));
     });
-    
-    //add evtl handler for enter in editing fields
+
+    // add evtl handler for enter in editing fields
     $('#clipBegin input').keyup(function(evt) {
       if (evt.keyCode == 13) {
         editor.selectedSplit.clipBegin = $('#clipBegin').timefield('option', 'value');
