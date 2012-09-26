@@ -376,17 +376,7 @@ public class WaveformWorkflowOperationHandler extends AbstractWorkflowOperationH
       // reads the first 44 bytes for header
       waveHeader = new WaveHeader(inputStream);
 
-      if (waveHeader.isValid()) {
-        // load data
-        try {
-          data = new byte[inputStream.available()];
-          inputStream.read(data);
-        } catch (IOException e) {
-          logger.error(e.getMessage(), e);
-          throw e;
-        }
-        // end load data
-      } else {
+      if (!waveHeader.isValid()) {
         logger.error("Invalid Wave Header");
       }
     }
