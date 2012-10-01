@@ -17,7 +17,6 @@
 package org.opencastproject.mediapackage;
 
 import org.opencastproject.mediapackage.track.TrackImpl;
-
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
@@ -36,6 +35,22 @@ public interface Track extends MediaPackageElement {
    */
   Stream[] getStreams();
 
+  /**
+   * Returns this track's audio stream(s)
+   * 
+   * @return an {@code AudioStream} array containing 
+   * this track's audio streams
+   */
+  AudioStream[] getAudioStreams();
+
+  /**
+   * Returns this track's video stream
+   * 
+   * @return a {@code VideoStream} representation
+   * of this track's video stream 
+   */  
+  VideoStream[] getVideoStreams();
+  
   /**
    * Returns <code>true</code> if the track features an audio stream.
    * 
@@ -56,11 +71,12 @@ public interface Track extends MediaPackageElement {
    * @return the track duration
    */
   long getDuration();
-
+  
   /**
    * Returns the track's description with details about framerate, codecs etc.
    * 
    * @return the track description.
    */
   String getDescription();
+ 
 }

@@ -165,16 +165,18 @@ public class TrackImpl extends AbstractMediaPackageElement implements Track {
     return video != null && video.size() > 0;
   }
 
-  public List<AudioStream> getAudio() {
-    return audio;
+  @Override
+  public AudioStream[] getAudioStreams() {
+    return audio.toArray(new AudioStream[audio.size()]);
   }
 
   public void setAudio(List<AudioStream> audio) {
     this.audio = audio;
   }
 
-  public List<VideoStream> getVideo() {
-    return video;
+  @Override
+  public VideoStream[] getVideoStreams() {
+    return video.toArray(new VideoStream[video.size()]);
   }
 
   public void setVideo(List<VideoStream> video) {
