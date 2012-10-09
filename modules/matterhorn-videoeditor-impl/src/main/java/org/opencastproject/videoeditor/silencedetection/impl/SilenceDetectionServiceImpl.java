@@ -43,8 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author wsmirnow
+ * Implementation of SilenceDetectionService using Gstreamer framework.
  */
 public class SilenceDetectionServiceImpl extends AbstractJobProducer implements SilenceDetectionService, ManagedService {
 
@@ -80,11 +79,21 @@ public class SilenceDetectionServiceImpl extends AbstractJobProducer implements 
     super(JOB_TYPE);
   }
 
+  /**
+   * Run silence detection on the source track and returns {@see org.opencastproject.videoeditor.silencedetection.api.MediaSegments} XML as string.
+   * Source track should have an audio stream. 
+   * All detected {@see org.opencastproject.videoeditor.silencedetection.api.MediaSegment}s (one or more) are non silent sequences.
+   * 
+   * @param job processing job
+   * @param track track where to run silence detection
+   * @return {@see MediaSegments} Xml as String
+   * @throws ProcessFailedException if an error occures
+   */
   protected String detect(Job job, Track track) throws ProcessFailedException {
     try {
       String filePath = workspace.get(track.getURI()).getAbsolutePath();
       GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(properties, track.getIdentifier(), filePath);
-      silenceDetector.detect();
+      silenceDetector.runDetection();
       return silenceDetector.getMediaSegments().toXml();
       
     } catch (JAXBException ex) {
@@ -100,6 +109,11 @@ public class SilenceDetectionServiceImpl extends AbstractJobProducer implements 
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.videoeditor.silencedetection.api.SilenceDetectionService#detect(org.opencastproject.mediapackage.Track) 
+   */
   @Override
   public Job detect(Track track) throws ProcessFailedException {
     try {

@@ -16,8 +16,7 @@
 package org.opencastproject.videoeditor.silencedetection.impl;
 
 /**
- *
- * @author wsmirnow
+ * SilenceDetectionService properties.
  */
 public interface SilenceDetectionProperties {
   

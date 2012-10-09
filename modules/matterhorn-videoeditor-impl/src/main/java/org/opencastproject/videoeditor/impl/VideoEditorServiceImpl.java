@@ -59,8 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author wsmirnow
+ * Implementation of VideoeditorService using Gstreamer framework and Gnonlin elements.
  */
 public class VideoEditorServiceImpl extends AbstractJobProducer implements VideoEditorService, ManagedService {
 
@@ -71,7 +70,6 @@ public class VideoEditorServiceImpl extends AbstractJobProducer implements Video
   
   private static final String JOB_TYPE = "org.opencastproject.videoeditor";
   private static final String COLLECTION_ID = "videoeditor";
-  private static final String FLAVOR_SUBTYPE_EDITED = "edited";
   
   private static enum Operation {
     PROCESS_SMIL
@@ -98,16 +96,27 @@ public class VideoEditorServiceImpl extends AbstractJobProducer implements Video
   /** The user directory service */
   protected UserDirectoryService userDirectoryService = null;
   
-  
-  
+  /** Bundle properties */
   private Properties properties;
+  
+  /** Temp storage directory */
   private String storageDir;
 
   public VideoEditorServiceImpl() {
     super(JOB_TYPE);
   }
 
+  /**
+   * Splice segments given by smil document for the given track to the new one.
+   * 
+   * @param job processing job
+   * @param smil smil document with media segments description
+   * @param track source track
+   * @return processed track
+   * @throws ProcessFailedException if an error occured
+   */
   protected Track processSmil(Job job, Smil smil, Track track) throws ProcessFailedException {
+    // get output file extension
     String outputFileExtension = properties.getProperty(VideoEditorProperties.OUTPUT_FILE_EXTENSION, VideoEditorPipeline.DEFAULT_OUTPUT_FILE_EXTENSION);
     if (!outputFileExtension.startsWith("."))
       outputFileExtension = '.' + outputFileExtension;
@@ -193,6 +202,11 @@ public class VideoEditorServiceImpl extends AbstractJobProducer implements Video
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.videoeditor.api.VideoEditorService#processSmil(org.opencastproject.smil.entity.Smil) 
+   */
   @Override
   public Job processSmil(Smil smil) throws ProcessFailedException {
     if (smil == null) {
@@ -284,7 +298,6 @@ public class VideoEditorServiceImpl extends AbstractJobProducer implements Video
     Gst.init();
     
     storageDir = context.getBundleContext().getProperty("org.opencastproject.storage.dir");
-//    String hostURL = context.getBundleContext().getProperty("org.opencastproject.server.url");
   }
 
   protected void deactivate(ComponentContext context) {

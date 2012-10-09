@@ -16,13 +16,10 @@
 package org.opencastproject.videoeditor.gstreamer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
 import org.junit.Test;
-import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
-import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
 import org.opencastproject.videoeditor.gstreamer.sources.SourceBinsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,11 +60,7 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
       String lastError = pipeline.getLastErrorMessage();
       Assert.assertNull("Last error should be null but it is: " + pipeline.getLastErrorMessage(), lastError);
       
-    } catch (FileNotFoundException ex) {
-      Assert.fail();
-    } catch (PipelineBuildException ex) {
-      Assert.fail();
-    } catch (UnknownSourceTypeException ex) {
+    } catch (Exception ex) {
       Assert.fail();
     }
   }
@@ -95,11 +88,7 @@ public class VideoEditorPipelineTest extends GstreamerAbstractTest {
       String lastError = pipeline.getLastErrorMessage();
       Assert.assertNull("Last error should be null but it is: " + pipeline.getLastErrorMessage(), lastError);
       
-    } catch (FileNotFoundException ex) {
-      Assert.fail();
-    } catch (PipelineBuildException ex) {
-      Assert.fail();
-    } catch (UnknownSourceTypeException ex) {
+    } catch (Exception ex) {
       Assert.fail();
     }
   }

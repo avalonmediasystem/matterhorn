@@ -28,6 +28,7 @@ import org.gstreamer.Pipeline;
 import org.gstreamer.elements.FakeSink;
 import org.gstreamer.lowlevel.MainLoop;
 import org.opencastproject.videoeditor.api.ProcessFailedException;
+import org.opencastproject.videoeditor.gstreamer.GstreamerElements;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.silencedetection.api.MediaSegment;
 import org.opencastproject.videoeditor.silencedetection.api.MediaSegments;
@@ -36,8 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author wsmirnow
+ * Find silent sequences in audio stream using Gstreamer.
  */
 public class GstreamerSilenceDetector {
   
@@ -59,17 +59,26 @@ public class GstreamerSilenceDetector {
   private long lastSilenceStart = 0;
   private long lastSilenceStop = 0;
   
+  /**
+   * Create nonsilent sequences detection pipeline.
+   * Parse audio stream and store all positions, where the volume level fall under the threshold.
+   * 
+   * @param properties
+   * @param trackId source track id
+   * @param filePath source track file path
+   * @throws PipelineBuildException if build pipeline fails
+   */
   public GstreamerSilenceDetector(Properties properties, String trackId, String filePath) throws PipelineBuildException {
     this.properties = properties;
     this.trackId = trackId;
     this.filePath = filePath;
     pipeline = new Pipeline();
     
-    final Element filesource = ElementFactory.make("filesrc", null);
-    final Element decodebin = ElementFactory.make("decodebin", null);
-    final Element audioconvert = ElementFactory.make("audioconvert", null);
-    final Element cutter = ElementFactory.make("cutter", "cutter");
-    final FakeSink fakesink = (FakeSink) ElementFactory.make("fakesink", null);
+    final Element filesource = ElementFactory.make(GstreamerElements.FILESRC, null);
+    final Element decodebin = ElementFactory.make(GstreamerElements.DECODEBIN, null);
+    final Element audioconvert = ElementFactory.make(GstreamerElements.AUDIOCONVERT, null);
+    final Element cutter = ElementFactory.make(GstreamerElements.CUTTER, "cutter");
+    final FakeSink fakesink = (FakeSink) ElementFactory.make(GstreamerElements.FAKESINK, null);
     
     pipeline.addMany(filesource, decodebin, audioconvert, cutter, fakesink);
     
@@ -121,7 +130,7 @@ public class GstreamerSilenceDetector {
             logger.debug("EOS from " + message.getSource().getName());
             mainLoop.quit();
             if (lastSilenceStart > lastSilenceStop) {
-              addVideoSegment(TimeUnit.NANOSECONDS.toMillis(lastSilenceStart), 
+              addMediaSegment(TimeUnit.NANOSECONDS.toMillis(lastSilenceStart), 
                       fakesink.getLastBuffer().getTimestamp().toMillis());
             }
             break;
@@ -143,10 +152,13 @@ public class GstreamerSilenceDetector {
     });
   }
   
+  /**
+   * Parse Gstreamer element message. 
+   * Create an {@see MediaSegemnt} if the message comes from an cutter element.
+   * @param message Gstreamer message
+   */
   private void parseMessage(Message message) {
-//    logger.debug(message.getStructure().toString());
-    
-    if ("cutter".equals(message.getSource().getName()) 
+    if (message.getSource().getName().startsWith("cutter")
             && "cutter".equals(message.getStructure().getName())) {
       
       long timestamp = (Long) message.getStructure().getValue("timestamp");
@@ -160,19 +172,31 @@ public class GstreamerSilenceDetector {
         lastSilenceStart = timestamp;
       } else {
         lastSilenceStop = timestamp;
-        addVideoSegment(
+        addMediaSegment(
                 TimeUnit.NANOSECONDS.toMillis(lastSilenceStart), 
                 TimeUnit.NANOSECONDS.toMillis(timestamp));
       }
     }
   }
   
-  private void addVideoSegment(long startMillis, long stopMillis) {
+  /**
+   * Add new {@see MediaSegment}.
+   * 
+   * @param startMillis segment start position (in milliseconds)
+   * @param stopMillis segment stop position (in milliseconds)
+   */
+  private void addMediaSegment(long startMillis, long stopMillis) {
     if (startMillis < stopMillis)
       segments.add((MediaSegment) new MediaSegment(startMillis, stopMillis));
   }
   
-  public void detect() throws ProcessFailedException {
+  /**
+   * Run silence detection pipeline. 
+   * This method blocks until pipeline finish or {@see #interruptDetection()} was called.
+   * 
+   * @throws ProcessFailedException if an error occured while running pipeline
+   */
+  public void runDetection() throws ProcessFailedException {
     segments = new LinkedList<MediaSegment>();
     
     pipeline.play();
@@ -210,11 +234,18 @@ public class GstreamerSilenceDetector {
     segments = segmentsTmp;
   }
   
+  /**
+   * Interrupt running detection pipeline.
+   */
   public void interruptDetection() {
     lastPipelineError = "Detection interrupted!";
     mainLoop.quit();
   }
   
+  /**
+   * Returns found media segments.
+   * @return nonsilent media segments
+   */
   public MediaSegments getMediaSegments() {
     if (segments == null)
       return null;

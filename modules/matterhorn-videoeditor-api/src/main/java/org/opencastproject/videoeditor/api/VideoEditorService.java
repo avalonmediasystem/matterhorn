@@ -20,5 +20,14 @@ import org.opencastproject.smil.entity.Smil;
 
 public interface VideoEditorService {
     
+  /**
+   * Create {@see org.opencastproject.smil.entity.Smil} processing 
+   * {@see org.opencastproject.job.api.Job} to edit Tracks.
+   * Parse Smil document, extract Tracks to edit and split points where to cut.
+   * 
+   * @param smil
+   * @return Processing Job
+   * @throws ProcessFailedException if an error occures
+   */
   Job processSmil(Smil smil) throws ProcessFailedException;
 }

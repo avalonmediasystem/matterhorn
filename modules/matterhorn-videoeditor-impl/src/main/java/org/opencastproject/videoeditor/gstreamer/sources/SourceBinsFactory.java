@@ -15,20 +15,20 @@
  */
 package org.opencastproject.videoeditor.gstreamer.sources;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import org.gstreamer.Bin;
 import org.opencastproject.videoeditor.gstreamer.GstreamerTypeFinder;
+import org.opencastproject.videoeditor.gstreamer.exceptions.InputSourceTypeException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
 
 /**
- *
- * @author wsmirnow
+ * Source bins factory class.
  */
 public class SourceBinsFactory {
 
   private String outputFilePath = null;
-  private String sourceMHElementID = null;
   private GnonlinSourceBin audioSourceBin = null;
   private GnonlinSourceBin videoSourceBin = null;
 
@@ -36,8 +36,19 @@ public class SourceBinsFactory {
     this.outputFilePath = outputFilePath;
   }
 
+  /**
+   * Create Gnonlin source bins for each media type from source file.
+   * 
+   * @param inputFilePath source file
+   * @param mediaStartMillis sequence start position
+   * @param durationMillis sequence duration
+   * @throws FileNotFoundException source file not found
+   * @throws UnknownSourceTypeException can not determine source type
+   * @throws PipelineBuildException can not build source bin
+   * @throws InputSourceTypeException if input file does not match source media type
+   */
   public void addFileSource(String inputFilePath, long mediaStartMillis, long durationMillis)
-          throws FileNotFoundException, UnknownSourceTypeException, PipelineBuildException {
+          throws FileNotFoundException, UnknownSourceTypeException, PipelineBuildException, InputSourceTypeException {
 
     GstreamerTypeFinder typeFinder;
     typeFinder = new GstreamerTypeFinder(inputFilePath);
@@ -55,33 +66,50 @@ public class SourceBinsFactory {
       }
       videoSourceBin.addFileSource(inputFilePath, mediaStartMillis, durationMillis);
     }
+    
+    if (audioSourceBin != null && videoSourceBin != null 
+            && audioSourceBin.getLengthMilliseconds() != videoSourceBin.getLengthMilliseconds()) {
+      throw new InputSourceTypeException(new File(inputFilePath));
+    }
   }
 
+  /**
+   * Returns true, if input sources has an audio stream.
+   * @return true if produces audio
+   */
   public boolean hasAudioSource() {
     return audioSourceBin != null;
   }
 
+  /**
+   * Returns true, if input sources has a video stream.
+   * @return true if produces video
+   */
   public boolean hasVideoSource() {
     return videoSourceBin != null;
   }
   
+  /**
+   * Returns the output file path.
+   * @return output file path
+   */
   public String getOutputFilePath() {
     return outputFilePath;
   }
   
+  /**
+   * Returns audio source bin.
+   * @return audio source bin
+   */
   public Bin getAudioSourceBin() {
     return audioSourceBin.getBin();
   }
   
+  /**
+   * Returns video source bin.
+   * @return video source bin
+   */
   public Bin getVideoSourceBin() {
     return videoSourceBin.getBin();
-  }
-  
-  public void setSourceMHElementID(String sourceMHElementID) {
-    this.sourceMHElementID = sourceMHElementID;
-  }
-  
-  public String getSourceMHElementID() {
-    return sourceMHElementID;
   }
 }

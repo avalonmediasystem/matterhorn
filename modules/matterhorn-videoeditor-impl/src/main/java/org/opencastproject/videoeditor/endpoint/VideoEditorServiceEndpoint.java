@@ -37,8 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author wsmirnow
+ * VideoEditorService REST Endpoint.
  */
 @Path("/")
 @RestService(name = "VideoEditorServiceEndpoint", title = "Video Editor Service REST Endpoint",

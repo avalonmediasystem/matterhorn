@@ -23,6 +23,7 @@ import org.gstreamer.ElementFactory;
 import org.gstreamer.GhostPad;
 import org.gstreamer.Pad;
 import org.gstreamer.event.EOSEvent;
+import org.opencastproject.videoeditor.gstreamer.GstreamerElements;
 import org.opencastproject.videoeditor.gstreamer.VideoEditorPipeline;
 import org.opencastproject.videoeditor.gstreamer.exceptions.PipelineBuildException;
 import org.opencastproject.videoeditor.gstreamer.exceptions.UnknownSourceTypeException;
@@ -30,11 +31,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author wsmirnow
+ * Gstreamer source bin factory class using Gnonlin elements.
  */
 public class GnonlinSourceBin {
   
+  /** Media source types */
   public static enum SourceType {
     Null, Audio, Image, Video
   }
@@ -42,28 +43,40 @@ public class GnonlinSourceBin {
   /** The logging instance */
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorPipeline.class);
   
+  /** Media source type */
   private final SourceType type;
+  /** Gstreamer source bin */
   private final Bin bin;
+  /** Gnonlin composition bin, contains Gnonlin source elements (for each segment) */
   private final Bin gnlComposition;
+  /** Source media caps */
   private final Caps caps;
   
   /** Bin's max duration in millisecond */
   private long maxLengthMillis = 0L;
   
+  /**
+   * Creates Gstreamer source bin with Gnonlin composition inside.
+   * 
+   * @param type source media type
+   * @param sourceCaps source media caps
+   * @throws UnknownSourceTypeException if mediatype can't be processed
+   * @throws PipelineBuildException 
+   */
   GnonlinSourceBin(SourceType type, Caps sourceCaps) throws UnknownSourceTypeException, PipelineBuildException {
     this.type = type;
     
     bin = new Bin();
-    gnlComposition = (Bin) ElementFactory.make("gnlcomposition", null);
-    final Element decodebin = ElementFactory.make("decodebin", null);
-    final Element identity = ElementFactory.make("identity", null);
-    final Element queue = ElementFactory.make("queue", null);
+    gnlComposition = (Bin) ElementFactory.make(GstreamerElements.GNL_COMPOSITION, null);
+    final Element decodebin = ElementFactory.make(GstreamerElements.DECODEBIN, null);
+    final Element identity = ElementFactory.make(GstreamerElements.IDENTITY, null);
+    final Element queue = ElementFactory.make(GstreamerElements.QUEUE, null);
     final Element converter;
     final Element rate;
     switch(type) {
       case Audio: 
-        converter = ElementFactory.make("audioconvert", null);
-        rate = ElementFactory.make("audiorate", null);
+        converter = ElementFactory.make(GstreamerElements.AUDIOCONVERT, null);
+        rate = ElementFactory.make(GstreamerElements.AUDIORATE, null);
         if (sourceCaps != null)
           caps = sourceCaps;
         else 
@@ -71,8 +84,8 @@ public class GnonlinSourceBin {
         
         break;
       case Video: 
-        converter = ElementFactory.make("ffmpegcolorspace", null);
-        rate = ElementFactory.make("videorate", null);
+        converter = ElementFactory.make(GstreamerElements.FFMPEGCOLORSPACE, null);
+        rate = ElementFactory.make(GstreamerElements.VIDEORATE, null);
         if (sourceCaps != null)
           caps = sourceCaps;
         else 
@@ -143,9 +156,15 @@ public class GnonlinSourceBin {
     });
   }
   
+  /**
+   * Add new segment.
+   * @param filePath source file
+   * @param mediaStartMillis medi start mosition (in milliseconds)
+   * @param mediaDurationMillis segment duration (in milliseconds)
+   */
   void addFileSource(String filePath, long mediaStartMillis, long mediaDurationMillis) {
     
-    Bin gnlsource = (Bin) ElementFactory.make("gnlfilesource", null);
+    Bin gnlsource = (Bin) ElementFactory.make(GstreamerElements.GNL_FILESOURCE, null);
     gnlComposition.add(gnlsource);
         
     gnlsource.set("location", filePath);
@@ -158,18 +177,34 @@ public class GnonlinSourceBin {
     maxLengthMillis += mediaDurationMillis;
   }
   
+  /**
+   * Returns source Pad.
+   * @return source pad
+   */
   public Pad getSrcPad() {
     return getBin().getSrcPads().get(0);
   }
   
+  /**
+   * Returns the Gstreamer source bin.
+   * @return source bin
+   */
   public Bin getBin() {
     return bin;
   }
   
+  /**
+   * Returns the length of producing media file in milliseconds.
+   * @return length of producing media file in milliseconds.
+   */
   public long getLengthMilliseconds() {
     return maxLengthMillis;
   }
   
+  /**
+   * Returns the input source type (audio or video).
+   * @return producing source type
+   */
   public SourceType getSourceType() {
     return type;
   }

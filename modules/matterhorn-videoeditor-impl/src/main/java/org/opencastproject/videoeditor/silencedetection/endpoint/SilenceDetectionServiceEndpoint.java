@@ -36,8 +36,7 @@ import org.opencastproject.util.doc.rest.RestService;
 import org.opencastproject.videoeditor.silencedetection.api.SilenceDetectionService;
 
 /**
- *
- * @author wsmirnow
+ * SilenceDetectionService REST Endpoint.
  */
 @Path("/")
 @RestService(name = "SilenceDetectionServiceEndpoint", title = "Silence Detection Service REST Endpoint",

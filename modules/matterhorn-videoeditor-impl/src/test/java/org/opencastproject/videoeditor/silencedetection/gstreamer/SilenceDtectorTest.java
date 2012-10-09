@@ -43,7 +43,7 @@ public class SilenceDtectorTest extends GstreamerAbstractTest {
       GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(new Properties(), "track-1", audioFilePath);
       Assert.assertNull(silenceDetector.getMediaSegments());
       
-      silenceDetector.detect();
+      silenceDetector.runDetection();
       
       MediaSegments segments = silenceDetector.getMediaSegments();
       Assert.assertNotNull(segments);
@@ -79,7 +79,7 @@ public class SilenceDtectorTest extends GstreamerAbstractTest {
       GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(properties, "track-1", audioFilePath);
       Assert.assertNull(silenceDetector.getMediaSegments());
       
-      silenceDetector.detect();
+      silenceDetector.runDetection();
       
       MediaSegments segments = silenceDetector.getMediaSegments();
       Assert.assertNotNull(segments);
@@ -109,7 +109,7 @@ public class SilenceDtectorTest extends GstreamerAbstractTest {
       GstreamerSilenceDetector silenceDetector = new GstreamerSilenceDetector(new Properties(), "track-1", videoFilePath);
       Assert.assertNull(silenceDetector.getMediaSegments());
       
-      silenceDetector.detect();
+      silenceDetector.runDetection();
       Assert.fail();
       
     } catch (ProcessFailedException ex) {

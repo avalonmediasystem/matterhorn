@@ -21,15 +21,20 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
 /**
- *
- * @author wsmirnow
+ * This class holds the start and stop position of a media file. 
  */
 @XmlAccessorType(XmlAccessType.NONE)
 public class MediaSegment {
 
+  /**
+   * Start position.
+   */
   @XmlAttribute(name = "start", required = true)
   private final long segmentStart;
   
+  /**
+   * Stop position.
+   */
   @XmlAttribute(name = "stop", required = true)
   private final long segmentStop;
   
@@ -42,10 +47,18 @@ public class MediaSegment {
     this.segmentStop = segmentStop;
   }
   
+  /**
+   * Returns segment start position.
+   * @return start position
+   */
   public long getSegmentStart() {
     return segmentStart;
   }
   
+  /**
+   * Returns segment stop position.
+   * @return stop position
+   */
   public long getSegmentStop() {
     return segmentStop;
   }

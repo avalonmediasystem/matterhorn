@@ -15,15 +15,12 @@
  */
 package org.opencastproject.videoeditor.gstreamer.exceptions;
 
-import org.gstreamer.Element;
+import java.io.File;
 
-/**
- *
- * @author wsmirnow
- */
-public class CanNotAddElementException extends Exception {
-  
-  public CanNotAddElementException(Element parent, Element child) {
-    super(String.format("Can not add '%s' to '%s'", child.getName(), parent.getName()));
+public class InputSourceTypeException extends Exception {
+
+  public InputSourceTypeException(File inputFile) {
+    super("Input file (" + inputFile.getAbsolutePath() + ") does not contain audio or video stream!");
   }
+
 }

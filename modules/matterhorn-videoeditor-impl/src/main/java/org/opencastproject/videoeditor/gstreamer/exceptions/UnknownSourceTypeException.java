@@ -17,10 +17,6 @@ package org.opencastproject.videoeditor.gstreamer.exceptions;
 
 import org.opencastproject.videoeditor.gstreamer.sources.GnonlinSourceBin;
 
-/**
- *
- * @author wsmirnow
- */
 public class UnknownSourceTypeException extends Exception {
   
   public UnknownSourceTypeException(GnonlinSourceBin.SourceType type) {

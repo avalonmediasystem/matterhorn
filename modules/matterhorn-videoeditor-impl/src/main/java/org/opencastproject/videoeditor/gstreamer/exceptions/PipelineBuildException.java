@@ -15,10 +15,6 @@
  */
 package org.opencastproject.videoeditor.gstreamer.exceptions;
 
-/**
- *
- * @author wsmirnow
- */
 public class PipelineBuildException extends Exception {
 
   public PipelineBuildException() {

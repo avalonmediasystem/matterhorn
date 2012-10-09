@@ -28,7 +28,7 @@ public interface SilenceDetectionService {
   /**
    * Run silence detection on audio (visual) file.
    * 
-   * @param track track to detect non silent segments
+   * @param track track to detect non silent segments from
    * @return Job detection job
    * @throws ProcessFailedException if fails
    */ 

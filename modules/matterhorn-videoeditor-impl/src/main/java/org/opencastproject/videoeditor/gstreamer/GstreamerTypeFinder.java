@@ -31,8 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author wsmirnow
+ * Input media type detection service using Gstreamer.
  */
 public class GstreamerTypeFinder {
   /**
@@ -47,10 +46,15 @@ public class GstreamerTypeFinder {
   private Caps audioCaps = null;
   private Caps videoCaps = null;
   
+  /**
+   * Run media type detection on source file.
+   * 
+   * @param filePath source file to determine media type
+   */
   public GstreamerTypeFinder(String filePath) {
     pipeline = new Pipeline();
     
-    Element filesrc = ElementFactory.make("filesrc", null);
+    Element filesrc = ElementFactory.make(GstreamerElements.FILESRC, null);
     DecodeBin2 decodebin = new DecodeBin2("dec");
     
     pipeline.addMany(filesrc, decodebin);
@@ -121,18 +125,34 @@ public class GstreamerTypeFinder {
     logger.debug("type find job done");
   }
 
+  /**
+   * Returns found Gstreamer caps.
+   * @return found caps
+   */
   public List<Caps> getFoundCaps() {
     return capsFound;
   }
   
+  /**
+   * Returns true if source file has an audio stream.
+   * @return true if source file has an audio stream, false otherwise
+   */
   public boolean isAudioFile() {
     return audioCaps != null;
   }
   
+  /**
+   * Returns true if source file has an video stream.
+   * @return true if source file has an video stream, false otherwise
+   */
   public boolean isVideoFile() {
     return videoCaps != null;
   }
   
+  /**
+   * Returns found audio caps.
+   * @return found audio caps
+   */
   public Caps getAudioCaps() {
     Caps audioCaps = this.audioCaps;
     for (Caps c : capsFound) {
@@ -146,10 +166,18 @@ public class GstreamerTypeFinder {
     return audioCaps;
   }
   
+  /**
+   * Returns raw (final) audio caps.
+   * @return raw (final) audio caps
+   */
   public Caps getRawAudioCaps() {
     return audioCaps;
   }
   
+  /**
+   * Returns found video caps.
+   * @return found video caps
+   */
   public Caps getVideoCaps() {
     Caps videoCaps = this.videoCaps;
     for (Caps c : capsFound) {
@@ -163,10 +191,19 @@ public class GstreamerTypeFinder {
     return videoCaps;
   }
   
+  /**
+   * Returns raw (final) video caps.
+   * @return raw (final) video caps
+   */
   public Caps getRawVideoCaps() {
     return videoCaps;
   }
   
+  /**
+   * Returns true, if caps describe an container format.
+   * @param caps caps to detect container or not
+   * @return true if caps describe an container format
+   */
   private boolean isContainerCaps(Caps caps) {
 
     String capsName = caps.getStructure(0).getName();

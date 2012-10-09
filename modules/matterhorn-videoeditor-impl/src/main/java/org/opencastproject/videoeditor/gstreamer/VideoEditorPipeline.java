@@ -36,23 +36,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author wsmirnow
+ * Gstreamer pipeline factory for VideoEditorService.
  */
 public class VideoEditorPipeline {
   
   /** The logging instance */
   private static final Logger logger = LoggerFactory.getLogger(VideoEditorPipeline.class);
-  
-  private static final int WAIT_FOR_NULL_SLEEP_TIME = 1000;
-  
-  public static final String DEFAULT_AUDIO_ENCODER = "faac";
+    
+  public static final String DEFAULT_AUDIO_ENCODER = GstreamerElements.FAAC;
   public static final String DEFAULT_AUDIO_ENCODER_PROPERTIES = "bitrate=128000";
   
-  public static final String DEFAULT_VIDEO_ENCODER = "x264enc";
+  public static final String DEFAULT_VIDEO_ENCODER = GstreamerElements.X264ENC;
   public static final String DEFAULT_VIDEO_ENCODER_PROPERTIES = "";
   
-  public static final String DEFAULT_MUX = "mp4mux";
+  public static final String DEFAULT_MUX = GstreamerElements.MP4MUX;
   public static final String DEFAULT_MUX_PROPERTIES = "";
   
   public static final String DEFAULT_OUTPUT_FILE_EXTENSION = ".mp4";
@@ -69,17 +66,26 @@ public class VideoEditorPipeline {
     pipeline = new Pipeline();
   }
   
+  /**
+   * Run Gstreamer pipeline.
+   */
   public void run() {
     logger.debug("starting pipeline...");
     pipeline.play();
   }
   
-  public boolean stop() {
-    if (pipeline == null) return true;
+  /**
+   * Stop Gstreamer pipeline.
+   * @return 
+   */
+  public void stop() {
+    if (pipeline == null) return;
     pipeline.setState(State.NULL);
-    return true;
   }
   
+  /**
+   * Start Gstreamer pipeline and wait until finish.
+   */
   public void mainLoop() {
     
     mainLoop.run();
@@ -87,6 +93,9 @@ public class VideoEditorPipeline {
     stop();
   }
   
+  /**
+   * Add Gstreamer event listeners to pipeline.
+   */
   protected void addListener() {
     pipeline.getBus().connect(new Bus.INFO() {
 
@@ -162,15 +171,31 @@ public class VideoEditorPipeline {
     });
   }
   
+  /**
+   * Returns Gstreamer pipeline state.
+   * @return pipline state
+   */
   public State getState() {
     return getState(0);
   }
   
+  /**
+   * Returns Gstreamer pipeline state with an timeout (in milliseconds) 
+   * for Gstreamer elements performed the async state change.
+   * 
+   * @param timeoutMillis timeout in milliseconds
+   * @return pipeline state
+   */
   public State getState(long timeoutMillis) {
     if (pipeline == null) return State.NULL;
     return pipeline.getState(TimeUnit.MILLISECONDS.toNanos(timeoutMillis));
   }
   
+  /**
+   * Create an Gstreamer pipeline with all source bins from {@see SourceBinsFactory} inside.
+   * @param sourceBins source bins factory
+   * @throws PipelineBuildException if pipeline build fails
+   */
   public void addSourceBinsAndCreatePipeline(SourceBinsFactory sourceBins) 
           throws PipelineBuildException {
     
@@ -179,9 +204,9 @@ public class VideoEditorPipeline {
     Element fileSink = ElementFactory.make(GstreamerElements.FILESINK, null);
     pipeline.addMany(muxer, fileSink);
     
-    fileSink.set(GstreamerElementProperties.LOCATION, sourceBins.getOutputFilePath());
-    fileSink.set(GstreamerElementProperties.SYNC, false);
-    fileSink.set(GstreamerElementProperties.ASYNC, false);
+    fileSink.set("location", sourceBins.getOutputFilePath());
+    fileSink.set("sync", false);
+    fileSink.set("async", false);
     
     if (!muxer.link(fileSink)) {
       throw new PipelineBuildException();
@@ -194,7 +219,7 @@ public class VideoEditorPipeline {
     if (sourceBins.hasAudioSource()) {
       // create and link audio bin and audio encoder
       sourceBin = sourceBins.getAudioSourceBin();
-      capsfilter = ElementFactory.make("capsfilter", "audiocaps");
+      capsfilter = ElementFactory.make(GstreamerElements.CAPSFILTER, "audiocaps");
       encoder = createAudioEncoder();
       pipeline.addMany(sourceBin, capsfilter, encoder);
       if (!Element.linkMany(sourceBin, capsfilter, encoder, muxer)) {
@@ -209,7 +234,7 @@ public class VideoEditorPipeline {
     if (sourceBins.hasVideoSource()) {
       // create and link video bin and audio encoder
       sourceBin = sourceBins.getVideoSourceBin();
-      capsfilter = ElementFactory.make("capsfilter", "videocaps");
+      capsfilter = ElementFactory.make(GstreamerElements.CAPSFILTER, "videocaps");
       encoder = createVideoEncoder();
       pipeline.addMany(sourceBin, capsfilter, encoder);
       if (!Element.linkMany(sourceBin, capsfilter, encoder, muxer)) {
@@ -221,13 +246,22 @@ public class VideoEditorPipeline {
       }
     }
     
+    // add Gstreamer event listener
     addListener();
   }
   
+  /**
+   * Returns last error message.
+   * @return last error message
+   */
   public String getLastErrorMessage() {
     return lastErrorMessage;
   }
   
+  /**
+   * Create and setup audio encoder.
+   * @return Gstreamer audio encoder
+   */
   protected Element createAudioEncoder() {
     String encoder = properties.getProperty(VideoEditorProperties.AUDIO_ENCODER, DEFAULT_AUDIO_ENCODER);
     String encoderProperties = properties.getProperty(VideoEditorProperties.AUDIO_ENCODER_PROPERTIES, DEFAULT_AUDIO_ENCODER_PROPERTIES);
@@ -242,6 +276,10 @@ public class VideoEditorPipeline {
     return encoderElem;
   }
   
+  /**
+   * Create and setup video encoder.
+   * @return Gstreamer video encoder
+   */
   protected Element createVideoEncoder() {
     String encoder = properties.getProperty(VideoEditorProperties.VIDEO_ENCODER, DEFAULT_VIDEO_ENCODER);
     String encoderProperties = properties.getProperty(VideoEditorProperties.VIDEO_ENCODER_PROPERTIES, DEFAULT_VIDEO_ENCODER_PROPERTIES);
@@ -256,6 +294,10 @@ public class VideoEditorPipeline {
     return encoderElem;
   }
   
+  /**
+   * Create and setup muxer.
+   * @return Gstreamer muxer
+   */
   protected Element createMux() {
     String mux = properties.getProperty(VideoEditorProperties.MUX, DEFAULT_MUX);
     String muxProperties = properties.getProperty(VideoEditorProperties.MUX_PROPERTIES, DEFAULT_MUX_PROPERTIES);
@@ -270,6 +312,11 @@ public class VideoEditorPipeline {
     return muxElem;
   }
 
+  /**
+   * Parse element properties from string.
+   * @param encoderProperties element properties
+   * @return element properties as map
+   */
   private static Map<String, String> getPropertiesFromString(String encoderProperties) {
     Map<String, String> properties = new HashMap<String, String>();
     

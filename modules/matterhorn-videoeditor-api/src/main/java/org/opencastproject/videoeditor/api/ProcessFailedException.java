@@ -17,8 +17,7 @@
 package org.opencastproject.videoeditor.api;
 
 /**
- *
- * @author wsmirnow
+ * Processing error exception.
  */
 public class ProcessFailedException extends Exception {
 
