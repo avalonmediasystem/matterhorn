@@ -31,7 +31,6 @@
 			   currentState="{model.mediaState}"
 			   frameRate="30"
 			   preinitialize="{ onPreinitialize(); }"
-			   backgroundColor="#fde7ce"
 			   >
 	
 	<fx:Style source="style/Videodisplay.css"/>

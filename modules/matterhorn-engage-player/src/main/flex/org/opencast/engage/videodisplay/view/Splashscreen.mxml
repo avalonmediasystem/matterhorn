@@ -292,6 +292,6 @@
 
 		<mx:SWFLoader visible="{ model.loader }" autoLoad="true" includeInLayout="{ model.loader }"
 					  scaleContent="true"
-					  source="@Embed(source='../../../../../style/oc_logo_loader.swf')"/>
+					  source="@Embed(source='../../../../../style/loading.swf')"/>
 	</mx:HBox>
 </mx:Canvas>
