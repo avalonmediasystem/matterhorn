@@ -28,7 +28,8 @@ package org.opencast.engage.videodisplay.model
 	import org.opencast.engage.videodisplay.state.VideoState;
 	import org.opencast.engage.videodisplay.vo.LanguageVO;
 	import org.osmf.containers.MediaContainer;
-	import org.osmf.layout.LayoutMetadata;
+ 	import org.osmf.layout.LayoutMetadata;
+        import org.osmf.media.MediaElement;
 	[Bindable]
 	public class VideodisplayModel
 	{
@@ -217,6 +218,9 @@ package org.opencast.engage.videodisplay.model
 
 		// mediaPlayer
 		public var mediaPlayer:OpencastMediaPlayer;
+
+		// mediaElementSingle
+		public var mediaElementSingle:MediaElement;
 
 		// mediaState
 		public var mediaState:String=MediaState.MEDIA;
