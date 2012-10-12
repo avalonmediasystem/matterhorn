@@ -66,10 +66,7 @@
 	<mx:Canvas id="bx_onecover"
 			   width="100%"
 			   height="100%"
-			   visible.onecover="true"
-			   includeInLayout.onecover="true"
-			   visible.twocovers="false"
-			   includeInLayout.twocovers="false">
+			   includeIn="onecover">
 
 		<mx:Image id="img_coverSingle"
 				  width="100%"
@@ -79,19 +76,14 @@
 				  scaleContent="true"
 				  updateComplete="{ onResize() }"
 				  visible="{ model.coverURLSingle != '' ? true : false }"
-				  includeInLayout="{ model.coverURLSingle != '' ? true : false }"
-				  visible.twocovers="true"
-				  includeInLayout.twocovers="true"/>
+				  includeInLayout="{ model.coverURLSingle != '' ? true : false }"/>
 	</mx:Canvas>
 
 	<mx:HBox id="bx_twocovers"
 			 width="100%"
 			 height="100%"
 			 horizontalGap="0"
-			 visible.twocovers="true"
-			 includeInLayout.twocovers="true"
-			 visible.onecover="false"
-			 includeInLayout.onecover="false"
+			 includeIn="twocovers"
 			 verticalAlign="bottom">
 
 		<mx:Image id="img_coverOne"

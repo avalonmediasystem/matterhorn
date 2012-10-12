@@ -86,6 +86,7 @@ package org.opencast.engage.videodisplay.control.command
 				model.coverURLSingle=event.coverURLOne;
 			}
 
+			model.videoState = VideoState.COVER;
 			
 			// Single Video/Audio
 			if (event.mediaURLOne != '' && (event.mediaURLTwo == '' || event.mediaURLTwo == ' '))

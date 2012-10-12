@@ -651,8 +651,13 @@ package org.opencast.engage.videodisplay.control.util
 		{
 			if (mediaPlayerSingle.media != null)
 			{
-				recommendationsWatcher.unwatch();
+				//recommendationsWatcher.unwatch();
 				model.mediaContainer.removeMediaElement(mediaPlayerSingle.media);
+			}
+			if (model.mediaElementSingle != null)
+			{
+				//recommendationsWatcher.unwatch();
+				model.mediaContainer.removeMediaElement(model.mediaElementSingle);
 			}
 
 			if (value != null)
@@ -673,6 +678,9 @@ package org.opencast.engage.videodisplay.control.util
 				model.mediaContainer.addMediaElement(value);
 			}
 			mediaPlayerSingle.media=value;
+			model.mediaElementSingle=value;
+
+			//XXX should this next line be run always?!?
 			ExternalInterface.call(ExternalFunction.SETVOLUMESLIDER, 100);
 		}
 
