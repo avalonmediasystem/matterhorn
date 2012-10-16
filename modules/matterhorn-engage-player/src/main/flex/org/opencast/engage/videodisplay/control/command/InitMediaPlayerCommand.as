@@ -86,8 +86,9 @@ package org.opencast.engage.videodisplay.control.command
 				model.coverURLSingle=event.coverURLOne;
 			}
 
+			//Reinitialize the model
 			model.videoState = VideoState.COVER;
-			
+
 			// Single Video/Audio
 			if (event.mediaURLOne != '' && (event.mediaURLTwo == '' || event.mediaURLTwo == ' '))
 			{
@@ -131,6 +132,7 @@ package org.opencast.engage.videodisplay.control.command
 						mediaElementVideo.addEventListener(MediaElementEvent.TRAIT_ADD, handleTraitAdded);
 
 						model.mediaPlayer.setSingleMediaElement(mediaElementVideo);
+						model.mediaState = MediaState.MEDIA;			
 						break;
 
 					case "audio":
