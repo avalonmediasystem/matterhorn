@@ -881,14 +881,17 @@ package org.opencast.engage.videodisplay.control.util
 		 * */
 		private function onDurationChange(event:TimeEvent):void
 		{
-			// Store new duration as current duration in the videodisplay model
-			model.currentDuration=event.time;
-			model.currentDurationString=_time.getTC(event.time);
-			ExternalInterface.call(ExternalFunction.SETDURATION, event.time);
-			ExternalInterface.call(ExternalFunction.SETTOTALTIME, model.currentDurationString);
-			ExternalInterface.call(ExternalFunction.SETVOLUMESLIDER, 100);
-
-			
+      ExternalInterface.call("console.log", "onDurationChange " + event.time);
+      if (event.time > 0)
+      {
+  			// Store new duration as current duration in the videodisplay model
+  			model.currentDuration=event.time;
+  			model.currentDurationString=_time.getTC(event.time);
+        ExternalInterface.call("console.log", "onDurationChange success " + event.time);
+  			ExternalInterface.call(ExternalFunction.SETDURATION, event.time);
+  			ExternalInterface.call(ExternalFunction.SETTOTALTIME, model.currentDurationString);
+  			ExternalInterface.call(ExternalFunction.SETVOLUMESLIDER, 100);
+      }
 		}
 
 		/**

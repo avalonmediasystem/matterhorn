@@ -304,6 +304,7 @@ package org.opencast.engage.videodisplay.business
 		 */
 		public function seek(time:Number):Number
 		{
+      ExternalInterface.call("console.log", "seek " + time);
 			if (model.startPlay == false)
 			{
 				model.startSeek=time;
