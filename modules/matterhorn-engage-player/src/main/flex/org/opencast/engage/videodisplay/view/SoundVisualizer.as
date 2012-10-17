@@ -41,42 +41,43 @@ package org.opencast.engage.videodisplay.view
 		 */
 		private function onEnterFrame(event:Event):void
 		{
-			var bytes:ByteArray=new ByteArray();
-			const PLOT_HEIGHT:int=80; //200
-			const CHANNEL_LENGTH:int=256; //256
-			SoundMixer.computeSpectrum(bytes, false, 0);
+      /* AVALON: removed visualization */
+      /* var bytes:ByteArray=new ByteArray();
+      const PLOT_HEIGHT:int=80; //200
+      const CHANNEL_LENGTH:int=256; //256
+      SoundMixer.computeSpectrum(bytes, false, 0);
 
-			var g:Graphics=this.graphics;
+      var g:Graphics=this.graphics;
 
-			g.clear();
+      g.clear();
 
-			g.lineStyle(0, 0xFA6E23);
-			g.beginFill(0xFA6E23);
-			g.moveTo(0, PLOT_HEIGHT);
+      g.lineStyle(0, 0xFA6E23);
+      g.beginFill(0xFA6E23);
+      g.moveTo(0, PLOT_HEIGHT);
 
-			var n:Number=0;
+      var n:Number=0;
 
-			for (var i:int=0; i < CHANNEL_LENGTH; i++)
-			{
-				n=(bytes.readFloat() * PLOT_HEIGHT);
-				g.lineTo(i * 6, PLOT_HEIGHT - n);
-			}
+      for (var i:int=0; i < CHANNEL_LENGTH; i++)
+      {
+        n=(bytes.readFloat() * PLOT_HEIGHT);
+        g.lineTo(i * 6, PLOT_HEIGHT - n);
+      }
 
-			g.lineTo(CHANNEL_LENGTH * 6, PLOT_HEIGHT);
-			g.endFill();
+      g.lineTo(CHANNEL_LENGTH * 6, PLOT_HEIGHT);
+      g.endFill();
 
-			g.lineStyle(0, 0xFDB792);
-			g.beginFill(0xFDB792, 0.5);
-			g.moveTo(CHANNEL_LENGTH * 6, PLOT_HEIGHT);
+      g.lineStyle(0, 0xFDB792);
+      g.beginFill(0xFDB792, 0.5);
+      g.moveTo(CHANNEL_LENGTH * 6, PLOT_HEIGHT);
 
-			for (i=CHANNEL_LENGTH; i > 0; i--)
-			{
-				n=(bytes.readFloat() * PLOT_HEIGHT);
-				g.lineTo(i * 6, PLOT_HEIGHT - n);
-			}
+      for (i=CHANNEL_LENGTH; i > 0; i--)
+      {
+        n=(bytes.readFloat() * PLOT_HEIGHT);
+        g.lineTo(i * 6, PLOT_HEIGHT - n);
+      }
 
-			g.lineTo(0, PLOT_HEIGHT);
-			g.endFill();
+      g.lineTo(0, PLOT_HEIGHT);
+      g.endFill();*/
 		}
 
 		/**
