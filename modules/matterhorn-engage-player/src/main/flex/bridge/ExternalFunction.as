@@ -24,6 +24,8 @@ package bridge
 	{
 		public static const SETDURATION:String='Opencast.Player.setDuration';
 
+		public static const GETDURATION:String='Opencast.Player.getDuration';
+
 		public static const SETTOTALTIME:String='Opencast.Player.setTotalTime';
 
 		public static const SETPROGRESS:String='Opencast.Player.setProgress';
