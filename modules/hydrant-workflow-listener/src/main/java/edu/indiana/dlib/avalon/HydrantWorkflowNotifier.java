@@ -18,6 +18,7 @@ package edu.indiana.dlib.avalon;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.workflow.api.WorkflowService;
+import edu.indiana.dlib.avalon.HydrantWorkflowListener;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -42,7 +43,11 @@ public class HydrantWorkflowNotifier {
   /** The opencast service registry */
   private ServiceRegistry serviceRegistry;
 
+	/** The listener that pings Hydrant when an operation changed **/
+	private HydrantWorkflowListener listener;
+
   public HydrantWorkflowNotifier() {
+		listener = new HydrantWorkflowListener();
   }
 
   /**
@@ -53,13 +58,14 @@ public class HydrantWorkflowNotifier {
    */
   protected void activate(ComponentContext cc) {
     logger.info("HydrantWorkflowNotifier started.");
+		service.addWorkflowListener(listener);
   }
 
   /**
    * Callback from OSGi on service deactivation.
    */
   public void deactivate() {
-	//unregisterListener
+		service.removeWorkflowListener(listener);
   }
 
   /**
