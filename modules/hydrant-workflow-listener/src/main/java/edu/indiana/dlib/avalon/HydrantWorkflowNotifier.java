@@ -16,18 +16,11 @@
 package edu.indiana.dlib.avalon;
 
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
-import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.workflow.api.WorkflowService;
-import edu.indiana.dlib.avalon.HydrantWorkflowListener;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URI;
-import java.util.UUID;
 
 public class HydrantWorkflowNotifier {
 
@@ -37,17 +30,14 @@ public class HydrantWorkflowNotifier {
   /** The workflow service */
   private WorkflowService workflowService;
 
-  /** The http client */
-  private HttpClient httpClient;
-
   /** The opencast service registry */
   private ServiceRegistry serviceRegistry;
 
-	/** The listener that pings Hydrant when an operation changed **/
-	private HydrantWorkflowListener listener;
+  /** The listener that pings Hydrant when an operation changed **/
+  private HydrantWorkflowListener listener;
 
   public HydrantWorkflowNotifier() {
-		listener = new HydrantWorkflowListener();
+    listener = new HydrantWorkflowListener();
   }
 
   /**
@@ -58,14 +48,14 @@ public class HydrantWorkflowNotifier {
    */
   protected void activate(ComponentContext cc) {
     logger.info("HydrantWorkflowNotifier started.");
-		service.addWorkflowListener(listener);
+    workflowService.addWorkflowListener(listener);
   }
 
   /**
    * Callback from OSGi on service deactivation.
    */
   public void deactivate() {
-		service.removeWorkflowListener(listener);
+    workflowService.removeWorkflowListener(listener);
   }
 
   /**
@@ -82,12 +72,6 @@ public class HydrantWorkflowNotifier {
     this.workflowService = workflowService;
   }
 
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.opencastproject.job.api.AbstractJobProducer#getServiceRegistry()
-   */
-  @Override
   protected ServiceRegistry getServiceRegistry() {
     return serviceRegistry;
   }
