@@ -75,7 +75,7 @@ public class HydrantWorkflowListener implements WorkflowListener {
   private void pingHydrant(String pid, long workflowId) {
 	logger.trace("Starting to ping Hydrant: " + pid + " " + workflowId);
         try {
-                String url = UrlSupport.concat(new String[] { hydrantUrl, "master_file", pid });
+                String url = UrlSupport.concat(new String[] { hydrantUrl, "master_files", pid });
                 MultiThreadedHttpConnectionManager mgr = new MultiThreadedHttpConnectionManager();
                 HttpClient client = new HttpClient(mgr);
 
