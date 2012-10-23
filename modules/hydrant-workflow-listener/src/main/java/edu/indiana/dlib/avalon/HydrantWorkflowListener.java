@@ -29,8 +29,6 @@ import org.apache.commons.httpclient.methods.multipart.Part;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 /**
  * A simple workflow listener implementation suitable for monitoring a workflow's state changes.
  */
@@ -53,7 +51,7 @@ public class HydrantWorkflowListener implements WorkflowListener {
   public void operationChanged(WorkflowInstance workflow) {
     synchronized (this) {
       logger.trace("Operation changed - pinging Hydrant");
-      String pid = workflow.getTitle();
+      String pid = workflow.getMediaPackage().getTitle();
       long id = workflow.getId();
       pingHydrant(pid, id);      
     }
@@ -67,11 +65,15 @@ public class HydrantWorkflowListener implements WorkflowListener {
   @Override
   public void stateChanged(WorkflowInstance workflow) {
     synchronized (this) {
-      logger.debug("No-op");
+      logger.trace("State changed - pinging Hydrant");
+      String pid = workflow.getMediaPackage().getTitle();
+      long id = workflow.getId();
+      pingHydrant(pid, id);      
     }
   }
 
   private void pingHydrant(String pid, long workflowId) {
+	logger.trace("Starting to ping Hydrant: " + pid + " " + workflowId);
         try {
                 String url = UrlSupport.concat(new String[] { hydrantUrl, "master_file", pid });
                 MultiThreadedHttpConnectionManager mgr = new MultiThreadedHttpConnectionManager();
@@ -85,11 +87,12 @@ public class HydrantWorkflowListener implements WorkflowListener {
                 put.setRequestEntity(
                         new MultipartRequestEntity(parts, put.getParams())
                 );
+		logger.trace("About to ping Hydrant");
                 int status = client.executeMethod(put);
                 logger.debug("Got status: " + status);
                 logger.trace("Got response body: " + put.getResponseBodyAsString());
-        } catch (IOException e) {
-                logger.debug("Exception pinging Hydrant: " + e.getCause());
+        } catch (Exception e) {
+                logger.debug("Exception pinging Hydrant: " + e.getCause(), e);
         }
   }
 
