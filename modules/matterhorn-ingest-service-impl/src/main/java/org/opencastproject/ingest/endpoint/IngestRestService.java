@@ -534,6 +534,7 @@ public class IngestRestService {
   public Response addMediaPackage(@Context HttpServletRequest request, @PathParam("wdID") String wdID, @FormParam("url") String url) {
     MediaPackageElementFlavor flavor = null;
     try {
+      logger.debug("Inside addMediaPackage");
       MediaPackage mp = ingestService.createMediaPackage();
       DublinCoreCatalog dcc = dublinCoreService.newInstance();
       if (ServletFileUpload.isMultipartContent(request)) {
@@ -550,7 +551,10 @@ public class IngestRestService {
             }
           }
         }
+        logger.debug("Inside addMediaPackage: " + flavor.toString());
+        logger.debug("Inside addMediaPackage: " + url);
         ingestService.addTrack(new URI(url), flavor, mp);
+        logger.debug("Inside addMediaPackage - added Track");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         dcc.toXml(out, true);
         InputStream in = new ByteArrayInputStream(out.toByteArray());
@@ -565,7 +569,8 @@ public class IngestRestService {
       }
       return Response.serverError().status(Status.BAD_REQUEST).build();
     } catch (Exception e) {
-      logger.warn(e.getMessage(), e);
+      logger.debug("Inside addMediaPackage - catching exception");
+      logger.warn("Inside addMediaPackage: " + e.getMessage(), e);
       return Response.serverError().status(Status.INTERNAL_SERVER_ERROR).build();
     }
   }
