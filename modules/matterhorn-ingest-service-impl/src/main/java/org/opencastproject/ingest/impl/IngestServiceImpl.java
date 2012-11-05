@@ -46,7 +46,7 @@ import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.PathSupport;
 import org.opencastproject.util.ZipUtil;
-import org.opencastproject.util.jmx.JmxUtil;
+//import org.opencastproject.util.jmx.JmxUtil;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowException;
@@ -176,14 +176,14 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
       throw new IllegalStateException("Storage directory must be set (org.opencastproject.storage.dir)");
     tempFolder = PathSupport.concat(tempFolder, "ingest");
 
-    registerMXBean = JmxUtil.registerMXBean(ingestStatistics, "IngestStatistics");
+//    registerMXBean = JmxUtil.registerMXBean(ingestStatistics, "IngestStatistics");
   }
 
   /**
    * Callback from OSGi on service deactivation.
    */
   public void deactivate() {
-    JmxUtil.unregisterMXBean(registerMXBean);
+//    JmxUtil.unregisterMXBean(registerMXBean);
   }
 
   /**
