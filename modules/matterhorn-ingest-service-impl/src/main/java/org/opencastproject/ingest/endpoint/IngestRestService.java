@@ -493,6 +493,84 @@ public class IngestRestService {
   }
 
   @POST
+  @Produces(MediaType.TEXT_XML)
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Path("addMediaPackage/{wdID}")
+  @RestQuery(name = "addMediaPackage", description = "Create media package from a media tracks and optional Dublin Core metadata fields", pathParameters = { @RestParameter(description = "Workflow definition id", isRequired = true, name = "wdID", type = RestParameter.Type.STRING) }, restParameters = {
+          @RestParameter(description = "The kind of media track", isRequired = true, name = "flavor", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "abstract", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "accessRights", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "available", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "contributor", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "coverage", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "created", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "creator", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "date", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "description", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "extent", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "format", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "identifier", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "isPartOf", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "isReferencedBy", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "isReplacedBy", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "language", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "license", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "publisher", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "relation", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "replaces", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "rights", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "rightsHolder", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "source", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "spatial", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "subject", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "temporal", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "title", type = RestParameter.Type.STRING),
+          @RestParameter(description = "Metadata value", isRequired = false, name = "type", type = RestParameter.Type.STRING),
+	  @RestParameter(description = "The location of the media", isRequired = true, name = "url", type = RestParameter.Type.STRING)},
+ reponses = {
+          @RestResponse(description = "Returns augmented media package", responseCode = HttpServletResponse.SC_OK),
+          @RestResponse(description = "", responseCode = HttpServletResponse.SC_BAD_REQUEST),
+          @RestResponse(description = "", responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR) }, returnDescription = "")
+  public Response addMediaPackage(@Context HttpServletRequest request, @PathParam("wdID") String wdID, @FormParam("url") String url) {
+    MediaPackageElementFlavor flavor = null;
+    try {
+      MediaPackage mp = ingestService.createMediaPackage();
+      DublinCoreCatalog dcc = dublinCoreService.newInstance();
+      if (ServletFileUpload.isMultipartContent(request)) {
+        for (FileItemIterator iter = new ServletFileUpload().getItemIterator(request); iter.hasNext();) {
+          FileItemStream item = iter.next();
+          if (item.isFormField()) {
+            String fieldName = item.getFieldName();
+            if ("flavor".equals(fieldName)) {
+              flavor = MediaPackageElementFlavor.parseFlavor(Streams.asString(item.openStream()));
+	    } else {
+              // TODO not all form fields should be treated as dublin core fields
+              EName en = new EName(DublinCore.TERMS_NS_URI, fieldName);
+              dcc.add(en, Streams.asString(item.openStream()));
+            }
+          }
+        }
+        ingestService.addTrack(new URI(url), flavor, mp);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        dcc.toXml(out, true);
+        InputStream in = new ByteArrayInputStream(out.toByteArray());
+        ingestService.addCatalog(in, "dublincore.xml", MediaPackageElements.EPISODE, mp);
+        WorkflowInstance workflow;
+        if (wdID == null) {
+          workflow = ingestService.ingest(mp);
+        } else {
+          workflow = ingestService.ingest(mp, wdID);
+        }
+        return Response.ok(workflow).build();
+      }
+      return Response.serverError().status(Status.BAD_REQUEST).build();
+    } catch (Exception e) {
+      logger.warn(e.getMessage(), e);
+      return Response.serverError().status(Status.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  @POST
   @Path("addZippedMediaPackage")
   @Produces(MediaType.TEXT_XML)
   @RestQuery(name = "addZippedMediaPackage", description = "Create media package from a compressed file containing a manifest.xml document and all media tracks, metadata catalogs and attachments", restParameters = {
