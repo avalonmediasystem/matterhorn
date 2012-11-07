@@ -373,7 +373,7 @@ public class IngestRestService {
       return Response.serverError().status(Status.INTERNAL_SERVER_ERROR).build();
     }
   }
-/**
+
   @POST
   @Produces(MediaType.TEXT_XML)
   @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -491,16 +491,17 @@ public class IngestRestService {
       return Response.serverError().status(Status.INTERNAL_SERVER_ERROR).build();
     }
   }
-*/
+
 
   @POST
   @Produces(MediaType.TEXT_XML)
-  @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path("addMediaPackage/{wdID}")
-  @RestQuery(name = "addMediaPackage", description = "Create media package from a media tracks and optional Dublin Core metadata fields", pathParameters = { @RestParameter(description = "Workflow definition id", isRequired = true, name = "wdID", type = RestParameter.Type.STRING) }, restParameters = {
+  @RestQuery(name = "addMediaPackage", description = "Create media package from a media tracks and optional Dublin Core metadata fields", 
+      pathParameters = { @RestParameter(description = "Workflow definition id", isRequired = true, name = "wdID", type = RestParameter.Type.STRING) }, 
+      restParameters = {
           @RestParameter(description = "The kind of media track", isRequired = true, name = "flavor", type = RestParameter.Type.STRING),
           @RestParameter(description = "Metadata value", isRequired = true, name = "title", type = RestParameter.Type.STRING),
-	  @RestParameter(description = "The location of the media", isRequired = true, name = "url", type = RestParameter.Type.STRING)},
+	      @RestParameter(description = "The location of the media", isRequired = true, name = "url", type = RestParameter.Type.STRING)},
  reponses = {
           @RestResponse(description = "Returns augmented media package", responseCode = HttpServletResponse.SC_OK),
           @RestResponse(description = "", responseCode = HttpServletResponse.SC_BAD_REQUEST),
@@ -513,24 +514,24 @@ public class IngestRestService {
       DublinCoreCatalog dcc = dublinCoreService.newInstance();
       flavor = MediaPackageElementFlavor.parseFlavor(flavorStr);
 
-       EName en = new EName(DublinCore.TERMS_NS_URI, "title");
-       dcc.add(en, title);
+      EName en = new EName(DublinCore.TERMS_NS_URI, "title");
+      dcc.add(en, title);
 
-        logger.info("Inside addMediaPackage: " + flavor.toString());
-        logger.info("Inside addMediaPackage: " + url);
-        ingestService.addTrack(new URI(url), flavor, mp);
-        logger.info("Inside addMediaPackage - added Track");
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        dcc.toXml(out, true);
-        InputStream in = new ByteArrayInputStream(out.toByteArray());
-        ingestService.addCatalog(in, "dublincore.xml", MediaPackageElements.EPISODE, mp);
-        WorkflowInstance workflow;
-        if (wdID == null) {
-          workflow = ingestService.ingest(mp);
-        } else {
-          workflow = ingestService.ingest(mp, wdID);
-        }
-        return Response.ok(workflow).build();
+      logger.info("Inside addMediaPackage: " + flavor.toString());
+      logger.info("Inside addMediaPackage: " + url);
+      ingestService.addTrack(new URI(url), flavor, mp);
+      logger.info("Inside addMediaPackage - added Track");
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      dcc.toXml(out, true);
+      InputStream in = new ByteArrayInputStream(out.toByteArray());
+      ingestService.addCatalog(in, "dublincore.xml", MediaPackageElements.EPISODE, mp);
+      WorkflowInstance workflow;
+      if (wdID == null) {
+        workflow = ingestService.ingest(mp);
+      } else {
+        workflow = ingestService.ingest(mp, wdID);
+      }
+      return Response.ok(workflow).build();
     } catch (Exception e) {
       logger.info("Inside addMediaPackage - catching exception");
       logger.warn("Inside addMediaPackage: " + e.getMessage(), e);

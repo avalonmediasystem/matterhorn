@@ -922,6 +922,9 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
           throw new IOException(uri + " returns http " + httpStatusCode);
         }
         in = response.getEntity().getContent();
+      } else if (uri.toString().startsWith("file")) { // Optimizes read speed for local files
+        File file = new File(uri.toURL().getPath());
+        in = new FileInputStream(file.getAbsolutePath());
       } else {
         in = uri.toURL().openStream();
       }
