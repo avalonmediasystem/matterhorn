@@ -392,16 +392,9 @@ public class WorkspaceImpl implements Workspace {
   @Override
   public URI put(String mediaPackageID, String mediaPackageElementID, String fileName, InputStream in)
           throws IOException {
-    String safeFileName = PathSupport.toSafeName(fileName);
     URI uri = wfr.getURI(mediaPackageID, mediaPackageElementID, fileName);
-
-    // Determine the target location in the workspace
-    File workspaceFile = null;
-    FileOutputStream out = null;
-    synchronized (wsRoot) {
-      workspaceFile = getWorkspaceFile(uri, true);
-      FileUtils.touch(workspaceFile);
-    }
+    File workspaceFile = getWorkspaceFile(uri, true);
+    FileOutputStream out = null;    
 
     // Try hard linking first and fall back to tee-ing to both the working file repository and the workspace
     if (linkingEnabled) {
@@ -410,7 +403,7 @@ public class WorkspaceImpl implements Workspace {
       wfr.put(mediaPackageID, mediaPackageElementID, fileName, in);
       File workingFileRepoDirectory = new File(PathSupport.concat(new String[] { wfrRoot,
               WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX, mediaPackageID, mediaPackageElementID }));
-      File workingFileRepoCopy = new File(workingFileRepoDirectory, safeFileName);
+      File workingFileRepoCopy = new File(workingFileRepoDirectory, FilenameUtils.getName(uri.toString()));
       FileSupport.link(workingFileRepoCopy, workspaceFile, true);
     } else {
       InputStream tee = null;
@@ -423,6 +416,29 @@ public class WorkspaceImpl implements Workspace {
         IOUtils.closeQuietly(out);
       }
     }
+
+    return uri;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.workspace.api.Workspace#put(java.lang.String, java.lang.String, java.lang.String,
+   *      java.io.InputStream)
+   */
+  public URI put(String mediaPackageID, String mediaPackageElementID, String fileName, File inputFile)
+          throws IOException {
+    URI uri = wfr.getURI(mediaPackageID, mediaPackageElementID, fileName);
+    File workspaceFile = getWorkspaceFile(uri, true);
+
+    File workingFileRepoDirectory = new File(PathSupport.concat(new String[] { wfrRoot,
+	WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX, mediaPackageID, mediaPackageElementID }));
+    File workingFileRepoCopy = new File(workingFileRepoDirectory, workspaceFile.getName());
+    if (!workingFileRepoDirectory.exists()) {
+	FileUtils.forceMkdir(workingFileRepoDirectory);
+    }
+    FileSupport.link(inputFile, workingFileRepoCopy, true);
+    FileSupport.link(workingFileRepoCopy, workspaceFile, true);
 
     return uri;
   }

@@ -67,6 +67,21 @@ public interface Workspace extends StorageUsage {
           IllegalArgumentException;
 
   /**
+   * Store the data stream under the given media package and element IDs, specifying a filename.
+   * 
+   * @param mediaPackageID
+   * @param mediaPackageElementID
+   * @param fileName
+   * @param inputFile
+   * @throws IOException
+   *           if writing the data to the workspace fails
+   * @throws IllegalArgumentException
+   *           if a URI cannot be created using the arguments provided
+   */
+  URI put(String mediaPackageID, String mediaPackageElementID, String fileName, File inputFile) throws IOException,
+          IllegalArgumentException;
+
+  /**
    * Stores the data stream in the given collection, overwriting any data with the same collection id and file name.
    * 
    * @param collectionId
