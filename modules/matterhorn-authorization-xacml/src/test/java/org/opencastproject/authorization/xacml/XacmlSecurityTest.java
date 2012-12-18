@@ -196,6 +196,12 @@ public class XacmlSecurityTest {
       return file.toURI();
     }
 
+    @Override
+    public URI put(String mediaPackageID, String mediaPackageElementID, String fileName, File inputFile)
+            throws IOException {
+      return file.toURI();
+    }
+
     /**
      * {@inheritDoc}
      * 

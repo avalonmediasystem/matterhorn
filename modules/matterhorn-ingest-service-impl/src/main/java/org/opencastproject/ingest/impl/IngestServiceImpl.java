@@ -844,7 +844,7 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
         File file = new File(uri.toURL().getPath());
         in = new FileInputStream(file.getAbsolutePath());
       } else {
-        in = uri.toURL().openStream();
+	return workspace.put(mp.getIdentifier().compact(), elementId, FilenameUtils.getName(uri.toURL().toString()), new File(uri));
       }
       return addContentToRepo(mp, elementId, FilenameUtils.getName(uri.toURL().toString()), in);
     } finally {
