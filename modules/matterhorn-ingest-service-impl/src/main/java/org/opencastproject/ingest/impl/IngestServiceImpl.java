@@ -46,7 +46,6 @@ import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.PathSupport;
 import org.opencastproject.util.ZipUtil;
-//import org.opencastproject.util.jmx.JmxUtil;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowException;
@@ -71,7 +70,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -840,11 +838,10 @@ public class IngestServiceImpl extends AbstractJobProducer implements IngestServ
           throw new IOException(uri + " returns http " + httpStatusCode);
         }
         in = response.getEntity().getContent();
-      } else if (uri.toString().startsWith("file")) { // Optimizes read speed for local files
-        File file = new File(uri.toURL().getPath());
-        in = new FileInputStream(file.getAbsolutePath());
+      } else if (uri.toString().startsWith("file://")) { // Optimizes read speed for local files
+        return workspace.put(mp.getIdentifier().compact(), elementId, FilenameUtils.getName(uri.toURL().toString()), new File(uri));
       } else {
-	return workspace.put(mp.getIdentifier().compact(), elementId, FilenameUtils.getName(uri.toURL().toString()), new File(uri));
+        in = uri.toURL().openStream();
       }
       return addContentToRepo(mp, elementId, FilenameUtils.getName(uri.toURL().toString()), in);
     } finally {
