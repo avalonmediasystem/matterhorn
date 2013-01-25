@@ -18,6 +18,7 @@ package edu.indiana.dlib.avalon;
 import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.workflow.api.WorkflowService;
 
+import org.apache.commons.lang.StringUtils;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,10 @@ public class HydrantWorkflowNotifier {
   /** The listener that pings Hydrant when an operation changed **/
   private HydrantWorkflowListener listener;
 
+  /** The configuration key for the Avalon pingback URL **/
+  private static final String urlConfigKey = "org.avalonmediasystem.avalon.url";
+
   public HydrantWorkflowNotifier() {
-    listener = new HydrantWorkflowListener();
   }
 
   /**
@@ -48,6 +51,18 @@ public class HydrantWorkflowNotifier {
    */
   protected void activate(ComponentContext cc) {
     logger.info("HydrantWorkflowNotifier started.");
+
+    String hydrantUrl = null;
+    // Get the configured hydrant server URL
+    if (cc != null) {
+      hydrantUrl = StringUtils.trimToNull(cc.getBundleContext().getProperty(urlConfigKey));
+      if (hydrantUrl == null)
+        logger.warn("Avalon pingback url was not set (" + urlConfigKey + ")");
+      else
+        logger.info("Avalon pingback url is {}", hydrantUrl);
+    }
+
+    listener = new HydrantWorkflowListener(hydrantUrl);
     workflowService.addWorkflowListener(listener);
   }
 
