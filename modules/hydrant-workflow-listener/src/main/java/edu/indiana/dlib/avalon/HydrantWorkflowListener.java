@@ -26,6 +26,8 @@ import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 
+import org.apache.commons.lang.StringUtils;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +39,22 @@ public class HydrantWorkflowListener implements WorkflowListener {
   /** The logger */
   private static final Logger logger = LoggerFactory.getLogger(HydrantWorkflowListener.class);
 
-  private static String hydrantUrl = "http://localhost:3000/";
+  private static final String urlConfigKey = "org.avalonmediasystem.avalon.url";
+
+  protected String hydrantUrl = null;
 
   public HydrantWorkflowListener() {
+  }
+
+  protected void activate(ComponentContext cc) {
+      // Get the configured hydrant server URL
+      if (cc != null) {
+        hydrantUrl = StringUtils.trimToNull(cc.getBundleContext().getProperty(urlConfigKey));
+        if (hydrantUrl == null)
+          logger.warn("Avalon pingback url was not set (" + urlConfigKey + ")");
+        else
+          logger.info("Avalon pingback url is {}", hydrantUrl);
+      }
   }
 
   /**
