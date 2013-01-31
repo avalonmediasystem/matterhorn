@@ -46,6 +46,7 @@ import org.opencastproject.serviceregistry.api.ServiceRegistry;
 import org.opencastproject.serviceregistry.api.ServiceRegistryException;
 import org.opencastproject.util.NotFoundException;
 import org.opencastproject.util.ZipUtil;
+import org.opencastproject.util.jmx.JmxUtil;
 import org.opencastproject.workflow.api.WorkflowDatabaseException;
 import org.opencastproject.workflow.api.WorkflowDefinition;
 import org.opencastproject.workflow.api.WorkflowException;
