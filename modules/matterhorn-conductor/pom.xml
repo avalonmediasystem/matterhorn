@@ -199,6 +199,7 @@
               OSGI-INF/operations/compose.xml,
               OSGI-INF/operations/coverart.xml,
               OSGI-INF/operations/distribute-acl.xml,
+              OSGI-INF/operations/distribute-hls.xml,
               OSGI-INF/operations/distribute-download.xml,
               OSGI-INF/operations/distribute-streaming.xml,
               OSGI-INF/operations/distribute-youtube.xml,
