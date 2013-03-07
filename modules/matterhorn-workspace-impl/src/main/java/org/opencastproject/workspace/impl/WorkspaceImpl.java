@@ -400,11 +400,13 @@ public class WorkspaceImpl implements Workspace {
     if (linkingEnabled) {
       // The WFR stores an md5 hash along with the file, so we need to use the API and not try to write (link) the file
       // there ourselves
+      logger.debug("AVALON: About to link file");
       wfr.put(mediaPackageID, mediaPackageElementID, fileName, in);
       File workingFileRepoDirectory = new File(PathSupport.concat(new String[] { wfrRoot,
               WorkingFileRepository.MEDIAPACKAGE_PATH_PREFIX, mediaPackageID, mediaPackageElementID }));
       File workingFileRepoCopy = new File(workingFileRepoDirectory, FilenameUtils.getName(uri.toString()));
       FileSupport.link(workingFileRepoCopy, workspaceFile, true);
+      logger.debug("AVALON: Linked file: " + workingFileRepoCopy.getAbsolutePath());
     } else {
       InputStream tee = null;
       try {
@@ -439,6 +441,14 @@ public class WorkspaceImpl implements Workspace {
     }
     FileSupport.link(inputFile, workingFileRepoCopy, true);
     FileSupport.link(workingFileRepoCopy, workspaceFile, true);
+
+    // The md5 file is needed so clean-up works properly
+    File md5 = new File(workingFileRepoDirectory, workspaceFile.getName() + ".md5");
+    if (md5.createNewFile()) {
+      logger.debug("AVALON: Created .md5 file for linked file: " + md5.getAbsolutePath());
+    } else {
+      logger.warn("AVALON: Failed to create .md5 file for linked file: " + md5.getAbsolutePath());
+    }
 
     return uri;
   }
