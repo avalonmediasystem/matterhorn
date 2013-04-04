@@ -2,6 +2,7 @@ package org.opencast.engage.videodisplay.control.util
 {
 	import bridge.ExternalFunction;
 
+  import flash.events.Event;
 	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
 	import flash.utils.Timer;
@@ -21,6 +22,7 @@ package org.opencast.engage.videodisplay.control.util
 	import org.osmf.events.BufferEvent;
 	import org.osmf.events.LoadEvent;
 	import org.osmf.events.MediaErrorEvent;
+	import org.osmf.events.MediaPlayerCapabilityChangeEvent;
 	import org.osmf.events.MediaPlayerStateChangeEvent;
 	import org.osmf.events.TimeEvent;
 	import org.osmf.layout.HorizontalAlign;
@@ -29,6 +31,7 @@ package org.opencast.engage.videodisplay.control.util
 	import org.osmf.layout.VerticalAlign;
 	import org.osmf.media.MediaElement;
 	import org.osmf.media.MediaPlayer;
+	import org.osmf.traits.MediaTraitType;
 	import org.osmf.metadata.MetadataWatcher;
 	import org.swizframework.Swiz;
 
@@ -75,6 +78,19 @@ package org.opencast.engage.videodisplay.control.util
 				mediaPlayerSingle.addEventListener(BufferEvent.BUFFERING_CHANGE, onBufferingChange);
 				mediaPlayerSingle.addEventListener(BufferEvent.BUFFER_TIME_CHANGE, onBufferTimeChange);
 				mediaPlayerSingle.addEventListener(TimeEvent.COMPLETE, _videocomplete, false, 0, true);
+
+        //Pass these events along to the Javascript UI - Beware Hacky!!
+        mediaPlayerSingle.addEventListener(MediaPlayerStateChangeEvent.MEDIA_PLAYER_STATE_CHANGE, triggerJSEvent);
+        mediaPlayerSingle.addEventListener(TimeEvent.DURATION_CHANGE, triggerJSEvent);
+        mediaPlayerSingle.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, triggerJSEvent);
+        mediaPlayerSingle.addEventListener(MediaErrorEvent.MEDIA_ERROR, triggerJSEvent);
+        mediaPlayerSingle.addEventListener(BufferEvent.BUFFERING_CHANGE, triggerJSEvent);
+        mediaPlayerSingle.addEventListener(BufferEvent.BUFFER_TIME_CHANGE, triggerJSEvent);
+        mediaPlayerSingle.addEventListener(TimeEvent.COMPLETE, triggerJSEvent);
+
+        mediaPlayerSingle.addEventListener(MediaPlayerCapabilityChangeEvent.CAN_SEEK_CHANGE, triggerJSEvent);
+        mediaPlayerSingle.addEventListener(MediaPlayerCapabilityChangeEvent.CAN_PLAY_CHANGE, triggerJSEvent);
+        mediaPlayerSingle.addEventListener(MediaErrorEvent.MEDIA_ERROR, triggerJSEvent);
 			}
 			else if (videoState == VideoState.MULTI)
 			{
@@ -914,6 +930,15 @@ package org.opencast.engage.videodisplay.control.util
 		 */
 		private function onStateChange(event:MediaPlayerStateChangeEvent):void
 		{
+      if (event.state == PlayerState.BUFFERING && model.currentPlayhead >= model.currentDuration - 2)
+      {
+        mediaPlayerSingle.media.getTrait(MediaTraitType.BUFFER).dispose();
+        mediaPlayerSingle.stop();
+  			mediaPlayerSingle.dispatchEvent(new Event(TimeEvent.COMPLETE));
+        var paused:Event = new MediaPlayerStateChangeEvent(MediaPlayerStateChangeEvent.MEDIA_PLAYER_STATE_CHANGE, false, false, PlayerState.PAUSED);
+        var ready:Event = new MediaPlayerStateChangeEvent(MediaPlayerStateChangeEvent.MEDIA_PLAYER_STATE_CHANGE, false, false, PlayerState.READY);
+      }
+ 
 			if (event.state == PlayerState.LOADING)
 			{
 				model.loader=true;
@@ -1595,6 +1620,11 @@ package org.opencast.engage.videodisplay.control.util
 				model.soundState=SoundState.VOLUMEMUTE;
 			}
 		}
+
+    private function triggerJSEvent(event:Event):void
+    {
+      ExternalInterface.call("$.event.trigger", event.type);
+    }
 	}
 }
 
