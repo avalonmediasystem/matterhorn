@@ -1,3 +1,8 @@
+/*
+ * This file has been modified from the original distribution. 
+ * Modifications Copyright 2013 The Trustees of Indiana University and Northwestern University.
+ */
+
 package org.opencast.engage.videodisplay.control.util
 {
 	import bridge.ExternalFunction;
@@ -1627,4 +1632,3 @@ package org.opencast.engage.videodisplay.control.util
     }
 	}
 }
-
